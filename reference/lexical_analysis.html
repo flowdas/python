@@ -1,0 +1,711 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2. 구문 분석 &#8212; Python 3.6.4 documentation</title>
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.6.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.6.4 documentation에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="3. 데이터 모델" href="datamodel.html" />
+    <link rel="prev" title="1. 개요" href="introduction.html" />
+    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
+    <link rel="canonical" href="https://docs.python.org/3/reference/lexical_analysis.html" />
+    
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <script type="text/javascript" src="../_static/switchers.js"></script>
+    
+    
+ 
+
+  </head>
+  <body>  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>탐색</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="일반 색인"
+             accesskey="I">색인</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 모듈 목록"
+             >모듈</a> |</li>
+        <li class="right" >
+          <a href="datamodel.html" title="3. 데이터 모델"
+             accesskey="N">다음</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="1. 개요"
+             accesskey="P">이전</a> |</li>
+        <li><img src="../_static/py.png" alt=""
+                 style="vertical-align: middle; margin-top: -1px"/></li>
+        <li><a href="https://www.python.org/">Python</a> &#187;</li>
+        <li>
+          <a href="../index.html">도큐멘테이션 </a> &#187;
+        </li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">파이썬 언어 레퍼런스</a> &#187;</li>
+    <li class="right">
+        
+
+    <div class="inline-search" style="display: none" role="search">
+        <form class="inline-search" action="../search.html" method="get">
+          <input placeholder="빠른 검색" type="text" name="q" />
+          <input type="submit" value="Go" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+    </div>
+    <script type="text/javascript">$('.inline-search').show(0);</script>
+         |
+    </li>
+
+      </ul>
+    </div>    
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lexical-analysis">
+<span id="lexical"></span><h1>2. 구문 분석<a class="headerlink" href="#lexical-analysis" title="제목 주소">¶</a></h1>
+<p id="index-0">파이썬 프로그램은 <em>파서(parser)</em> 에 의해 읽힌다. 파서의 입력은 <em>구문 분석기(lexical analyzer)</em> 가 만들어내는 <em>토큰(token)</em> 들의 스트림이다. 이 장에서는 구문 분석기가 어떻게 파일을 토큰들로 분해하는지 설명한다.</p>
+<p>파이썬은 프로그램 텍스트를 유니코드 코드값으로 읽는다; 소스 파일의 인코딩은 인코딩 선언을 통해 지정될 수 있고, 기본값은 UTF-8이다. 자세한 내용은 <span class="target" id="index-30"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3120"><strong>PEP 3120</strong></a> 에 나온다. 소스 파일을 디코딩할 수 없을 때는 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal"><span class="pre">SyntaxError</span></code></a> 가 발생한다.</p>
+<div class="section" id="line-structure">
+<span id="id1"></span><h2>2.1. 줄 구조(Line structure)<a class="headerlink" href="#line-structure" title="제목 주소">¶</a></h2>
+<p id="index-2">파이썬 프로그램은 여러 개의 <em>논리적인 줄(logical lines)</em> 들로 나뉜다.</p>
+<div class="section" id="logical-lines">
+<span id="id2"></span><h3>2.1.1. 논리적인 줄<a class="headerlink" href="#logical-lines" title="제목 주소">¶</a></h3>
+<p id="index-3">논리적인 줄의 끝은 NEWLINE 토큰으로 표현된다. 문법이 허락하지 않는 이상 (예를 들어 복합문에서 문장들 사이) 문장은 논리적인 줄 간의 경계를 가로지를 수 없다. 논리적인 줄은 명시적이거나 묵시적인 <em>줄 결합(line joining)</em> 규칙에 따라 하나 이상의 <em>물리적인 줄(physical lines)</em> 들로 구성된다.</p>
+</div>
+<div class="section" id="physical-lines">
+<span id="id3"></span><h3>2.1.2. 물리적인 줄<a class="headerlink" href="#physical-lines" title="제목 주소">¶</a></h3>
+<p>물리적인 줄은 줄의 끝을 나타내는 시퀀스로 끝나는 문자들의 시퀀스다. 소스 파일에는 플랫폼들의 표준 줄 종료 시퀀스들이 모두 사용될 수 있다 - ASCII LF (개행문자)를 사용하는 유닉스 형, ASCII 시퀀스 CR LF(캐리지 리턴 다음에 오는 개행 문자)를 사용하는 윈도우 형, ASCII CR(캐리지 리턴)을 사용하는 예전의 매킨토시 형. 이 형태들은 플랫폼의 종류와 관계없이 동등하게 사용할 수 있다.</p>
+<p>파이썬을 내장할 때는, 소스 코드 문자열은 반드시 줄 종료 문자에 표준 C 관행(ASCII LF를 표현하는 <code class="docutils literal"><span class="pre">\n</span></code> 문자로 줄이 종료된다)을 적용해서 파이썬 API로 전달되어야 한다.</p>
+</div>
+<div class="section" id="comments">
+<span id="id4"></span><h3>2.1.3. 주석<a class="headerlink" href="#comments" title="제목 주소">¶</a></h3>
+<p id="index-4">주석은 문자열 리터럴에 포함되지 않는 해시 문자(<code class="docutils literal"><span class="pre">#</span></code>)로 시작하고 물리적인 줄의 끝에서 끝난다. 묵시적인 줄 결합 규칙이 유효하지 않은 이상, 주석은 논리적인 줄을 종료시킨다. 주석은 문법이 무시한다; 토큰으로 만들어지지 않는다.</p>
+</div>
+<div class="section" id="encoding-declarations">
+<span id="encodings"></span><h3>2.1.4. 인코딩 선언<a class="headerlink" href="#encoding-declarations" title="제목 주소">¶</a></h3>
+<p id="index-5">파이썬 스크립트의 첫 번 째나 두 번째 줄에 있는 주석이 정규식 <code class="docutils literal"><span class="pre">coding[=:]\s*([-\w.]+)</span></code> 과 매치되면, 이 주석은 인코딩 선언으로 처리된다. 이 정규식의 첫 번째 그룹은 소스 코드 파일의 인코딩 이름을 지정한다. 인코딩 선언은 줄 전체에 홀로 나와야 한다. 만약 두 번째 줄이라면, 첫 번째 줄 역시 주석만 있어야 한다. 인코딩 선언의 권장 형태는 두 개다. 하나는</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: &lt;encoding-name&gt; -*-</span>
+</pre></div>
+</div>
+<p>인데 GNU Emacs에서도 인식된다. 다른 하나는</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="c1"># vim:fileencoding=&lt;encoding-name&gt;</span>
+</pre></div>
+</div>
+<p>인데 Bram Moolenaar 의 VIM에서 인식된다.</p>
+<p>인코딩 선언이 발견되지 않으면 기본 인코딩은 UTF-8이다. 여기에 더해, 파일의 처음이 UTF-8 BOM (<code class="docutils literal"><span class="pre">b'\xef\xbb\xbf'</span></code>)이면 파일 인코딩이 UTF-8으로 선언된 것으로 본다. (이 방식은 마이크로소프트의 <strong class="program">notepad</strong> 에서 지원된다.)</p>
+<p>인코딩이 선언되면, 인코딩 이름은 파이썬이 인식할 수 있어야 한다. 인코딩은 문자열 리터럴, 주석, 식별자를 포함한 모든 구문 분석에서 모두 사용된다.</p>
+</div>
+<div class="section" id="explicit-line-joining">
+<span id="explicit-joining"></span><h3>2.1.5. 명시적인 줄 결합<a class="headerlink" href="#explicit-line-joining" title="제목 주소">¶</a></h3>
+<p id="index-6">둘 이상의 물리적인 줄은 역 슬래시 문자(<code class="docutils literal"><span class="pre">\</span></code>)를 사용해서 논리적인 줄로 결합할 수 있다: 물리적인 줄이 문자열 리터럴이나 주석의 일부가 아닌 역 슬래시 문자로 끝나면, 역 슬래시와 뒤따르는 개행 문자가 제거된 채로, 현재 만들어지고 있는 논리적인 줄에 합쳐진다. 예를 들어:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="mi">1900</span> <span class="o">&lt;</span> <span class="n">year</span> <span class="o">&lt;</span> <span class="mi">2100</span> <span class="ow">and</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">month</span> <span class="o">&lt;=</span> <span class="mi">12</span> \
+   <span class="ow">and</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">day</span> <span class="o">&lt;=</span> <span class="mi">31</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">hour</span> <span class="o">&lt;</span> <span class="mi">24</span> \
+   <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">minute</span> <span class="o">&lt;</span> <span class="mi">60</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">second</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">:</span>   <span class="c1"># Looks like a valid date</span>
+        <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>역 슬래시로 끝나는 줄은 주석이 포함될 수 없다. 역 슬래시는 주석을 결합하지 못한다. 역 슬래시는 문자열 리터럴을 제외한 어떤 토큰도 결합하지 못한다 (즉, 문자열 리터럴 이외의 어떤 토큰도 역 슬래시를 사용해서 두 줄에 나누어 기록할 수 없다.). 문자열 리터럴 밖에 있는 역 슬래시가 앞에서 언급한 장소 이외의 곳에 등장하는 것은 문법에 어긋난다.</p>
+</div>
+<div class="section" id="implicit-line-joining">
+<span id="implicit-joining"></span><h3>2.1.6. 묵시적인 줄 결합<a class="headerlink" href="#implicit-line-joining" title="제목 주소">¶</a></h3>
+<p>괄호(<code class="docutils literal"><span class="pre">()</span></code>), 꺾쇠괄호(<code class="docutils literal"><span class="pre">[]</span></code>), 중괄호(<code class="docutils literal"><span class="pre">{}</span></code>)가 사용되는 표현은 역 슬래시 없이도 여러 개의 물리적인 줄로 나눌 수 있다. 예를 들어:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">month_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Januari&#39;</span><span class="p">,</span> <span class="s1">&#39;Februari&#39;</span><span class="p">,</span> <span class="s1">&#39;Maart&#39;</span><span class="p">,</span>      <span class="c1"># These are the</span>
+               <span class="s1">&#39;April&#39;</span><span class="p">,</span>   <span class="s1">&#39;Mei&#39;</span><span class="p">,</span>      <span class="s1">&#39;Juni&#39;</span><span class="p">,</span>       <span class="c1"># Dutch names</span>
+               <span class="s1">&#39;Juli&#39;</span><span class="p">,</span>    <span class="s1">&#39;Augustus&#39;</span><span class="p">,</span> <span class="s1">&#39;September&#39;</span><span class="p">,</span>  <span class="c1"># for the months</span>
+               <span class="s1">&#39;Oktober&#39;</span><span class="p">,</span> <span class="s1">&#39;November&#39;</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">]</span>   <span class="c1"># of the year</span>
+</pre></div>
+</div>
+<p>묵시적으로 이어지는 줄들은 주석을 포함할 수 있다. 이어지는 줄들의 들여쓰기는 중요하지 않다. 중간에 빈 줄이 들어가도 된다. 묵시적으로 줄 결합하는 줄 들 간에는 NEWLINE 토큰이 만들어지지 않는다. 묵시적으로 이어지는 줄들은 삼중 따옴표 된 문자열들에서도 등장할 수 있는데 (아래를 보라), 이 경우는 주석이 포함될 수 없다.</p>
+</div>
+<div class="section" id="blank-lines">
+<span id="id5"></span><h3>2.1.7. 빈 줄<a class="headerlink" href="#blank-lines" title="제목 주소">¶</a></h3>
+<p id="index-7">스페이스, 탭, 폼 피드(formfeed) 와 주석만으로 구성된 논리적인 줄은 무시된다. (즉 NEWLINE 토큰이 만들어지지 않는다.) 대화형으로 문장이 입력되는 도중에는 빈 줄의 처리가 REPL 구현에 따라 달라질 수 있다. 표준 대화형 인터프리터에서는, 완전히 빈 줄(즉 공백이나 주석조차 없는 것)은 다중 행 문장을 종료시킨다.</p>
+</div>
+<div class="section" id="indentation">
+<span id="id6"></span><h3>2.1.8. 들여쓰기<a class="headerlink" href="#indentation" title="제목 주소">¶</a></h3>
+<p id="index-8">논리적인 줄의 제일 앞에 오는 공백(스페이스와 탭)은 줄의 들여쓰기 수준을 계산하는 데 사용되고, 이는 다시 문장들의 묶음을 결정하는 데 사용되게 된다.</p>
+<p>탭은 (왼쪽에서 오른쪽으로) 1~8개의 스페이스로 변환되는데, 치환된 후의 총 스페이스 문자 수가 8의 배수가 되도록 맞춘다. (유닉스에서 사용되는 규칙에 맞추려는 것이다.) 첫 번째 비 공백 문자 앞에 나오는 공백의 총수가 줄의 들여쓰기를 결정한다. 들여쓰기는 역 슬래시를 사용해서 여러 개의 물리적인 줄로 나눠질 수 없다; 첫 번째 역 슬래시 이전의 공백이 들여쓰기를 결정한다.</p>
+<p>소스 파일이 탭과 스페이스를 섞어 쓰는 경우, 탭이 몇 개의 스페이스에 해당하는지에 따라 다르게 해석될 수 있으면 <a class="reference internal" href="../library/exceptions.html#TabError" title="TabError"><code class="xref py py-exc docutils literal"><span class="pre">TabError</span></code></a> 를 일으킨다.</p>
+<p><strong>크로스-플랫폼 호환성 유의 사항:</strong> UNIX 이외의 플랫폼에서 편집기들이 동작하는 방식 때문에, 하나의 파일 내에서 들여쓰기를 위해 탭과 스페이스를 섞어 쓰는 것은 현명한 선택이 아니다. 다른 플랫폼들에서는 최대 들여쓰기 수준에 제한이 있을 수도 있다는 점도 주의해야 한다.</p>
+<p>폼 피드 문자는 줄의 처음에 나올 수 있다; 앞서 설명한 들여쓰기 수준 계산에서는 무시된다. 페이지 넘김 문자 앞에 공백이나 탭이 있는 경우는 정의되지 않은 효과를 줄 수 있다 (가령, 스페이스 수가 0으로 초기화될 수 있다).</p>
+<p id="index-9">연속된 줄의 들여쓰기 수준은, 스택을 사용해서, 다음과 같은 방법으로 INDENT와 DEDENT 토큰을 만드는 데 사용된다.</p>
+<p>파일의 첫 줄을 읽기 전에 0하나를 스택에 넣는다(push); 이 값은 다시 꺼내는(pop) 일이 없다. 스택에 넣는 값은 항상 스택의 아래에서 위로 올라갈 때 단조 증가한다. 각 논리적인 줄의 처음에서 줄의 들여쓰기 수준이 스택의 가장 위에 있는 값과 비교된다. 같다면 아무런 일도 일어나지 않는다. 더 크다면 그 값을 스택에 넣고 하나의 INDENT 토큰을 만든다. 더 작다면 이 값은 스택에 있는 값 중 하나여만 한다. 이 값보다 큰 모든 스택의 값들을 꺼내고(pop), 꺼낸 횟수만큼의 DEDENT 토큰을 만든다. 파일의 끝에서, 스택에 남아있는 0보다 큰 값의 개수만큼 DEDENT 토큰을 만든다.</p>
+<p>여기에 (혼란스럽다 할지라도) 올바르게 들여쓰기 된 파이썬 코드 조각이 있다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">perm</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+        <span class="c1"># Compute the list of all permutations of l</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                  <span class="k">return</span> <span class="p">[</span><span class="n">l</span><span class="p">]</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)):</span>
+             <span class="n">s</span> <span class="o">=</span> <span class="n">l</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+             <span class="n">p</span> <span class="o">=</span> <span class="n">perm</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+             <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+              <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span>
+</pre></div>
+</div>
+<p>다음 예는 여러 가지 들여쓰기 에러를 보여준다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span> <span class="k">def</span> <span class="nf">perm</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>                       <span class="c1"># error: first line indented</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)):</span>             <span class="c1"># error: not indented</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">l</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">perm</span><span class="p">(</span><span class="n">l</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span>   <span class="c1"># error: unexpected indent</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">r</span>                <span class="c1"># error: inconsistent dedent</span>
+</pre></div>
+</div>
+<p>(사실, 처음 세 개의 에러는 파서가 감지한다. 단지 마지막 에러만 구문 분석기가 감지한다. --- <code class="docutils literal"><span class="pre">return</span> <span class="pre">r</span></code> 의 들여쓰기가 스택에 있는 값과 일치하지 않는다.)</p>
+</div>
+<div class="section" id="whitespace-between-tokens">
+<span id="whitespace"></span><h3>2.1.9. 토큰 사이의 공백<a class="headerlink" href="#whitespace-between-tokens" title="제목 주소">¶</a></h3>
+<p>논리적인 줄의 처음과 문자열 리터럴을 제외하고, 공백 문자인 스페이스, 탭, 폼 피드는 토큰을 분리하기 위해 섞어 쓸 수 있다. 두 토큰을 붙여 쓸 때 다른 토큰으로 해석될 수 있는 경우만 토큰 사이에 공백이 필요하다. (예를 들어, ab 는 하나의 토큰이지만, a b 는 두 개의 토큰이다.)</p>
+</div>
+</div>
+<div class="section" id="other-tokens">
+<span id="id7"></span><h2>2.2. 다른 토큰들<a class="headerlink" href="#other-tokens" title="제목 주소">¶</a></h2>
+<p>NEWLINE, INDENT, DEDENT 와는 별도로, 다음과 같은 유형의 토큰들이 존재한다: <em>식별자(identifier)</em>, <em>키워드(keyword)</em>, <em>리터럴(literal)</em>, <em>연산자(operator)</em>, <em>구분자(delimiter)</em>. (앞에서 살펴본 줄 종료 이외의) 공백 문자들은 토큰이 아니지만, 토큰을 분리하는 역할을 담당한다. 모호할 경우, 왼쪽에서 오른쪽으로 읽을 때, 하나의 토큰은 올바르고 가능한 한 최대 길이의 문자열로 구성되는 것을 선호한다.</p>
+</div>
+<div class="section" id="identifiers">
+<span id="identifiers-and-keywords"></span><h2>2.3. 식별자와 키워드<a class="headerlink" href="#identifiers" title="제목 주소">¶</a></h2>
+<p id="index-10">식별자 (<em>이름(name)</em> 이라고도 한다) 은 다음과 같은 구문 정의로 기술된다.</p>
+<p>파이썬에서 식별자의 문법은 유니코드 표준 부속서 UAX-31 에 기반을 두는데, 여기에 덧붙이거나 바꾼 내용은 아래에서 정의한다. 좀 더 상세한 내용은 <span class="target" id="index-31"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3131"><strong>PEP 3131</strong></a> 에서 찾을 수 있다.</p>
+<p>ASCII 범위 (U+0001..U+007F) 내에서, 올바른 식별자 문자는 파이썬 2.x 와 같다: <code class="docutils literal"><span class="pre">A</span></code> 에서 <code class="docutils literal"><span class="pre">Z</span></code> 범위의 대문자와 소문자, 밑줄 <code class="docutils literal"><span class="pre">_</span></code>, 첫 문자를 제외하고, 숫자 <code class="docutils literal"><span class="pre">0</span></code> 에서 <code class="docutils literal"><span class="pre">9</span></code>.</p>
+<p>파이썬 3.0은 ASCII 범위 밖의 문자들을 도입한다 (<span class="target" id="index-32"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3131"><strong>PEP 3131</strong></a> 참조). 이 문자들의 경우, <a class="reference internal" href="../library/unicodedata.html#module-unicodedata" title="unicodedata: Access the Unicode Database."><code class="xref py py-mod docutils literal"><span class="pre">unicodedata</span></code></a> 모듈에 포함된 버전의 유니코드 문자 데이터베이스에 따라 분류된다.</p>
+<p>식별자는 길이에 제한이 없고, 케이스(case)는 구분된다.</p>
+<pre>
+<strong id="grammar-token-identifier">identifier  </strong> ::=  <a class="reference internal" href="#grammar-token-xid_start"><code class="xref docutils literal"><span class="pre">xid_start</span></code></a> <a class="reference internal" href="#grammar-token-xid_continue"><code class="xref docutils literal"><span class="pre">xid_continue</span></code></a>*
+<strong id="grammar-token-id_start">id_start    </strong> ::=  &lt;all characters in general categories Lu, Ll, Lt, Lm, Lo, Nl, the underscore, and characters with the Other_ID_Start property&gt;
+<strong id="grammar-token-id_continue">id_continue </strong> ::=  &lt;all characters in <a class="reference internal" href="#grammar-token-id_start"><code class="xref docutils literal"><span class="pre">id_start</span></code></a>, plus characters in the categories Mn, Mc, Nd, Pc and others with the Other_ID_Continue property&gt;
+<strong id="grammar-token-xid_start">xid_start   </strong> ::=  &lt;all characters in <a class="reference internal" href="#grammar-token-id_start"><code class="xref docutils literal"><span class="pre">id_start</span></code></a> whose NFKC normalization is in &quot;id_start xid_continue*&quot;&gt;
+<strong id="grammar-token-xid_continue">xid_continue</strong> ::=  &lt;all characters in <a class="reference internal" href="#grammar-token-id_continue"><code class="xref docutils literal"><span class="pre">id_continue</span></code></a> whose NFKC normalization is in &quot;id_continue*&quot;&gt;
+</pre>
+<p>위에서 언급한 유니코드 카테고리 코드들의 의미는 이렇다:</p>
+<ul class="simple">
+<li><em>Lu</em> - uppercase letters</li>
+<li><em>Ll</em> - lowercase letters</li>
+<li><em>Lt</em> - titlecase letters</li>
+<li><em>Lm</em> - modifier letters</li>
+<li><em>Lo</em> - other letters</li>
+<li><em>Nl</em> - letter numbers</li>
+<li><em>Mn</em> - nonspacing marks</li>
+<li><em>Mc</em> - spacing combining marks</li>
+<li><em>Nd</em> - decimal numbers</li>
+<li><em>Pc</em> - connector punctuations</li>
+<li><em>Other_ID_Start</em> - 하위 호환성 지원을 위해 <a class="reference external" href="http://www.unicode.org/Public/9.0.0/ucd/PropList.txt">PropList.txt</a> 에서 명시적으로 나열된 문자들</li>
+<li><em>Other_ID_Continue</em> - 마찬가지</li>
+</ul>
+<p>모든 식별자는 파서에 의해 NFKC 정규화 형식으로 변환되고, 식별자의 비교는 NFKC 에 기반을 둔다.</p>
+<p>유니코드 4.1의 올바른 식별자 문자들의 비규범적인 목록을 HTML 파일로 정리한 문서를 <a class="reference external" href="https://www.dcl.hpi.uni-potsdam.de/home/loewis/table-3131.html">https://www.dcl.hpi.uni-potsdam.de/home/loewis/table-3131.html</a> 에서 열람할 수 있다.</p>
+<div class="section" id="keywords">
+<span id="id8"></span><h3>2.3.1. 키워드<a class="headerlink" href="#keywords" title="제목 주소">¶</a></h3>
+<p id="index-13">다음 식별자들은 예약어, 또는 언어의 키워드, 로 사용되고, 일반적인 식별자로 사용될 수 없다. 여기 쓰여 있는 것과 정확히 같게 사용되어야 한다:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>False      class      finally    is         return
+None       continue   for        lambda     try
+True       def        from       nonlocal   while
+and        del        global     not        with
+as         elif       if         or         yield
+assert     else       import     pass
+break      except     in         raise
+</pre></div>
+</div>
+</div>
+<div class="section" id="reserved-classes-of-identifiers">
+<span id="id-classes"></span><h3>2.3.2. 식별자의 예약 영역<a class="headerlink" href="#reserved-classes-of-identifiers" title="제목 주소">¶</a></h3>
+<p>(키워드와는 별개로) 어떤 부류의 식별자들은 특별한 의미가 있다. 이 부류의 식별자들은 시작과 끝의 밑줄 문자 패턴으로 구분된다:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">_*</span></code></dt>
+<dd><p class="first"><code class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">*</span></code> 에 의해 임포트되지 않는다. 특별한 식별자 <code class="docutils literal"><span class="pre">_</span></code> 는 대화형 인터프리터에서 마지막에 실행한 결과의 값을 저장하는 용도로 사용된다; <a class="reference internal" href="../library/builtins.html#module-builtins" title="builtins: The module that provides the built-in namespace."><code class="xref py py-mod docutils literal"><span class="pre">builtins</span></code></a> 모듈에 저장된다. 대화형 모드가 아닐 경우 <code class="docutils literal"><span class="pre">_</span></code> 는 특별한 의미가 없고, 정의되지도 않는다. <a class="reference internal" href="simple_stmts.html#import"><span class="std std-ref">임포트(import) 문</span></a> 섹션을 보라.</p>
+<div class="last admonition note">
+<p class="first admonition-title">주석</p>
+<p class="last">이름 <code class="docutils literal"><span class="pre">_</span></code> 은 종종 국제화(internationalization)와 관련되어 사용된다. 이 관례에 관해서는 <a class="reference internal" href="../library/gettext.html#module-gettext" title="gettext: Multilingual internationalization services."><code class="xref py py-mod docutils literal"><span class="pre">gettext</span></code></a> 모듈의 문서를 참조하라.</p>
+</div>
+</dd>
+<dt><code class="docutils literal"><span class="pre">__*__</span></code></dt>
+<dd>시스템 정의 이름. 이 이름들은 인터프리터와 그 구현 (표준 라이브러리를 포함한다)이 정의한다. 현재 정의된 시스템 이름은 <a class="reference internal" href="datamodel.html#specialnames"><span class="std std-ref">특수 메서드 이름들</span></a> 섹션과 그 외의 곳에서 논의된다. 파이썬의 미래 버전에서는 더 많은 것들이 정의될 가능성이 크다. 어떤 문맥에서건, 명시적으로 문서로 만들어진 사용법을 벗어나는 <code class="docutils literal"><span class="pre">__*__</span></code> 이름의 <em>모든</em> 사용은, 경고 없이 손상될 수 있다.</dd>
+<dt><code class="docutils literal"><span class="pre">__*</span></code></dt>
+<dd>클래스-비공개 이름. 이 부류의 이름들을 클래스 정의 문맥에서 사용하면 뒤섞인 형태로 변형된다. 부모 클래스와 자식 클래스의 &quot;비공개(private)&quot; 어트리뷰트 간의 이름 충돌을 피하기 위함이다. <a class="reference internal" href="expressions.html#atom-identifiers"><span class="std std-ref">식별자 (이름)</span></a> 섹션을 보라.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="literals">
+<span id="id9"></span><h2>2.4. 리터럴<a class="headerlink" href="#literals" title="제목 주소">¶</a></h2>
+<p id="index-14">리터럴(literal)은 몇몇 내장형들의 상숫값을 위한 표기법이다.</p>
+<div class="section" id="string-and-bytes-literals">
+<span id="strings"></span><h3>2.4.1. 문자열과 바이트열 리터럴<a class="headerlink" href="#string-and-bytes-literals" title="제목 주소">¶</a></h3>
+<p id="index-15">문자열 리터럴은 다음과 같은 구문 정의로 기술된다:</p>
+<pre>
+<strong id="grammar-token-stringliteral">stringliteral  </strong> ::=  [<a class="reference internal" href="#grammar-token-stringprefix"><code class="xref docutils literal"><span class="pre">stringprefix</span></code></a>](<a class="reference internal" href="#grammar-token-shortstring"><code class="xref docutils literal"><span class="pre">shortstring</span></code></a> | <a class="reference internal" href="#grammar-token-longstring"><code class="xref docutils literal"><span class="pre">longstring</span></code></a>)
+<strong id="grammar-token-stringprefix">stringprefix   </strong> ::=  &quot;r&quot; | &quot;u&quot; | &quot;R&quot; | &quot;U&quot; | &quot;f&quot; | &quot;F&quot;
+                     | &quot;fr&quot; | &quot;Fr&quot; | &quot;fR&quot; | &quot;FR&quot; | &quot;rf&quot; | &quot;rF&quot; | &quot;Rf&quot; | &quot;RF&quot;
+<strong id="grammar-token-shortstring">shortstring    </strong> ::=  &quot;'&quot; <a class="reference internal" href="#grammar-token-shortstringitem"><code class="xref docutils literal"><span class="pre">shortstringitem</span></code></a>* &quot;'&quot; | '&quot;' <a class="reference internal" href="#grammar-token-shortstringitem"><code class="xref docutils literal"><span class="pre">shortstringitem</span></code></a>* '&quot;'
+<strong id="grammar-token-longstring">longstring     </strong> ::=  &quot;'''&quot; <a class="reference internal" href="#grammar-token-longstringitem"><code class="xref docutils literal"><span class="pre">longstringitem</span></code></a>* &quot;'''&quot; | '&quot;&quot;&quot;' <a class="reference internal" href="#grammar-token-longstringitem"><code class="xref docutils literal"><span class="pre">longstringitem</span></code></a>* '&quot;&quot;&quot;'
+<strong id="grammar-token-shortstringitem">shortstringitem</strong> ::=  <a class="reference internal" href="#grammar-token-shortstringchar"><code class="xref docutils literal"><span class="pre">shortstringchar</span></code></a> | <a class="reference internal" href="#grammar-token-stringescapeseq"><code class="xref docutils literal"><span class="pre">stringescapeseq</span></code></a>
+<strong id="grammar-token-longstringitem">longstringitem </strong> ::=  <a class="reference internal" href="#grammar-token-longstringchar"><code class="xref docutils literal"><span class="pre">longstringchar</span></code></a> | <a class="reference internal" href="#grammar-token-stringescapeseq"><code class="xref docutils literal"><span class="pre">stringescapeseq</span></code></a>
+<strong id="grammar-token-shortstringchar">shortstringchar</strong> ::=  &lt;any source character except &quot;\&quot; or newline or the quote&gt;
+<strong id="grammar-token-longstringchar">longstringchar </strong> ::=  &lt;any source character except &quot;\&quot;&gt;
+<strong id="grammar-token-stringescapeseq">stringescapeseq</strong> ::=  &quot;\&quot; &lt;any source character&gt;
+</pre>
+<pre>
+<strong id="grammar-token-bytesliteral">bytesliteral  </strong> ::=  <a class="reference internal" href="#grammar-token-bytesprefix"><code class="xref docutils literal"><span class="pre">bytesprefix</span></code></a>(<a class="reference internal" href="#grammar-token-shortbytes"><code class="xref docutils literal"><span class="pre">shortbytes</span></code></a> | <a class="reference internal" href="#grammar-token-longbytes"><code class="xref docutils literal"><span class="pre">longbytes</span></code></a>)
+<strong id="grammar-token-bytesprefix">bytesprefix   </strong> ::=  &quot;b&quot; | &quot;B&quot; | &quot;br&quot; | &quot;Br&quot; | &quot;bR&quot; | &quot;BR&quot; | &quot;rb&quot; | &quot;rB&quot; | &quot;Rb&quot; | &quot;RB&quot;
+<strong id="grammar-token-shortbytes">shortbytes    </strong> ::=  &quot;'&quot; <a class="reference internal" href="#grammar-token-shortbytesitem"><code class="xref docutils literal"><span class="pre">shortbytesitem</span></code></a>* &quot;'&quot; | '&quot;' <a class="reference internal" href="#grammar-token-shortbytesitem"><code class="xref docutils literal"><span class="pre">shortbytesitem</span></code></a>* '&quot;'
+<strong id="grammar-token-longbytes">longbytes     </strong> ::=  &quot;'''&quot; <a class="reference internal" href="#grammar-token-longbytesitem"><code class="xref docutils literal"><span class="pre">longbytesitem</span></code></a>* &quot;'''&quot; | '&quot;&quot;&quot;' <a class="reference internal" href="#grammar-token-longbytesitem"><code class="xref docutils literal"><span class="pre">longbytesitem</span></code></a>* '&quot;&quot;&quot;'
+<strong id="grammar-token-shortbytesitem">shortbytesitem</strong> ::=  <a class="reference internal" href="#grammar-token-shortbyteschar"><code class="xref docutils literal"><span class="pre">shortbyteschar</span></code></a> | <a class="reference internal" href="#grammar-token-bytesescapeseq"><code class="xref docutils literal"><span class="pre">bytesescapeseq</span></code></a>
+<strong id="grammar-token-longbytesitem">longbytesitem </strong> ::=  <a class="reference internal" href="#grammar-token-longbyteschar"><code class="xref docutils literal"><span class="pre">longbyteschar</span></code></a> | <a class="reference internal" href="#grammar-token-bytesescapeseq"><code class="xref docutils literal"><span class="pre">bytesescapeseq</span></code></a>
+<strong id="grammar-token-shortbyteschar">shortbyteschar</strong> ::=  &lt;any ASCII character except &quot;\&quot; or newline or the quote&gt;
+<strong id="grammar-token-longbyteschar">longbyteschar </strong> ::=  &lt;any ASCII character except &quot;\&quot;&gt;
+<strong id="grammar-token-bytesescapeseq">bytesescapeseq</strong> ::=  &quot;\&quot; &lt;any ASCII character&gt;
+</pre>
+<p>이 생성 규칙이 보여주지 못하는 한 가지 문법적 제약은 <a class="reference internal" href="#grammar-token-stringprefix"><code class="xref std std-token docutils literal"><span class="pre">stringprefix</span></code></a> 나 <a class="reference internal" href="#grammar-token-bytesprefix"><code class="xref std std-token docutils literal"><span class="pre">bytesprefix</span></code></a> 와 리터럴의 나머지 부분 사이에 공백이 허락되지 않는다는 것이다. 소스 문자 집합은 인코딩 선언으로 정의된다; 소스 파일에 인코딩 선언이 없으면 UTF-8이다. <a class="reference internal" href="#encodings"><span class="std std-ref">인코딩 선언</span></a> 섹션을 보라.</p>
+<p id="index-16">쉬운 말로 하자면, 두 가지 리터럴은 한 쌍의 작은따옴표(<code class="docutils literal"><span class="pre">'</span></code>) 나 큰따옴표(<code class="docutils literal"><span class="pre">&quot;</span></code>)로 둘러싸일 수 있다. 또한, 둘 다 한 쌍의 삼중 작은따옴표나 큰따옴표로 둘러싸일 수도 있다 (이것들은 보통 <em>삼중 따옴표 된 문자열</em> 이라고 불린다). 역 슬래시(<code class="docutils literal"><span class="pre">\</span></code>) 문자는 홀로 쓰이면 특별한 의미가 있는 문자들을 이스케이핑할 때 사용되는데, 개행문자, 역 슬래시 자신, 따옴표 문자가 그것이다.</p>
+<p>바이트열(bytes) 리터럴은 항상 <code class="docutils literal"><span class="pre">'b'</span></code> 나 <code class="docutils literal"><span class="pre">'B'</span></code> 를 앞에 붙인다; <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a> 형의 인스턴스 대신 <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal"><span class="pre">bytes</span></code></a> 형의 인스턴스를 만든다. 오직 ASCII 문자들만 포함할 수 있다. 코드값이 128보다 크거나 같은 값들은 반드시 이스케이핑으로 표현되어야 한다.</p>
+<p>문자열과 바이트열 리터럴 모두 선택적으로 <code class="docutils literal"><span class="pre">'r'</span></code> 이나 <code class="docutils literal"><span class="pre">'R'</span></code> 문자를 앞에 붙일 수 있다. 이런 문자열을 날 문자열(<em class="dfn">raw strings</em>) 이라고 하는데, 역 슬래시를 평범한 문자로 취급한다. 결과적으로, 문자열 리터럴에서, 날 문자열에 있는 <code class="docutils literal"><span class="pre">'\U'</span></code> 와 <code class="docutils literal"><span class="pre">'\u'</span></code> 이스케이프는 특별하게 처리되지 않는다. 파이썬 2.x의 날 유니코드 리터럴이 파이썬 3.x와 다르게 동작한다는 것을 고려해서, <code class="docutils literal"><span class="pre">'ur'</span></code> 문법은 지원되지 않는다.</p>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.3에 추가: </span>날 바이트열 리터럴의 <code class="docutils literal"><span class="pre">'br'</span></code> 와 같은 의미가 있는 <code class="docutils literal"><span class="pre">'rb'</span></code> 접두어가 추가되었다.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.3에 추가: </span>파이썬 2.x 와 3.x 에서 동시에 지원하는 코드들의 유지보수를 단순화하기 위해 예전에 사용되던 유니코드 리터럴 (<code class="docutils literal"><span class="pre">u'value'</span></code>)이 다시 도입되었다. 자세한 정보는 <span class="target" id="index-33"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0414"><strong>PEP 414</strong></a> 에 나온다.</p>
+</div>
+<p><code class="docutils literal"><span class="pre">'f'</span></code> 나 <code class="docutils literal"><span class="pre">'F'</span></code> 를 접두어로 갖는 문자열 리터럴은 포맷 문자열 리터럴(<em class="dfn">formatted string literal</em>)이다; <a class="reference internal" href="#f-strings"><span class="std std-ref">포맷 문자열 리터럴</span></a> 을 보라. <code class="docutils literal"><span class="pre">'f'</span></code> 는 <code class="docutils literal"><span class="pre">'r'</span></code> 과 결합할 수 있다, 하지만, <code class="docutils literal"><span class="pre">'b'</span></code> 나 <code class="docutils literal"><span class="pre">'u'</span></code> 와는 결합할 수 없다. 따라서 날 포맷 문자열은 가능하지만, 포맷 바이트열 리터럴은 불가능하다.</p>
+<p>삼중 따옴표 된 리터럴에서, 세 개의 이스케이핑 되지 않은 개행 문자와 따옴표가 허락된다 (그리고 유지된다). 예외는 한 줄에 세 개의 이스케이핑 되지 않은 따옴표가 나오는 것인데, 리터럴을 종료시킨다. (&quot;따옴표&quot;는 리터럴을 시작하는데 사용한 문자다. 즉, <code class="docutils literal"><span class="pre">'</span></code> 나 <code class="docutils literal"><span class="pre">&quot;</span></code>)</p>
+<p id="index-18"><code class="docutils literal"><span class="pre">'r'</span></code> 나 <code class="docutils literal"><span class="pre">'R'</span></code> 접두어가 붙지 않은 이상, 문자열과 바이트열 리터럴에 포함된 이스케이프 시퀀스는 표준 C에서 사용된 것과 비슷한 규칙으로 해석된다. 인식되는 이스케이프 시퀀스는 이렇다:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="58%" />
+<col width="12%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">이스케이프 시퀀스</th>
+<th class="head">의미</th>
+<th class="head">유의 사항</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\newline</span></code></td>
+<td>역 슬래시와 개행 문자가 무시된다</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\\</span></code></td>
+<td>역 슬래시 (<code class="docutils literal"><span class="pre">\</span></code>)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\'</span></code></td>
+<td>작은따옴표 (<code class="docutils literal"><span class="pre">'</span></code>)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\&quot;</span></code></td>
+<td>큰따옴표 (<code class="docutils literal"><span class="pre">&quot;</span></code>)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\a</span></code></td>
+<td>ASCII 벨 (BEL)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\b</span></code></td>
+<td>ASCII 백스페이스 (BS)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\f</span></code></td>
+<td>ASCII 폼 피드 (FF)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\n</span></code></td>
+<td>ASCII 라인 피드 (LF)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\r</span></code></td>
+<td>ASCII 캐리지 리턴 (CR)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\t</span></code></td>
+<td>ASCII 가로 탭 (TAB)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\v</span></code></td>
+<td>ASCII 세로 탭 (VT)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\ooo</span></code></td>
+<td>8진수 <em>ooo</em> 로 지정된 문자</td>
+<td>(1,3)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\xhh</span></code></td>
+<td>16진수 <em>hh</em> 로 지정된 문자</td>
+<td>(2,3)</td>
+</tr>
+</tbody>
+</table>
+<p>문자열 리터럴에서만 인식되는 이스케이프 시퀀스는:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="58%" />
+<col width="12%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">이스케이프 시퀀스</th>
+<th class="head">의미</th>
+<th class="head">유의 사항</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\N{name}</span></code></td>
+<td>유니코드 데이터베이스에서 <em>name</em> 이라고 이름 붙여진 문자</td>
+<td>(4)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\uxxxx</span></code></td>
+<td>16-bit 16진수 <em>xxxx</em> 로 지정된 문자</td>
+<td>(5)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\Uxxxxxxxx</span></code></td>
+<td>32-bit 16진수 <em>xxxxxxxx</em> 로 지정된 문자</td>
+<td>(6)</td>
+</tr>
+</tbody>
+</table>
+<p>유의 사항:</p>
+<ol class="arabic">
+<li><p class="first">표준 C와 마찬가지로, 최대 세 개의 8진수가 허용된다.</p>
+</li>
+<li><p class="first">표준 C와는 달리, 정확히 두 개의 16진수가 제공되어야 한다.</p>
+</li>
+<li><p class="first">바이트열 리터럴에서, 16진수와 8진수 이스케이프는 지정된 값의 바이트를 표현한다. 문자열 리터럴에서는, 이 이스케이프는 지정된 값의 유니코드 문자를 표현한다.</p>
+</li>
+<li><div class="first versionchanged">
+<p><span class="versionmodified">버전 3.3으로 변경: </span>별칭 <a class="footnote-reference" href="#id13" id="id10">[1]</a> 지원이 추가되었다</p>
+</div>
+</li>
+<li><p class="first">정확히 4개의 16진수를 필요로 한다.</p>
+</li>
+<li><p class="first">이 방법으로 모든 유니코드를 인코딩할 수 있다. 정확히 8개의 16진수가 필요하다.</p>
+</li>
+</ol>
+<p id="index-19">표준 C와는 달리, 인식되지 않는 모든 이스케이프 시퀀스는 문자열에 변경되지 않은 상태로 남게 된다. 즉, <em>역 슬래시가 결과에 남게 된다</em>. (이 동작은 디버깅할 때 쓸모가 있다. 이스케이프 시퀀스가 잘못 입력되었을 때, 최종 결과에서 잘못된 부분을 쉽게 인지할 수 있다.) 문자열 리터럴에서만 인식되는 이스케이프 시퀀스가, 바이트열 리터럴에서는 인식되지 않는 부류임에 주목하라.</p>
+<blockquote>
+<div><div class="versionchanged">
+<p><span class="versionmodified">버전 3.6으로 변경: </span>인식되지 않는 이스케이프 시퀀스는 DeprecationWarning 을 만든다. 언젠가 파이썬의 미래 버전에서는 SyntaxError 로 취급될 것이다.</p>
+</div>
+</div></blockquote>
+<p>날 리터럴에서 조차, 따옴표는 역 슬래시로 이스케이프 된다. 하지만 역 슬래시가 결과에 남게 된다; 예를 들어, <code class="docutils literal"><span class="pre">r&quot;\&quot;&quot;</span></code> 는 올바른 문자열 리터럴인데, 두 개의 문자가 들어있다: 역 슬래시와 큰따옴표; <code class="docutils literal"><span class="pre">r&quot;\&quot;</span></code> 는 올바른 문자열 리터럴이 아니다 (날 문자열조차 홀수개의 역 슬래시로 끝날 수 없다.). 좀 더 명확하게 말하자면, 날 리터럴은 하나의 역 슬래시로 끝날 수 없다(역 슬래시가 뒤에 오는 따옴표를 이스케이프 시키기 때문이다). 역 슬래시와 바로 뒤에 오는 개행문자는 줄 결합이 <em>아니라</em> 리터럴에 포함되는 두 개의 문자로 인식됨에 주의해야 한다.</p>
+</div>
+<div class="section" id="string-literal-concatenation">
+<span id="string-catenation"></span><h3>2.4.2. 문자열 리터럴 이어붙이기<a class="headerlink" href="#string-literal-concatenation" title="제목 주소">¶</a></h3>
+<p>여러 개의 문자열이나 바이트열 리터럴을 (공백으로 분리해서) 여러 개 인접해서 나열하는 것이 허락되고, 그 의미는 이어붙인 것과 같다. 각 리터럴이 서로 다른 따옴표를 사용해도 된다. 그래서, <code class="docutils literal"><span class="pre">&quot;hello&quot;</span> <span class="pre">'world'</span></code> 는 <code class="docutils literal"><span class="pre">&quot;helloworld&quot;</span></code> 와 동등하다. 이 기능은 긴 문자열을 편의상 여러 줄로 나눌 때 필요한 역 슬래시를 줄여준다. 각 문자열 단위마다 주석을 붙이는 것도 가능하다. 예를 들어:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;[A-Za-z_]&quot;</span>       <span class="c1"># letter or underscore</span>
+           <span class="s2">&quot;[A-Za-z0-9_]*&quot;</span>   <span class="c1"># letter, digit or underscore</span>
+          <span class="p">)</span>
+</pre></div>
+</div>
+<p>이 기능이 문법 수준에서 정의되고는 있지만, 컴파일 시점에 구현됨에 주의해야 한다. 실행 시간에 문자열 표현을 이어붙이기 위해서는 '+' 연산자를 사용해야 한다. 리터럴 이어붙이기가 요소별로 다른 따옴표를 사용할 수 있고 (날 문자열과 삼중 따옴표 문자열을 이어붙이는 것조차 가능하다), 포맷 문자열 리터럴을 보통 문자열 리터럴과 이어붙일 수 있음에 유의해야 한다.</p>
+</div>
+<div class="section" id="formatted-string-literals">
+<span id="f-strings"></span><span id="index-20"></span><h3>2.4.3. 포맷 문자열 리터럴<a class="headerlink" href="#formatted-string-literals" title="제목 주소">¶</a></h3>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.6에 추가.</span></p>
+</div>
+<p>포맷 문자열 리터럴(<em class="dfn">formatted string literal</em>) 또는 <em class="dfn">f-문자열 (f-string)</em> 은 <code class="docutils literal"><span class="pre">'f'</span></code> 나 <code class="docutils literal"><span class="pre">'F'</span></code> 를 앞에 붙인 문자열 리터럴이다. 이 문자열은 치환 필드를 포함할 수 있는데, 중괄호 <code class="docutils literal"><span class="pre">{}</span></code> 로 구분되는 표현식이다. 다른 문자열 리터럴이 항상 상숫값을 갖지만, 포맷 문자열 리터럴은 실행시간에 계산되는 표현식이다.</p>
+<p>이스케이프 시퀀스는 일반 문자열 리터럴처럼 디코딩된다 (동시에 날 문자열인 경우는 예외다). 디코딩 후에 문자열의 내용은 다음과 같은 문법을 따른다:</p>
+<pre>
+<strong id="grammar-token-f_string">f_string         </strong> ::=  (<a class="reference internal" href="#grammar-token-literal_char"><code class="xref docutils literal"><span class="pre">literal_char</span></code></a> | &quot;{{&quot; | &quot;}}&quot; | <a class="reference internal" href="#grammar-token-replacement_field"><code class="xref docutils literal"><span class="pre">replacement_field</span></code></a>)*
+<strong id="grammar-token-replacement_field">replacement_field</strong> ::=  &quot;{&quot; <a class="reference internal" href="#grammar-token-f_expression"><code class="xref docutils literal"><span class="pre">f_expression</span></code></a> [&quot;!&quot; <a class="reference internal" href="#grammar-token-conversion"><code class="xref docutils literal"><span class="pre">conversion</span></code></a>] [&quot;:&quot; <a class="reference internal" href="#grammar-token-format_spec"><code class="xref docutils literal"><span class="pre">format_spec</span></code></a>] &quot;}&quot;
+<strong id="grammar-token-f_expression">f_expression     </strong> ::=  (<a class="reference internal" href="expressions.html#grammar-token-conditional_expression"><code class="xref docutils literal"><span class="pre">conditional_expression</span></code></a> | &quot;*&quot; <a class="reference internal" href="expressions.html#grammar-token-or_expr"><code class="xref docutils literal"><span class="pre">or_expr</span></code></a>)
+                         (&quot;,&quot; <a class="reference internal" href="expressions.html#grammar-token-conditional_expression"><code class="xref docutils literal"><span class="pre">conditional_expression</span></code></a> | &quot;,&quot; &quot;*&quot; <a class="reference internal" href="expressions.html#grammar-token-or_expr"><code class="xref docutils literal"><span class="pre">or_expr</span></code></a>)* [&quot;,&quot;]
+                       | <a class="reference internal" href="expressions.html#grammar-token-yield_expression"><code class="xref docutils literal"><span class="pre">yield_expression</span></code></a>
+<strong id="grammar-token-conversion">conversion       </strong> ::=  &quot;s&quot; | &quot;r&quot; | &quot;a&quot;
+<strong id="grammar-token-format_spec">format_spec      </strong> ::=  (<a class="reference internal" href="#grammar-token-literal_char"><code class="xref docutils literal"><span class="pre">literal_char</span></code></a> | NULL | <a class="reference internal" href="#grammar-token-replacement_field"><code class="xref docutils literal"><span class="pre">replacement_field</span></code></a>)*
+<strong id="grammar-token-literal_char">literal_char     </strong> ::=  &lt;any code point except &quot;{&quot;, &quot;}&quot; or NULL&gt;
+</pre>
+<p>중괄호 바깥 부분은 일반 리터럴처럼 취급되는데, 이중 중괄호 <code class="docutils literal"><span class="pre">'{{'</span></code> 나 <code class="docutils literal"><span class="pre">'}}'</span></code> 가 대응하는 단일 중괄호로 치환된다는 점만 예외다. 하나의 여는 중괄호 <code class="docutils literal"><span class="pre">'{'</span></code> 는 치환 필드를 시작시키는데, 파이썬 표현식이 뒤따른다. 표현식 뒤로는 변환(conversion) 필드가 올 수 있는데, 느낌표 <code class="docutils literal"><span class="pre">'!'</span></code> 로 시작한다. 포맷 지정자(format specifier)도 덧붙일 수 있는데, 콜론 <code class="docutils literal"><span class="pre">':'</span></code> 으로 시작한다. 치환 필드는 닫는 중괄호 <code class="docutils literal"><span class="pre">'}'</span></code> 로 끝난다.</p>
+<p>포맷 문자열 리터럴의 표현식은 괄호로 둘러싸인 일반적인 파이썬 표현식으로 취급되는데 몇 가지 예외가 있다. 빈 표현식은 허락되지 않고, <a class="reference internal" href="expressions.html#lambda"><code class="xref std std-keyword docutils literal"><span class="pre">lambda</span></code></a> 표현식은 명시적인 괄호로 둘러싸야 한다. 치환 표현식은 개행문자를 포함할 수 있으나 (예를 들어, 삼중 따옴표 된 문자열) 주석은 포함할 수 없다. 각 표현식은 포맷 문자열 리터럴이 등장한 지점의 문맥에서 왼쪽에서 오른쪽으로 계산된다.</p>
+<p>변환(conversion)이 지정되면, 표현식의 결과가 포매팅 전에 변환된다. 변환 <code class="docutils literal"><span class="pre">'!s'</span></code> 는 결과에 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal"><span class="pre">str()</span></code></a> 을 호출하고, <code class="docutils literal"><span class="pre">'!r'</span></code> 은 <a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal"><span class="pre">repr()</span></code></a> 을 호출하고, <code class="docutils literal"><span class="pre">'!a'</span></code> 은 <a class="reference internal" href="../library/functions.html#ascii" title="ascii"><code class="xref py py-func docutils literal"><span class="pre">ascii()</span></code></a> 를 호출한다.</p>
+<p>결과는 <a class="reference internal" href="../library/functions.html#format" title="format"><code class="xref py py-func docutils literal"><span class="pre">format()</span></code></a> 프로토콜로 포매팅한다. 포맷 지정자는 표현식이나 변환 결과의 <a class="reference internal" href="datamodel.html#object.__format__" title="object.__format__"><code class="xref py py-meth docutils literal"><span class="pre">__format__()</span></code></a> 메서드 로 전달된다. 포맷지정자가 생략되면 빈 문자열이 전달된다. 이제 포맷된 결과가 최종 문자열에 삽입된다.</p>
+<p>최상위 포맷 지정자는 중첩된 치환 필드들을 포함할 수 있다. 이 중첩된 필드들은 그들 자신의 변환 필드와 포맷 지정자를 포함할 수 있지만, 깊이 중첩된 치환 필드들을 포함할 수는 없다.</p>
+<p>포맷 문자열 리터럴을 이어붙일 수는 있지만, 치환 필드가 여러 리터럴로 쪼개질 수는 없다.</p>
+<p>포맷 문자열 리터럴의 예를 들면:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Fred&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="s2">&quot;He said his name is </span><span class="si">{name!r}</span><span class="s2">.&quot;</span>
+<span class="go">&quot;He said his name is &#39;Fred&#39;.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="s2">&quot;He said his name is {repr(name)}.&quot;</span>  <span class="c1"># repr() is equivalent to !r</span>
+<span class="go">&quot;He said his name is &#39;Fred&#39;.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">width</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">precision</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">value</span> <span class="o">=</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;12.34567&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="s2">&quot;result: {value:</span><span class="si">{width}</span><span class="s2">.</span><span class="si">{precision}</span><span class="s2">}&quot;</span>  <span class="c1"># nested fields</span>
+<span class="go">&#39;result:      12.35&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">today</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2017</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">27</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="s2">&quot;{today:%b </span><span class="si">%d</span><span class="s2">, %Y}&quot;</span>  <span class="c1"># using date format specifier</span>
+<span class="go">&#39;January 27, 2017&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number</span> <span class="o">=</span> <span class="mi">1024</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{number:#0x}</span><span class="s2">&quot;</span>  <span class="c1"># using integer format specifier</span>
+<span class="go">&#39;0x400&#39;</span>
+</pre></div>
+</div>
+<p>일반적인 문자열 리터럴과 같은 문법을 공유하는 것으로 인한 결과는 치환 필드에 사용되는 문자들이 포맷 문자열 리터럴을 감싸는 따옴표와 충돌하지 않아야 한다는 것이다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">f</span><span class="s2">&quot;abc </span><span class="si">{a[&quot;x&quot;]}</span><span class="s2"> def&quot;</span>    <span class="c1"># error: outer string literal ended prematurely</span>
+<span class="n">f</span><span class="s2">&quot;abc </span><span class="si">{a[&#39;x&#39;]}</span><span class="s2"> def&quot;</span>    <span class="c1"># workaround: use different quoting</span>
+</pre></div>
+</div>
+<p>포맷 표현식에는 역 슬래시를 사용할 수 없고, 사용하면 에러가 발생한다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">f</span><span class="s2">&quot;newline: {ord(&#39;</span><span class="se">\n</span><span class="s2">&#39;)}&quot;</span>  <span class="c1"># raises SyntaxError</span>
+</pre></div>
+</div>
+<p>To include a value in which a backslash escape is required, create
+a temporary variable.</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">newline</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="s2">&quot;newline: </span><span class="si">{newline}</span><span class="s2">&quot;</span>
+<span class="go">&#39;newline: 10&#39;</span>
+</pre></div>
+</div>
+<p>포맷 문자열 리터럴은 독스트링(docstring)으로 사용될 수 없다. 표현식이 전혀 없더라도 마찬가지다.</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">f</span><span class="s2">&quot;Not a docstring&quot;</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>포맷 문자열 리터럴 추가에 대한 제안은 <span class="target" id="index-34"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0498"><strong>PEP 498</strong></a> 을 참조하고, 관련된 포맷 문자열 메커니즘을 사용하는 <a class="reference internal" href="../library/stdtypes.html#str.format" title="str.format"><code class="xref py py-meth docutils literal"><span class="pre">str.format()</span></code></a> 도 살펴보는 것이 좋다.</p>
+</div>
+<div class="section" id="numeric-literals">
+<span id="numbers"></span><h3>2.4.4. 숫자 리터럴<a class="headerlink" href="#numeric-literals" title="제목 주소">¶</a></h3>
+<p id="index-22">숫자 리터럴에는 세 가지 종류가 있다: 정수, 실수, 허수. 복소수 리터럴 같은 것은 없다 (복소수는 실수와 허수를 더해서 만들어진다.)</p>
+<p>숫자 리터럴이 부호를 포함하지 않는 것에 주의해야 한다; <code class="docutils literal"><span class="pre">-1</span></code> 과 같은 구문은 일 항 연산자 '<code class="docutils literal"><span class="pre">-</span></code>' 과 리터럴 <code class="docutils literal"><span class="pre">1</span></code> 로 구성된 표현식이다.</p>
+</div>
+<div class="section" id="integer-literals">
+<span id="integers"></span><h3>2.4.5. 정수 리터럴<a class="headerlink" href="#integer-literals" title="제목 주소">¶</a></h3>
+<p>정수 리터럴은 다음과 같은 구문 정의로 표현된다:</p>
+<pre>
+<strong id="grammar-token-integer">integer     </strong> ::=  <a class="reference internal" href="#grammar-token-decinteger"><code class="xref docutils literal"><span class="pre">decinteger</span></code></a> | <a class="reference internal" href="#grammar-token-bininteger"><code class="xref docutils literal"><span class="pre">bininteger</span></code></a> | <a class="reference internal" href="#grammar-token-octinteger"><code class="xref docutils literal"><span class="pre">octinteger</span></code></a> | <a class="reference internal" href="#grammar-token-hexinteger"><code class="xref docutils literal"><span class="pre">hexinteger</span></code></a>
+<strong id="grammar-token-decinteger">decinteger  </strong> ::=  <a class="reference internal" href="#grammar-token-nonzerodigit"><code class="xref docutils literal"><span class="pre">nonzerodigit</span></code></a> ([&quot;_&quot;] <a class="reference internal" href="#grammar-token-digit"><code class="xref docutils literal"><span class="pre">digit</span></code></a>)* | &quot;0&quot;+ ([&quot;_&quot;] &quot;0&quot;)*
+<strong id="grammar-token-bininteger">bininteger  </strong> ::=  &quot;0&quot; (&quot;b&quot; | &quot;B&quot;) ([&quot;_&quot;] <a class="reference internal" href="#grammar-token-bindigit"><code class="xref docutils literal"><span class="pre">bindigit</span></code></a>)+
+<strong id="grammar-token-octinteger">octinteger  </strong> ::=  &quot;0&quot; (&quot;o&quot; | &quot;O&quot;) ([&quot;_&quot;] <a class="reference internal" href="#grammar-token-octdigit"><code class="xref docutils literal"><span class="pre">octdigit</span></code></a>)+
+<strong id="grammar-token-hexinteger">hexinteger  </strong> ::=  &quot;0&quot; (&quot;x&quot; | &quot;X&quot;) ([&quot;_&quot;] <a class="reference internal" href="#grammar-token-hexdigit"><code class="xref docutils literal"><span class="pre">hexdigit</span></code></a>)+
+<strong id="grammar-token-nonzerodigit">nonzerodigit</strong> ::=  &quot;1&quot;...&quot;9&quot;
+<strong id="grammar-token-digit">digit       </strong> ::=  &quot;0&quot;...&quot;9&quot;
+<strong id="grammar-token-bindigit">bindigit    </strong> ::=  &quot;0&quot; | &quot;1&quot;
+<strong id="grammar-token-octdigit">octdigit    </strong> ::=  &quot;0&quot;...&quot;7&quot;
+<strong id="grammar-token-hexdigit">hexdigit    </strong> ::=  <a class="reference internal" href="#grammar-token-digit"><code class="xref docutils literal"><span class="pre">digit</span></code></a> | &quot;a&quot;...&quot;f&quot; | &quot;A&quot;...&quot;F&quot;
+</pre>
+<p>가용한 메모리에 저장될 수 있는지와는 별개로 정수 리터럴의 길이에 제한은 없다.</p>
+<p>밑줄은 리터럴의 숫자 값을 결정할 때 고려되지 않는다. 가독성을 높이기 위해 숫자들을 무리 지을 때 쓸모가 있다. 밑줄은 숫자 사이나 <code class="docutils literal"><span class="pre">0x</span></code> 와 같은 진수 지정자(base specifier) 다음에 나올 수 있는데, 한 번에 하나만 사용될 수 있다.</p>
+<p>0 이 아닌 10진수가 0으로 시작할 수 없음에 주의해야 한다. 3.0 버전 이전의 파이썬에서 사용한 C 스타일의 8진수 리터럴과 혼동되는 것을 막기 위함이다.</p>
+<p>정수 리터럴의 예를 들면:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="mi">7</span>     <span class="mi">2147483647</span>                        <span class="mo">0o177</span>    <span class="mb">0b100110111</span>
+<span class="mi">3</span>     <span class="mi">79228162514264337593543950336</span>     <span class="mo">0o377</span>    <span class="mh">0xdeadbeef</span>
+      <span class="mi">100</span><span class="n">_000_000_000</span>                   <span class="mi">0</span><span class="n">b_1110_0101</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.6으로 변경: </span>리터럴에서 숫자들의 그룹을 표현할 목적으로 밑줄을 허락한다.</p>
+</div>
+</div>
+<div class="section" id="floating-point-literals">
+<span id="floating"></span><h3>2.4.6. 실수 리터럴<a class="headerlink" href="#floating-point-literals" title="제목 주소">¶</a></h3>
+<p>실수 리터럴은 다음과 같은 구문 정의로 표현된다:</p>
+<pre>
+<strong id="grammar-token-floatnumber">floatnumber  </strong> ::=  <a class="reference internal" href="#grammar-token-pointfloat"><code class="xref docutils literal"><span class="pre">pointfloat</span></code></a> | <a class="reference internal" href="#grammar-token-exponentfloat"><code class="xref docutils literal"><span class="pre">exponentfloat</span></code></a>
+<strong id="grammar-token-pointfloat">pointfloat   </strong> ::=  [<a class="reference internal" href="#grammar-token-digitpart"><code class="xref docutils literal"><span class="pre">digitpart</span></code></a>] <a class="reference internal" href="#grammar-token-fraction"><code class="xref docutils literal"><span class="pre">fraction</span></code></a> | <a class="reference internal" href="#grammar-token-digitpart"><code class="xref docutils literal"><span class="pre">digitpart</span></code></a> &quot;.&quot;
+<strong id="grammar-token-exponentfloat">exponentfloat</strong> ::=  (<a class="reference internal" href="#grammar-token-digitpart"><code class="xref docutils literal"><span class="pre">digitpart</span></code></a> | <a class="reference internal" href="#grammar-token-pointfloat"><code class="xref docutils literal"><span class="pre">pointfloat</span></code></a>) <a class="reference internal" href="#grammar-token-exponent"><code class="xref docutils literal"><span class="pre">exponent</span></code></a>
+<strong id="grammar-token-digitpart">digitpart    </strong> ::=  <a class="reference internal" href="#grammar-token-digit"><code class="xref docutils literal"><span class="pre">digit</span></code></a> ([&quot;_&quot;] <a class="reference internal" href="#grammar-token-digit"><code class="xref docutils literal"><span class="pre">digit</span></code></a>)*
+<strong id="grammar-token-fraction">fraction     </strong> ::=  &quot;.&quot; <a class="reference internal" href="#grammar-token-digitpart"><code class="xref docutils literal"><span class="pre">digitpart</span></code></a>
+<strong id="grammar-token-exponent">exponent     </strong> ::=  (&quot;e&quot; | &quot;E&quot;) [&quot;+&quot; | &quot;-&quot;] <a class="reference internal" href="#grammar-token-digitpart"><code class="xref docutils literal"><span class="pre">digitpart</span></code></a>
+</pre>
+<p>정수부와 지수부는 항상 10진법으로 해석된다는 것에 주의해야 한다. 예를 들어, <code class="docutils literal"><span class="pre">077e010</span></code> 는 올바른 표현이고, <code class="docutils literal"><span class="pre">77e10</span></code> 과 같은 숫자를 표현한다. 실수 리터럴의 허락된 범위는 구현 세부 사항이다. 정수 리터럴에서와 마찬가지로 밑줄로 숫자들의 묶음을 만드는 것도 지원된다.</p>
+<p>실수 리터럴의 몇 가지 예를 든다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="mf">3.14</span>    <span class="mf">10.</span>    <span class="o">.</span><span class="mi">001</span>    <span class="mf">1e100</span>    <span class="mf">3.14e-10</span>    <span class="mf">0e0</span>    <span class="mf">3.14</span><span class="n">_15_93</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.6으로 변경: </span>리터럴에서 숫자들의 그룹을 표현할 목적으로 밑줄을 허락한다.</p>
+</div>
+</div>
+<div class="section" id="imaginary-literals">
+<span id="imaginary"></span><h3>2.4.7. 허수 리터럴<a class="headerlink" href="#imaginary-literals" title="제목 주소">¶</a></h3>
+<p>허수 리터럴은 다음과 같은 구문 정의로 표현된다:</p>
+<pre>
+<strong id="grammar-token-imagnumber">imagnumber</strong> ::=  (<a class="reference internal" href="#grammar-token-floatnumber"><code class="xref docutils literal"><span class="pre">floatnumber</span></code></a> | <a class="reference internal" href="#grammar-token-digitpart"><code class="xref docutils literal"><span class="pre">digitpart</span></code></a>) (&quot;j&quot; | &quot;J&quot;)
+</pre>
+<p>허수 리터럴은 실수부가 0.0인 복소수를 만든다. 복소수는 실수와 같은 범위 제약이 적용되는 한 쌍의 실수로 표현된다. 0이 아닌 실수부를 갖는 복소수를 만들려면, 실수를 더하면 된다. 예를 들어, <code class="docutils literal"><span class="pre">(3+4j)</span></code>. 허수 리터럴의 몇 가지 예를 든다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="mf">3.14</span><span class="n">j</span>   <span class="mf">10.</span><span class="n">j</span>    <span class="mi">10</span><span class="n">j</span>     <span class="o">.</span><span class="mi">001</span><span class="n">j</span>   <span class="mf">1e100j</span>   <span class="mf">3.14e-10</span><span class="n">j</span>   <span class="mf">3.14</span><span class="n">_15_93j</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="operators">
+<span id="id11"></span><h2>2.5. 연산자<a class="headerlink" href="#operators" title="제목 주소">¶</a></h2>
+<p id="index-23">다음과 같은 토큰들은 연산자다:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>+       -       *       **      /       //      %      @
+&lt;&lt;      &gt;&gt;      &amp;       |       ^       ~
+&lt;       &gt;       &lt;=      &gt;=      ==      !=
+</pre></div>
+</div>
+</div>
+<div class="section" id="delimiters">
+<span id="id12"></span><h2>2.6. 구분자<a class="headerlink" href="#delimiters" title="제목 주소">¶</a></h2>
+<p id="index-24">다음 토큰들은 문법에서 구분자(delimiter)로 기능한다:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>(       )       [       ]       {       }
+,       :       .       ;       @       =       -&gt;
++=      -=      *=      /=      //=     %=      @=
+&amp;=      |=      ^=      &gt;&gt;=     &lt;&lt;=     **=
+</pre></div>
+</div>
+<p>마침표는 실수와 허수 리터럴에서도 등장할 수 있다. 연속된 마침표 세 개는 생략부호 리터럴(ellipsis literal)이라는 특별한 의미가 있다. 목록 후반의 증분 대입 연산자(augmented assignment operator)들은 구문적으로는 구분자로 기능하지만, 동시에 연산을 수행한다.</p>
+<p>다음의 인쇄되는 ASCII 문자들은 다른 토큰들 일부로서 특별한 의미를 같거나, 그 밖의 경우 구문 분석기에 유의미하다:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>&#39;       &quot;       #       \
+</pre></div>
+</div>
+<p>다음의 인쇄되는 ASCII 문자들은 파이썬에서 사용되지 않는다. 문자열 리터럴과 주석 이외의 곳에서 사용되는 것은 조건 없는 에러다:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>$       ?       `
+</pre></div>
+</div>
+<p class="rubric">각주</p>
+<table class="docutils footnote" frame="void" id="id13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[1]</a></td><td><a class="reference external" href="http://www.unicode.org/Public/9.0.0/ucd/NameAliases.txt">http://www.unicode.org/Public/9.0.0/ucd/NameAliases.txt</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../contents.html">목차</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2. 구문 분석</a><ul>
+<li><a class="reference internal" href="#line-structure">2.1. 줄 구조(Line structure)</a><ul>
+<li><a class="reference internal" href="#logical-lines">2.1.1. 논리적인 줄</a></li>
+<li><a class="reference internal" href="#physical-lines">2.1.2. 물리적인 줄</a></li>
+<li><a class="reference internal" href="#comments">2.1.3. 주석</a></li>
+<li><a class="reference internal" href="#encoding-declarations">2.1.4. 인코딩 선언</a></li>
+<li><a class="reference internal" href="#explicit-line-joining">2.1.5. 명시적인 줄 결합</a></li>
+<li><a class="reference internal" href="#implicit-line-joining">2.1.6. 묵시적인 줄 결합</a></li>
+<li><a class="reference internal" href="#blank-lines">2.1.7. 빈 줄</a></li>
+<li><a class="reference internal" href="#indentation">2.1.8. 들여쓰기</a></li>
+<li><a class="reference internal" href="#whitespace-between-tokens">2.1.9. 토큰 사이의 공백</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#other-tokens">2.2. 다른 토큰들</a></li>
+<li><a class="reference internal" href="#identifiers">2.3. 식별자와 키워드</a><ul>
+<li><a class="reference internal" href="#keywords">2.3.1. 키워드</a></li>
+<li><a class="reference internal" href="#reserved-classes-of-identifiers">2.3.2. 식별자의 예약 영역</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#literals">2.4. 리터럴</a><ul>
+<li><a class="reference internal" href="#string-and-bytes-literals">2.4.1. 문자열과 바이트열 리터럴</a></li>
+<li><a class="reference internal" href="#string-literal-concatenation">2.4.2. 문자열 리터럴 이어붙이기</a></li>
+<li><a class="reference internal" href="#formatted-string-literals">2.4.3. 포맷 문자열 리터럴</a></li>
+<li><a class="reference internal" href="#numeric-literals">2.4.4. 숫자 리터럴</a></li>
+<li><a class="reference internal" href="#integer-literals">2.4.5. 정수 리터럴</a></li>
+<li><a class="reference internal" href="#floating-point-literals">2.4.6. 실수 리터럴</a></li>
+<li><a class="reference internal" href="#imaginary-literals">2.4.7. 허수 리터럴</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#operators">2.5. 연산자</a></li>
+<li><a class="reference internal" href="#delimiters">2.6. 구분자</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>이전 항목</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="이전 장">1. 개요</a></p>
+  <h4>다음 항목</h4>
+  <p class="topless"><a href="datamodel.html"
+                        title="다음 장">3. 데이터 모델</a></p>
+  <div role="note" aria-label="source link">
+    <h3>이 페이지</h3>
+    <ul class="this-page-menu">
+      <li><a href="../bugs.html">버그 보고하기</a></li>
+      <li>
+        <a href="https://github.com/python/cpython/blob/3.6/Doc/reference/lexical_analysis.rst"
+            rel="nofollow">소스 보기
+        </a>
+      </li>
+    </ul>
+  </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>탐색</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="일반 색인"
+             >색인</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 모듈 목록"
+             >모듈</a> |</li>
+        <li class="right" >
+          <a href="datamodel.html" title="3. 데이터 모델"
+             >다음</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="1. 개요"
+             >이전</a> |</li>
+        <li><img src="../_static/py.png" alt=""
+                 style="vertical-align: middle; margin-top: -1px"/></li>
+        <li><a href="https://www.python.org/">Python</a> &#187;</li>
+        <li>
+          <a href="../index.html">도큐멘테이션 </a> &#187;
+        </li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" >파이썬 언어 레퍼런스</a> &#187;</li>
+    <li class="right">
+        
+
+    <div class="inline-search" style="display: none" role="search">
+        <form class="inline-search" action="../search.html" method="get">
+          <input placeholder="빠른 검색" type="text" name="q" />
+          <input type="submit" value="Go" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+    </div>
+    <script type="text/javascript">$('.inline-search').show(0);</script>
+         |
+    </li>
+
+      </ul>
+    </div>  
+    <div class="footer">
+    &copy; <a href="../copyright.html">저작권</a> 2017-2018, Flowdas Group. All rights reserved.
+    <br />
+    <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5 를 사용해서 만들었습니다.
+    </div>
+
+  </body>
+</html>
