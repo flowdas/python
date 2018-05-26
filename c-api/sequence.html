@@ -105,7 +105,10 @@
 <dt id="c.PySequence_Check">
 int <code class="descname">PySequence_Check</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em>&nbsp;*o</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PySequence_Check" title="정의 주소">¶</a></dt>
 <dd><p>Return <code class="docutils literal"><span class="pre">1</span></code> if the object provides sequence protocol, and <code class="docutils literal"><span class="pre">0</span></code> otherwise.
-This function always succeeds.</p>
+Note that it returns <code class="docutils literal"><span class="pre">1</span></code> for Python classes with a <a class="reference internal" href="../reference/datamodel.html#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__getitem__()</span></code></a>
+method unless they are <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a> subclasses since in general case it
+is impossible to determine what the type of keys it supports.  This
+function always succeeds.</p>
 </dd></dl>
 
 <dl class="function">
@@ -227,8 +230,8 @@ equivalent to the Python expression <code class="docutils literal"><span class="
 <dl class="function">
 <dt id="c.PySequence_Tuple">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="descname">PySequence_Tuple</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em>&nbsp;*o</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PySequence_Tuple" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: New reference.</em><p id="index-1">Return a tuple object with the same contents as the arbitrary sequence <em>o</em> or
-<em>NULL</em> on failure.  If <em>o</em> is a tuple, a new reference will be returned,
+<dd><em class="refcount">Return value: New reference.</em><p id="index-1">Return a tuple object with the same contents as the sequence or iterable <em>o</em>,
+or <em>NULL</em> on failure.  If <em>o</em> is a tuple, a new reference will be returned,
 otherwise a tuple will be constructed with the appropriate contents.  This is
 equivalent to the Python expression <code class="docutils literal"><span class="pre">tuple(o)</span></code>.</p>
 </dd></dl>
@@ -236,10 +239,20 @@ equivalent to the Python expression <code class="docutils literal"><span class="
 <dl class="function">
 <dt id="c.PySequence_Fast">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="descname">PySequence_Fast</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em>&nbsp;*o</em>, const char<em>&nbsp;*m</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PySequence_Fast" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: New reference.</em><p>Return the sequence <em>o</em> as a list, unless it is already a tuple or list, in
+<dd><em class="refcount">Return value: New reference.</em><p>Return the sequence or iterable <em>o</em> as a list, unless it is already a tuple or list, in
 which case <em>o</em> is returned.  Use <a class="reference internal" href="#c.PySequence_Fast_GET_ITEM" title="PySequence_Fast_GET_ITEM"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Fast_GET_ITEM()</span></code></a> to access
 the members of the result.  Returns <em>NULL</em> on failure.  If the object is not
-a sequence, raises <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code></a> with <em>m</em> as the message text.</p>
+a sequence or iterable, raises <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code></a> with <em>m</em> as the message text.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="c.PySequence_Fast_GET_SIZE">
+Py_ssize_t <code class="descname">PySequence_Fast_GET_SIZE</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em>&nbsp;*o</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PySequence_Fast_GET_SIZE" title="정의 주소">¶</a></dt>
+<dd><p>Returns the length of <em>o</em>, assuming that <em>o</em> was returned by
+<a class="reference internal" href="#c.PySequence_Fast" title="PySequence_Fast"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Fast()</span></code></a> and that <em>o</em> is not <em>NULL</em>.  The size can also be
+gotten by calling <a class="reference internal" href="#c.PySequence_Size" title="PySequence_Size"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Size()</span></code></a> on <em>o</em>, but
+<a class="reference internal" href="#c.PySequence_Fast_GET_SIZE" title="PySequence_Fast_GET_SIZE"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Fast_GET_SIZE()</span></code></a> is faster because it can assume <em>o</em> is a list
+or tuple.</p>
 </dd></dl>
 
 <dl class="function">
@@ -266,16 +279,6 @@ cannot change.</p>
 <a class="reference internal" href="#c.PySequence_GetItem" title="PySequence_GetItem"><code class="xref c c-func docutils literal"><span class="pre">PySequence_GetItem()</span></code></a> but without checking that
 <a class="reference internal" href="#c.PySequence_Check" title="PySequence_Check"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Check()</span></code></a> on <em>o</em> is true and without adjustment for negative
 indices.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="c.PySequence_Fast_GET_SIZE">
-Py_ssize_t <code class="descname">PySequence_Fast_GET_SIZE</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em>&nbsp;*o</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PySequence_Fast_GET_SIZE" title="정의 주소">¶</a></dt>
-<dd><p>Returns the length of <em>o</em>, assuming that <em>o</em> was returned by
-<a class="reference internal" href="#c.PySequence_Fast" title="PySequence_Fast"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Fast()</span></code></a> and that <em>o</em> is not <em>NULL</em>.  The size can also be
-gotten by calling <a class="reference internal" href="#c.PySequence_Size" title="PySequence_Size"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Size()</span></code></a> on <em>o</em>, but
-<a class="reference internal" href="#c.PySequence_Fast_GET_SIZE" title="PySequence_Fast_GET_SIZE"><code class="xref c c-func docutils literal"><span class="pre">PySequence_Fast_GET_SIZE()</span></code></a> is faster because it can assume <em>o</em> is a list
-or tuple.</p>
 </dd></dl>
 
 </div>
