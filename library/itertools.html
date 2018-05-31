@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>10.1. itertools --- Functions creating iterators for efficient looping &#8212; Python 3.6.5 documentation</title>
+    <title>10.1. itertools --- Functions creating iterators for efficient looping &#8212; Python 3.7.0b4 documentation</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '3.6.5',
+        VERSION:     '3.7.0b4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../_static/translations.js"></script>
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.6.5 documentation에서 찾기"
+          title="Python 3.7.0b4 documentation에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -608,13 +608,14 @@ is needed later, it should be stored as a list:</p>
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
     <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
         <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">currkey</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgtkey</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">currvalue</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">it</span><span class="p">)</span>    <span class="c1"># Exit on StopIteration</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">currkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currvalue</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tgtkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currkey</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currkey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grouper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tgtkey</span><span class="p">))</span>
-    <span class="k">def</span> <span class="nf">_grouper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tgtkey</span><span class="p">):</span>
-        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">currkey</span> <span class="o">==</span> <span class="n">tgtkey</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currkey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grouper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tgtkey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">_grouper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tgtkey</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="nb">id</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">currkey</span> <span class="o">==</span> <span class="n">tgtkey</span><span class="p">:</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">currvalue</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">currvalue</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">it</span><span class="p">)</span>
@@ -850,26 +851,25 @@ most or all of the data before another iterator starts, it is faster to use
 <dd><p>Make an iterator that aggregates elements from each of the iterables. If the
 iterables are of uneven length, missing values are filled-in with <em>fillvalue</em>.
 Iteration continues until the longest iterable is exhausted.  Roughly equivalent to:</p>
-<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ZipExhausted</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span>
-
-<span class="k">def</span> <span class="nf">zip_longest</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">zip_longest</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># zip_longest(&#39;ABCD&#39;, &#39;xy&#39;, fillvalue=&#39;-&#39;) --&gt; Ax By C- D-</span>
-    <span class="n">fillvalue</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fillvalue&#39;</span><span class="p">)</span>
-    <span class="n">counter</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">def</span> <span class="nf">sentinel</span><span class="p">():</span>
-        <span class="k">nonlocal</span> <span class="n">counter</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">counter</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ZipExhausted</span>
-        <span class="n">counter</span> <span class="o">-=</span> <span class="mi">1</span>
-        <span class="k">yield</span> <span class="n">fillvalue</span>
-    <span class="n">fillers</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">fillvalue</span><span class="p">)</span>
-    <span class="n">iterators</span> <span class="o">=</span> <span class="p">[</span><span class="n">chain</span><span class="p">(</span><span class="n">it</span><span class="p">,</span> <span class="n">sentinel</span><span class="p">(),</span> <span class="n">fillers</span><span class="p">)</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">while</span> <span class="n">iterators</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">next</span><span class="p">,</span> <span class="n">iterators</span><span class="p">))</span>
-    <span class="k">except</span> <span class="n">ZipExhausted</span><span class="p">:</span>
-        <span class="k">pass</span>
+    <span class="n">iterators</span> <span class="o">=</span> <span class="p">[</span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+    <span class="n">num_active</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">iterators</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">num_active</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iterators</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="n">num_active</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">num_active</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="n">iterators</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">fillvalue</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">fillvalue</span>
+            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If one of the iterables is potentially infinite, then the <a class="reference internal" href="#itertools.zip_longest" title="itertools.zip_longest"><code class="xref py py-func docutils literal"><span class="pre">zip_longest()</span></code></a>
@@ -1139,7 +1139,7 @@ with local variables defined as default values.  For example, the
     <ul class="this-page-menu">
       <li><a href="../bugs.html">버그 보고하기</a></li>
       <li>
-        <a href="https://github.com/python/cpython/blob/3.6/Doc/library/itertools.rst"
+        <a href="https://github.com/python/cpython/blob/3.7/Doc/library/itertools.rst"
             rel="nofollow">소스 보기
         </a>
       </li>
@@ -1193,7 +1193,7 @@ with local variables defined as default values.  For example, the
     <div class="footer">
     &copy; <a href="../copyright.html">저작권</a> 2001-2018, Python Software Foundation.
     <br />
-    한국어 번역 저작권 &copy; 2017-2018, Flowdas. All rights reserved.
+    한국어 번역 저작권 &copy; 2017-2018, Flowdas &amp; 역자. All rights reserved.
     <br />
     <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5 를 사용해서 만들었습니다.
     </div>

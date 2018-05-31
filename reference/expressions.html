@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>6. 표현식 &#8212; Python 3.6.5 documentation</title>
+    <title>6. 표현식 &#8212; Python 3.7.0b4 documentation</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '3.6.5',
+        VERSION:     '3.7.0b4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../_static/translations.js"></script>
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.6.5 documentation에서 찾기"
+          title="Python 3.7.0b4 documentation에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -160,13 +160,31 @@
 <p>컴프리헨션의 공통 문법 요소들은 이렇다:</p>
 <pre>
 <strong id="grammar-token-comprehension">comprehension</strong> ::=  <a class="reference internal" href="#grammar-token-expression"><code class="xref docutils literal"><span class="pre">expression</span></code></a> <a class="reference internal" href="#grammar-token-comp_for"><code class="xref docutils literal"><span class="pre">comp_for</span></code></a>
-<strong id="grammar-token-comp_for">comp_for     </strong> ::=  [ASYNC] &quot;for&quot; <a class="reference internal" href="simple_stmts.html#grammar-token-target_list"><code class="xref docutils literal"><span class="pre">target_list</span></code></a> &quot;in&quot; <a class="reference internal" href="#grammar-token-or_test"><code class="xref docutils literal"><span class="pre">or_test</span></code></a> [<a class="reference internal" href="#grammar-token-comp_iter"><code class="xref docutils literal"><span class="pre">comp_iter</span></code></a>]
+<strong id="grammar-token-comp_for">comp_for     </strong> ::=  [&quot;async&quot;] &quot;for&quot; <a class="reference internal" href="simple_stmts.html#grammar-token-target_list"><code class="xref docutils literal"><span class="pre">target_list</span></code></a> &quot;in&quot; <a class="reference internal" href="#grammar-token-or_test"><code class="xref docutils literal"><span class="pre">or_test</span></code></a> [<a class="reference internal" href="#grammar-token-comp_iter"><code class="xref docutils literal"><span class="pre">comp_iter</span></code></a>]
 <strong id="grammar-token-comp_iter">comp_iter    </strong> ::=  <a class="reference internal" href="#grammar-token-comp_for"><code class="xref docutils literal"><span class="pre">comp_for</span></code></a> | <a class="reference internal" href="#grammar-token-comp_if"><code class="xref docutils literal"><span class="pre">comp_if</span></code></a>
 <strong id="grammar-token-comp_if">comp_if      </strong> ::=  &quot;if&quot; <a class="reference internal" href="#grammar-token-expression_nocond"><code class="xref docutils literal"><span class="pre">expression_nocond</span></code></a> [<a class="reference internal" href="#grammar-token-comp_iter"><code class="xref docutils literal"><span class="pre">comp_iter</span></code></a>]
 </pre>
 <p>컴프리헨션은 하나의 표현식과 그 뒤를 따르는 최소한 하나의 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 절과 없거나 여러 개의 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 또는 <a class="reference internal" href="compound_stmts.html#if"><code class="xref std std-keyword docutils literal"><span class="pre">if</span></code></a> 절로 구성된다. 이 경우, 새 컨테이너의 요소들은 각 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 또는 <a class="reference internal" href="compound_stmts.html#if"><code class="xref std std-keyword docutils literal"><span class="pre">if</span></code></a> 절이 왼쪽에서 오른쪽으로 중첩된 블록을 이루고, 가장 안쪽에 있는 블록에서 표현식의 값을 구해서 만들어낸 것들이다.</p>
-<p>컴프리헨션은 별도의 스코프(scope)에서 실행되기 때문에, 타깃 목록에서 대입된 이름들은 둘러싼 스코프로 &quot;누수(leak)&quot;되지 않음에 주의해야 한다.</p>
+<p>However, aside from the iterable expression in the leftmost <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clause,
+the comprehension is executed in a separate implicitly nested scope. This ensures
+that names assigned to in the target list don't &quot;leak&quot; into the enclosing scope.</p>
+<p>The iterable expression in the leftmost <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clause is evaluated
+directly in the enclosing scope and then passed as an argument to the implictly
+nested scope. Subsequent <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clauses and any filter condition in the
+leftmost <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clause cannot be evaluated in the enclosing scope as
+they may depend on the values obtained from the leftmost iterable. For example:
+<code class="docutils literal"><span class="pre">[x*y</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range(10)</span> <span class="pre">for</span> <span class="pre">y</span> <span class="pre">in</span> <span class="pre">range(x,</span> <span class="pre">x+10)]</span></code>.</p>
+<p>To ensure the comprehension always results in a container of the appropriate
+type, <code class="docutils literal"><span class="pre">yield</span></code> and <code class="docutils literal"><span class="pre">yield</span> <span class="pre">from</span></code> expressions are prohibited in the implicitly
+nested scope (in Python 3.7, such expressions emit <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a>
+when compiled, in Python 3.8+ they will emit <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal"><span class="pre">SyntaxError</span></code></a>).</p>
 <p>파이썬 3.6부터, <a class="reference internal" href="compound_stmts.html#async-def"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">def</span></code></a> 함수에서는, <a class="reference internal" href="../glossary.html#term-asynchronous-iterator"><span class="xref std std-term">비동기 이터레이터</span></a> 를 탐색하기 위해 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 를 사용할 수 있다. <a class="reference internal" href="compound_stmts.html#async-def"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">def</span></code></a> 함수에 있는 컴프리헨션은 처음에 나오는 표현식뒤에 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 나 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 절이 올 수 있고, 추가의 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 나 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 절이 올 수 있고, <a class="reference internal" href="#await"><code class="xref std std-keyword docutils literal"><span class="pre">await</span></code></a> 표현식 또한 사용할 수 있다. 컴프리헨션이 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 절이나 <a class="reference internal" href="#await"><code class="xref std std-keyword docutils literal"><span class="pre">await</span></code></a> 표현식을 포함하면 <em class="dfn">비동기 컴프리헨션 (asynchronous comprehension)</em> 이라고 불린다. 비동기 컴프리헨션은 그것이 등장한 코루틴 함수의 실행을 일시 중지시킬 수 있다. <span class="target" id="index-95"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0530"><strong>PEP 530</strong></a> 를 참고하라.</p>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.6에 추가: </span>Asynchronous comprehensions were introduced.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified">버전 3.7 폐지: </span><code class="docutils literal"><span class="pre">yield</span></code> and <code class="docutils literal"><span class="pre">yield</span> <span class="pre">from</span></code> deprecated in the implicitly nested scope.</p>
+</div>
 </div>
 <div class="section" id="list-displays">
 <span id="lists"></span><h3>6.2.5. 리스트 디스플레이<a class="headerlink" href="#list-displays" title="제목 주소">¶</a></h3>
@@ -210,9 +228,38 @@
 <strong id="grammar-token-generator_expression">generator_expression</strong> ::=  &quot;(&quot; <a class="reference internal" href="#grammar-token-expression"><code class="xref docutils literal"><span class="pre">expression</span></code></a> <a class="reference internal" href="#grammar-token-comp_for"><code class="xref docutils literal"><span class="pre">comp_for</span></code></a> &quot;)&quot;
 </pre>
 <p>제너레이터 표현식은 새 제너레이터 객체를 만든다. 문법은 꺾쇠괄호나 중괄호 대신 괄호로 둘러싸인다는 점만 제외하면 컴프리헨션과 같다.</p>
-<p>제너레이터 표현식에 사용되는 변수들은 제너레이터 객체의 <a class="reference internal" href="#generator.__next__" title="generator.__next__"><code class="xref py py-meth docutils literal"><span class="pre">__next__()</span></code></a> 메서드가 호출될 때 느긋하게(lazily) 값이 구해진다 (일반 제너레이터와 마찬가지다). 하지만, 가장 왼쪽의 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 절은 즉시 값이 구해져서, 그것으로 인해 발생하는 에러는 제너레이터 표현을 다루는 다른 어떤 코드들에서 발생하는 에러들보다 먼저 발견된다. 뒤따르는 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 절들은 앞의 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 루프에 종속되기 때문에 즉시 값을 구할 수 없다. 예를 들어: <code class="docutils literal"><span class="pre">(x*y</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range(10)</span> <span class="pre">for</span> <span class="pre">y</span> <span class="pre">in</span> <span class="pre">bar(x))</span></code>.</p>
+<p>Variables used in the generator expression are evaluated lazily when the
+<a class="reference internal" href="#generator.__next__" title="generator.__next__"><code class="xref py py-meth docutils literal"><span class="pre">__next__()</span></code></a> method is called for the generator object (in the same
+fashion as normal generators).  However, the iterable expression in the
+leftmost <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clause is immediately evaluated, so that an error
+produced by it will be emitted at the point where the generator expression
+is defined, rather than at the point where the first value is retrieved.
+Subsequent <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clauses and any filter condition in the leftmost
+<a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> clause cannot be evaluated in the enclosing scope as they may
+depend on the values obtained from the leftmost iterable. For example:
+<code class="docutils literal"><span class="pre">(x*y</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range(10)</span> <span class="pre">for</span> <span class="pre">y</span> <span class="pre">in</span> <span class="pre">range(x,</span> <span class="pre">x+10))</span></code>.</p>
 <p>단지 하나의 인자만 갖는 호출에서는 괄호를 생략할 수 있다. 자세한 내용은 <a class="reference internal" href="#calls"><span class="std std-ref">호출</span></a> 섹션을 보면 된다.</p>
-<p>파이썬 3.6부터, 제너레이터가 <a class="reference internal" href="compound_stmts.html#async-def"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">def</span></code></a> 함수에서 등장하면, 비동기 컴프리헨션 처럼 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 절과 <a class="reference internal" href="#await"><code class="xref std std-keyword docutils literal"><span class="pre">await</span></code></a> 표현식이 허락된다. 제너레이터 표현식이 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 절이나 <a class="reference internal" href="#await"><code class="xref std std-keyword docutils literal"><span class="pre">await</span></code></a> 표현식을 포함하면 <em class="dfn">비동기 제너레이터 표현식 (asynchronous generator expression)</em> 이라고 불린다. 비동기 제너레이터 표현식은 새 비동기 제너레이터 객체를 만드는데 이것은 비동기 이터레이터다 (<a class="reference internal" href="datamodel.html#async-iterators"><span class="std std-ref">비동기 이터레이터(Asynchronous Iterators)</span></a> 를 참고하라).</p>
+<p>To avoid interfering with the expected operation of the generator expression
+itself, <code class="docutils literal"><span class="pre">yield</span></code> and <code class="docutils literal"><span class="pre">yield</span> <span class="pre">from</span></code> expressions are prohibited in the
+implicitly defined generator (in Python 3.7, such expressions emit
+<a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> when compiled, in Python 3.8+ they will emit
+<a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal"><span class="pre">SyntaxError</span></code></a>).</p>
+<p>If a generator expression contains either <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a>
+clauses or <a class="reference internal" href="#await"><code class="xref std std-keyword docutils literal"><span class="pre">await</span></code></a> expressions it is called an
+<em class="dfn">asynchronous generator expression</em>.  An asynchronous generator
+expression returns a new asynchronous generator object,
+which is an asynchronous iterator (see <a class="reference internal" href="datamodel.html#async-iterators"><span class="std std-ref">비동기 이터레이터(Asynchronous Iterators)</span></a>).</p>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.6에 추가: </span>Asynchronous generator expressions were introduced.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.7으로 변경: </span>Prior to Python 3.7, asynchronous generator expressions could
+only appear in <a class="reference internal" href="compound_stmts.html#async-def"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">def</span></code></a> coroutines.  Starting
+with 3.7, any function can use asynchronous generator expressions.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified">버전 3.7 폐지: </span><code class="docutils literal"><span class="pre">yield</span></code> and <code class="docutils literal"><span class="pre">yield</span> <span class="pre">from</span></code> deprecated in the implicitly nested scope.</p>
+</div>
 </div>
 <div class="section" id="yield-expressions">
 <span id="yieldexpr"></span><h3>6.2.9. 일드 표현식(Yield expressions)<a class="headerlink" href="#yield-expressions" title="제목 주소">¶</a></h3>
@@ -227,6 +274,15 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">agen</span><span class="p">():</span> <span class="c1"># defines an asynchronous generator function (PEP 525)</span>
     <span class="k">yield</span> <span class="mi">123</span>
 </pre></div>
+</div>
+<p>Due to their side effects on the containing scope, <code class="docutils literal"><span class="pre">yield</span></code> expressions
+are not permitted as part of the implicitly defined scopes used to
+implement comprehensions and generator expressions (in Python 3.7, such
+expressions emit <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> when compiled, in Python 3.8+
+they will emit <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal"><span class="pre">SyntaxError</span></code></a>)..</p>
+<div class="deprecated">
+<p><span class="versionmodified">버전 3.7 폐지: </span>Yield expressions deprecated in the implicitly nested scopes used to
+implement comprehensions and generator expressions.</p>
 </div>
 <p>제너레이터 함수는 다음에서 설명한다. 반면에 비동기 제너레이터 함수는 <a class="reference internal" href="#asynchronous-generator-functions"><span class="std std-ref">비동기 제너레이터 함수</span></a> 섹션에서 별도로 설명한다.</p>
 <p>제너레이터 함수가 호출될 때, 제너레이터로 알려진 이터레이터를 돌려준다. 그러면 그 제너레이터가 제너레이터 함수의 실행을 제어한다. 제너레이터의 메서드들 중 하나가 호출될 때 실행이 시작된다. 그 시점에, 실행은 첫 번째 일드 표현식까지 진행한 후, 거기에서 다시 일시 중지(suspend)하고 제너레이터의 호출자에게 <a class="reference internal" href="#grammar-token-expression_list"><code class="xref std std-token docutils literal"><span class="pre">expression_list</span></code></a> 의 값을 돌려준다. 일시 중지된다는 것은, 모든 지역 상태가 보존된다는 뜻인데, 지역 변수들의 현재 연결들, 명령 포인터(instruction pointer), 내부 연산 스택(internal evaluation stack), 모든 예외 처리 상태가 포함된다. 제너레이터의 메서드들 중 하나를 호출해서 실행이 재개될 때, 함수는 마치 일드 표현식이 단지 또 하나의 외부 호출인 것처럼 진행할 수 있다. 재개된 후에 일드 표현식의 값은 실행을 재개하도록 만든 메서드에 달려있다. (보통 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 나 <a class="reference internal" href="../library/functions.html#next" title="next"><code class="xref py py-func docutils literal"><span class="pre">next()</span></code></a> 내장을 통해) <a class="reference internal" href="#generator.__next__" title="generator.__next__"><code class="xref py py-meth docutils literal"><span class="pre">__next__()</span></code></a> 가 사용되었다면 결과는 <a class="reference internal" href="../library/constants.html#None" title="None"><code class="xref py py-const docutils literal"><span class="pre">None</span></code></a> 이다. 그렇지 않고, <a class="reference internal" href="#generator.send" title="generator.send"><code class="xref py py-meth docutils literal"><span class="pre">send()</span></code></a> 가 사용되었다면, 결과는 그 메서드로 전달된 값이다.</p>
@@ -317,7 +373,7 @@
 <p>비동기 제너레이터 함수가 호출되면, 비동기 제너레이터 객체로 알려진 비동기 이터레이터를 돌려준다. 그런 다음 그 객체는 제너레이터 함수의 실행을 제어한다. 비동기 제너레이터 객체는 보통 코루틴 함수의 <a class="reference internal" href="compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">for</span></code></a> 문에서 사용되는데, 제너레이터 객체가 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 문에서 사용되는 방식과 유사하다.</p>
 <p>비동기 제너레이터의 메서드들 중 하나를 호출하면 <a class="reference internal" href="../glossary.html#term-awaitable"><span class="xref std std-term">어웨이터블</span></a> 객체를 돌려주고, 이 객체를 await 할 때 실행이 시작된다. 그 시점에, 실행은 첫 번째 일드 표현식까지 진행한 후, 거기에서 다시 일시 중지(suspend)하고 await 중인 코루틴에게 <a class="reference internal" href="#grammar-token-expression_list"><code class="xref std std-token docutils literal"><span class="pre">expression_list</span></code></a> 의 값을 돌려준다. 제너레이터에서처럼, 일시 중지된다는 것은, 모든 지역 상태가 보존된다는 뜻인데, 지역 변수들의 현재 연결들, 명령 포인터(instruction pointer), 내부 연산 스택(internal evaluation stack), 모든 예외 처리 상태가 포함된다. 비동기 제너레이터의 메서드가 돌려준 다음 객체를 await 해서 실행이 재개될 때, 함수는 마치 일드 표현식이 단지 또 하나의 외부 호출인 것처럼 진행할 수 있다. 재개된 후에 일드 표현식의 값은 실행을 재개하도록 만든 메서드에 달려있다. <a class="reference internal" href="#agen.__anext__" title="agen.__anext__"><code class="xref py py-meth docutils literal"><span class="pre">__anext__()</span></code></a> 가 사용되었다면 결과는 <a class="reference internal" href="../library/constants.html#None" title="None"><code class="xref py py-const docutils literal"><span class="pre">None</span></code></a> 이다. 그렇지 않고, <a class="reference internal" href="#agen.asend" title="agen.asend"><code class="xref py py-meth docutils literal"><span class="pre">asend()</span></code></a> 가 사용되었다면, 결과는 그 메서드로 전달된 값이다.</p>
 <p>비동기 제너레이터 함수에서, 일드 표현식은 <a class="reference internal" href="compound_stmts.html#try"><code class="xref std std-keyword docutils literal"><span class="pre">try</span></code></a> 구조물의 어디에서건 허락된다. 하지만, 비동기 제너레이터가 (참조 횟수가 0이 되거나 가비지 수거됨으로써) 파이널라이즈(finalize)되기 전에 재개되지 않으면, <a class="reference internal" href="compound_stmts.html#try"><code class="xref std std-keyword docutils literal"><span class="pre">try</span></code></a> 구조물 내의 일드 표현식은 대기 중인 <a class="reference internal" href="compound_stmts.html#finally"><code class="xref std std-keyword docutils literal"><span class="pre">finally</span></code></a> 절을 실행하는 데 실패할 수 있다. 이 경우에, 비동기 제너레이터-이터레이터의 <a class="reference internal" href="#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal"><span class="pre">aclose()</span></code></a> 를 호출하고, 그 결과로 오는 코루틴 객체를 실행해서, 대기 중인 <a class="reference internal" href="compound_stmts.html#finally"><code class="xref std std-keyword docutils literal"><span class="pre">finally</span></code></a> 절이 실행되도록 하는 책임은, 비동기 제너레이터를 실행하는 이벤트 루프(event loop)나 스케쥴러(scheduler)에게 있다.</p>
-<p>파이널리제이션을 처리하기 위해, 이벤트 루프는 <em>파이널라이저(finalizer)</em> 함수를 정의해야 하는데 비동기 제너레이터-이터레이터를 받아서 아마도 <a class="reference internal" href="#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal"><span class="pre">aclose()</span></code></a> 를 호출하고 그 코루틴을 실행한다. 이 <em>파이널라이저</em> 는 <a class="reference internal" href="../library/sys.html#sys.set_asyncgen_hooks" title="sys.set_asyncgen_hooks"><code class="xref py py-func docutils literal"><span class="pre">sys.set_asyncgen_hooks()</span></code></a> 을 호출해서 등록할 수 있다. 처음 탐색 될 때, 비동기 제너레이터-이터레이터는 파이널리제이션때 호출될 등록된 <em>파이널라이저</em> 를 저장할 것이다. <em>파이널라이저</em> 메서드의 참조할만한 예는 <a class="reference external" href="https://github.com/python/cpython/tree/3.6/Lib/asyncio/base_events.py">Lib/asyncio/base_events.py</a> 에 있는 <code class="docutils literal"><span class="pre">asyncio.Loop.shutdown_asyncgens</span></code> 구현을 보면 된다.</p>
+<p>파이널리제이션을 처리하기 위해, 이벤트 루프는 <em>파이널라이저(finalizer)</em> 함수를 정의해야 하는데 비동기 제너레이터-이터레이터를 받아서 아마도 <a class="reference internal" href="#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal"><span class="pre">aclose()</span></code></a> 를 호출하고 그 코루틴을 실행한다. 이 <em>파이널라이저</em> 는 <a class="reference internal" href="../library/sys.html#sys.set_asyncgen_hooks" title="sys.set_asyncgen_hooks"><code class="xref py py-func docutils literal"><span class="pre">sys.set_asyncgen_hooks()</span></code></a> 을 호출해서 등록할 수 있다. 처음 탐색 될 때, 비동기 제너레이터-이터레이터는 파이널리제이션때 호출될 등록된 <em>파이널라이저</em> 를 저장할 것이다. <em>파이널라이저</em> 메서드의 참조할만한 예는 <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Lib/asyncio/base_events.py">Lib/asyncio/base_events.py</a> 에 있는 <code class="docutils literal"><span class="pre">asyncio.Loop.shutdown_asyncgens</span></code> 구현을 보면 된다.</p>
 <p>표현식 <code class="docutils literal"><span class="pre">yield</span> <span class="pre">from</span> <span class="pre">&lt;expr&gt;</span></code> 를 비동기 제너레이터 함수에서 사용하는 것은 문법 에러다.</p>
 </div>
 <div class="section" id="asynchronous-generator-iterator-methods">
@@ -521,10 +577,6 @@
 </pre>
 <p>이 연산들은 정수들을 인자로 받아들인다. 첫 번째 인자를 두 번째 인자로 주어진 비트 수만큼 왼쪽이나 오른쪽으로 민(shift)다.</p>
 <p id="index-63">오른쪽으로 <em>n</em> 비트 시프트 하는 것은 <code class="docutils literal"><span class="pre">pow(2,n)</span></code> 로 정수 나눗셈하는 것으로 정의된다. 왼쪽으로 <em>n</em> 비트 시프트 하는 것은 <code class="docutils literal"><span class="pre">pow(2,n)</span></code> 를 곱하는 것으로 정의된다.</p>
-<div class="admonition note">
-<p class="first admonition-title">주석</p>
-<p class="last">현재 구현에서, 우측 피연산자는 최대 <a class="reference internal" href="../library/sys.html#sys.maxsize" title="sys.maxsize"><code class="xref py py-attr docutils literal"><span class="pre">sys.maxsize</span></code></a> 일 것이 요구된다. 우측 피연산자가 <a class="reference internal" href="../library/sys.html#sys.maxsize" title="sys.maxsize"><code class="xref py py-attr docutils literal"><span class="pre">sys.maxsize</span></code></a> 보다 크면 <a class="reference internal" href="../library/exceptions.html#OverflowError" title="OverflowError"><code class="xref py py-exc docutils literal"><span class="pre">OverflowError</span></code></a> 예외가 발생한다.</p>
-</div>
 </div>
 <div class="section" id="binary-bitwise-operations">
 <span id="bitwise"></span><h2>6.9. 이항 비트 연산<a class="headerlink" href="#binary-bitwise-operations" title="제목 주소">¶</a></h2>
@@ -894,7 +946,7 @@
     <ul class="this-page-menu">
       <li><a href="../bugs.html">버그 보고하기</a></li>
       <li>
-        <a href="https://github.com/python/cpython/blob/3.6/Doc/reference/expressions.rst"
+        <a href="https://github.com/python/cpython/blob/3.7/Doc/reference/expressions.rst"
             rel="nofollow">소스 보기
         </a>
       </li>
@@ -947,7 +999,7 @@
     <div class="footer">
     &copy; <a href="../copyright.html">저작권</a> 2001-2018, Python Software Foundation.
     <br />
-    한국어 번역 저작권 &copy; 2017-2018, Flowdas. All rights reserved.
+    한국어 번역 저작권 &copy; 2017-2018, Flowdas &amp; 역자. All rights reserved.
     <br />
     <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.5 를 사용해서 만들었습니다.
     </div>

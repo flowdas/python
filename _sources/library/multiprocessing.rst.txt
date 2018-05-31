@@ -135,7 +135,7 @@ start a *semaphore tracker* process which tracks the unlinked named
 semaphores created by processes of the program.  When all processes
 have exited the semaphore tracker unlinks any remaining semaphores.
 Usually there should be none, but if a process was killed by a signal
-there may some "leaked" semaphores.  (Unlinking the named semaphores
+there may be some "leaked" semaphores.  (Unlinking the named semaphores
 is a serious matter since the system allows only a limited number, and
 they will not be automatically unlinked until the next reboot.)
 
@@ -179,7 +179,7 @@ program. ::
 
 Note that objects related to one context may not be compatible with
 processes for a different context.  In particular, locks created using
-the *fork* context cannot be passed to a processes started using the
+the *fork* context cannot be passed to processes started using the
 *spawn* or *forkserver* start methods.
 
 A library which wants to use a particular start method should probably
@@ -597,6 +597,22 @@ The :mod:`multiprocessing` package mostly replicates the API of the
          become unusable by other process.  Similarly, if the process has
          acquired a lock or semaphore etc. then terminating it is liable to
          cause other processes to deadlock.
+
+   .. method:: kill()
+
+      Same as :meth:`terminate()` but using the ``SIGKILL`` signal on Unix.
+
+      .. versionadded:: 3.7
+
+   .. method:: close()
+
+      Close the :class:`Process` object, releasing all resources associated
+      with it.  :exc:`ValueError` is raised if the underlying process
+      is still running.  Once :meth:`close` returns successfully, most
+      other methods and attributes of the :class:`Process` object will
+      raise :exc:`ValueError`.
+
+      .. versionadded:: 3.7
 
    Note that the :meth:`start`, :meth:`join`, :meth:`is_alive`,
    :meth:`terminate` and :attr:`exitcode` methods should only be called by
@@ -1022,7 +1038,7 @@ Connection objects are usually created using
       Send an object to the other end of the connection which should be read
       using :meth:`recv`.
 
-      The object must be picklable.  Very large pickles (approximately 32 MB+,
+      The object must be picklable.  Very large pickles (approximately 32 MiB+,
       though it depends on the OS) may raise a :exc:`ValueError` exception.
 
    .. method:: recv()
@@ -1059,7 +1075,7 @@ Connection objects are usually created using
 
       If *offset* is given then data is read from that position in *buffer*.  If
       *size* is given then that many bytes will be read from buffer.  Very large
-      buffers (approximately 32 MB+, though it depends on the OS) may raise a
+      buffers (approximately 32 MiB+, though it depends on the OS) may raise a
       :exc:`ValueError` exception
 
    .. method:: recv_bytes([maxlength])
