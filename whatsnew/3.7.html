@@ -111,7 +111,7 @@
 <p>이 기사에서는 파이썬 3.6과 비교하여 3.7의 새로운 기능에 관해 설명합니다.</p>
 <p>자세한 내용은 <a class="reference internal" href="changelog.html#changelog"><span class="std std-ref">changelog</span></a> 를 참조하세요.</p>
 <div class="section" id="summary-release-highlights">
-<h2>요약 - 배포 주요 사항<a class="headerlink" href="#summary-release-highlights" title="제목 주소">¶</a></h2>
+<h2>요약 -- 배포 주요 사항<a class="headerlink" href="#summary-release-highlights" title="제목 주소">¶</a></h2>
 <p>새로운 문법 기능:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#whatsnew37-pep563"><span class="std std-ref">PEP 563</span></a>, 형 어노테이션의 지연된 평가.</li>
@@ -144,7 +144,7 @@
 <p>CPython 구현 개선:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#whatsnew37-pep552"><span class="std std-ref">PEP 552</span></a>, 결정적 .pycs</li>
-<li><a class="reference internal" href="#whatsnew37-pep538"><span class="std std-ref">PEP 538</span></a>, 레거시 C 로케일 코어션</li>
+<li><a class="reference internal" href="#whatsnew37-pep538"><span class="std std-ref">PEP 538</span></a>, 레거시 C 로케일 강제 변경</li>
 <li><a class="reference internal" href="#whatsnew37-pep540"><span class="std std-ref">PEP 540</span></a>, 강제 UTF-8 실행시간 모드</li>
 <li><a class="reference internal" href="#whatsnew37-devmode"><span class="std std-ref">새로운 개발 실행시간 모드</span></a></li>
 <li><a class="reference internal" href="#whatsnew37-pep565"><span class="std std-ref">PEP 565</span></a>, 개선된 <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> 처리</li>
@@ -162,29 +162,16 @@
 <p>이전 파이썬 배포와의 호환성에 영향을 줄 수 있는 변경 사항 목록은 <a class="reference internal" href="#porting-to-python-37"><span class="std std-ref">Porting to Python 3.7</span></a> 섹션을 참조하십시오.</p>
 </div>
 <div class="section" id="new-features">
-<h2>New Features<a class="headerlink" href="#new-features" title="제목 주소">¶</a></h2>
+<h2>새로운 기능<a class="headerlink" href="#new-features" title="제목 주소">¶</a></h2>
 <div class="section" id="pep-563-postponed-evaluation-of-annotations">
-<span id="whatsnew37-pep563"></span><h3>PEP 563: Postponed Evaluation of Annotations<a class="headerlink" href="#pep-563-postponed-evaluation-of-annotations" title="제목 주소">¶</a></h3>
-<p>The advent of type hints in Python uncovered two glaring usability issues
-with the functionality of annotations added in <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3107"><strong>PEP 3107</strong></a> and refined
-further in <span class="target" id="index-1"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0526"><strong>PEP 526</strong></a>:</p>
+<span id="whatsnew37-pep563"></span><h3>PEP 563 : 어노테이션의 지연된 평가<a class="headerlink" href="#pep-563-postponed-evaluation-of-annotations" title="제목 주소">¶</a></h3>
+<p>파이썬에서 형 힌트의 출현은 <span class="target" id="index-61"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3107"><strong>PEP 3107</strong></a>에서 추가되고 <span class="target" id="index-62"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0526"><strong>PEP 526</strong></a>에서 더욱 다듬어진 어노테이션의 두 가지 사용성 문제를 드러냈습니다:</p>
 <ul class="simple">
-<li>annotations could only use names which were already available in the
-current scope, in other words they didn't support forward references
-of any kind; and</li>
-<li>annotating source code had adverse effects on startup time of Python
-programs.</li>
+<li>어노테이션은 현재 스코프에서 이미 사용 가능한 이름 만 사용할 수 있습니다. 즉, 어떤 종류의 전방 참조도 지원하지 않았습니다; 그리고</li>
+<li>소스 코드에 어노테이션을 붙이는 것은 파이썬 프로그램의 시작 시간에 악영향을 미쳤습니다.</li>
 </ul>
-<p>Both of these issues are fixed by postponing the evaluation of
-annotations.  Instead of compiling code which executes expressions in
-annotations at their definition time, the compiler stores the annotation
-in a string form equivalent to the AST of the expression in question.
-If needed, annotations can be resolved at runtime using
-<a class="reference internal" href="../library/typing.html#typing.get_type_hints" title="typing.get_type_hints"><code class="xref py py-func docutils literal"><span class="pre">typing.get_type_hints()</span></code></a>.  In the common case where this is not
-required, the annotations are cheaper to store (since short strings
-are interned by the interpreter) and make startup time faster.</p>
-<p>Usability-wise, annotations now support forward references, making the
-following syntax valid:</p>
+<p>이 두 가지 문제는 어노테이션 평가를 지연시키는 것으로 해결됩니다. 정의 시간에 어노테이션의 표현식을 실행하는 코드를 컴파일하는 대신, 컴파일러는 해당 표현식의 AST와 동등한 문자열 형식으로 어노테이션을 저장합니다. 필요하다면, 실행시간에 <a class="reference internal" href="../library/typing.html#typing.get_type_hints" title="typing.get_type_hints"><code class="xref py py-func docutils literal"><span class="pre">typing.get_type_hints()</span></code></a> 를 사용하여 어노테이션을 해석 할 수 있습니다. 이것이 필수적이지 않은 일반적인 경우에는, 어노테이션을 싸게 저장할 수 있고 (짧은 문자열은 인터프리터에 의해 한 번만 만들어지기 때문입니다), 시작 시간을 더 빠르게 할 수 있습니다.</p>
+<p>사용성 측면에서, 이제 어노테이션이 전방 참조를 지원하므로 다음 문법이 유효합니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">C</span><span class="p">:</span>
@@ -197,137 +184,88 @@ following syntax valid:</p>
     <span class="o">...</span>
 </pre></div>
 </div>
-<p>Since this change breaks compatibility, the new behavior needs to be enabled
-on a per-module basis in Python 3.7 using a <a class="reference internal" href="../library/__future__.html#module-__future__" title="__future__: Future statement definitions"><code class="xref py py-mod docutils literal"><span class="pre">__future__</span></code></a> import:</p>
+<p>이 변경으로 인해 호환성이 깨지기 때문에, 파이썬 3.7에서 새 동작은 <a class="reference internal" href="../library/__future__.html#module-__future__" title="__future__: Future statement definitions"><code class="xref py py-mod docutils literal"><span class="pre">__future__</span></code></a> 임포트를 사용하여 모듈별로 새로운 동작을 활성화해야 합니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">annotations</span>
 </pre></div>
 </div>
-<p>It will become the default in Python 4.0.</p>
+<p>파이썬 4.0에서는 기본값이 됩니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0563"><strong>PEP 563</strong></a> -- Postponed evaluation of annotations</dt>
-<dd>PEP written and implemented by Łukasz Langa.</dd>
+<dt><span class="target" id="index-63"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0563"><strong>PEP 563</strong></a> -- 어노테이션의 지연된 평가</dt>
+<dd>Łukasz Langa가 작성하고 구현한 PEP.</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-538-legacy-c-locale-coercion">
-<span id="whatsnew37-pep538"></span><h3>PEP 538: Legacy C Locale Coercion<a class="headerlink" href="#pep-538-legacy-c-locale-coercion" title="제목 주소">¶</a></h3>
-<p>An ongoing challenge within the Python 3 series has been determining a sensible
-default strategy for handling the &quot;7-bit ASCII&quot; text encoding assumption
-currently implied by the use of the default C locale on non-Windows platforms.</p>
-<p><span class="target" id="index-3"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0538"><strong>PEP 538</strong></a> updates the default interpreter command line interface to
-automatically coerce that locale to an available UTF-8 based locale as
-described in the documentation of the new <span class="target" id="index-4"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONCOERCECLOCALE"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONCOERCECLOCALE</span></code></a>
-environment variable. Automatically setting <code class="docutils literal"><span class="pre">LC_CTYPE</span></code> this way means that
-both the core interpreter and locale-aware C extensions (such as
-<a class="reference internal" href="../library/readline.html#module-readline" title="readline: GNU readline support for Python. (Unix)"><code class="xref py py-mod docutils literal"><span class="pre">readline</span></code></a>) will assume the use of UTF-8 as the default text encoding,
-rather than ASCII.</p>
-<p>The platform support definition in <span class="target" id="index-5"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0011"><strong>PEP 11</strong></a> has also been updated to limit
-full text handling support to suitably configured non-ASCII based locales.</p>
-<p>As part of this change, the default error handler for <a class="reference internal" href="../library/sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-data docutils literal"><span class="pre">stdin</span></code></a> and
-<a class="reference internal" href="../library/sys.html#sys.stdout" title="sys.stdout"><code class="xref py py-data docutils literal"><span class="pre">stdout</span></code></a> is now <code class="docutils literal"><span class="pre">surrogateescape</span></code> (rather than <code class="docutils literal"><span class="pre">strict</span></code>) when
-using any of the defined coercion target locales (currently <code class="docutils literal"><span class="pre">C.UTF-8</span></code>,
-<code class="docutils literal"><span class="pre">C.utf8</span></code>, and <code class="docutils literal"><span class="pre">UTF-8</span></code>).  The default error handler for <a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal"><span class="pre">stderr</span></code></a>
-continues to be <code class="docutils literal"><span class="pre">backslashreplace</span></code>, regardless of locale.</p>
-<p>Locale coercion is silent by default, but to assist in debugging potentially
-locale related integration problems, explicit warnings (emitted directly on
-<a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal"><span class="pre">stderr</span></code></a> can be requested by setting <code class="docutils literal"><span class="pre">PYTHONCOERCECLOCALE=warn</span></code>.
-This setting will also cause the Python runtime to emit a warning if the
-legacy C locale remains active when the core interpreter is initialized.</p>
+<span id="whatsnew37-pep538"></span><h3>PEP 538: 레거시 C 로케일 강제 변경<a class="headerlink" href="#pep-538-legacy-c-locale-coercion" title="제목 주소">¶</a></h3>
+<p>파이썬 3 시리즈에서 진행 중인 과제는, 윈도우 이외의 플랫폼에서 기본 C 로케일 사용으로 인해 묵시적으로 가정되는 &quot;7-비트 ASCII&quot; 텍스트 인코딩을 처리하기 위한 적절한 기본 전략을 결정하는 것입니다.</p>
+<p>새 <span class="target" id="index-64"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONCOERCECLOCALE"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONCOERCECLOCALE</span></code></a> 환경 변수의 도큐멘테이션에 설명되어있듯이, <span class="target" id="index-65"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0538"><strong>PEP 538</strong></a> 은 기본 인터프리터 명령행 인터페이스를 갱신하여, 사용 가능한 UTF-8 기반 로케일로 자동으로 강제 변경합니다. 이런 식으로 <code class="docutils literal"><span class="pre">LC_CTYPE</span></code> 을 자동 설정하는 것은, 핵심 인터프리터와 로케일을 인식하는 C 확장 (가령 <a class="reference internal" href="../library/readline.html#module-readline" title="readline: GNU readline support for Python. (Unix)"><code class="xref py py-mod docutils literal"><span class="pre">readline</span></code></a>) 모두 기본 텍스트 인코딩으로 ASCII 대신 UTF-8을 가정하게 된다는 뜻입니다.</p>
+<p><span class="target" id="index-66"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0011"><strong>PEP 11</strong></a> 의 플랫폼 지원 정의 역시 전체 텍스트 처리 지원을 적절히 구성된 비 ASCII 기반 로케일로 제한하도록 갱신되었습니다.</p>
+<p>이 변경의 일부로, 이제 정의된 강제 변경 대상 로케일(현재 <code class="docutils literal"><span class="pre">C.UTF-8</span></code>, <code class="docutils literal"><span class="pre">C.utf8</span></code>, <code class="docutils literal"><span class="pre">UTF-8</span></code>)을 사용할 때, <a class="reference internal" href="../library/sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-data docutils literal"><span class="pre">stdin</span></code></a> 과 <a class="reference internal" href="../library/sys.html#sys.stdout" title="sys.stdout"><code class="xref py py-data docutils literal"><span class="pre">stdout</span></code></a> 의 기본 에러 처리기는 (<code class="docutils literal"><span class="pre">strict</span></code> 대신) <code class="docutils literal"><span class="pre">surrogateescape</span></code> 입니다. <a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal"><span class="pre">stderr</span></code></a> 의 기본 에러 처리기는 로케일에 관계없이 계속 <code class="docutils literal"><span class="pre">backslashreplace</span></code> 입니다.</p>
+<p>로케일 강제 변경은 기본적으로 조용히 일어나지만, 로케일 관련 통합 문제를 디버깅하는 데 도움을 주기 위해 <code class="docutils literal"><span class="pre">PYTHONCOERCECLOCALE=warn</span></code> 를 설정해서 (<a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal"><span class="pre">stderr</span></code></a> 로 직접 출력되는) 명시적 경고를 요청할 수 있습니다. 또한, 이 설정은 핵심 인터프리터가 초기화될 때 레거시 C 로케일이 활성 상태로 남아 있으면 파이썬 런타임이 경고를 하도록 만듭니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-6"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0538"><strong>PEP 538</strong></a> -- Coercing the legacy C locale to a UTF-8 based locale</dt>
-<dd>PEP written and implemented by Nick Coghlan.</dd>
+<dt><span class="target" id="index-67"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0538"><strong>PEP 538</strong></a> -- 레거시 C 로케일을 UTF-8 기반 로케일로 강제 변경</dt>
+<dd>Nick Coghlan 이 작성하고 구현한 PEP.</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-540-forced-utf-8-runtime-mode">
-<span id="whatsnew37-pep540"></span><h3>PEP 540: Forced UTF-8 Runtime Mode<a class="headerlink" href="#pep-540-forced-utf-8-runtime-mode" title="제목 주소">¶</a></h3>
-<p>The new <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">utf8</span></code> command line option and <span class="target" id="index-7"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONUTF8"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONUTF8</span></code></a>
-environment variable can be used to enable the CPython <em>UTF-8 mode</em>.</p>
-<p>When in UTF-8 mode, CPython ignores the locale settings, and uses the
-UTF-8 encoding by default.  The error handlers for <a class="reference internal" href="../library/sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-data docutils literal"><span class="pre">sys.stdin</span></code></a> and
-<a class="reference internal" href="../library/sys.html#sys.stdout" title="sys.stdout"><code class="xref py py-data docutils literal"><span class="pre">sys.stdout</span></code></a> streams are set to <code class="docutils literal"><span class="pre">surrogateescape</span></code>.</p>
-<p>The forced UTF-8 mode can be used to change the text handling behavior in
-an embedded Python interpreter without changing the locale settings of
-an embedding application.</p>
-<p>The UTF-8 mode is enabled by default when the locale is &quot;C&quot;.  See
-<a class="reference internal" href="#whatsnew37-pep538"><span class="std std-ref">PEP 538: Legacy C Locale Coercion</span></a> for details.</p>
+<span id="whatsnew37-pep540"></span><h3>PEP 540: 강제 UTF-8 실행시간 모드<a class="headerlink" href="#pep-540-forced-utf-8-runtime-mode" title="제목 주소">¶</a></h3>
+<p>새로운 <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">utf8</span></code> 명령행 옵션과 <span class="target" id="index-68"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONUTF8"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONUTF8</span></code></a> 환경 변수를 사용하여 CPython <em>UTF-8 모드</em> 를 활성화할 수 있습니다.</p>
+<p>UTF-8 모드에서, CPython은 로케일 설정을 무시하고 기본적으로 UTF-8 인코딩을 사용합니다. <a class="reference internal" href="../library/sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-data docutils literal"><span class="pre">sys.stdin</span></code></a> 과 <a class="reference internal" href="../library/sys.html#sys.stdout" title="sys.stdout"><code class="xref py py-data docutils literal"><span class="pre">sys.stdout</span></code></a> 스트림의 에러 처리기는 <code class="docutils literal"><span class="pre">surrogateescape</span></code> 로 설정됩니다.</p>
+<p>강제 UTF-8 모드는 임베디드 응용 프로그램의 로케일 설정을 변경하지 않고 임베디드 파이썬 인터프리터의 텍스트 처리 동작을 변경하는 데 사용할 수 있습니다.</p>
+<p>로케일이 &quot;C&quot; 일 때 UTF-8 모드는 기본적으로 활성화됩니다. 자세한 내용은 <a class="reference internal" href="#whatsnew37-pep538"><span class="std std-ref">PEP 538: 레거시 C 로케일 강제 변경</span></a> 을 참조하십시오.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-8"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0540"><strong>PEP 540</strong></a> -- Add a new UTF-8 mode</dt>
-<dd>PEP written and implemented by Victor Stinner</dd>
+<dt><span class="target" id="index-69"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0540"><strong>PEP 540</strong></a> -- 새로운 UTF-8 모드 추가</dt>
+<dd>Victor Stinner가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-553-built-in-breakpoint">
-<span id="whatsnew37-pep553"></span><h3>PEP 553: Built-in <code class="docutils literal"><span class="pre">breakpoint()</span></code><a class="headerlink" href="#pep-553-built-in-breakpoint" title="제목 주소">¶</a></h3>
-<p>Python 3.7 includes the new built-in <a class="reference internal" href="../library/functions.html#breakpoint" title="breakpoint"><code class="xref py py-func docutils literal"><span class="pre">breakpoint()</span></code></a> function as
-an easy and consistent way to enter the Python debugger.</p>
-<p>Built-in <code class="docutils literal"><span class="pre">breakpoint()</span></code> calls <a class="reference internal" href="../library/sys.html#sys.breakpointhook" title="sys.breakpointhook"><code class="xref py py-func docutils literal"><span class="pre">sys.breakpointhook()</span></code></a>.  By default, the
-latter imports <a class="reference internal" href="../library/pdb.html#module-pdb" title="pdb: The Python debugger for interactive interpreters."><code class="xref py py-mod docutils literal"><span class="pre">pdb</span></code></a> and then calls <code class="docutils literal"><span class="pre">pdb.set_trace()</span></code>, but by binding
-<code class="docutils literal"><span class="pre">sys.breakpointhook()</span></code> to the function of your choosing, <code class="docutils literal"><span class="pre">breakpoint()</span></code> can
-enter any debugger. Additionally, the environment variable
-<span class="target" id="index-9"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONBREAKPOINT"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONBREAKPOINT</span></code></a> can be set to the callable of your debugger of
-choice.  Set <code class="docutils literal"><span class="pre">PYTHONBREAKPOINT=0</span></code> to completely disable built-in
-<code class="docutils literal"><span class="pre">breakpoint()</span></code>.</p>
+<span id="whatsnew37-pep553"></span><h3>PEP 553: 내장 <code class="docutils literal"><span class="pre">breakpoint()</span></code><a class="headerlink" href="#pep-553-built-in-breakpoint" title="제목 주소">¶</a></h3>
+<p>파이썬 3.7에는 파이썬 디버거에 진입하는 쉽고 일관된 방식을 제공하는 새로운 내장 <a class="reference internal" href="../library/functions.html#breakpoint" title="breakpoint"><code class="xref py py-func docutils literal"><span class="pre">breakpoint()</span></code></a> 함수가 포함되어 있습니다.</p>
+<p>내장 <code class="docutils literal"><span class="pre">breakpoint()</span></code> 는 <a class="reference internal" href="../library/sys.html#sys.breakpointhook" title="sys.breakpointhook"><code class="xref py py-func docutils literal"><span class="pre">sys.breakpointhook()</span></code></a> 을 호출합니다. 기본적으로, 후자는 <a class="reference internal" href="../library/pdb.html#module-pdb" title="pdb: The Python debugger for interactive interpreters."><code class="xref py py-mod docutils literal"><span class="pre">pdb</span></code></a>를 임포트 한 다음 <code class="docutils literal"><span class="pre">pdb.set_trace()</span></code> 를 호출합니다. 하지만, <code class="docutils literal"><span class="pre">sys.breakpointhook()</span></code> 을 여러분이 선택한 함수에 연결하면, <code class="docutils literal"><span class="pre">breakpoint()</span></code> 는 임의의 디버거에 진입할 수 있습니다. 또한, 환경 변수 <span class="target" id="index-70"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONBREAKPOINT"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONBREAKPOINT</span></code></a> 를 여러분이 선택한 디버거의 콜러블로 설정할 수 있습니다. 내장 <cite>breakpoint()`</cite> 를 완전히 비활성화하려면 <code class="docutils literal"><span class="pre">PYTHONBREAKPOINT=0</span></code> 를 설정하십시오.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-10"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0553"><strong>PEP 553</strong></a> -- Built-in breakpoint()</dt>
-<dd>PEP written and implemented by Barry Warsaw</dd>
+<dt><span class="target" id="index-71"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0553"><strong>PEP 553</strong></a> -- 내장 breakpoint()</dt>
+<dd>Barry Warsaw가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-539-new-c-api-for-thread-local-storage">
-<span id="whatsnew37-pep539"></span><h3>PEP 539: New C API for Thread-Local Storage<a class="headerlink" href="#pep-539-new-c-api-for-thread-local-storage" title="제목 주소">¶</a></h3>
-<p>While Python provides a C API for thread-local storage support; the existing
-<a class="reference internal" href="../c-api/init.html#thread-local-storage-api"><span class="std std-ref">Thread Local Storage (TLS) API</span></a> has used
-<code class="xref c c-type docutils literal"><span class="pre">int</span></code> to represent TLS keys across all platforms.  This has not
-generally been a problem for officially-support platforms, but that is neither
-POSIX-compliant, nor portable in any practical sense.</p>
-<p><span class="target" id="index-11"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0539"><strong>PEP 539</strong></a> changes this by providing a new <a class="reference internal" href="../c-api/init.html#thread-specific-storage-api"><span class="std std-ref">Thread Specific Storage (TSS)
-API</span></a> to CPython which supersedes use of the
-existing TLS API within the CPython interpreter, while deprecating the existing
-API.  The TSS API uses a new type <a class="reference internal" href="../c-api/init.html#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal"><span class="pre">Py_tss_t</span></code></a> instead of <code class="xref c c-type docutils literal"><span class="pre">int</span></code>
-to represent TSS keys--an opaque type the definition of which may depend on
-the underlying TLS implementation.  Therefore, this will allow to build CPython
-on platforms where the native TLS key is defined in a way that cannot be safely
-cast to <code class="xref c c-type docutils literal"><span class="pre">int</span></code>.</p>
-<p>Note that on platforms where the native TLS key is defined in a way that cannot
-be safely cast to <code class="xref c c-type docutils literal"><span class="pre">int</span></code>, all functions of the existing TLS API will be
-no-op and immediately return failure. This indicates clearly that the old API
-is not supported on platforms where it cannot be used reliably, and that no
-effort will be made to add such support.</p>
+<span id="whatsnew37-pep539"></span><h3>PEP 539: 스레드-로컬 저장소를 위한 새로운 C API<a class="headerlink" href="#pep-539-new-c-api-for-thread-local-storage" title="제목 주소">¶</a></h3>
+<p>파이썬은 스레드 로컬 저장소 지원을 위한 C API를 제공하지만; 기존 <a class="reference internal" href="../c-api/init.html#thread-local-storage-api"><span class="std std-ref">스레드 로컬 저장소 (TLS) API</span></a> 는 모든 플랫폼에서 TLS 키로 <code class="xref c c-type docutils literal"><span class="pre">int</span></code>를 사용합니다. 이것은 공식적으로 지원되는 플랫폼에서는 일반적으로 문제가 되지 않지만, POSIX를 준수하지도 실용적인 의미에서 이식성이 있지도 않습니다.</p>
+<p><span class="target" id="index-72"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0539"><strong>PEP 539</strong></a> 는 CPython에 새로운 <a class="reference internal" href="../c-api/init.html#thread-specific-storage-api"><span class="std std-ref">스레드 특정 저장소 (TSS) API</span></a> 를 제공해서 이를 변경하는데, CPython 인터프리터 내에서 기존 TLS API의 사용을 대체하는 동시에 기존 API를 폐지합니다. TSS API는 TSS 키를 나타내는데 <code class="xref c c-type docutils literal"><span class="pre">int</span></code> 대신 <a class="reference internal" href="../c-api/init.html#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal"><span class="pre">Py_tss_t</span></code></a>라는 새로운 형을 사용합니다. 이 형은 하부 TLS 구현에 따라 달라질 수 있는 불투명 한 형입니다. 그래서 네이티브 TLS 키가 <code class="xref c c-type docutils literal"><span class="pre">int</span></code>로 안전하게 캐스팅될 수 없는 방식으로 정의된 플랫폼에서 CPython을 빌드 할 수 있게 합니다.</p>
+<p>네이티브 TLS 키가 <code class="xref c c-type docutils literal"><span class="pre">int</span></code>로 안전하게 캐스팅될 수 없는 방식으로 정의된 플랫폼에서는, 기존 TLS API의 모든 함수는 작동하지 않고 즉시 실패를 반환합니다. 이는 이전 API가 신뢰성 있게 사용될 수 없는 플랫폼에서 지원되지 않으며, 이러한 지원을 추가하기 위한 노력이 없을 것을 분명하게 나타냅니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-12"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0539"><strong>PEP 539</strong></a> -- A New C-API for Thread-Local Storage in CPython</dt>
-<dd>PEP written by Erik M. Bray; implementation by Masayuki Yamamoto.</dd>
+<dt><span class="target" id="index-73"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0539"><strong>PEP 539</strong></a> -- CPython의 스레드-로컬 저장소를 위한 새로운 C-API</dt>
+<dd>Erik M. Bray가 작성하고 Masayuki Yamamoto가 구현한 PEP.</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-562-customization-of-access-to-module-attributes">
-<span id="whatsnew37-pep562"></span><h3>PEP 562: Customization of Access to Module Attributes<a class="headerlink" href="#pep-562-customization-of-access-to-module-attributes" title="제목 주소">¶</a></h3>
-<p>Python 3.7 allows defining <a class="reference internal" href="../reference/datamodel.html#object.__getattr__" title="object.__getattr__"><code class="xref py py-meth docutils literal"><span class="pre">__getattr__()</span></code></a> on modules and will call
-it whenever a module attribute is otherwise not found.</p>
-<p>A typical example of where this may be useful is module attribute deprecation
-and lazy loading.</p>
+<span id="whatsnew37-pep562"></span><h3>PEP 562: 모듈 어트리뷰트에 대한 액세스 사용자 정의<a class="headerlink" href="#pep-562-customization-of-access-to-module-attributes" title="제목 주소">¶</a></h3>
+<p>파이썬 3.7은 모듈에, 발견되지 않는 어트리뷰트마다 호출되는 <a class="reference internal" href="../reference/datamodel.html#object.__getattr__" title="object.__getattr__"><code class="xref py py-meth docutils literal"><span class="pre">__getattr__()</span></code></a> 을 정의할 수 있도록 합니다.</p>
+<p>이것이 유용한 전형적인 예는 모듈 어트리뷰트 폐지와 지연 로딩입니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-13"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0562"><strong>PEP 562</strong></a> -- Module <code class="docutils literal"><span class="pre">__getattr__</span></code> and <code class="docutils literal"><span class="pre">__dir__</span></code></dt>
-<dd>PEP written and implemented by Ivan Levkivskyi</dd>
+<dt><span class="target" id="index-74"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0562"><strong>PEP 562</strong></a> -- 모듈 <code class="docutils literal"><span class="pre">__getattr__</span></code> 과 <code class="docutils literal"><span class="pre">__dir__</span></code></dt>
+<dd>Ivan Levkivskyi가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-564-new-time-functions-with-nanosecond-resolution">
-<span id="whatsnew37-pep564"></span><h3>PEP 564: New Time Functions With Nanosecond Resolution<a class="headerlink" href="#pep-564-new-time-functions-with-nanosecond-resolution" title="제목 주소">¶</a></h3>
-<p><span class="target" id="index-14"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0564"><strong>PEP 564</strong></a> adds six new &quot;nanosecond&quot; variants of existing functions
-to the <a class="reference internal" href="../library/time.html#module-time" title="time: Time access and conversions."><code class="xref py py-mod docutils literal"><span class="pre">time</span></code></a> module:</p>
+<span id="whatsnew37-pep564"></span><h3>PEP 564: 나노초 해상도의 새로운 시간 함수<a class="headerlink" href="#pep-564-new-time-functions-with-nanosecond-resolution" title="제목 주소">¶</a></h3>
+<p><span class="target" id="index-75"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0564"><strong>PEP 564</strong></a> 는 <a class="reference internal" href="../library/time.html#module-time" title="time: Time access and conversions."><code class="xref py py-mod docutils literal"><span class="pre">time</span></code></a> 모듈에 기존 함수의 새로운 &quot;나노초&quot; 변종을 6개 추가합니다:</p>
 <ul class="simple">
 <li><a class="reference internal" href="../library/time.html#time.clock_gettime_ns" title="time.clock_gettime_ns"><code class="xref py py-func docutils literal"><span class="pre">time.clock_gettime_ns()</span></code></a></li>
 <li><a class="reference internal" href="../library/time.html#time.clock_settime_ns" title="time.clock_settime_ns"><code class="xref py py-func docutils literal"><span class="pre">time.clock_settime_ns()</span></code></a></li>
@@ -336,191 +274,106 @@ to the <a class="reference internal" href="../library/time.html#module-time" tit
 <li><a class="reference internal" href="../library/time.html#time.process_time_ns" title="time.process_time_ns"><code class="xref py py-func docutils literal"><span class="pre">time.process_time_ns()</span></code></a></li>
 <li><a class="reference internal" href="../library/time.html#time.time_ns" title="time.time_ns"><code class="xref py py-func docutils literal"><span class="pre">time.time_ns()</span></code></a></li>
 </ul>
-<p>The new functions are similar in function to the existing functions
-without the <code class="docutils literal"><span class="pre">_ns</span></code> suffix.  They differ by returning nanoseconds as
-integers instead of fractional seconds.</p>
-<p>On Linux and Windows the resolution of <a class="reference internal" href="../library/time.html#time.time_ns" title="time.time_ns"><code class="xref py py-func docutils literal"><span class="pre">time.time_ns()</span></code></a> is 3 times
-better than that of <a class="reference internal" href="../library/time.html#time.time" title="time.time"><code class="xref py py-func docutils literal"><span class="pre">time.time()</span></code></a>.</p>
+<p>새 함수는 <code class="docutils literal"><span class="pre">_ns</span></code> 접미사가 붙지 않은 기존 함수와 기능이 비슷합니다. 소수로 표현된 초를 돌려주는 대신 정수로 나노초를 돌려주는 점이 다릅니다.</p>
+<p>리눅스와 윈도우에서 <a class="reference internal" href="../library/time.html#time.time_ns" title="time.time_ns"><code class="xref py py-func docutils literal"><span class="pre">time.time_ns()</span></code></a> 의 해상도는 <a class="reference internal" href="../library/time.html#time.time" title="time.time"><code class="xref py py-func docutils literal"><span class="pre">time.time()</span></code></a> 보다 3배 정밀합니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-15"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0564"><strong>PEP 564</strong></a> -- Add new time functions with nanosecond resolution</dt>
-<dd>PEP written and implemented by Victor Stinner</dd>
+<dt><span class="target" id="index-76"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0564"><strong>PEP 564</strong></a> -- 나노초 해상도의 새로운 시간 함수 추가</dt>
+<dd>Victor Stinner가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-565-show-deprecationwarning-in-main">
-<span id="whatsnew37-pep565"></span><h3>PEP 565: Show DeprecationWarning in <code class="docutils literal"><span class="pre">__main__</span></code><a class="headerlink" href="#pep-565-show-deprecationwarning-in-main" title="제목 주소">¶</a></h3>
-<p>The default handling of <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> has been changed such that
-these warnings are once more shown by default, but only when the code
-triggering them is running directly in the <a class="reference internal" href="../library/__main__.html#module-__main__" title="__main__: The environment where the top-level script is run."><code class="xref py py-mod docutils literal"><span class="pre">__main__</span></code></a> module.  As a result,
-developers of single file scripts and those using Python interactively should
-once again start seeing deprecation warnings for the APIs they use, but
-deprecation warnings triggered by imported application, library and framework
-modules will continue to be hidden by default.</p>
-<p>As a result of this change, the standard library now allows developers to choose
-between three different deprecation warning behaviours:</p>
+<span id="whatsnew37-pep565"></span><h3>PEP 565: <code class="docutils literal"><span class="pre">__main__</span></code> 의 DeprecationWarning 표시<a class="headerlink" href="#pep-565-show-deprecationwarning-in-main" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> 의 기본 처리 방식이 변경되어, 이러한 경고가 다시 한번 기본적으로 표시됩니다. 하지만, 이를 발생시킨 코드가 <a class="reference internal" href="../library/__main__.html#module-__main__" title="__main__: The environment where the top-level script is run."><code class="xref py py-mod docutils literal"><span class="pre">__main__</span></code></a> 모듈에서 직접 실행될 때만 표시됩니다. 결과적으로, 단일 파일 스크립트 개발자와 파이썬을 대화식으로 사용하는 개발자는 사용하는 API에 대한 폐지 경고를 다시 보게 되지만, 임포트되는 응용 프로그램, 라이브러리, 프레임웍 모듈에서 발생하는 폐지 경고는 계속 기본적으로 숨겨집니다.</p>
+<p>이 변경으로 인해, 이제 표준 라이브러리는 개발자가 세 가지 다른 폐지 경고 동작 중 하나를 선택할 수 있도록 합니다:</p>
 <ul class="simple">
-<li><a class="reference internal" href="../library/exceptions.html#FutureWarning" title="FutureWarning"><code class="xref py py-exc docutils literal"><span class="pre">FutureWarning</span></code></a>: always displayed by default, recommended for warnings
-intended to be seen by application end users (e.g. for deprecated application
-configuration settings).</li>
-<li><a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a>: displayed by default only in <a class="reference internal" href="../library/__main__.html#module-__main__" title="__main__: The environment where the top-level script is run."><code class="xref py py-mod docutils literal"><span class="pre">__main__</span></code></a> and when
-running tests, recommended for warnings intended to be seen by other Python
-developers where a version upgrade may result in changed behaviour or an
-error.</li>
-<li><a class="reference internal" href="../library/exceptions.html#PendingDeprecationWarning" title="PendingDeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">PendingDeprecationWarning</span></code></a>: displayed by default only when running
-tests, intended for cases where a future version upgrade will change the
-warning category to <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> or <a class="reference internal" href="../library/exceptions.html#FutureWarning" title="FutureWarning"><code class="xref py py-exc docutils literal"><span class="pre">FutureWarning</span></code></a>.</li>
+<li><a class="reference internal" href="../library/exceptions.html#FutureWarning" title="FutureWarning"><code class="xref py py-exc docutils literal"><span class="pre">FutureWarning</span></code></a>: 기본적으로 항상 표시됩니다. 응용 프로그램 최종 사용자를 대상으로 하는 경고로 권장됩니다 (예, 폐지된 응용 프로그램 구성 설정).</li>
+<li><a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a>: 기본적으로 <a class="reference internal" href="../library/__main__.html#module-__main__" title="__main__: The environment where the top-level script is run."><code class="xref py py-mod docutils literal"><span class="pre">__main__</span></code></a> 과 테스트 실행 시에 표시됩니다. 버전 업그레이드가 동작 변경이나 에러를 일으킬 수 있어서, 다른 파이썬 개발자를 대상으로 하는 경고로 권장됩니다.</li>
+<li><a class="reference internal" href="../library/exceptions.html#PendingDeprecationWarning" title="PendingDeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">PendingDeprecationWarning</span></code></a>: 기본적으로 테스트 실행 시에만 표시됩니다. 향후 버전 업그레이드가 경고 범주를 <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> 이나 <a class="reference internal" href="../library/exceptions.html#FutureWarning" title="FutureWarning"><code class="xref py py-exc docutils literal"><span class="pre">FutureWarning</span></code></a>으로 변경하게 될 경우를 위한 것입니다.</li>
 </ul>
-<p>Previously both <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> and <a class="reference internal" href="../library/exceptions.html#PendingDeprecationWarning" title="PendingDeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">PendingDeprecationWarning</span></code></a>
-were only visible when running tests, which meant that developers primarily
-writing single file scripts or using Python interactively could be surprised
-by breaking changes in the APIs they used.</p>
+<p>이전에는 <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">DeprecationWarning</span></code></a> 과 <a class="reference internal" href="../library/exceptions.html#PendingDeprecationWarning" title="PendingDeprecationWarning"><code class="xref py py-exc docutils literal"><span class="pre">PendingDeprecationWarning</span></code></a> 둘 다 테스트를 실행할 때만 볼 수 있었습니다. 주로 단일 파일 스크립트를 작성하거나 대화식으로 파이썬을 사용하는 개발자는 사용된 API가 호환되지 않는 방식으로 변경된 것을 보고 놀랄 수 있었습니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-16"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0565"><strong>PEP 565</strong></a> -- Show DeprecationWarning in <code class="docutils literal"><span class="pre">__main__</span></code></dt>
-<dd>PEP written and implemented by Nick Coghlan</dd>
+<dt><span class="target" id="index-77"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0565"><strong>PEP 565</strong></a> -- <code class="docutils literal"><span class="pre">__main__</span></code> 의 DeprecationWarning 표시</dt>
+<dd>Nick Coghlan이 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="pep-560-core-support-for-typing-module-and-generic-types">
-<span id="whatsnew37-pep560"></span><h3>PEP 560: Core Support for <code class="docutils literal"><span class="pre">typing</span></code> module and Generic Types<a class="headerlink" href="#pep-560-core-support-for-typing-module-and-generic-types" title="제목 주소">¶</a></h3>
-<p>Initially <span class="target" id="index-17"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0484"><strong>PEP 484</strong></a> was designed in such way that it would not introduce <em>any</em>
-changes to the core CPython interpreter. Now type hints and the <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see PEP 484)."><code class="xref py py-mod docutils literal"><span class="pre">typing</span></code></a>
-module are extensively used by the community, so this restriction is removed.
-The PEP introduces two special methods <a class="reference internal" href="../reference/datamodel.html#object.__class_getitem__" title="object.__class_getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__class_getitem__()</span></code></a> and
-<code class="docutils literal"><span class="pre">__mro_entries__</span></code>, these methods are now used by most classes and special
-constructs in <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see PEP 484)."><code class="xref py py-mod docutils literal"><span class="pre">typing</span></code></a>. As a result, the speed of various operations
-with types increased up to 7 times, the generic types can be used without
-metaclass conflicts, and several long standing bugs in <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see PEP 484)."><code class="xref py py-mod docutils literal"><span class="pre">typing</span></code></a> module are
-fixed.</p>
+<span id="whatsnew37-pep560"></span><h3>PEP 560: <code class="docutils literal"><span class="pre">typing</span></code> 모듈과 제네릭 형에 대한 핵심 지원<a class="headerlink" href="#pep-560-core-support-for-typing-module-and-generic-types" title="제목 주소">¶</a></h3>
+<p>처음에는 <span class="target" id="index-78"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0484"><strong>PEP 484</strong></a> 가 핵심 CPython 인터프리터의 <em>어떤</em> 변경도 도입하지 않도록 설계되었습니다. 이제 형 힌트와 <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see PEP 484)."><code class="xref py py-mod docutils literal"><span class="pre">typing</span></code></a> 모듈이 커뮤니티에서 광범위하게 사용되므로, 이 제한이 제거됩니다. PEP는 두 개의 특수 메서드 <a class="reference internal" href="../reference/datamodel.html#object.__class_getitem__" title="object.__class_getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__class_getitem__()</span></code></a> 과 <code class="docutils literal"><span class="pre">__mro_entries__</span></code> 를 소개합니다. 이 메서드는 이제 <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see PEP 484)."><code class="xref py py-mod docutils literal"><span class="pre">typing</span></code></a> 에 있는 대부분 클래스와 특수 구조물에서 사용됩니다. 그 결과로, 형과 관련된 여러 연산의 속도가 최대 7배까지 증가했고, 제네릭 형은 메타 클래스 충돌 없이 사용할 수 있으며, <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see PEP 484)."><code class="xref py py-mod docutils literal"><span class="pre">typing</span></code></a> 모듈의 몇 가지 오랜 버그가 해결되었습니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-18"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0560"><strong>PEP 560</strong></a> -- Core support for typing module and generic types</dt>
-<dd>PEP written and implemented by Ivan Levkivskyi</dd>
+<dt><span class="target" id="index-79"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0560"><strong>PEP 560</strong></a> -- typing 모듈과 제네릭 형의 핵심 지원</dt>
+<dd>Ivan Levkivskyi가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="development-runtime-mode-x-dev">
-<span id="whatsnew37-devmode"></span><h3>Development Runtime Mode: -X dev<a class="headerlink" href="#development-runtime-mode-x-dev" title="제목 주소">¶</a></h3>
-<p>The new <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">dev</span></code> command line option or the new
-<span class="target" id="index-19"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONDEVMODE"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONDEVMODE</span></code></a> environment variable can be used to enable
-CPython's <em>development mode</em>.  When in development mode, CPython performs
-additional runtime checks which are too expensive to be enabled by default.
-See <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">dev</span></code> documentation for the full description of the effects
-of this mode.</p>
+<span id="whatsnew37-devmode"></span><h3>개발 실행시간 모드: -X dev<a class="headerlink" href="#development-runtime-mode-x-dev" title="제목 주소">¶</a></h3>
+<p>새 <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">dev</span></code> 명령행 옵션이나 새 <span class="target" id="index-80"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONDEVMODE"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONDEVMODE</span></code></a> 환경 변수를 사용하여 CPython의 <em>개발 모드</em> 를 활성화할 수 있습니다. 개발 모드에 있을 때, CPython은 기본적으로 활성화되기에는 너무 비싼 추가적인 실행시간 검사를 수행합니다. 이 모드의 효과에 대한 자세한 설명은 <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">dev</span></code> 도큐멘테이션을 보십시오.</p>
 </div>
 <div class="section" id="pep-552-hash-based-pyc-files">
-<span id="whatsnew37-pep552"></span><h3>PEP 552: Hash-based .pyc Files<a class="headerlink" href="#pep-552-hash-based-pyc-files" title="제목 주소">¶</a></h3>
-<p>Python has traditionally checked the up-to-dateness of bytecode cache files
-(i.e., <code class="docutils literal"><span class="pre">.pyc</span></code> files) by comparing the source metadata (last-modified timestamp
-and size) with source metadata saved in the cache file header when it was
-generated. While effective, this invalidation method has its drawbacks.  When
-filesystem timestamps are too coarse, Python can miss source updates, leading to
-user confusion. Additionally, having a timestamp in the cache file is
-problematic for <a class="reference external" href="https://reproducible-builds.org/">build reproduciblity</a> and
-content-based build systems.</p>
-<p><span class="target" id="index-20"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0552"><strong>PEP 552</strong></a> extends the pyc format to allow the hash of the source file to be
-used for invalidation instead of the source timestamp. Such <code class="docutils literal"><span class="pre">.pyc</span></code> files are
-called &quot;hash-based&quot;. By default, Python still uses timestamp-based invalidation
-and does not generate hash-based <code class="docutils literal"><span class="pre">.pyc</span></code> files at runtime. Hash-based <code class="docutils literal"><span class="pre">.pyc</span></code>
-files may be generated with <a class="reference internal" href="../library/py_compile.html#module-py_compile" title="py_compile: Generate byte-code files from Python source files."><code class="xref py py-mod docutils literal"><span class="pre">py_compile</span></code></a> or <a class="reference internal" href="../library/compileall.html#module-compileall" title="compileall: Tools for byte-compiling all Python source files in a directory tree."><code class="xref py py-mod docutils literal"><span class="pre">compileall</span></code></a>.</p>
-<p>Hash-based <code class="docutils literal"><span class="pre">.pyc</span></code> files come in two variants: checked and unchecked. Python
-validates checked hash-based <code class="docutils literal"><span class="pre">.pyc</span></code> files against the corresponding source
-files at runtime but doesn't do so for unchecked hash-based pycs. Unchecked
-hash-based <code class="docutils literal"><span class="pre">.pyc</span></code> files are a useful performance optimization for environments
-where a system external to Python (e.g., the build system) is responsible for
-keeping <code class="docutils literal"><span class="pre">.pyc</span></code> files up-to-date.</p>
-<p>See <a class="reference internal" href="../reference/import.html#pyc-invalidation"><span class="std std-ref">캐시된 바이트 코드 무효화</span></a> for more information.</p>
+<span id="whatsnew37-pep552"></span><h3>PEP 552: 해시 기반 .pyc 파일<a class="headerlink" href="#pep-552-hash-based-pyc-files" title="제목 주소">¶</a></h3>
+<p>파이썬은 전통적으로 바이트 코드 캐시 파일(즉, <code class="docutils literal"><span class="pre">.pyc</span></code> 파일)의 최신성을 검사하기 위해, 소스 메타 데이터(최종 수정 타임스탬프와 크기)를 캐시 파일이 만들어질 때 헤더에 저장된 소스 메타 데이터와 비교했습니다. 효과적이지만, 이 무효화 방법에는 단점이 있습니다. 파일 시스템 타임스탬프가 너무 거친 경우, 파이썬은 소스 변경을 놓칠 수 있어 사용자 혼란을 낳을 수 있습니다. 또한, 캐시 파일에 타임스탬프를 갖는 것은 <a class="reference external" href="https://reproducible-builds.org/">빌드 재현성</a> 과 콘텐츠 기반 빌드 시스템에서 문제가 됩니다.</p>
+<p><span class="target" id="index-81"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0552"><strong>PEP 552</strong></a> 는 소스 타임스탬프 대신 소스 파일의 해시가 소스 타임스탬프 대신 무효화에 사용될 수 있도록 pyc 형식을 확장합니다. 이러한 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일을 &quot;해시 기반&quot;이라고 합니다. 기본적으로, 파이썬은 여전히 ​​타임스탬프 기반 무효화를 사용하며 실행시간에 해시 기반 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일을 생성하지 않습니다. 해시 기반 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일은 <a class="reference internal" href="../library/py_compile.html#module-py_compile" title="py_compile: Generate byte-code files from Python source files."><code class="xref py py-mod docutils literal"><span class="pre">py_compile</span></code></a> 또는 <a class="reference internal" href="../library/compileall.html#module-compileall" title="compileall: Tools for byte-compiling all Python source files in a directory tree."><code class="xref py py-mod docutils literal"><span class="pre">compileall</span></code></a>로 만들 수 있습니다.</p>
+<p>해시 기반 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일에는 두 가지 변형이 있습니다: 검사형(checked)과 비검사형(unchecked). 파이썬은 검사형 해시 기반 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일을 실행시간에 해당 소스 파일에 대해 유효성을 검사하지만, 비검사형 해시 기반 pyc에 대해서는 확인하지 않습니다. 비검사형 해시 기반 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일은 파이썬 외부의 시스템(가령 빌드 시스템)이 <code class="docutils literal"><span class="pre">.pyc</span></code> 파일을 최신 상태로 유지하는 책임을 지는 환경에서 유용한 성능 최적화입니다.</p>
+<p>자세한 정보는 <a class="reference internal" href="../reference/import.html#pyc-invalidation"><span class="std std-ref">캐시된 바이트 코드 무효화</span></a> 를 보십시오.</p>
 </div>
 <div class="section" id="pep-545-python-documentation-translations">
-<span id="whatsnew37-pep545"></span><h3>PEP 545: Python Documentation Translations<a class="headerlink" href="#pep-545-python-documentation-translations" title="제목 주소">¶</a></h3>
-<p><span class="target" id="index-21"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0545"><strong>PEP 545</strong></a> describes the process of creating and maintaining Python
-documentation translations.</p>
-<p>Three new translations have been added:</p>
+<span id="whatsnew37-pep545"></span><h3>PEP 545: 파이썬 도큐멘테이션 번역<a class="headerlink" href="#pep-545-python-documentation-translations" title="제목 주소">¶</a></h3>
+<p><span class="target" id="index-82"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0545"><strong>PEP 545</strong></a> 는 파이썬 도큐멘테이션 번역을 만들고 유지하는 과정을 설명합니다.</p>
+<p>세 가지 새로운 번역이 추가되었습니다:</p>
 <ul class="simple">
-<li>Japanese: <a class="reference external" href="https://docs.python.org/ja/">https://docs.python.org/ja/</a></li>
-<li>French: <a class="reference external" href="https://docs.python.org/fr/">https://docs.python.org/fr/</a></li>
-<li>Korean: <a class="reference external" href="https://docs.python.org/ko/">https://docs.python.org/ko/</a></li>
+<li>일본어: <a class="reference external" href="https://docs.python.org/ja/">https://docs.python.org/ja/</a></li>
+<li>프랑스어: <a class="reference external" href="https://docs.python.org/fr/">https://docs.python.org/fr/</a></li>
+<li>한국어: <a class="reference external" href="https://docs.python.org/ko/">https://docs.python.org/ko/</a></li>
 </ul>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-22"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0545"><strong>PEP 545</strong></a> -- Python Documentation Translations</dt>
-<dd>PEP written and implemented by Julien Palard, Inada Naoki, and
-Victor Stinner.</dd>
+<dt><span class="target" id="index-83"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0545"><strong>PEP 545</strong></a> -- 파이썬 도큐멘테이션 번역</dt>
+<dd>Julien Palard, Inada Naoki 및 Victor Stinner가 작성하고 구현한 PEP.</dd>
 </dl>
 </div>
 </div>
 </div>
 <div class="section" id="other-language-changes">
-<h2>Other Language Changes<a class="headerlink" href="#other-language-changes" title="제목 주소">¶</a></h2>
+<h2>기타 언어 변경<a class="headerlink" href="#other-language-changes" title="제목 주소">¶</a></h2>
 <ul class="simple">
-<li>More than 255 arguments can now be passed to a function, and a function can
-now have more than 255 parameters. (Contributed by Serhiy Storchaka in
-<a class="reference external" href="https://bugs.python.org/issue12844">bpo-12844</a> and <a class="reference external" href="https://bugs.python.org/issue18896">bpo-18896</a>.)</li>
-<li><a class="reference internal" href="../library/stdtypes.html#bytes.fromhex" title="bytes.fromhex"><code class="xref py py-meth docutils literal"><span class="pre">bytes.fromhex()</span></code></a> and <a class="reference internal" href="../library/stdtypes.html#bytearray.fromhex" title="bytearray.fromhex"><code class="xref py py-meth docutils literal"><span class="pre">bytearray.fromhex()</span></code></a> now ignore all ASCII
-whitespace, not only spaces. (Contributed by Robert Xiao in <a class="reference external" href="https://bugs.python.org/issue28927">bpo-28927</a>.)</li>
-<li><a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal"><span class="pre">bytes</span></code></a>, and <a class="reference internal" href="../library/stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal"><span class="pre">bytearray</span></code></a> gained support for
-the new <a class="reference internal" href="../library/stdtypes.html#str.isascii" title="str.isascii"><code class="xref py py-meth docutils literal"><span class="pre">isascii()</span></code></a> method, which can be used to
-test if a string or bytes contain only the ASCII characters.
-(Contributed by INADA Naoki in <a class="reference external" href="https://bugs.python.org/issue32677">bpo-32677</a>.)</li>
-<li><a class="reference internal" href="../library/exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal"><span class="pre">ImportError</span></code></a> now displays module name and module <code class="docutils literal"><span class="pre">__file__</span></code> path when
-<code class="docutils literal"><span class="pre">from</span> <span class="pre">...</span> <span class="pre">import</span> <span class="pre">...</span></code> fails. (Contributed by Matthias Bussonnier in
-<a class="reference external" href="https://bugs.python.org/issue29546">bpo-29546</a>.)</li>
-<li>Circular imports involving absolute imports with binding a submodule to
-a name are now supported.
-(Contributed by Serhiy Storchaka in <a class="reference external" href="https://bugs.python.org/issue30024">bpo-30024</a>.)</li>
-<li><code class="docutils literal"><span class="pre">object.__format__(x,</span> <span class="pre">'')</span></code> is now equivalent to <code class="docutils literal"><span class="pre">str(x)</span></code> rather than
-<code class="docutils literal"><span class="pre">format(str(self),</span> <span class="pre">'')</span></code>.
-(Contributed by Serhiy Storchaka in <a class="reference external" href="https://bugs.python.org/issue28974">bpo-28974</a>.)</li>
-<li>In order to better support dynamic creation of stack traces,
-<a class="reference internal" href="../library/types.html#types.TracebackType" title="types.TracebackType"><code class="xref py py-class docutils literal"><span class="pre">types.TracebackType</span></code></a> can now be instantiated from Python code, and
-the <code class="docutils literal"><span class="pre">tb_next</span></code> attribute on <a class="reference internal" href="../reference/datamodel.html#traceback-objects"><span class="std std-ref">tracebacks</span></a> is now
-writable.
-(Contributed by Nathaniel J. Smith in <a class="reference external" href="https://bugs.python.org/issue30579">bpo-30579</a>.)</li>
-<li>When using the <a class="reference internal" href="../using/cmdline.html#cmdoption-m"><code class="xref std std-option docutils literal"><span class="pre">-m</span></code></a> switch, <code class="docutils literal"><span class="pre">sys.path[0]</span></code> is now eagerly expanded
-to the full starting directory path, rather than being left as the empty
-directory (which allows imports from the <em>current</em> working directory at the
-time when an import occurs)
-(Contributed by Nick Coghlan in <a class="reference external" href="https://bugs.python.org/issue33053">bpo-33053</a>.)</li>
-<li>The new <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">importtime</span></code> option or the
-<span class="target" id="index-23"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONPROFILEIMPORTTIME"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPROFILEIMPORTTIME</span></code></a> environment variable can be used to show
-the timing of each module import.
-(Contributed by Victor Stinner in <a class="reference external" href="https://bugs.python.org/issue31415">bpo-31415</a>.)</li>
+<li>이제 함수에 255개 이상의 인자를 전달할 수 있고, 함수는 255개 이상의 매개변수를 가질 수 있습니다. (Contributed by Serhiy Storchaka in <a class="reference external" href="https://bugs.python.org/issue12844">bpo-12844</a> and <a class="reference external" href="https://bugs.python.org/issue18896">bpo-18896</a>.)</li>
+<li>이제 <a class="reference internal" href="../library/stdtypes.html#bytes.fromhex" title="bytes.fromhex"><code class="xref py py-meth docutils literal"><span class="pre">bytes.fromhex()</span></code></a> 와 <a class="reference internal" href="../library/stdtypes.html#bytearray.fromhex" title="bytearray.fromhex"><code class="xref py py-meth docutils literal"><span class="pre">bytearray.fromhex()</span></code></a> 는 스페이스뿐만 아니라 모든 ASCII 공백을 무시합니다. (Contributed by Robert Xiao in <a class="reference external" href="https://bugs.python.org/issue28927">bpo-28927</a>.)</li>
+<li><a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal"><span class="pre">bytes</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal"><span class="pre">bytearray</span></code></a> 는 새 <a class="reference internal" href="../library/stdtypes.html#str.isascii" title="str.isascii"><code class="xref py py-meth docutils literal"><span class="pre">isascii()</span></code></a> 메서드에 대한 지원을 얻었습니다. 이 메서드를 사용하여 문자열이나 바이트열에 오직 ASCII 문자만 들어 있는지 검사할 수 있습니다. (Contributed by INADA Naoki in <a class="reference external" href="https://bugs.python.org/issue32677">bpo-32677</a>.)</li>
+<li>이제 <a class="reference internal" href="../library/exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal"><span class="pre">ImportError</span></code></a> 는 <code class="docutils literal"><span class="pre">from</span> <span class="pre">...</span> <span class="pre">import</span> <span class="pre">...</span></code> 가 실패할 때 모듈 이름과 모듈 <code class="docutils literal"><span class="pre">__file__</span></code> 경로를 출력합니다. (Contributed by Matthias Bussonnier in <a class="reference external" href="https://bugs.python.org/issue29546">bpo-29546</a>.)</li>
+<li>이제 하위 모듈을 이름에 연결하는 절대 임포트가 수반되는 순환 임포트가 지원됩니다. (Contributed by Serhiy Storchaka in <a class="reference external" href="https://bugs.python.org/issue30024">bpo-30024</a>.)</li>
+<li>이제 <code class="docutils literal"><span class="pre">object.__format__(x,</span> <span class="pre">'')</span></code> 는 <code class="docutils literal"><span class="pre">format(str(self),</span> <span class="pre">'')</span></code> 대신에 <code class="docutils literal"><span class="pre">str(x)</span></code> 과 동등합니다. (Contributed by Serhiy Storchaka in <a class="reference external" href="https://bugs.python.org/issue28974">bpo-28974</a>.)</li>
+<li>이제 스택 트레이스의 동적 생성을 더욱 잘 지원하기 위해, 파이썬 코드에서 <a class="reference internal" href="../library/types.html#types.TracebackType" title="types.TracebackType"><code class="xref py py-class docutils literal"><span class="pre">types.TracebackType</span></code></a> 의 인스턴스를 만들 수 있고, <a class="reference internal" href="../reference/datamodel.html#traceback-objects"><span class="std std-ref">트레이스백</span></a> 의 <code class="docutils literal"><span class="pre">tb_next</span></code> 어트리뷰트에 쓸 수 있습니다. (Contributed by Nathaniel J. Smith in <a class="reference external" href="https://bugs.python.org/issue30579">bpo-30579</a>.)</li>
+<li><a class="reference internal" href="../using/cmdline.html#cmdoption-m"><code class="xref std std-option docutils literal"><span class="pre">-m</span></code></a> 스위치를 사용할 때, 이제 <code class="docutils literal"><span class="pre">sys.path[0]</span></code> 를 빈 디렉터리로 남겨두기보다는 전체 시작 디렉터리 경로로 확장됩니다 (빈 디렉터리를 남겨두면, 임포트가 일어날 때의 <em>현재</em> 작업 디렉터리로부터의 임포트가 가능해집니다) (Contributed by Nick Coghlan in <a class="reference external" href="https://bugs.python.org/issue33053">bpo-33053</a>.)</li>
+<li>새 <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal"><span class="pre">-X</span></code></a> <code class="docutils literal"><span class="pre">importtime</span></code> 옵션 또는 <span class="target" id="index-84"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONPROFILEIMPORTTIME"><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPROFILEIMPORTTIME</span></code></a> 환경 변수는 각 모듈 임포트의 타이밍을 보여주기 위해 사용될 수 있습니다. (Contributed by Victor Stinner in <a class="reference external" href="https://bugs.python.org/issue31415">bpo-31415</a>.)</li>
 </ul>
 </div>
 <div class="section" id="new-modules">
-<h2>New Modules<a class="headerlink" href="#new-modules" title="제목 주소">¶</a></h2>
+<h2>새 모듈<a class="headerlink" href="#new-modules" title="제목 주소">¶</a></h2>
 <div class="section" id="contextvars">
 <span id="whatsnew37-pep567"></span><h3>contextvars<a class="headerlink" href="#contextvars" title="제목 주소">¶</a></h3>
-<p>The new <a class="reference internal" href="../library/contextvars.html#module-contextvars" title="contextvars: Context Variables"><code class="xref py py-mod docutils literal"><span class="pre">contextvars</span></code></a> module and a set of
-<a class="reference internal" href="../c-api/contextvars.html#contextvarsobjects"><span class="std std-ref">new C APIs</span></a> introduce
-support for <em>context variables</em>.  Context variables are conceptually
-similar to thread-local variables.  Unlike TLS, context variables
-support asynchronous code correctly.</p>
-<p>The <a class="reference internal" href="../library/asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O, event loop, coroutines and tasks."><code class="xref py py-mod docutils literal"><span class="pre">asyncio</span></code></a> and <a class="reference internal" href="../library/decimal.html#module-decimal" title="decimal: Implementation of the General Decimal Arithmetic  Specification."><code class="xref py py-mod docutils literal"><span class="pre">decimal</span></code></a> modules have been updated to use
-and support context variables out of the box.  Particularly the active
-decimal context is now stored in a context variable, which allows
-decimal operations to work with the correct context in asynchronous code.</p>
+<p>새 <a class="reference internal" href="../library/contextvars.html#module-contextvars" title="contextvars: Context Variables"><code class="xref py py-mod docutils literal"><span class="pre">contextvars</span></code></a> 모듈과 <a class="reference internal" href="../c-api/contextvars.html#contextvarsobjects"><span class="std std-ref">새 C API</span></a> 집합은 <em>컨텍스트 변수</em> 에 대한 지원을 도입합니다. 컨텍스트 변수는 개념적으로 스레드-로컬 변수와 유사합니다. TLS와 달리, 컨텍스트 변수는 비동기 코드를 올바르게 지원합니다.</p>
+<p><a class="reference internal" href="../library/asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O, event loop, coroutines and tasks."><code class="xref py py-mod docutils literal"><span class="pre">asyncio</span></code></a>와 <a class="reference internal" href="../library/decimal.html#module-decimal" title="decimal: Implementation of the General Decimal Arithmetic  Specification."><code class="xref py py-mod docutils literal"><span class="pre">decimal</span></code></a> 모듈은 바로 사용할 수 있도록 컨텍스트 변수를 사용하고 지원하도록 업데이트되었습니다. 특히 활성 십진 컨텍스트는 이제 컨텍스트 변수에 저장되므로, 십진수 연산이 비동기 코드에서 올바른 컨텍스트에서 작동 할 수 있습니다.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-24"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0567"><strong>PEP 567</strong></a> -- Context Variables</dt>
-<dd>PEP written and implemented by Yury Selivanov</dd>
+<dt><span class="target" id="index-85"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0567"><strong>PEP 567</strong></a> -- 컨텍스트 변수</dt>
+<dd>Yury Selivanov가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="dataclasses">
 <span id="whatsnew37-pep557"></span><h3>dataclasses<a class="headerlink" href="#dataclasses" title="제목 주소">¶</a></h3>
-<p>The new <a class="reference internal" href="../library/dataclasses.html#dataclasses.dataclass" title="dataclasses.dataclass"><code class="xref py py-func docutils literal"><span class="pre">dataclass()</span></code></a> decorator provides a way to declare
-<em>data classes</em>.  A data class describes its attributes using class variable
-annotations.  Its constructor and other magic methods, such as
-<a class="reference internal" href="../reference/datamodel.html#object.__repr__" title="object.__repr__"><code class="xref py py-meth docutils literal"><span class="pre">__repr__()</span></code></a>, <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a>, and
-<a class="reference internal" href="../reference/datamodel.html#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a> are generated automatically.</p>
-<p>Example:</p>
+<p>새 <a class="reference internal" href="../library/dataclasses.html#dataclasses.dataclass" title="dataclasses.dataclass"><code class="xref py py-func docutils literal"><span class="pre">dataclass()</span></code></a> 데코레이터는 <em>데이터 클래스</em> 를 선언하는 방법을 제공합니다. 데이터 클래스는 클래스 변수 어노테이션을 사용하여 어트리뷰트를 기술합니다. 생성자와 <a class="reference internal" href="../reference/datamodel.html#object.__repr__" title="object.__repr__"><code class="xref py py-meth docutils literal"><span class="pre">__repr__()</span></code></a>, <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a>, <a class="reference internal" href="../reference/datamodel.html#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a> 와 같은 다른 매직 메서드가 자동으로 생성됩니다.</p>
+<p>예:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Point</span><span class="p">:</span>
     <span class="n">x</span><span class="p">:</span> <span class="nb">float</span>
@@ -534,25 +387,18 @@ annotations.  Its constructor and other magic methods, such as
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-25"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0557"><strong>PEP 557</strong></a> -- Data Classes</dt>
-<dd>PEP written and implemented by Eric V. Smith</dd>
+<dt><span class="target" id="index-86"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0557"><strong>PEP 557</strong></a> -- 데이터 클래스</dt>
+<dd>Eric V. Smith가 작성하고 구현한 PEP</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="importlib-resources">
 <span id="whatsnew37-importlib-resources"></span><h3>importlib.resources<a class="headerlink" href="#importlib-resources" title="제목 주소">¶</a></h3>
-<p>The new <a class="reference internal" href="../library/importlib.html#module-importlib.resources" title="importlib.resources: Package resource reading, opening, and access"><code class="xref py py-mod docutils literal"><span class="pre">importlib.resources</span></code></a> module provides several new APIs and one
-new ABC for access to, opening, and reading <em>resources</em> inside packages.
-Resources are roughly similar to files inside packages, but they needn't
-be actual files on the physical file system.  Module loaders can provide a
-<code class="xref py py-meth docutils literal"><span class="pre">get_resource_reader()</span></code> function which returns
-a <a class="reference internal" href="../library/importlib.html#importlib.abc.ResourceReader" title="importlib.abc.ResourceReader"><code class="xref py py-class docutils literal"><span class="pre">importlib.abc.ResourceReader</span></code></a> instance to support this
-new API.  Built-in file path loaders and zip file loaders both support this.</p>
+<p>새 <a class="reference internal" href="../library/importlib.html#module-importlib.resources" title="importlib.resources: Package resource reading, opening, and access"><code class="xref py py-mod docutils literal"><span class="pre">importlib.resources</span></code></a> 모듈은 여러 개의 새로운 API와 하나의 새로운 ABC를 제공하여, 패키지 내부의 <em>리소스</em> 에 접근하고 읽는 것을 지원합니다. 리소스는 대략 패키지 안의 파일과 비슷하지만, 물리적인 파일 시스템에 있는 실제 파일 일 필요는 없습니다. 모듈 로더는 이 새로운 API를 지원하기 위해 <a class="reference internal" href="../library/importlib.html#importlib.abc.ResourceReader" title="importlib.abc.ResourceReader"><code class="xref py py-class docutils literal"><span class="pre">importlib.abc.ResourceReader</span></code></a> 인스턴스를 반환하는 <code class="xref py py-meth docutils literal"><span class="pre">get_resource_reader()</span></code> 함수를 제공 할 수 있습니다. 내장 파일 경로 로더와 zip 파일 로더는 모두 이것을 지원합니다.</p>
 <p>Contributed by Barry Warsaw and Brett Cannon in <a class="reference external" href="https://bugs.python.org/issue32248">bpo-32248</a>.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
-<p class="last"><a class="reference external" href="http://importlib-resources.readthedocs.io/en/latest/">importlib_resources</a>
--- a PyPI backport for earlier Python versions.</p>
+<p class="last"><a class="reference external" href="http://importlib-resources.readthedocs.io/en/latest/">importlib_resources</a> -- 이전 파이썬 버전을 위한 PyPI 백 포트.</p>
 </div>
 </div>
 </div>
@@ -1323,7 +1169,7 @@ implicit filter list is empty)</p>
 <p>(Contributed by Nick Coghlan and Victor Stinner in <a class="reference external" href="https://bugs.python.org/issue20361">bpo-20361</a>,
 <a class="reference external" href="https://bugs.python.org/issue32043">bpo-32043</a>, and <a class="reference external" href="https://bugs.python.org/issue32230">bpo-32230</a>.)</p>
 <p>Deprecation warnings are once again shown by default in single-file scripts and
-at the interactive prompt.  See <a class="reference internal" href="#whatsnew37-pep565"><span class="std std-ref">PEP 565: Show DeprecationWarning in __main__</span></a> for details.
+at the interactive prompt.  See <a class="reference internal" href="#whatsnew37-pep565"><span class="std std-ref">PEP 565: __main__ 의 DeprecationWarning 표시</span></a> for details.
 (Contributed by Nick Coghlan in <a class="reference external" href="https://bugs.python.org/issue31975">bpo-31975</a>.)</p>
 </div>
 <div class="section" id="xml-etree">
@@ -1362,7 +1208,7 @@ alphabetical order.
 <div class="section" id="c-api-changes">
 <h2>C API Changes<a class="headerlink" href="#c-api-changes" title="제목 주소">¶</a></h2>
 <p>A new API for thread-local storage has been implemented.  See
-<a class="reference internal" href="#whatsnew37-pep539"><span class="std std-ref">PEP 539: New C API for Thread-Local Storage</span></a> for an overview and
+<a class="reference internal" href="#whatsnew37-pep539"><span class="std std-ref">PEP 539: 스레드-로컬 저장소를 위한 새로운 C API</span></a> for an overview and
 <a class="reference internal" href="../c-api/init.html#thread-specific-storage-api"><span class="std std-ref">Thread Specific Storage (TSS) API</span></a> for a complete reference.
 (Contributed by Masayuki Yamamoto in <a class="reference external" href="https://bugs.python.org/issue25658">bpo-25658</a>.)</p>
 <p>The new <a class="reference internal" href="#whatsnew37-pep567"><span class="std std-ref">context variables</span></a> functionality
@@ -2077,24 +1923,24 @@ warnings filter added to convert them to exceptions.</p>
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
 <li><a class="reference internal" href="#">파이썬 3.7의 새로운 기능</a><ul>
-<li><a class="reference internal" href="#summary-release-highlights">요약 - 배포 주요 사항</a></li>
-<li><a class="reference internal" href="#new-features">New Features</a><ul>
-<li><a class="reference internal" href="#pep-563-postponed-evaluation-of-annotations">PEP 563: Postponed Evaluation of Annotations</a></li>
-<li><a class="reference internal" href="#pep-538-legacy-c-locale-coercion">PEP 538: Legacy C Locale Coercion</a></li>
-<li><a class="reference internal" href="#pep-540-forced-utf-8-runtime-mode">PEP 540: Forced UTF-8 Runtime Mode</a></li>
-<li><a class="reference internal" href="#pep-553-built-in-breakpoint">PEP 553: Built-in <code class="docutils literal"><span class="pre">breakpoint()</span></code></a></li>
-<li><a class="reference internal" href="#pep-539-new-c-api-for-thread-local-storage">PEP 539: New C API for Thread-Local Storage</a></li>
-<li><a class="reference internal" href="#pep-562-customization-of-access-to-module-attributes">PEP 562: Customization of Access to Module Attributes</a></li>
-<li><a class="reference internal" href="#pep-564-new-time-functions-with-nanosecond-resolution">PEP 564: New Time Functions With Nanosecond Resolution</a></li>
-<li><a class="reference internal" href="#pep-565-show-deprecationwarning-in-main">PEP 565: Show DeprecationWarning in <code class="docutils literal"><span class="pre">__main__</span></code></a></li>
-<li><a class="reference internal" href="#pep-560-core-support-for-typing-module-and-generic-types">PEP 560: Core Support for <code class="docutils literal"><span class="pre">typing</span></code> module and Generic Types</a></li>
-<li><a class="reference internal" href="#development-runtime-mode-x-dev">Development Runtime Mode: -X dev</a></li>
-<li><a class="reference internal" href="#pep-552-hash-based-pyc-files">PEP 552: Hash-based .pyc Files</a></li>
-<li><a class="reference internal" href="#pep-545-python-documentation-translations">PEP 545: Python Documentation Translations</a></li>
+<li><a class="reference internal" href="#summary-release-highlights">요약 -- 배포 주요 사항</a></li>
+<li><a class="reference internal" href="#new-features">새로운 기능</a><ul>
+<li><a class="reference internal" href="#pep-563-postponed-evaluation-of-annotations">PEP 563 : 어노테이션의 지연된 평가</a></li>
+<li><a class="reference internal" href="#pep-538-legacy-c-locale-coercion">PEP 538: 레거시 C 로케일 강제 변경</a></li>
+<li><a class="reference internal" href="#pep-540-forced-utf-8-runtime-mode">PEP 540: 강제 UTF-8 실행시간 모드</a></li>
+<li><a class="reference internal" href="#pep-553-built-in-breakpoint">PEP 553: 내장 <code class="docutils literal"><span class="pre">breakpoint()</span></code></a></li>
+<li><a class="reference internal" href="#pep-539-new-c-api-for-thread-local-storage">PEP 539: 스레드-로컬 저장소를 위한 새로운 C API</a></li>
+<li><a class="reference internal" href="#pep-562-customization-of-access-to-module-attributes">PEP 562: 모듈 어트리뷰트에 대한 액세스 사용자 정의</a></li>
+<li><a class="reference internal" href="#pep-564-new-time-functions-with-nanosecond-resolution">PEP 564: 나노초 해상도의 새로운 시간 함수</a></li>
+<li><a class="reference internal" href="#pep-565-show-deprecationwarning-in-main">PEP 565: <code class="docutils literal"><span class="pre">__main__</span></code> 의 DeprecationWarning 표시</a></li>
+<li><a class="reference internal" href="#pep-560-core-support-for-typing-module-and-generic-types">PEP 560: <code class="docutils literal"><span class="pre">typing</span></code> 모듈과 제네릭 형에 대한 핵심 지원</a></li>
+<li><a class="reference internal" href="#development-runtime-mode-x-dev">개발 실행시간 모드: -X dev</a></li>
+<li><a class="reference internal" href="#pep-552-hash-based-pyc-files">PEP 552: 해시 기반 .pyc 파일</a></li>
+<li><a class="reference internal" href="#pep-545-python-documentation-translations">PEP 545: 파이썬 도큐멘테이션 번역</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#other-language-changes">Other Language Changes</a></li>
-<li><a class="reference internal" href="#new-modules">New Modules</a><ul>
+<li><a class="reference internal" href="#other-language-changes">기타 언어 변경</a></li>
+<li><a class="reference internal" href="#new-modules">새 모듈</a><ul>
 <li><a class="reference internal" href="#contextvars">contextvars</a></li>
 <li><a class="reference internal" href="#dataclasses">dataclasses</a></li>
 <li><a class="reference internal" href="#importlib-resources">importlib.resources</a></li>
