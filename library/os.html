@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>16.1. os --- Miscellaneous operating system interfaces &#8212; Python 3.7.0b4 documentation</title>
+    <title>16.1. os --- Miscellaneous operating system interfaces &#8212; Python 3.7.0 documentation</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '3.7.0b4',
+        VERSION:     '3.7.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../_static/translations.js"></script>
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.7.0b4 documentation에서 찾기"
+          title="Python 3.7.0 documentation에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -1195,9 +1195,11 @@ the access pattern that is likely to be used.</p>
 
 <dl class="function">
 <dt id="os.pread">
-<code class="descclassname">os.</code><code class="descname">pread</code><span class="sig-paren">(</span><em>fd</em>, <em>buffersize</em>, <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#os.pread" title="정의 주소">¶</a></dt>
-<dd><p>Read from a file descriptor, <em>fd</em>, at a position of <em>offset</em>. It will read up
-to <em>buffersize</em> number of bytes. The file offset remains unchanged.</p>
+<code class="descclassname">os.</code><code class="descname">pread</code><span class="sig-paren">(</span><em>fd</em>, <em>n</em>, <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#os.pread" title="정의 주소">¶</a></dt>
+<dd><p>Read at most <em>n</em> bytes from file descriptor <em>fd</em> at a position of <em>offset</em>,
+leaving the file offset unchanged.</p>
+<p>Return a bytestring containing the bytes read. If the end of the file
+referred to by <em>fd</em> has been reached, an empty bytes object is returned.</p>
 <p>Availability: Unix.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.3에 추가.</span></p>
@@ -1205,10 +1207,65 @@ to <em>buffersize</em> number of bytes. The file offset remains unchanged.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="os.preadv">
+<code class="descclassname">os.</code><code class="descname">preadv</code><span class="sig-paren">(</span><em>fd</em>, <em>buffers</em>, <em>offset</em>, <em>flags=0</em><span class="sig-paren">)</span><a class="headerlink" href="#os.preadv" title="정의 주소">¶</a></dt>
+<dd><p>Read from a file descriptor <em>fd</em> at a position of <em>offset</em> into mutable
+<a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like objects</span></a> <em>buffers</em>, leaving the file
+offset unchanged.  Transfer data into each buffer until it is full and then
+move on to the next buffer in the sequence to hold the rest of the data.</p>
+<p>The flags argument contains a bitwise OR of zero or more of the following
+flags:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#os.RWF_HIPRI" title="os.RWF_HIPRI"><code class="xref py py-data docutils literal"><span class="pre">RWF_HIPRI</span></code></a></li>
+<li><a class="reference internal" href="#os.RWF_NOWAIT" title="os.RWF_NOWAIT"><code class="xref py py-data docutils literal"><span class="pre">RWF_NOWAIT</span></code></a></li>
+</ul>
+<p>Return the total number of bytes actually read which can be less than the
+total capacity of all the objects.</p>
+<p>The operating system may set a limit (<a class="reference internal" href="#os.sysconf" title="os.sysconf"><code class="xref py py-func docutils literal"><span class="pre">sysconf()</span></code></a> value
+<code class="docutils literal"><span class="pre">'SC_IOV_MAX'</span></code>) on the number of buffers that can be used.</p>
+<p>Combine the functionality of <a class="reference internal" href="#os.readv" title="os.readv"><code class="xref py py-func docutils literal"><span class="pre">os.readv()</span></code></a> and <a class="reference internal" href="#os.pread" title="os.pread"><code class="xref py py-func docutils literal"><span class="pre">os.pread()</span></code></a>.</p>
+<p>Availability: Linux 2.6.30 and newer, FreeBSD 6.0 and newer,
+OpenBSD 2.7 and newer. Using flags requires Linux 4.6 or newer.</p>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.7에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="os.RWF_NOWAIT">
+<code class="descclassname">os.</code><code class="descname">RWF_NOWAIT</code><a class="headerlink" href="#os.RWF_NOWAIT" title="정의 주소">¶</a></dt>
+<dd><p>Do not wait for data which is not immediately available. If this flag is
+specified, the system call will return instantly if it would have to read
+data from the backing storage or wait for a lock.</p>
+<p>If some data was successfully read, it will return the number of bytes read.
+If no bytes were read, it will return <code class="docutils literal"><span class="pre">-1</span></code> and set errno to
+<a class="reference internal" href="errno.html#errno.EAGAIN" title="errno.EAGAIN"><code class="xref py py-data docutils literal"><span class="pre">errno.EAGAIN</span></code></a>.</p>
+<p>Availability: Linux 4.14 and newer.</p>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.7에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="os.RWF_HIPRI">
+<code class="descclassname">os.</code><code class="descname">RWF_HIPRI</code><a class="headerlink" href="#os.RWF_HIPRI" title="정의 주소">¶</a></dt>
+<dd><p>High priority read/write. Allows block-based filesystems to use polling
+of the device, which provides lower latency, but may use additional
+resources.</p>
+<p>Currently, on Linux, this feature is usable only on a file descriptor opened
+using the <a class="reference internal" href="#os.O_DIRECT" title="os.O_DIRECT"><code class="xref py py-data docutils literal"><span class="pre">O_DIRECT</span></code></a> flag.</p>
+<p>Availability: Linux 4.6 and newer.</p>
+<div class="versionadded">
+<p><span class="versionmodified">버전 3.7에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="os.pwrite">
 <code class="descclassname">os.</code><code class="descname">pwrite</code><span class="sig-paren">(</span><em>fd</em>, <em>str</em>, <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#os.pwrite" title="정의 주소">¶</a></dt>
-<dd><p>Write <em>bytestring</em> to a file descriptor, <em>fd</em>, from <em>offset</em>,
-leaving the file offset unchanged.</p>
+<dd><p>Write the bytestring in <em>str</em> to file descriptor <em>fd</em> at position of
+<em>offset</em>, leaving the file offset unchanged.</p>
+<p>Return the number of bytes actually written.</p>
 <p>Availability: Unix.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.3에 추가.</span></p>
@@ -1218,23 +1275,23 @@ leaving the file offset unchanged.</p>
 <dl class="function">
 <dt id="os.pwritev">
 <code class="descclassname">os.</code><code class="descname">pwritev</code><span class="sig-paren">(</span><em>fd</em>, <em>buffers</em>, <em>offset</em>, <em>flags=0</em><span class="sig-paren">)</span><a class="headerlink" href="#os.pwritev" title="정의 주소">¶</a></dt>
-<dd><p>Combines the functionality of <a class="reference internal" href="#os.writev" title="os.writev"><code class="xref py py-func docutils literal"><span class="pre">os.writev()</span></code></a> and <a class="reference internal" href="#os.pwrite" title="os.pwrite"><code class="xref py py-func docutils literal"><span class="pre">os.pwrite()</span></code></a>. It
-writes the contents of <em>buffers</em> to file descriptor <em>fd</em> at offset <em>offset</em>.
-<em>buffers</em> must be a sequence of <a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like objects</span></a>.
-Buffers are processed in array order. Entire contents of first buffer is written
-before proceeding to second, and so on. The operating system may set a limit
-(sysconf() value SC_IOV_MAX) on the number of buffers that can be used.
-<a class="reference internal" href="#os.pwritev" title="os.pwritev"><code class="xref py py-func docutils literal"><span class="pre">pwritev()</span></code></a> writes the contents of each object to the file descriptor
-and returns the total number of bytes written.</p>
-<p>The <em>flags</em> argument contains a bitwise OR of zero or more of the following
+<dd><p>Write the <em>buffers</em> contents to file descriptor <em>fd</em> at a offset <em>offset</em>,
+leaving the file offset unchanged.  <em>buffers</em> must be a sequence of
+<a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like objects</span></a>. Buffers are processed in
+array order. Entire contents of the first buffer is written before
+proceeding to the second, and so on.</p>
+<p>The flags argument contains a bitwise OR of zero or more of the following
 flags:</p>
 <ul class="simple">
-<li>RWF_DSYNC</li>
-<li>RWF_SYNC</li>
+<li><a class="reference internal" href="#os.RWF_DSYNC" title="os.RWF_DSYNC"><code class="xref py py-data docutils literal"><span class="pre">RWF_DSYNC</span></code></a></li>
+<li><a class="reference internal" href="#os.RWF_SYNC" title="os.RWF_SYNC"><code class="xref py py-data docutils literal"><span class="pre">RWF_SYNC</span></code></a></li>
 </ul>
-<p>Using non-zero flags requires Linux 4.7 or newer.</p>
-<p>Availability: Linux (version 2.6.30), FreeBSD 6.0 and newer,
-OpenBSD (version 2.7 and newer).</p>
+<p>Return the total number of bytes actually written.</p>
+<p>The operating system may set a limit (<a class="reference internal" href="#os.sysconf" title="os.sysconf"><code class="xref py py-func docutils literal"><span class="pre">sysconf()</span></code></a> value
+<code class="docutils literal"><span class="pre">'SC_IOV_MAX'</span></code>) on the number of buffers that can be used.</p>
+<p>Combine the functionality of <a class="reference internal" href="#os.writev" title="os.writev"><code class="xref py py-func docutils literal"><span class="pre">os.writev()</span></code></a> and <a class="reference internal" href="#os.pwrite" title="os.pwrite"><code class="xref py py-func docutils literal"><span class="pre">os.pwrite()</span></code></a>.</p>
+<p>Availability: Linux 2.6.30 and newer, FreeBSD 6.0 and newer,
+OpenBSD 2.7 and newer. Using flags requires Linux 4.7 or newer.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -1243,10 +1300,9 @@ OpenBSD (version 2.7 and newer).</p>
 <dl class="data">
 <dt id="os.RWF_DSYNC">
 <code class="descclassname">os.</code><code class="descname">RWF_DSYNC</code><a class="headerlink" href="#os.RWF_DSYNC" title="정의 주소">¶</a></dt>
-<dd><p>Provide a per-write equivalent of the O_DSYNC open(2) flag. This flag
-is meaningful only for pwritev2(), and its effect applies only to the
-data range written by the system call.</p>
-<p>Availability: Linux (version 4.7).</p>
+<dd><p>Provide a per-write equivalent of the <a class="reference internal" href="#os.O_DSYNC" title="os.O_DSYNC"><code class="xref py py-data docutils literal"><span class="pre">O_DSYNC</span></code></a> <code class="docutils literal"><span class="pre">open(2)</span></code> flag. This
+flag effect applies only to the data range written by the system call.</p>
+<p>Availability: Linux 4.7 and newer.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -1255,10 +1311,9 @@ data range written by the system call.</p>
 <dl class="data">
 <dt id="os.RWF_SYNC">
 <code class="descclassname">os.</code><code class="descname">RWF_SYNC</code><a class="headerlink" href="#os.RWF_SYNC" title="정의 주소">¶</a></dt>
-<dd><p>Provide a per-write equivalent of the O_SYNC open(2) flag. This flag is
-meaningful only for pwritev2(), and its effect applies only to the data
-range written by the system call.</p>
-<p>Availability: Linux (version 4.7).</p>
+<dd><p>Provide a per-write equivalent of the <a class="reference internal" href="#os.O_SYNC" title="os.O_SYNC"><code class="xref py py-data docutils literal"><span class="pre">O_SYNC</span></code></a> <code class="docutils literal"><span class="pre">open(2)</span></code> flag. This
+flag effect applies only to the data range written by the system call.</p>
+<p>Availability: Linux 4.7 and newer.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -1267,9 +1322,9 @@ range written by the system call.</p>
 <dl class="function">
 <dt id="os.read">
 <code class="descclassname">os.</code><code class="descname">read</code><span class="sig-paren">(</span><em>fd</em>, <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#os.read" title="정의 주소">¶</a></dt>
-<dd><p>Read at most <em>n</em> bytes from file descriptor <em>fd</em>. Return a bytestring containing the
-bytes read.  If the end of the file referred to by <em>fd</em> has been reached, an
-empty bytes object is returned.</p>
+<dd><p>Read at most <em>n</em> bytes from file descriptor <em>fd</em>.</p>
+<p>Return a bytestring containing the bytes read. If the end of the file
+referred to by <em>fd</em> has been reached, an empty bytes object is returned.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
 <p class="last">This function is intended for low-level I/O and must be applied to a file
@@ -1348,67 +1403,16 @@ them.</p>
 <dt id="os.readv">
 <code class="descclassname">os.</code><code class="descname">readv</code><span class="sig-paren">(</span><em>fd</em>, <em>buffers</em><span class="sig-paren">)</span><a class="headerlink" href="#os.readv" title="정의 주소">¶</a></dt>
 <dd><p>Read from a file descriptor <em>fd</em> into a number of mutable <a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like
-objects</span></a> <em>buffers</em>. <a class="reference internal" href="#os.readv" title="os.readv"><code class="xref py py-func docutils literal"><span class="pre">readv()</span></code></a> will transfer data
-into each buffer until it is full and then move on to the next buffer in the
-sequence to hold the rest of the data. <a class="reference internal" href="#os.readv" title="os.readv"><code class="xref py py-func docutils literal"><span class="pre">readv()</span></code></a> returns the total
-number of bytes read (which may be less than the total capacity of all the
-objects).</p>
+objects</span></a> <em>buffers</em>. Transfer data into each buffer until
+it is full and then move on to the next buffer in the sequence to hold the
+rest of the data.</p>
+<p>Return the total number of bytes actually read which can be less than the
+total capacity of all the objects.</p>
+<p>The operating system may set a limit (<a class="reference internal" href="#os.sysconf" title="os.sysconf"><code class="xref py py-func docutils literal"><span class="pre">sysconf()</span></code></a> value
+<code class="docutils literal"><span class="pre">'SC_IOV_MAX'</span></code>) on the number of buffers that can be used.</p>
 <p>Availability: Unix.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.3에 추가.</span></p>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="os.preadv">
-<code class="descclassname">os.</code><code class="descname">preadv</code><span class="sig-paren">(</span><em>fd</em>, <em>buffers</em>, <em>offset</em>, <em>flags=0</em><span class="sig-paren">)</span><a class="headerlink" href="#os.preadv" title="정의 주소">¶</a></dt>
-<dd><p>Combines the functionality of <a class="reference internal" href="#os.readv" title="os.readv"><code class="xref py py-func docutils literal"><span class="pre">os.readv()</span></code></a> and <a class="reference internal" href="#os.pread" title="os.pread"><code class="xref py py-func docutils literal"><span class="pre">os.pread()</span></code></a>. It
-reads from a file descriptor <em>fd</em> into a number of mutable <a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like
-objects</span></a> <em>buffers</em>. As <a class="reference internal" href="#os.readv" title="os.readv"><code class="xref py py-func docutils literal"><span class="pre">os.readv()</span></code></a>, it will transfer
-data into each buffer until it is full and then move on to the next buffer in
-the sequence to hold the rest of the data. Its fourth argument, <em>offset</em>,
-specifies the file offset at which the input operation is to be performed.
-<a class="reference internal" href="#os.preadv" title="os.preadv"><code class="xref py py-func docutils literal"><span class="pre">preadv()</span></code></a> return the total number of bytes read (which can be less than
-the total capacity of all the objects).</p>
-<p>The flags argument contains a bitwise OR of zero or more of the following
-flags:</p>
-<ul class="simple">
-<li>RWF_HIPRI</li>
-<li>RWF_NOWAIT</li>
-</ul>
-<p>Using non-zero flags requires Linux 4.6 or newer.</p>
-<p>Availability: Linux (version 2.6.30), FreeBSD 6.0 and newer,
-OpenBSD (version 2.7 and newer).</p>
-<div class="versionadded">
-<p><span class="versionmodified">버전 3.7에 추가.</span></p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="os.RWF_HIPRI">
-<code class="descclassname">os.</code><code class="descname">RWF_HIPRI</code><a class="headerlink" href="#os.RWF_HIPRI" title="정의 주소">¶</a></dt>
-<dd><p>High priority read/write. Allows block-based filesystems to use polling
-of the device, which provides lower latency, but may use additional
-resources. (Currently, this feature is usable only on a file descriptor
-opened using the O_DIRECT flag.)</p>
-<p>Availability: Linux (version 4.6).</p>
-<div class="versionadded">
-<p><span class="versionmodified">버전 3.7에 추가.</span></p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="os.RWF_NOWAIT">
-<code class="descclassname">os.</code><code class="descname">RWF_NOWAIT</code><a class="headerlink" href="#os.RWF_NOWAIT" title="정의 주소">¶</a></dt>
-<dd><p>Do not wait for data which is not immediately available. If this flag
-is  specified, the preadv2() system call will return instantly
-if it would have to read data from the backing storage or wait for a lock.
-If some data was successfully read, it will return the number of bytes
-read. If no bytes were read, it will return -1 and set errno to EAGAIN.
-Currently, this flag is meaningful only for preadv2().</p>
-<p>Availability: Linux (version 4.14).</p>
-<div class="versionadded">
-<p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
 </dd></dl>
 
@@ -1440,8 +1444,8 @@ exception is raised.</p>
 <dl class="function">
 <dt id="os.write">
 <code class="descclassname">os.</code><code class="descname">write</code><span class="sig-paren">(</span><em>fd</em>, <em>str</em><span class="sig-paren">)</span><a class="headerlink" href="#os.write" title="정의 주소">¶</a></dt>
-<dd><p>Write the bytestring in <em>str</em> to file descriptor <em>fd</em>. Return the number of
-bytes actually written.</p>
+<dd><p>Write the bytestring in <em>str</em> to file descriptor <em>fd</em>.</p>
+<p>Return the number of bytes actually written.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
 <p class="last">This function is intended for low-level I/O and must be applied to a file
@@ -1460,13 +1464,13 @@ exception, the function now retries the system call instead of raising an
 <dl class="function">
 <dt id="os.writev">
 <code class="descclassname">os.</code><code class="descname">writev</code><span class="sig-paren">(</span><em>fd</em>, <em>buffers</em><span class="sig-paren">)</span><a class="headerlink" href="#os.writev" title="정의 주소">¶</a></dt>
-<dd><p>Write the contents of <em>buffers</em> to file descriptor <em>fd</em>. <em>buffers</em> must be a
-sequence of <a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like objects</span></a>. Buffers are
-processed in array order. Entire contents of first buffer is written before
-proceeding to second, and so on. The operating system may set a limit
-(sysconf() value SC_IOV_MAX) on the number of buffers that can be used.</p>
-<p><a class="reference internal" href="#os.writev" title="os.writev"><code class="xref py py-func docutils literal"><span class="pre">writev()</span></code></a> writes the contents of each object to the file descriptor
-and returns the total number of bytes written.</p>
+<dd><p>Write the contents of <em>buffers</em> to file descriptor <em>fd</em>. <em>buffers</em> must be
+a sequence of <a class="reference internal" href="../glossary.html#term-bytes-like-object"><span class="xref std std-term">bytes-like objects</span></a>. Buffers are
+processed in array order. Entire contents of the first buffer is written
+before proceeding to the second, and so on.</p>
+<p>Returns the total number of bytes actually written.</p>
+<p>The operating system may set a limit (<a class="reference internal" href="#os.sysconf" title="os.sysconf"><code class="xref py py-func docutils literal"><span class="pre">sysconf()</span></code></a> value
+<code class="docutils literal"><span class="pre">'SC_IOV_MAX'</span></code>) on the number of buffers that can be used.</p>
 <p>Availability: Unix.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.3에 추가.</span></p>
