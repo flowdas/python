@@ -983,6 +983,13 @@ For formatting multiple messages in a batch, instances of
 string (which is applied to each message in the batch), there is provision for
 header and trailer format strings.
 
+.. admonition:: flowdas
+
+   :class:`logging.BufferingFormatter` 는 :mod:`logging` 모듈에 들어있지만 문서로 만들어지지는
+   않은 상태입니다. ``__all__`` 을 통해 노출하고 있고, 이 문서에서 언급하고 있는 것으로 보아, 비공개 API
+   라기 보다는 실수로 빠뜨린 것으로 보입니다. 최초의 :pep:`282` 에서도 언급되고 있습니다.
+   사용하려면 소스 코드를 직접 참조해야합니다.
+
 When filtering based on logger level and/or handler level is not enough,
 instances of :class:`Filter` can be added to both :class:`Logger` and
 :class:`Handler` instances (through their :meth:`~Handler.addFilter` method).
