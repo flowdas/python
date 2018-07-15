@@ -44,6 +44,10 @@ Though there is one Python implementation which is by far the most popular,
 there are some alternate implementations which are of particular interest to
 different audiences.
 
+.. admonition:: flowdas
+
+   "눈에 띄게 널리 사용되는 파이썬 구현" 은 당연히 CPython 을 뜻합니다.
+
 Known implementations include:
 
 CPython
@@ -68,6 +72,10 @@ IronPython
    assemblies.  It was created by Jim Hugunin, the original creator of Jython.  For
    more information, see `the IronPython website <http://ironpython.net/>`_.
 
+   .. admonition:: flowdas
+
+      Jim Hugunin 은 수치 연산에 널리 사용되는 NumPy 의 전신인 Numerical Python 의 저자이기도 합니다.
+
 PyPy
    An implementation of Python written completely in Python. It supports several
    advanced features not found in other implementations like stackless support
@@ -75,6 +83,12 @@ PyPy
    experimentation with the language itself by making it easier to modify the
    interpreter (since it is written in Python).  Additional information is
    available on `the PyPy project's home page <http://pypy.org/>`_.
+
+   .. admonition:: flowdas
+
+      대안 구현들 중에서 가장 주목받는 구현입니다. 여러 이유가 있겠지만, 특히 JIT 컴파일러로 인해 순수한 파이썬 코드의
+      경우는 CPython 보다도 높은 속도를 보여주고 있습니다. 파이썬 3 지원이 뒤처져있는 것이 문제였지만, 최근의
+      파이썬 3.5 지원으로 인해 사용자 층을 더 늘릴 수 있을 것으로 보입니다.
 
 Each of these implementations varies in some way from the language as documented
 in this manual, or introduces specific information beyond what's covered in the
@@ -93,6 +107,17 @@ Notation
 The descriptions of lexical analysis and syntax use a modified BNF grammar
 notation.  This uses the following style of definition:
 
+.. admonition:: flowdas
+
+   BNF 는 Backus–Naur Form 을 뜻하는데, 형식 문법을 정의하는데 사용되는 표기법입니다.
+   기본 개념은 기호들의 생성 규칙들을 나열하는 것인데, 여러 변종이 있어서 조금씩 표기법의 차이를 보입니다.
+   이 문서에서 사용하는 **수정된** BNF 의 표기법은 아래에서 설명됩니다.
+
+   문법의 형식 정의는 보통 두 가지 단계로 나누어 기술됩니다. 첫번째는 구문 분석이라는 단계로,
+   개별 문자들을 조합하여 조금 높은 수준의 토큰들을 만들어내는 것입니다. 토큰들은 정수, 키워드와 같은 것들입니다.
+   두번째는 문법 구성 단계로, 이 토큰들이 문법적인 구조를 이루도록 연결하는 것입니다.
+   이 문서도 두 단계를 따로 기술하고 있는데, 두 경우 모두 BNF 표기법을 사용해서 기술하고 있습니다.
+
 .. productionlist:: *
    name: `lc_letter` (`lc_letter` | "_")*
    lc_letter: "a"..."z"
@@ -101,6 +126,13 @@ The first line says that a ``name`` is an ``lc_letter`` followed by a sequence
 of zero or more ``lc_letter``\ s and underscores.  An ``lc_letter`` in turn is
 any of the single characters ``'a'`` through ``'z'``.  (This rule is actually
 adhered to for the names defined in lexical and grammar rules in this document.)
+
+.. admonition:: flowdas
+
+   마지막 "이 규칙은 이 문서에서 구문과 문법 규칙에서 정의되는 이름들에 대한 규칙이다." 라는 문장은,
+   이 규칙이 이 문서에서 BNF 문법 표기법에 사용한 이름들에 적용되는 규칙이라는 뜻입니다.
+   즉 `name` 과 `lc_letter` 가 name 규칙을 따르고 있어서, 영어 소문자와 밑줄 만으로 구성되어 있고,
+   영어 소문자로 시작합니다.
 
 Each rule begins with a name (which is the name defined by the rule) and
 ``::=``.  A vertical bar (``|``) is used to separate alternatives; it is the
@@ -114,6 +146,16 @@ meaningful to separate tokens. Rules are normally contained on a single line;
 rules with many alternatives may be formatted alternatively with each line after
 the first beginning with a vertical bar.
 
+.. admonition:: flowdas
+
+   "``*`` 와 ``+`` 연산자는 최대한 엄격하게 연결된다" 는,
+   연산자 우선 순위가 가장 높기 때문에 가장 직전의 항목에만 적용될 뿐 그 이전의 항목까지 확장되지는 않는다는 뜻입니다.
+   그 이전 까지 확장하려면 괄호를 사용해야 합니다.
+
+.. admonition:: flowdas
+
+   리러털(literal) 은 값 자체를 표현하는 문법 요소입니다. 가령 `'hello'`, `123` 처럼 원시 파일에 값이 그대로 입력되어 있는 형태를 뜻합니다.
+
 .. index:: lexical definitions, ASCII
 
 In lexical definitions (as the example above), two more conventions are used:
@@ -122,6 +164,11 @@ character in the given (inclusive) range of ASCII characters.  A phrase between
 angular brackets (``<...>``) gives an informal description of the symbol
 defined; e.g., this could be used to describe the notion of 'control character'
 if needed.
+
+.. admonition:: flowdas
+
+   홑화살괄호(``<...>``) 표기는 :ref:`identifiers` 에서 볼 수 있습니다. 완전한 BNF 를 사용해서 표기할 경우 너무 복잡해지는 반면,
+   비형식적인 설명으로도 그 의미를 명확히 할 수 있을 때 사용됩니다.
 
 Even though the notation used is almost the same, there is a big difference
 between the meaning of lexical and syntactic definitions: a lexical definition
