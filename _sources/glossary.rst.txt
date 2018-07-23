@@ -448,7 +448,7 @@ Glossary
       and an optional :keyword:`if` expression.  The combined expression
       generates values for an enclosing function::
 
-         >>> sum(i*i for i in range(10))         # sum of squares 0, 1, 4, ... 81
+         >>> sum(i*i for i in range(10))         # 제곱 0, 1, 4, ... 81 의 합
          285
 
    generic function

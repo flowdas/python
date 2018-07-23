@@ -25,7 +25,7 @@ that wants to implement an :func:`open` function that wraps the built-in
        return UpperCaser(f)
 
    class UpperCaser:
-       '''Wrapper around a file that converts output to upper-case.'''
+       '''출력을 대문자로 변환하도록 파일을 감싸는 래퍼.'''
 
        def __init__(self, f):
            self._f = f

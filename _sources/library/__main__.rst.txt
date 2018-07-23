@@ -17,7 +17,7 @@ executing code in a module when it is run as a script or with ``python
 -m`` but not when it is imported::
 
    if __name__ == "__main__":
-       # execute only if run as a script
+       # 스크립트로 실행되는 경우에만 실행합니다
        main()
 
 For a package, the same effect can be achieved by including a

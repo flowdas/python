@@ -21,7 +21,7 @@ using :pep:`526` type annotations.  For example this code::
 
   @dataclass
   class InventoryItem:
-      '''Class for keeping track of an item in inventory.'''
+      '''인벤토리에 있는 항목을 추적하는 클래스.'''
       name: str
       unit_price: float
       quantity_on_hand: int = 0
@@ -164,8 +164,8 @@ Module-level decorators, classes, and functions
 
      @dataclass
      class C:
-         a: int       # 'a' has no default value
-         b: int = 0   # assign a default value for 'b'
+         a: int       # 'a' 에는 기본값이 없습니다
+         b: int = 0   # 'b' 에 기본값을 대입합니다
 
    In this example, both ``a`` and ``b`` will be included in the added
    :meth:`__init__` method, which will be defined as::

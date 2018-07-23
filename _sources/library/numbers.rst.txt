@@ -90,14 +90,13 @@ implements :func:`hash` as follows::
 
     def __hash__(self):
         if self.denominator == 1:
-            # Get integers right.
+            # 정수입니다.
             return hash(self.numerator)
-        # Expensive check, but definitely correct.
+        # 비싼 검사이지만, 확실히 맞습니다.
         if self == float(self):
             return hash(float(self))
         else:
-            # Use tuple's hash to avoid a high collision rate on
-            # simple fractions.
+            # 간단한 분수에서의 높은 충돌률을 피하기위해 튜플의 해시를 사용합니다.
             return hash((self.numerator, self.denominator))
 
 
@@ -199,7 +198,7 @@ forward and reverse instances of any given operator. For example,
 
         def reverse(b, a):
             if isinstance(a, Rational):
-                # Includes ints.
+                # 정수를 포함합니다.
                 return monomorphic_operator(a, b)
             elif isinstance(a, numbers.Real):
                 return fallback_operator(float(a), float(b))

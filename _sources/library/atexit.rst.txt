@@ -98,7 +98,7 @@ passed along to the registered function when it is called::
    import atexit
    atexit.register(goodbye, 'Donny', 'nice')
 
-   # or:
+   # 또는:
    atexit.register(goodbye, adjective='nice', name='Donny')
 
 Usage as a :term:`decorator`::
