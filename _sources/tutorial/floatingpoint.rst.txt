@@ -98,10 +98,10 @@ output modes).
 
 For more pleasant output, you may wish to use string formatting to produce a limited number of significant digits::
 
-   >>> format(math.pi, '.12g')  # give 12 significant digits
+   >>> format(math.pi, '.12g')  # 12자리 유효숫자
    '3.14159265359'
 
-   >>> format(math.pi, '.2f')   # give 2 digits after the point
+   >>> format(math.pi, '.2f')   # 소수점 뒤로 2자리
    '3.14'
 
    >>> repr(math.pi)

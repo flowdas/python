@@ -199,11 +199,11 @@ raising it and add any attributes to it as desired. ::
    >>> try:
    ...     raise Exception('spam', 'eggs')
    ... except Exception as inst:
-   ...     print(type(inst))    # the exception instance
-   ...     print(inst.args)     # arguments stored in .args
-   ...     print(inst)          # __str__ allows args to be printed directly,
-   ...                          # but may be overridden in exception subclasses
-   ...     x, y = inst.args     # unpack args
+   ...     print(type(inst))    # 예외 인스턴스
+   ...     print(inst.args)     # .args 에 저장된 인자들
+   ...     print(inst)          # __str__ 는 args 가 직접 인쇄될 수 있게합니다,
+   ...                          # 하지만 예외 서브 클래스가 재정의할 수 있습니다
+   ...     x, y = inst.args     # args 를 언팩합니다
    ...     print('x =', x)
    ...     print('y =', y)
    ...
@@ -249,7 +249,7 @@ This must be either an exception instance or an exception class (a class that
 derives from :class:`Exception`).  If an exception class is passed, it will
 be implicitly instantiated by calling its constructor with no arguments::
 
-   raise ValueError  # shorthand for 'raise ValueError()'
+   raise ValueError  # 'raise ValueError()' 의 줄임 표현
 
 If you need to determine whether an exception was raised but don't intend to
 handle it, a simpler form of the :keyword:`raise` statement allows you to

@@ -57,7 +57,7 @@ formatting numbers with group separators::
    >>> import locale
    >>> locale.setlocale(locale.LC_ALL, 'English_United States.1252')
    'English_United States.1252'
-   >>> conv = locale.localeconv()          # get a mapping of conventions
+   >>> conv = locale.localeconv()          # 관례의 매핑을 얻습니다
    >>> x = 1234567.8
    >>> locale.format("%d", x, grouping=True)
    '1,234,567'
@@ -146,7 +146,7 @@ standard size and in little-endian byte order::
        data = f.read()
 
    start = 0
-   for i in range(3):                      # show the first 3 file headers
+   for i in range(3):                      # 처음 3개의 파일 헤더를 보여줍니다
        start += 14
        fields = struct.unpack('<IIIHH', data[start:start+16])
        crc32, comp_size, uncomp_size, filenamesize, extra_size = fields
@@ -157,7 +157,7 @@ standard size and in little-endian byte order::
        extra = data[start:start+extra_size]
        print(filename, hex(crc32), comp_size, uncomp_size)
 
-       start += extra_size + comp_size     # skip to the next header
+       start += extra_size + comp_size     # 다음 헤더로 건너뜁니다
 
 
 .. _tut-multi-threading:
@@ -191,7 +191,7 @@ tasks in background while the main program continues to run::
    background.start()
    print('The main program continues to run in foreground.')
 
-   background.join()    # Wait for the background task to finish
+   background.join()    # 백그라운드 작업이 끝날 때까지 기다립니다
    print('Main program waited until background was done.')
 
 The principal challenge of multi-threaded applications is coordinating threads
@@ -266,18 +266,18 @@ applications include caching objects that are expensive to create::
    ...     def __repr__(self):
    ...         return str(self.value)
    ...
-   >>> a = A(10)                   # create a reference
+   >>> a = A(10)                   # 참조를 만듭니다
    >>> d = weakref.WeakValueDictionary()
-   >>> d['primary'] = a            # does not create a reference
-   >>> d['primary']                # fetch the object if it is still alive
+   >>> d['primary'] = a            # 참조를 만들지 않습니다
+   >>> d['primary']                # 객체가 아직 살아있다면 가져옵니다
    10
-   >>> del a                       # remove the one reference
-   >>> gc.collect()                # run garbage collection right away
+   >>> del a                       # 참조 하나를 지웁니다
+   >>> gc.collect()                # 당장 가비지 수집을 실행합니다
    0
-   >>> d['primary']                # entry was automatically removed
+   >>> d['primary']                # 항목이 저절로 삭제되었습니다
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
-       d['primary']                # entry was automatically removed
+       d['primary']                # 항목이 저절로 삭제되었습니다
      File "C:/python37/lib/weakref.py", line 46, in __getitem__
        o = self.data[key]()
    KeyError: 'primary'
@@ -343,9 +343,9 @@ not want to run a full list sort::
 
    >>> from heapq import heapify, heappop, heappush
    >>> data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
-   >>> heapify(data)                      # rearrange the list into heap order
-   >>> heappush(data, -5)                 # add a new entry
-   >>> [heappop(data) for i in range(3)]  # fetch the three smallest entries
+   >>> heapify(data)                      # 리스트를 힙 순서로 재배치합니다
+   >>> heappush(data, -5)                 # 새 항목을 추가합니다
+   >>> [heappop(data) for i in range(3)]  # 가장 작은 세 개의 항목을 가져옵니다
    [-5, 0, 1]
 
 

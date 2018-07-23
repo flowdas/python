@@ -14,10 +14,10 @@ The :mod:`os` module provides dozens of functions for interacting with the
 operating system::
 
    >>> import os
-   >>> os.getcwd()      # Return the current working directory
+   >>> os.getcwd()      # 현재 작업 디렉터리를 돌려줍니다
    'C:\\Python37'
-   >>> os.chdir('/server/accesslogs')   # Change current working directory
-   >>> os.system('mkdir today')   # Run the command mkdir in the system shell
+   >>> os.chdir('/server/accesslogs')   # 현재 작업 디렉터리를 변경합니다
+   >>> os.system('mkdir today')   # 시스템 셸에서 mkdir 명령을 실행합니다
    0
 
 Be sure to use the ``import os`` style instead of ``from os import *``.  This
@@ -133,11 +133,11 @@ The :mod:`random` module provides tools for making random selections::
    >>> import random
    >>> random.choice(['apple', 'pear', 'banana'])
    'apple'
-   >>> random.sample(range(100), 10)   # sampling without replacement
+   >>> random.sample(range(100), 10)   # 대체 없는 샘플링
    [30, 83, 16, 4, 8, 81, 41, 50, 18, 33]
    >>> random.random()    # random float
    0.17970987693706186
-   >>> random.randrange(6)    # random integer chosen from range(6)
+   >>> random.randrange(6)    # range(6) 에서 선택된 임의의 정수
    4
 
 The :mod:`statistics` module calculates basic statistical properties
@@ -167,8 +167,8 @@ from URLs and :mod:`smtplib` for sending mail::
    >>> from urllib.request import urlopen
    >>> with urlopen('http://tycho.usno.navy.mil/cgi-bin/timer.pl') as response:
    ...     for line in response:
-   ...         line = line.decode('utf-8')  # Decoding the binary data to text.
-   ...         if 'EST' in line or 'EDT' in line:  # look for Eastern Time
+   ...         line = line.decode('utf-8')  # 바이너리 데이터를 텍스트로 디코딩.
+   ...         if 'EST' in line or 'EDT' in line:  # 동부 시간대를 찾습니다
    ...             print(line)
 
    <BR>Nov. 25, 09:43:32 PM EST
@@ -197,7 +197,7 @@ focus of the implementation is on efficient member extraction for output
 formatting and manipulation.  The module also supports objects that are timezone
 aware. ::
 
-   >>> # dates are easily constructed and formatted
+   >>> # 날짜는 쉽게 구성되고 포맷됩니다
    >>> from datetime import date
    >>> now = date.today()
    >>> now
@@ -205,7 +205,7 @@ aware. ::
    >>> now.strftime("%m-%d-%y. %d %b %Y is a %A on the %d day of %B.")
    '12-02-03. 02 Dec 2003 is a Tuesday on the 02 day of December.'
 
-   >>> # dates support calendar arithmetic
+   >>> # 날짜는 캘린더 산술을 지원합니다
    >>> birthday = date(1964, 7, 31)
    >>> age = now - birthday
    >>> age.days
@@ -283,7 +283,7 @@ documentation::
        return sum(values) / len(values)
 
    import doctest
-   doctest.testmod()   # automatically validate the embedded tests
+   doctest.testmod()   # 내장된 테스트를 자동 검증합니다
 
 The :mod:`unittest` module is not as effortless as the :mod:`doctest` module,
 but it allows a more comprehensive set of tests to be maintained in a separate
@@ -301,7 +301,7 @@ file::
            with self.assertRaises(TypeError):
                average(20, 30, 70)
 
-   unittest.main()  # Calling from the command line invokes all tests
+   unittest.main()  # 명령행에서 호출하면 모든 테스트를 수행합니다
 
 
 .. _tut-batteries-included:

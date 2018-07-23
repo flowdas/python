@@ -408,20 +408,20 @@ of the class::
 
     class Dog:
 
-        kind = 'canine'         # class variable shared by all instances
+        kind = 'canine'         # 모든 인스턴스가 공유하는 클래스 변수
 
         def __init__(self, name):
-            self.name = name    # instance variable unique to each instance
+            self.name = name    # 각 인스턴스에 고유한 인스턴스 변수
 
     >>> d = Dog('Fido')
     >>> e = Dog('Buddy')
-    >>> d.kind                  # shared by all dogs
+    >>> d.kind                  # 모든 인스턴스가 공유하는 변수
     'canine'
-    >>> e.kind                  # shared by all dogs
+    >>> e.kind                  # 모든 인스턴스가 공유하는 변수
     'canine'
-    >>> d.name                  # unique to d
+    >>> d.name                  # d 만의 변수
     'Fido'
-    >>> e.name                  # unique to e
+    >>> e.name                  # e 만의 변수
     'Buddy'
 
 As discussed in :ref:`tut-object`, shared data can have possibly surprising
@@ -432,7 +432,7 @@ instances::
 
     class Dog:
 
-        tricks = []             # mistaken use of a class variable
+        tricks = []             # 클래스 변수의 잘못된 사용
 
         def __init__(self, name):
             self.name = name
@@ -444,7 +444,7 @@ instances::
     >>> e = Dog('Buddy')
     >>> d.add_trick('roll over')
     >>> e.add_trick('play dead')
-    >>> d.tricks                # unexpectedly shared by all dogs
+    >>> d.tricks                # 예기치 않게 모든 인스턴스가 공유합니다
     ['roll over', 'play dead']
 
 Correct design of the class should use an instance variable instead::
@@ -453,7 +453,7 @@ Correct design of the class should use an instance variable instead::
 
         def __init__(self, name):
             self.name = name
-            self.tricks = []    # creates a new empty list for each dog
+            self.tricks = []    # 각 인스턴스마다 새 빈 리스트를 만듭니다
 
         def add_trick(self, trick):
             self.tricks.append(trick)
@@ -512,7 +512,7 @@ that class.  It is not necessary that the function definition is textually
 enclosed in the class definition: assigning a function object to a local
 variable in the class is also ok.  For example::
 
-   # Function defined outside the class
+   # 클래스 외부에서 정의된 함수
    def f1(self, x, y):
        return min(x, x+y)
 
@@ -693,13 +693,13 @@ breaking intraclass method calls.  For example::
            for item in iterable:
                self.items_list.append(item)
 
-       __update = update   # private copy of original update() method
+       __update = update   # 기존 update() 메서드의 비공개 사본
 
    class MappingSubclass(Mapping):
 
        def update(self, keys, values):
-           # provides new signature for update()
-           # but does not break __init__()
+           # update() 에 새로운 서명을 제공하지만
+           # __init__() 를 망가뜨리진 않습니다
            for item in zip(keys, values):
                self.items_list.append(item)
 
@@ -727,9 +727,9 @@ will do nicely::
    class Employee:
        pass
 
-   john = Employee()  # Create an empty employee record
+   john = Employee()  # 빈 직원 레코드를 만듭니다
 
-   # Fill the fields of the record
+   # 레코드의 항목들을 채웁니다
    john.name = 'John Doe'
    john.dept = 'computer lab'
    john.salary = 1000
@@ -884,12 +884,12 @@ than equivalent list comprehensions.
 
 Examples::
 
-   >>> sum(i*i for i in range(10))                 # sum of squares
+   >>> sum(i*i for i in range(10))                 # 제곱의 합
    285
 
    >>> xvec = [10, 20, 30]
    >>> yvec = [7, 5, 3]
-   >>> sum(x*y for x,y in zip(xvec, yvec))         # dot product
+   >>> sum(x*y for x,y in zip(xvec, yvec))         # 내적
    260
 
    >>> from math import pi, sin

@@ -58,12 +58,12 @@ Some examples::
    >>> s = 'The value of x is ' + repr(x) + ', and y is ' + repr(y) + '...'
    >>> print(s)
    The value of x is 32.5, and y is 40000...
-   >>> # The repr() of a string adds string quotes and backslashes:
+   >>> # 문자열의 repr() 은 문자열 따옴표와 역슬래시를 추가합니다:
    ... hello = 'hello, world\n'
    >>> hellos = repr(hello)
    >>> print(hellos)
    'hello, world\n'
-   >>> # The argument to repr() may be any Python object:
+   >>> # repr() 의 인자로는 모든 파이썬 객체가 올 수 있습니다:
    ... repr((x, y, ('spam', 'eggs')))
    "(32.5, 40000, ('spam', 'eggs'))"
 
@@ -71,7 +71,7 @@ Here are two ways to write a table of squares and cubes::
 
    >>> for x in range(1, 11):
    ...     print(repr(x).rjust(2), repr(x*x).rjust(3), end=' ')
-   ...     # Note use of 'end' on previous line
+   ...     # 앞 줄의 'end' 사용에 주목하세요
    ...     print(repr(x*x*x).rjust(4))
    ...
     1   1    1
@@ -350,7 +350,7 @@ Other types of objects need to be converted -- either to a string (in text mode)
 or a bytes object (in binary mode) -- before writing them::
 
    >>> value = ('the answer', 42)
-   >>> s = str(value)  # convert the tuple to string
+   >>> s = str(value)  # 튜플을 문자열로 변환합니다
    >>> f.write(s)
    18
 
@@ -368,11 +368,11 @@ beginning of the file as the reference point. ::
    >>> f = open('workfile', 'rb+')
    >>> f.write(b'0123456789abcdef')
    16
-   >>> f.seek(5)      # Go to the 6th byte in the file
+   >>> f.seek(5)      # 파일의 6번째 바이트로 이동합니다
    5
    >>> f.read(1)
    b'5'
-   >>> f.seek(-3, 2)  # Go to the 3rd byte before the end
+   >>> f.seek(-3, 2)  # 끝에서 3번째 바이트로 이동합니다
    13
    >>> f.read(1)
    b'd'

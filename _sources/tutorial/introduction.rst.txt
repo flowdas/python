@@ -21,10 +21,10 @@ be omitted when typing in examples.
 
 Some examples::
 
-   # this is the first comment
-   spam = 1  # and this is the second comment
-             # ... and now a third!
-   text = "# This is not a comment because it's inside quotes."
+   # 이 것이 첫 번째 주석입니다
+   spam = 1  # 그리고 이 것이 두 번째 주석입니다
+             # ... 그리고 이제 세 번째!
+   text = "# 이것은 따옴표 안에 있기 때문에 주석이 아닙니다."
 
 
 .. _tut-calculator:
@@ -53,7 +53,7 @@ For example::
    20
    >>> (50 - 5*6) / 4
    5.0
-   >>> 8 / 5  # division always returns a floating point number
+   >>> 8 / 5  # 나눗셈은 항상 실수를 돌려줍니다
    1.6
 
 The integer numbers (e.g. ``2``, ``4``, ``20``) have type :class:`int`,
@@ -64,21 +64,21 @@ Division (``/``) always returns a float.  To do :term:`floor division` and
 get an integer result (discarding any fractional result) you can use the ``//``
 operator; to calculate the remainder you can use ``%``::
 
-   >>> 17 / 3  # classic division returns a float
+   >>> 17 / 3  # 고전적인 나눗셈은 float를 돌려줍니다
    5.666666666666667
    >>>
-   >>> 17 // 3  # floor division discards the fractional part
+   >>> 17 // 3  # 정수 나눗셈은 소수부를 버립니다
    5
-   >>> 17 % 3  # the % operator returns the remainder of the division
+   >>> 17 % 3  # % 연산자는 나눗셈의 나머지를 돌려줍니다
    2
-   >>> 5 * 3 + 2  # result * divisor + remainder
+   >>> 5 * 3 + 2  # 몫 * 제수 + 나머지
    17
 
 With Python, it is possible to use the ``**`` operator to calculate powers [#]_::
 
-   >>> 5 ** 2  # 5 squared
+   >>> 5 ** 2  # 5 제곱
    25
-   >>> 2 ** 7  # 2 to the power of 7
+   >>> 2 ** 7  # 2 의 7 제곱
    128
 
 The equal sign (``=``) is used to assign a value to a variable. Afterwards, no
@@ -92,7 +92,7 @@ result is displayed before the next interactive prompt::
 If a variable is not "defined" (assigned a value), trying to use it will
 give you an error::
 
-   >>> n  # try to access an undefined variable
+   >>> n  # 정의되지 않은 변수에 접근하려고 시도합니다
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
    NameError: name 'n' is not defined
@@ -137,11 +137,11 @@ in several ways.  They can be enclosed in single quotes (``'...'``) or
 double quotes (``"..."``) with the same result [#]_.  ``\`` can be used
 to escape quotes::
 
-   >>> 'spam eggs'  # single quotes
+   >>> 'spam eggs'  # 작은 따옴표
    'spam eggs'
-   >>> 'doesn\'t'  # use \' to escape the single quote...
+   >>> 'doesn\'t'  # 작은 따옴표를 이스케이프하는데 \' 를 사용합니다...
    "doesn't"
-   >>> "doesn't"  # ...or use double quotes instead
+   >>> "doesn't"  # ...또는 큰따옴표를 사용합니다
    "doesn't"
    >>> '"Yes," they said.'
    '"Yes," they said.'
@@ -163,10 +163,10 @@ and special characters::
    '"Isn\'t," they said.'
    >>> print('"Isn\'t," they said.')
    "Isn't," they said.
-   >>> s = 'First line.\nSecond line.'  # \n means newline
-   >>> s  # without print(), \n is included in the output
+   >>> s = 'First line.\nSecond line.'  # \n 은 줄넘김을 뜻합니다
+   >>> s  # print() 하지 않으면, \n 이 출력에 포함됩니다
    'First line.\nSecond line.'
-   >>> print(s)  # with print(), \n produces a new line
+   >>> print(s)  # print() 하면, \n 은 새 줄을 만듭니다
    First line.
    Second line.
 
@@ -174,10 +174,10 @@ If you don't want characters prefaced by ``\`` to be interpreted as
 special characters, you can use *raw strings* by adding an ``r`` before
 the first quote::
 
-   >>> print('C:\some\name')  # here \n means newline!
+   >>> print('C:\some\name')  # 여기에서 \n 은 줄넘김을 뜻합니다!
    C:\some
    ame
-   >>> print(r'C:\some\name')  # note the r before the quote
+   >>> print(r'C:\some\name')  # 따옴표 앞의 r 에 주의하세요
    C:\some\name
 
 String literals can span multiple lines.  One way is using triple-quotes:
@@ -202,7 +202,7 @@ produces the following output (note that the initial newline is not included):
 Strings can be concatenated (glued together) with the ``+`` operator, and
 repeated with ``*``::
 
-   >>> # 3 times 'un', followed by 'ium'
+   >>> # 'un' dmf 3번 반복하고 'ium' 을 붙입니다
    >>> 3 * 'un' + 'ium'
    'unununium'
 
@@ -222,7 +222,7 @@ This feature is particularly useful when you want to break long strings::
 This only works with two literals though, not with variables or expressions::
 
    >>> prefix = 'Py'
-   >>> prefix 'thon'  # can't concatenate a variable and a string literal
+   >>> prefix 'thon'  # 변수와 문자열 리터럴을 이어붙이기할 수 없습니다
      ...
    SyntaxError: invalid syntax
    >>> ('un' * 3) 'ium'
@@ -239,16 +239,16 @@ There is no separate character type; a character is simply a string of size
 one::
 
    >>> word = 'Python'
-   >>> word[0]  # character in position 0
+   >>> word[0]  # 위치 0의 문자
    'P'
-   >>> word[5]  # character in position 5
+   >>> word[5]  # 위치 5의 문자
    'n'
 
 Indices may also be negative numbers, to start counting from the right::
 
-   >>> word[-1]  # last character
+   >>> word[-1]  # 마지막 문자
    'n'
-   >>> word[-2]  # second-last character
+   >>> word[-2]  # 끝에서 두 번째 문자
    'o'
    >>> word[-6]
    'P'
@@ -258,9 +258,9 @@ Note that since -0 is the same as 0, negative indices start from -1.
 In addition to indexing, *slicing* is also supported.  While indexing is used
 to obtain individual characters, *slicing* allows you to obtain substring::
 
-   >>> word[0:2]  # characters from position 0 (included) to 2 (excluded)
+   >>> word[0:2]  # 위치 0 (포함) 에서 2 (제외) 까지의 문자들
    'Py'
-   >>> word[2:5]  # characters from position 2 (included) to 5 (excluded)
+   >>> word[2:5]  # 위치 2 (포함) 에서 5 (제외) 까지의 문자들
    'tho'
 
 Note how the start is always included, and the end always excluded.  This
@@ -274,11 +274,11 @@ makes sure that ``s[:i] + s[i:]`` is always equal to ``s``::
 Slice indices have useful defaults; an omitted first index defaults to zero, an
 omitted second index defaults to the size of the string being sliced. ::
 
-   >>> word[:2]   # character from the beginning to position 2 (excluded)
+   >>> word[:2]   # 처음부터 위치 2 (제외) 까지의 문자들
    'Py'
-   >>> word[4:]   # characters from position 4 (included) to the end
+   >>> word[4:]   # 위치 4 (포함) 에서 끝까지의 문자들
    'on'
-   >>> word[-2:]  # characters from the second-last (included) to the end
+   >>> word[-2:]  # 끝에서 두번째 (포함) 부터 끝까지의 문자들
    'on'
 
 One way to remember how slices work is to think of the indices as pointing
@@ -303,7 +303,7 @@ indices, if both are within bounds.  For example, the length of ``word[1:3]`` is
 
 Attempting to use an index that is too large will result in an error::
 
-   >>> word[42]  # the word only has 6 characters
+   >>> word[42]  # word 는 6개의 문자 뿐입니다
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
    IndexError: string index out of range
@@ -378,11 +378,11 @@ items of different types, but usually the items all have the same type. ::
 Like strings (and all other built-in :term:`sequence` type), lists can be
 indexed and sliced::
 
-   >>> squares[0]  # indexing returns the item
+   >>> squares[0]  # 인덱싱은 항목을 돌려줍니다
    1
    >>> squares[-1]
    25
-   >>> squares[-3:]  # slicing returns a new list
+   >>> squares[-3:]  # 슬라이싱은 새 리스트를 돌려줍니다
    [9, 16, 25]
 
 All slice operations return a new list containing the requested elements.  This
@@ -399,18 +399,18 @@ Lists also support operations like concatenation::
 Unlike strings, which are :term:`immutable`, lists are a :term:`mutable`
 type, i.e. it is possible to change their content::
 
-    >>> cubes = [1, 8, 27, 65, 125]  # something's wrong here
-    >>> 4 ** 3  # the cube of 4 is 64, not 65!
+    >>> cubes = [1, 8, 27, 65, 125]  # 여기 뭔가 잘못 됐습니다
+    >>> 4 ** 3  # 4의 세제곱은 65가 아니라 64입니다!
     64
-    >>> cubes[3] = 64  # replace the wrong value
+    >>> cubes[3] = 64  # 잘못된 값을 고칩니다
     >>> cubes
     [1, 8, 27, 64, 125]
 
 You can also add new items at the end of the list, by using
 the :meth:`~list.append` *method* (we will see more about methods later)::
 
-   >>> cubes.append(216)  # add the cube of 6
-   >>> cubes.append(7 ** 3)  # and the cube of 7
+   >>> cubes.append(216)  # 6의 세제곱을 추가합니다
+   >>> cubes.append(7 ** 3)  # 그리고 7의 세제곱도
    >>> cubes
    [1, 8, 27, 64, 125, 216, 343]
 
@@ -420,15 +420,15 @@ list or clear it entirely::
    >>> letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
    >>> letters
    ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-   >>> # replace some values
+   >>> # 몇몇 값을 바꿉니다
    >>> letters[2:5] = ['C', 'D', 'E']
    >>> letters
    ['a', 'b', 'C', 'D', 'E', 'f', 'g']
-   >>> # now remove them
+   >>> # 이제 그 것들을 지웁니다
    >>> letters[2:5] = []
    >>> letters
    ['a', 'b', 'f', 'g']
-   >>> # clear the list by replacing all the elements with an empty list
+   >>> # 모든 요소들을 빈 리스트로 치환해서 리스트를 비웁니다
    >>> letters[:] = []
    >>> letters
    []
@@ -462,8 +462,8 @@ together.  For instance, we can write an initial sub-sequence of the
 `Fibonacci series <https://en.wikipedia.org/wiki/Fibonacci_number>`_
 as follows::
 
-   >>> # Fibonacci series:
-   ... # the sum of two elements defines the next
+   >>> # 피보나치 수열:
+   ... # 두 요소의 합이 다음을 정의합니다
    ... a, b = 0, 1
    >>> while a < 10:
    ...     print(a)

@@ -57,7 +57,7 @@ they appear in the sequence.  For example (no pun intended):
 
 ::
 
-   >>> # Measure some strings:
+   >>> # 몇 개의 문자열을 측정합니다:
    ... words = ['cat', 'window', 'defenestrate']
    >>> for w in words:
    ...     print(w, len(w))
@@ -71,7 +71,7 @@ If you need to modify the sequence you are iterating over while inside the loop
 make a copy.  Iterating over a sequence does not implicitly make a copy.  The
 slice notation makes this especially convenient::
 
-   >>> for w in words[:]:  # Loop over a slice copy of the entire list.
+   >>> for w in words[:]:  # 전체 리스트의 슬라이스 사본을 루핑합니다.
    ...     if len(w) > 6:
    ...         words.insert(0, w)
    ...
@@ -172,7 +172,7 @@ following loop, which searches for prime numbers::
    ...             print(n, 'equals', x, '*', n//x)
    ...             break
    ...     else:
-   ...         # loop fell through without finding a factor
+   ...         # 인수를 발견하지 못하고 루프를 빠져나갑니다
    ...         print(n, 'is a prime number')
    ...
    2 is a prime number
@@ -220,7 +220,7 @@ The :keyword:`pass` statement does nothing. It can be used when a statement is
 required syntactically but the program requires no action. For example::
 
    >>> while True:
-   ...     pass  # Busy-wait for keyboard interrupt (Ctrl+C)
+   ...     pass  # 키보드 인터럽트(Ctrl+C)를 기다립니다
    ...
 
 This is commonly used for creating minimal classes::
@@ -234,7 +234,7 @@ conditional body when you are working on new code, allowing you to keep thinking
 at a more abstract level.  The :keyword:`pass` is silently ignored::
 
    >>> def initlog(*args):
-   ...     pass   # Remember to implement this!
+   ...     pass   # 구현을 잊지마세요!
    ...
 
 .. _tut-functions:
@@ -245,15 +245,15 @@ Defining Functions
 We can create a function that writes the Fibonacci series to an arbitrary
 boundary::
 
-   >>> def fib(n):    # write Fibonacci series up to n
-   ...     """Print a Fibonacci series up to n."""
+   >>> def fib(n):    # n 보다 작은 피보나치 수열을 씁니다
+   ...     """n 보다 작은 피보나치 수열을 인쇄합니다."""
    ...     a, b = 0, 1
    ...     while a < n:
    ...         print(a, end=' ')
    ...         a, b = b, a+b
    ...     print()
    ...
-   >>> # Now call the function we just defined:
+   >>> # 이제 방금 정의한 함수를 호출합니다:
    ... fib(2000)
    0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597
 
@@ -315,17 +315,17 @@ You can see it if you really want to using :func:`print`::
 It is simple to write a function that returns a list of the numbers of the
 Fibonacci series, instead of printing it::
 
-   >>> def fib2(n):  # return Fibonacci series up to n
-   ...     """Return a list containing the Fibonacci series up to n."""
+   >>> def fib2(n):  # n 보다 작은 피보나치 수열을 돌려줍니다
+   ...     """n 보다 작은 피보나치 수열을 담은 리스트를 돌려줍니다."""
    ...     result = []
    ...     a, b = 0, 1
    ...     while a < n:
-   ...         result.append(a)    # see below
+   ...         result.append(a)    # 아래를 보세요
    ...         a, b = b, a+b
    ...     return result
    ...
-   >>> f100 = fib2(100)    # call it
-   >>> f100                # write the result
+   >>> f100 = fib2(100)    # 호출합니다
+   >>> f100                # 결과를 씁니다
    [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
 
 This example, as usual, demonstrates some new Python features:
@@ -448,19 +448,19 @@ accepts one required argument (``voltage``) and three optional arguments
 (``state``, ``action``, and ``type``).  This function can be called in any
 of the following ways::
 
-   parrot(1000)                                          # 1 positional argument
-   parrot(voltage=1000)                                  # 1 keyword argument
-   parrot(voltage=1000000, action='VOOOOOM')             # 2 keyword arguments
-   parrot(action='VOOOOOM', voltage=1000000)             # 2 keyword arguments
-   parrot('a million', 'bereft of life', 'jump')         # 3 positional arguments
-   parrot('a thousand', state='pushing up the daisies')  # 1 positional, 1 keyword
+   parrot(1000)                                          # 1개의 위치 인자
+   parrot(voltage=1000)                                  # 1개의 키워드 인자
+   parrot(voltage=1000000, action='VOOOOOM')             # 2개의 키워드 인자
+   parrot(action='VOOOOOM', voltage=1000000)             # 2개의 키워드 인자
+   parrot('a million', 'bereft of life', 'jump')         # 3개의 위치 인자
+   parrot('a thousand', state='pushing up the daisies')  # 1개의 위치, 1개의 키워드
 
 but all the following calls would be invalid::
 
-   parrot()                     # required argument missing
-   parrot(voltage=5.0, 'dead')  # non-keyword argument after a keyword argument
-   parrot(110, voltage=220)     # duplicate value for the same argument
-   parrot(actor='John Cleese')  # unknown keyword argument
+   parrot()                     # 필수 인자 누락
+   parrot(voltage=5.0, 'dead')  # 키워드 인자 뒤에 키워드가 아닌 인자가 옴
+   parrot(110, voltage=220)     # 같은 인자가 중복됨
+   parrot(actor='John Cleese')  # 알려지지 않은 키워드 인자
 
 In a function call, keyword arguments must follow positional arguments.
 All the keyword arguments passed must match one of the arguments
@@ -563,10 +563,10 @@ arguments.  For instance, the built-in :func:`range` function expects separate
 function call with the  ``*``\ -operator to unpack the arguments out of a list
 or tuple::
 
-   >>> list(range(3, 6))            # normal call with separate arguments
+   >>> list(range(3, 6))            # 별도의 인자를 사용하는 일반 호출
    [3, 4, 5]
    >>> args = [3, 6]
-   >>> list(range(*args))            # call with arguments unpacked from a list
+   >>> list(range(*args))            # 리스트에서 언패킹된 인자로 호출
    [3, 4, 5]
 
 .. index::

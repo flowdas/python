@@ -25,16 +25,16 @@ module's name (as a string) is available as the value of the global variable
 ``__name__``.  For instance, use your favorite text editor to create a file
 called :file:`fibo.py` in the current directory with the following contents::
 
-   # Fibonacci numbers module
+   # 피보나치 수 모듈
 
-   def fib(n):    # write Fibonacci series up to n
+   def fib(n):    # n 보다 작은 피보나치 수열을 씁니다
        a, b = 0, 1
        while a < n:
            print(a, end=' ')
            a, b = b, a+b
        print()
 
-   def fib2(n):   # return Fibonacci series up to n
+   def fib2(n):   # n 보다 작은 피보나치 수열을 돌려줍니다
        result = []
        a, b = 0, 1
        while a < n:
