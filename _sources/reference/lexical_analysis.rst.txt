@@ -176,7 +176,7 @@ character.  For example::
 
    if 1900 < year < 2100 and 1 <= month <= 12 \
       and 1 <= day <= 31 and 0 <= hour < 24 \
-      and 0 <= minute < 60 and 0 <= second < 60:   # Looks like a valid date
+      and 0 <= minute < 60 and 0 <= second < 60:   # 유효한 날짜처럼 보입니다
            return 1
 
 A line ending in a backslash cannot carry a comment.  A backslash does not
@@ -204,10 +204,10 @@ Implicit line joining
 Expressions in parentheses, square brackets or curly braces can be split over
 more than one physical line without using backslashes. For example::
 
-   month_names = ['Januari', 'Februari', 'Maart',      # These are the
-                  'April',   'Mei',      'Juni',       # Dutch names
-                  'Juli',    'Augustus', 'September',  # for the months
-                  'Oktober', 'November', 'December']   # of the year
+   month_names = ['Januari', 'Februari', 'Maart',      # 이것들은
+                  'April',   'Mei',      'Juni',       # 일년을 이루는
+                  'Juli',    'Augustus', 'September',  # 달들의
+                  'Oktober', 'November', 'December']   # 네덜란드 이름입니다
 
 Implicitly continued lines can carry comments.  The indentation of the
 continuation lines is not important.  Blank continuation lines are allowed.
@@ -314,7 +314,7 @@ Here is an example of a correctly (though confusingly) indented piece of Python
 code::
 
    def perm(l):
-           # Compute the list of all permutations of l
+           # l 의 모든 순열의 리스트를 계산합니다
        if len(l) <= 1:
                      return [l]
        r = []
@@ -327,13 +327,13 @@ code::
 
 The following example shows various indentation errors::
 
-    def perm(l):                       # error: first line indented
-   for i in range(len(l)):             # error: not indented
+    def perm(l):                       # 에러: 첫 줄을 들여쓰기 했습니다
+   for i in range(len(l)):             # 에러: 들여쓰지 않았습니다
        s = l[:i] + l[i+1:]
-           p = perm(l[:i] + l[i+1:])   # error: unexpected indent
+           p = perm(l[:i] + l[i+1:])   # 에러: 예기치 않은 들여쓰기
            for x in p:
                    r.append(l[i:i+1] + x)
-               return r                # error: inconsistent dedent
+               return r                # 에러: 일관성 없는 내어쓰기
 
 (Actually, the first three errors are detected by the parser; only the last
 error is found by the lexical analyzer --- the indentation of ``return r`` does
@@ -396,6 +396,12 @@ Unicode Character Database as included in the :mod:`unicodedata` module.
 
 Identifiers are unlimited in length.  Case is significant.
 
+.. admonition:: flowdas
+
+   대소문자가 구분된다는 뜻입니다. 유니코드에서는 대문자와 소문자외에도 타이틀문자가 있습니다.
+   주로 여러개의 글자가 합쳐서 만들어진 글자들 때문인데, 제목으로 사용되는 단어들을 첫글자만 대문자로 만드는 경우를 위한 것입니다.
+   이 세가지를 모두 지칭하기 위해 케이스라는 단어를 사용합니다.
+
 .. productionlist::
    identifier: `xid_start` `xid_continue`*
    id_start: <all characters in general categories Lu, Ll, Lt, Lm, Lo, Nl, the underscore, and characters with the Other_ID_Start property>
@@ -404,6 +410,10 @@ Identifiers are unlimited in length.  Case is significant.
    xid_continue: <all characters in `id_continue` whose NFKC normalization is in "id_continue*">
 
 The Unicode category codes mentioned above stand for:
+
+.. admonition:: flowdas
+
+   유니코드에서 엄밀히 정의된 개념을 나타내는 것들이기 때문에, 대부분 번역하지 않고 그대로 둡니다.
 
 * *Lu* - uppercase letters
 * *Ll* - lowercase letters
@@ -420,12 +430,41 @@ The Unicode category codes mentioned above stand for:
   compatibility
 * *Other_ID_Continue* - likewise
 
+.. admonition:: flowdas
+
+   *Other_ID_Start* 는 6개의 유니코드 문자 U+1885, U+1886, U+2118, U+212E, U+309B, U+309C 를,
+   *Other_ID_Continue* 는 12개의 유니코드 문자: U+00B7, U+0387, U+1369..U+1371, U+19DA 를 뜻합니다.
+
 All identifiers are converted into the normal form NFKC while parsing; comparison
 of identifiers is based on NFKC.
+
+.. admonition:: flowdas
+
+   유니코드에는 그 생김새와 역할이 동일함에도 불구하고 다른 코드가 할당되어 있는 문자들이 있습니다. 생김새가 다르더라도
+   의미적으로 동등한 경우도 있습니다. 이런 문자들을 다른 것으로 인식한다면, 편집기를 통해 사용자는 같은 식별자를 쓰고
+   있다고 생각하지만, 실제로 파이썬은 다른 식별자로 취급하고 있는 경우가 발생할 수 있습니다. 이런 경우를 최소화하기 위해
+   식별자를 정규화(normalization)라는 과정을 거쳐 어떤 표준적인 형태로 변경한 후에 비교합니다. 유니코드가 정의하고 있는
+   정규화 방법은 여러가지가 있습니다: NFD, NFC, NFKD, NFKC. 이 중 식별자의 비교에 사용하고 있는 NFKC 는
+   NFKD(호환 분해, compatibility decomposition)후에 정준 결합(canonical composition)하는 방식입니다.
+   한글의 경우를 예로 들어보자면, `오`(U+C624) 를 호환 분해 하면 `ㅇㅗ`(U+110B, U+1169; 한글 조합형 자모 영역) 가 됩니다.
+   이를 다시 정준 결합하면 `오`(U+C624) 가 됩니다. 원래 값과 같은 값이 되어 쓸데없는 짓을 한 것처럼 보이겠지만, 원래 값이
+   (비슷한 모양이지만 사실은 다른 코드 값을 갖는) `ㅇㅗ`(U+3147, U+3157; 한글 호환 자모 영역) 인 경우도 `오` (U+C624)로
+   변환됨에 주목한다면, 그 목적을 짐작할 수 있을 것입니다. 정규화의 세부 사항은 이 예 보다는 훨씬 다양한 상황을 다룹니다.
+   자세한 내용은 유니코드 표준 부속서 UAX-15 에서 찾을 수 있습니다. 파이썬의 표준 라이브러리 :mod:`unicodedata` 는
+   :func:`unicodedata.normalize()` 라는 함수를 통해 정규화를 제공하고 있습니다.
+   ``normalize('NFKC', 'ㅇㅗ')`` 를 실행하면 `오` 가 얻어집니다. 이 때문에 ``오=5; print(ㅇㅗ)`` 는 두 변수를
+   같은 것으로 취급합니다. 하지만 ASCII 이외의 유니코드를 식별자로 사용하지 않는다면 이런 문제를 만날 일은 없습니다.
+   마지막으로 macOS 를 사용하는 경우, OS 가 출력할 때 NFKC 를 적용하기 때문에 분해된 형태를 보기가 어렵습니다.
+   이런 경우 문자열의 길이를 확인하면 됩니다.
 
 A non-normative HTML file listing all valid identifier characters for Unicode
 4.1 can be found at
 https://www.dcl.hpi.uni-potsdam.de/home/loewis/table-3131.html.
+
+.. admonition:: flowdas
+
+   *ID_Start* 와 *ID_Continue* 를 목록화하고 있는데, 브라우저가 폰트를 지원하는 문자들은 그 모습을 볼 수 있도록 구성되어
+   있습니다.
 
 
 .. _keywords:
@@ -451,6 +490,14 @@ exactly as written here:
    assert     del        global     not        with
    async      elif       if         or         yield
 
+.. admonition:: flowdas
+
+   파이썬 3.6 까지는 await 와 async 가 이 목록에 포함되지 않았습니다. 이 것들은 평소에는 일반 식별자로 사용될 수 있었는데,
+   코루틴의 바디에서는 키워드로 취급되었습니다.
+   또한, async 를 식별자로 사용하더라도 ``async def`` 와 같은 문맥에서는 식별자로 인식되지 않았습니다.
+
+   파이썬 3.7 부터는 async 와 await 모두 정식 키워드가 됩니다. 때문에 어느 곳에서도 식별자로 사용될 수 없습니다.
+
 .. _id-classes:
 
 Reserved classes of identifiers
@@ -466,11 +513,21 @@ characters:
    stored in the :mod:`builtins` module.  When not in interactive mode, ``_``
    has no special meaning and is not defined. See section :ref:`import`.
 
+   .. admonition:: flowdas
+
+      식별자가 이런 형태를 갖고 있더라도, ``__all__`` 변수에 포함되어 있다면 ``from module import *`` 에
+      의해 임포트 됩니다.
+
    .. note::
 
       The name ``_`` is often used in conjunction with internationalization;
       refer to the documentation for the :mod:`gettext` module for more
       information on this convention.
+
+      .. admonition:: flowdas
+
+         예를 들어, :func:`gettext.install()` 함수는 ``_()`` 함수를 :mod:`builtins` 모듈에 설치합니다.
+         이 함수는 국제화 과정에서 변환되어야 하는 문자열들을 이런 형태로 감싸는데 사용됩니다. ``_('hello')``.
 
 ``__*__``
    System-defined names. These names are defined by the interpreter and its
@@ -556,9 +613,27 @@ escapes in raw strings are not treated specially. Given that Python 2.x's raw
 unicode literals behave differently than Python 3.x's the ``'ur'`` syntax
 is not supported.
 
+.. admonition:: flowdas
+
+   파이썬 2.x 에서는 문자열 리터럴의 앞에 `'ur'` 을 붙여서 날 유니코드 리터럴을 만들 수 있는데,
+   이 경우는 특별히 `'\U'` 와 `'\u'` 이스케이프를 유니코드 문자열에서와 동일하게 처리합니다.
+   파이썬 3.x 는 이 기능을 지원하지 않습니다.
+
+   한편 파이썬 3.0 에서는 기본 문자열이 유니코드이기 때문에 리터럴 앞에 `'u'` 를 붙이는 표현을 지원하지 않았으나,
+   파이썬 2.x 와 3.x 에서 동시에 실행될 수 있는 코드 작성을 지원하기 위해 파이썬 3.3 부터 지원하기 시작했습니다.
+   그런데 `'ur'` 을 붙이는 경우는 `'r'` 을 붙이는 경우와 동일한 결과를 주어야 하는데, 앞서 언급한 것처럼
+   `'\U'` 와 `'\u'` 이스케이프 지원여부에 있어서 이미 파이썬 2.x 와 차이가 나기 시작했습니다.
+   이 때문에 `'ur'` 을 붙이는 리터럴을 지원하지 않기로 했습니다. 사용하면 :exc:`SyntaxError` 를 일으킵니다.
+
 .. versionadded:: 3.3
    The ``'rb'`` prefix of raw bytes literals has been added as a synonym
    of ``'br'``.
+
+   .. admonition:: flowdas
+
+      예전에는 리터럴 접두어를 여러개 사용하는 경우, 정해진 순서대로 사용해야만 했습니다. 즉 ``'br'`` 은 가능하지만
+      ``'rb'`` 는 허락되지 않는 식입니다. 이는 쓸데없이 프로그래머의 기억력을 시험하는 것이고, 모든
+      조합을 허락하는 방향으로 수정되었습니다. 구문 정의를 보면 분명하게 드러납니다.
 
 .. versionadded:: 3.3
    Support for the unicode legacy literal (``u'value'``) was reintroduced
@@ -673,6 +748,9 @@ backslashes).  Specifically, *a raw literal cannot end in a single backslash*
 that a single backslash followed by a newline is interpreted as those two
 characters as part of the literal, *not* as a line continuation.
 
+.. admonition:: flowdas
+
+   날 리터럴에만 해당하는 내용입니다. 보통 리터럴에서는 줄 결합으로 인식됩니다.
 
 .. _string-concatenation:
 
@@ -686,15 +764,30 @@ as their concatenation.  Thus, ``"hello" 'world'`` is equivalent to
 needed, to split long strings conveniently across long lines, or even to add
 comments to parts of strings, for example::
 
-   re.compile("[A-Za-z_]"       # letter or underscore
-              "[A-Za-z0-9_]*"   # letter, digit or underscore
+   re.compile("[A-Za-z_]"       # 영문자 또는 밑줄
+              "[A-Za-z0-9_]*"   # 영문자, 숫자 또는 밑줄
              )
+
+.. admonition:: flowdas
+
+   두 문자열 리터럴 사이에 공백이 없어도 됩니다.
+
+.. admonition:: flowdas
+
+   문자열 리터럴과 바이트열 리터럴을 이어붙이는 것은 허용되지 않습니다. 시도하면 :exc:`SyntaxError` 를 일으킵니다.
 
 Note that this feature is defined at the syntactical level, but implemented at
 compile time.  The '+' operator must be used to concatenate string expressions
 at run time.  Also note that literal concatenation can use different quoting
 styles for each component (even mixing raw strings and triple quoted strings),
 and formatted string literals may be concatenated with plain string literals.
+
+.. admonition:: flowdas
+
+   파이썬 코드를 바이트코드로 변환하는 단계를 컴파일 단계라고 합니다. 이 바이트 코드를 실행하는 단계를 실행 단계라고 합니다.
+   컴파일 시점에 이어붙이기가 구현된다는 말의 뜻은, 바이트코드에 이미 이어붙여진 문자열 리터럴이 들어가고, 실행 시점에서는
+   이어붙이기가 발생하지 않는다는 뜻입니다. 그러면 실행시점에 값이 구해지는 f-문자열이 포함될 경우 어떻게 되는가 하는 의문이
+   들 수 있습니다. 컴파일 시점에 이어붙이기가 일어나지만 그 결과가 f-문자열입니다.
 
 
 .. index::
@@ -771,31 +864,35 @@ Some examples of formatted string literals::
    >>> name = "Fred"
    >>> f"He said his name is {name!r}."
    "He said his name is 'Fred'."
-   >>> f"He said his name is {repr(name)}."  # repr() is equivalent to !r
+   >>> f"He said his name is {repr(name)}."  # repr() 은 !r 과 같습니다
    "He said his name is 'Fred'."
    >>> width = 10
    >>> precision = 4
    >>> value = decimal.Decimal("12.34567")
-   >>> f"result: {value:{width}.{precision}}"  # nested fields
+   >>> f"result: {value:{width}.{precision}}"  # 중첩된 필드
    'result:      12.35'
    >>> today = datetime(year=2017, month=1, day=27)
-   >>> f"{today:%B %d, %Y}"  # using date format specifier
+   >>> f"{today:%B %d, %Y}"  # 날짜 포맷 지정자 사용
    'January 27, 2017'
    >>> number = 1024
-   >>> f"{number:#0x}"  # using integer format specifier
+   >>> f"{number:#0x}"  # 정수 포맷 지정자 사용
    '0x400'
+
+.. admonition:: flowdas
+
+   원문에서는 ``'January 27, 2017'`` 가 출력된다고 나와있으나, 이는 오류입니다. ``'Jan 27, 2017'`` 가 실제 결과입니다.
 
 A consequence of sharing the same syntax as regular string literals is
 that characters in the replacement fields must not conflict with the
 quoting used in the outer formatted string literal::
 
-   f"abc {a["x"]} def"    # error: outer string literal ended prematurely
-   f"abc {a['x']} def"    # workaround: use different quoting
+   f"abc {a["x"]} def"    # 에러: 바깥 문자열 리터럴이 너무 일찍 종료되었습니다
+   f"abc {a['x']} def"    # 해결 방법: 다른 따옴표를 사용하세요
 
 Backslashes are not allowed in format expressions and will raise
 an error::
 
-   f"newline: {ord('\n')}"  # raises SyntaxError
+   f"newline: {ord('\n')}"  # SyntaxError 를 일으킵니다
 
 To include a value in which a backslash escape is required, create
 a temporary variable.
@@ -818,6 +915,50 @@ include expressions.
 See also :pep:`498` for the proposal that added formatted string literals,
 and :meth:`str.format`, which uses a related format string mechanism.
 
+.. admonition:: flowdas
+
+   포맷 바이트열 리터럴을 지원하지 않는 가장 중요한 이유는 포맷 프로토콜이 바이트열을 제공하지 않는다는 것입니다.
+
+.. admonition:: flowdas
+
+   포멧 문자열 리터럴이 수용하는 표현식은 그 본래의 목적에 비해 지나치다 싶을 정도로 자유도가 높습니다.
+   구문 해석적으로 문제가 없는 이상 파이썬의 표현식 전체를 허락하려고 하고 있습니다. 그 중간 지대를 설정하는 것이
+   까다롭기 때문일 것으로 짐작되는데, 다음과 같은 괴상한 상황도 발생합니다.
+
+    >>> list((lambda: f"{yield 1}")())
+    [1]
+
+    치환 표현식을 남용하지 말고 읽기 쉬운 상태를 유지하는 것이 바람직합니다.
+
+.. admonition:: flowdas
+
+   치환 표현식은 임의의 인스턴스를 돌려줄 수 있습니다. 최종 출력을 결정하는 것은 이 인스턴스의 ``__format__()`` 메서드 인데,
+   얼마든지 새로 정의할 수 있는 메서드입니다. ``':'`` 문자 뒤에 오는 포맷 지정자를 처리하는 것도 같은 메쏘드이기 때문에,
+   인스턴스 전용의 포맷 지정자를 정의하는 것도 가능합니다.
+
+.. admonition:: flowdas
+
+   :meth:`str.format()` 은 그 형식이 포맷 문자열 리터럴과 유사하기 때문에, 포맷 문자열 리터럴이 지원되지 않는 3.6 이전의
+   버전에서는 이런 식으로 그 표현의 일부를 흉내낼 수 있습니다.
+
+      >>> def f(s):
+      ...     frame = sys._getframe(1)
+      ...     return s.format(**frame.f_locals)
+      ...
+      >>> name = "Fred"
+      >>> f"He said his name is {name!r}."
+      "He said his name is 'Fred'."
+      >>> width = 10
+      >>> precision = 4
+      >>> value = decimal.Decimal("12.34567")
+      >>> f("result: {value:{width}.{precision}}")
+      'result:      12.35'
+      >>> today = datetime(year=2017, month=1, day=27)
+      >>> f("{today:%b %d, %Y}")
+      'Jan 27, 2017'
+      >>> number = 1024
+      >>> f("{number:#0x}")
+      '0x400'
 
 .. _numbers:
 
@@ -835,6 +976,14 @@ by adding a real number and an imaginary number).
 Note that numeric literals do not include a sign; a phrase like ``-1`` is
 actually an expression composed of the unary operator '``-``' and the literal
 ``1``.
+
+.. admonition:: flowdas
+
+   파이썬의 ``float`` 형이 표현하는 값을 가리키는데 "실수(real number)" 라는 용어를 사용합니다.
+   하지만 다른 대부분의 언어들과 마찬가지로 실제값은 부동소수점수 (floating point number) 로 표현되는데,
+   그 정밀도가 유한하기 때문에 무리수와 이진법 표현에서 무한히 반복되는 유리수를 표현할 수 없습니다.
+   사실 상 실수를 유한한 개수의 유리수들 중 하나로 근사한 값을 사용하는 것입니다. 때문에 엄밀히 따지자면 부동소수점수가
+   더 정확한 표현이지만, 그 용도가 실수를 다루기 위한 것이기 때문에 간단히 실수라고 표기합니다.
 
 
 .. _integers:
@@ -876,6 +1025,10 @@ Some examples of integer literals::
 .. versionchanged:: 3.6
    Underscores are now allowed for grouping purposes in literals.
 
+.. admonition:: flowdas
+
+   접두어 ``0b`` 나 ``0B`` 는 이진수 리터럴, ``0o`` 나 ``0O`` 는 8진수 리터럴, ``0x`` 나 ``0X`` 는 16진수 리터럴을 표현할 때 사용됩니다.
+
 
 .. _floating:
 
@@ -903,6 +1056,20 @@ Some examples of floating point literals::
 
 .. versionchanged:: 3.6
    Underscores are now allowed for grouping purposes in literals.
+
+.. admonition:: flowdas
+
+   정수 리터럴과 마찬가지로, 실수 리터럴 자체의 길이 제한은 없습니다. 하지만 파이썬의 정수는 무한 길이 정수를 지원하고 있는 반면,
+   실수는 고정된 크기의 메모리에 저장됩니다. 이 때문에 리터럴에 아무리 많은 숫자가 표현되더라도 실제 저장되는 값은 그 값의
+   근사값입니다.
+
+.. admonition:: flowdas
+
+   리터럴의 허락된 범위가 구현 세부 사항이라는 뜻은, 파이썬은 실수를 표시하기 위해 플랫폼의 배정도 실수 표현을 그대로 사용하고,
+   이 표현은 플랫폼마다 다를 수 있다는 뜻입니다. 하지만 현대적인 대부분의 플랫폼에서는 IEEE 754 가 정의하는 배정도 부동 소수점
+   표현을 사용하기 때문에 대체로 같습니다. 현재 플랫폼에서 지원되는 가장 큰 실수는 :attr:`sys.float_info.max` 이고,
+   가장 작은 실수는 그 것의 음의 값입니다. 절대값이 가장 작은 실수는 :attr:`sys.float_info.min` 입니다.
+   IEEE 754 에서 두 값은 각각 ``1.7976931348623157e+308`` 과 ``2.2250738585072014e-308`` 입니다.
 
 
 .. _imaginary:
