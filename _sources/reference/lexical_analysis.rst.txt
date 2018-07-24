@@ -446,15 +446,15 @@ of identifiers is based on NFKC.
    식별자를 정규화(normalization)라는 과정을 거쳐 어떤 표준적인 형태로 변경한 후에 비교합니다. 유니코드가 정의하고 있는
    정규화 방법은 여러가지가 있습니다: NFD, NFC, NFKD, NFKC. 이 중 식별자의 비교에 사용하고 있는 NFKC 는
    NFKD(호환 분해, compatibility decomposition)후에 정준 결합(canonical composition)하는 방식입니다.
-   한글의 경우를 예로 들어보자면, `오`(U+C624) 를 호환 분해 하면 `ㅇㅗ`(U+110B, U+1169; 한글 조합형 자모 영역) 가 됩니다.
-   이를 다시 정준 결합하면 `오`(U+C624) 가 됩니다. 원래 값과 같은 값이 되어 쓸데없는 짓을 한 것처럼 보이겠지만, 원래 값이
-   (비슷한 모양이지만 사실은 다른 코드 값을 갖는) `ㅇㅗ`(U+3147, U+3157; 한글 호환 자모 영역) 인 경우도 `오` (U+C624)로
+   한글의 경우를 예로 들어보자면, '오'(U+C624) 를 호환 분해 하면 'ㅇㅗ'(U+110B, U+1169; 한글 조합형 자모 영역) 가 됩니다.
+   이를 다시 정준 결합하면 '오'(U+C624) 가 됩니다. 원래 값과 같은 값이 되어 쓸데없는 짓을 한 것처럼 보이겠지만, 원래 값이
+   (비슷한 모양이지만 사실은 다른 코드 값을 갖는) 'ㅇㅗ'(U+3147, U+3157; 한글 호환 자모 영역) 인 경우도 '오'(U+C624)로
    변환됨에 주목한다면, 그 목적을 짐작할 수 있을 것입니다. 정규화의 세부 사항은 이 예 보다는 훨씬 다양한 상황을 다룹니다.
    자세한 내용은 유니코드 표준 부속서 UAX-15 에서 찾을 수 있습니다. 파이썬의 표준 라이브러리 :mod:`unicodedata` 는
    :func:`unicodedata.normalize()` 라는 함수를 통해 정규화를 제공하고 있습니다.
-   ``normalize('NFKC', 'ㅇㅗ')`` 를 실행하면 `오` 가 얻어집니다. 이 때문에 ``오=5; print(ㅇㅗ)`` 는 두 변수를
+   ``normalize('NFKC', 'ㅇㅗ')`` 를 실행하면 '오' 가 얻어집니다. 이 때문에 ``오=5; print(ㅇㅗ)`` 는 두 변수를
    같은 것으로 취급합니다. 하지만 ASCII 이외의 유니코드를 식별자로 사용하지 않는다면 이런 문제를 만날 일은 없습니다.
-   마지막으로 macOS 를 사용하는 경우, OS 가 출력할 때 NFKC 를 적용하기 때문에 분해된 형태를 보기가 어렵습니다.
+   마지막으로, macOS 를 사용하는 경우, OS 가 출력할 때 NFKC 를 적용하기 때문에 분해된 형태를 보기가 어렵습니다.
    이런 경우 문자열의 길이를 확인하면 됩니다.
 
 A non-normative HTML file listing all valid identifier characters for Unicode
@@ -933,7 +933,7 @@ and :meth:`str.format`, which uses a related format string mechanism.
 .. admonition:: flowdas
 
    치환 표현식은 임의의 인스턴스를 돌려줄 수 있습니다. 최종 출력을 결정하는 것은 이 인스턴스의 ``__format__()`` 메서드 인데,
-   얼마든지 새로 정의할 수 있는 메서드입니다. ``':'`` 문자 뒤에 오는 포맷 지정자를 처리하는 것도 같은 메쏘드이기 때문에,
+   얼마든지 새로 정의할 수 있는 메서드입니다. ``':'`` 문자 뒤에 오는 포맷 지정자를 처리하는 것도 같은 메서드이기 때문에,
    인스턴스 전용의 포맷 지정자를 정의하는 것도 가능합니다.
 
 .. admonition:: flowdas
@@ -946,7 +946,7 @@ and :meth:`str.format`, which uses a related format string mechanism.
       ...     return s.format(**frame.f_locals)
       ...
       >>> name = "Fred"
-      >>> f"He said his name is {name!r}."
+      >>> f("He said his name is {name!r}.")
       "He said his name is 'Fred'."
       >>> width = 10
       >>> precision = 4
