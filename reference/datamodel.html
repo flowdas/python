@@ -394,10 +394,42 @@ NotImplemeted 를 돌려주도록 코딩하는 것이 좋습니다.</strong></p>
 꺼내볼 수 있다는 뜻입니다.</p>
 </div>
 <p>집합의 원소들에는 딕셔너리 키와 같은 불변성 규칙이 적용됩니다. 숫자 형의 경우는 숫자 비교에 관한 일반 원칙이 적용된다는 점에 주의해야 합니다: 만약 두 숫자가 같다고 비교되면(예를 들어, <code class="docutils literal"><span class="pre">1</span></code> 과 <code class="docutils literal"><span class="pre">1.0</span></code>), 그중 하나만 집합에 들어갈 수 있습니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">딕셔너리 키와 동일한 불변성 규칙이라 함은 해시가능성(hashability)을 뜻합니다. 객체가
+<a class="reference internal" href="#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a> 메서드와 <a class="reference internal" href="#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a> 메서드를 제공할 때 해시가능하다고 합니다.
+또한 두 메서드의 구현에는 두 개의 제약 조건이 더 붙는데, <a class="reference internal" href="#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a> 는 항상 같은 값을
+제공해야 하고, <a class="reference internal" href="#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a> 가 <code class="docutils literal"><span class="pre">True</span></code> 를 돌려주면 언제나 두 객체의 <a class="reference internal" href="#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a>
+도 동일한 값을 제공해야 한다는 것입니다. 이 때문에 대체로 해시 가능성은 불변성을 포함하는 경향이
+있지만 언어에서 강제하는 것은 아닙니다. 가령 내장 불변형들이 해시 가능하고, 가변 내장 컨테이너들이
+해시 가능하지 않다는 사실은 이 관례를 따르고 있지만, 사용자 정의형들은 가변성의 여부와 관계없이
+기본적으로 해시 가능합니다. 이는 사용자 정의형들의 <a class="reference internal" href="#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a> 와 <a class="reference internal" href="#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a>
+기본 구현이 값은 무시하고 아이덴티티만 고려하기 때문입니다.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">내장 불변 컨테이너가 무조건 적으로 해시 가능하지는 않습니다. 저장된 값들 역시 해시 가능해야 합니다.
+가령 <code class="docutils literal"><span class="pre">()</span></code> 와 <code class="docutils literal"><span class="pre">(1,</span> <span class="pre">'a')</span></code> 는 해시 가능하지만, <code class="docutils literal"><span class="pre">(1,</span> <span class="pre">['a'])</span></code> 는 해시 가능하지 않습니다.
+이는 불변성과 해시 가능성이 다른 조건임을 보여주는 한 예입니다.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">집합과 딕셔너리의 키에서 해시가능성을 요구하는 이유는, 둘 다 해시테이블(hashtable) 기반의 자료
+구조인데, 해시값이 변경될 경우 해시테이블을 재배치할 수 있는 메커니즘이 없기 때문입니다.(있어봐야
+부담만 커지고 실익이 없기 때문입니다.) 내장 불변 컨테이너들은 값 기반의 깊은 해싱(deep hashing)을
+사용하는데, 이 조건이 모든 경우에 필요한 것은 아니고, 단지 <a class="reference internal" href="#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal"><span class="pre">__hash__()</span></code></a> 가 언제나 같은 값을
+주어야 하고, <a class="reference internal" href="#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a> 와 일관성이 있어야 하는데, 내장 불변형 컨테이너들은 <a class="reference internal" href="#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal"><span class="pre">__eq__()</span></code></a>
+에서 이미 깊은 비교(deep comparison)를 제공하고 있기 때문입니다.</p>
+</div>
 <p>현재 두 개의 내장 집합 형이 있습니다:</p>
 <dl class="last docutils">
 <dt>집합(Sets)</dt>
-<dd><p class="first last" id="index-27">이것들은 가변 집합을 나타냅니다. 내장 <a class="reference internal" href="../library/stdtypes.html#set" title="set"><code class="xref py py-func docutils literal"><span class="pre">set()</span></code></a> 생성자로 만들 수 있고, <code class="xref py py-meth docutils literal"><span class="pre">add()</span></code> 같은 메서드들을 사용해서 나중에 수정할 수 있습니다.</p>
+<dd><p class="first" id="index-27">이것들은 가변 집합을 나타냅니다. 내장 <a class="reference internal" href="../library/stdtypes.html#set" title="set"><code class="xref py py-func docutils literal"><span class="pre">set()</span></code></a> 생성자로 만들 수 있고, <code class="xref py py-meth docutils literal"><span class="pre">add()</span></code> 같은 메서드들을 사용해서 나중에 수정할 수 있습니다.</p>
+<div class="admonition-flowdas last admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">중괄호 <code class="docutils literal"><span class="pre">{}</span></code> 를 쓰는 집합 리터럴을 사용해서 만들 수도 있습니다. 하지만 이 방법으로 빈 집합을
+만들 수는 없습니다.</p>
+</div>
 </dd>
 <dt>불변 집합(Frozen sets)</dt>
 <dd><p class="first last" id="index-28">이것들은 불변 집합을 나타냅니다. 내장 <a class="reference internal" href="../library/stdtypes.html#frozenset" title="frozenset"><code class="xref py py-func docutils literal"><span class="pre">frozenset()</span></code></a> 생성자로 만들 수 있습니다. 불변 집합(frozenset)은 불변이고 <a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">해시 가능</span></a> 하므로, 다른 집합의 원소나, 딕셔너리의 키로 사용될 수 있습니다.</p>
@@ -487,19 +519,259 @@ NotImplemeted 를 돌려주도록 코딩하는 것이 좋습니다.</strong></p>
 <p>&quot;쓰기 가능&quot; 하다고 표시된 대부분의 어트리뷰트들은 값이 대입될 때 형을 검사합니다.</p>
 <p>함수 객체는 임의의 어트리뷰트를 읽고 쓸 수 있도록 지원하는데, 예를 들어 함수에 메타데이터(metadata)를 붙이는데 사용될 수 있습니다. 어트리뷰트를 읽거나 쓸 때는 일반적인 점 표현법(dot-notation)이 사용됩니다. <em>현재 구현은 오직 사용자 정의 함수만 함수 어트리뷰트를 지원함에 주의해야 합니다. 내장 함수의 함수 어트리뷰트는 미래에 지원될 수 있습니다.</em></p>
 <p>셀 객체는 <code class="docutils literal"><span class="pre">cell_contents</span></code> 어트리뷰트를 가지고 있습니다. 셀의 값을 읽을 뿐만 아니라 값을 설정하는 데도 사용할 수 있습니다.</p>
-<p class="last">함수 정의에 관한 추가적인 정보를 코드 객체로부터 얻을 수 있습니다. 아래에 나오는 내부 형의 기술을 참고하십시오.</p>
+<p>함수 정의에 관한 추가적인 정보를 코드 객체로부터 얻을 수 있습니다. 아래에 나오는 내부 형의 기술을 참고하십시오.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">REPR 환경에서 정의된 경우 보통 <code class="xref py py-attr docutils literal"><span class="pre">__module__</span></code> 은 <code class="docutils literal"><span class="pre">None</span></code> 입니다.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>다른 함수 내에서 정의되는 함수가, 전역도 지역도 아닌 변수를 사용하는 경우가 있습니다. 이 변수들을 자유 변수(free variable)라고 하는데, 이 때 이 변수들의 값이 셀(cell) 이라는 내부 객체에 보관됩니다. <code class="xref py py-attr docutils literal"><span class="pre">__closure__</span></code> 는 이 셀들의 목록을 튜플로 제공합니다. 예를 들면:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">counter</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">nonlocal</span> <span class="n">n</span>
+<span class="gp">... </span>        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">n</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">tick</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">counter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span><span class="o">.</span><span class="vm">__closure__</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="vm">__closure__</span>
+<span class="go">(&lt;cell at 0x103e51b28: int object at 0x1009dcc60&gt;,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="vm">__closure__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cell_contents</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="vm">__closure__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cell_contents</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>모듈의 전역 함수로 정의되지 않은 함수들에 접근하기 위해서는, 다른 객체들을 거쳐야 할 수 있습니다. 가령 앞에 소개한 <code class="docutils literal"><span class="pre">tick</span></code> 도 그렇고, 클래스의 메서드로 정의되는 함수들도 그렇습니다. <a class="reference internal" href="../library/stdtypes.html#definition.__qualname__" title="definition.__qualname__"><code class="xref py py-attr docutils literal"><span class="pre">__qualname__</span></code></a> 은 함수에 접근하는데 필요한 이름들을 (모듈명은 제외하고) 모두 제공합니다. 반면 <a class="reference internal" href="../library/stdtypes.html#definition.__name__" title="definition.__name__"><code class="xref py py-attr docutils literal"><span class="pre">__name__</span></code></a> 은 함수의 이름만을 제공합니다. 앞의 예를 사용하면:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;counter&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span><span class="o">.</span><span class="vm">__qualname__</span>
+<span class="go">&#39;counter&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;tick&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="vm">__qualname__</span>
+<span class="go">&#39;counter.&lt;locals&gt;.tick&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">X</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;f&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__qualname__</span>
+<span class="go">&#39;X.f&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition-flowdas last admonition">
+<p class="first admonition-title">flowdas</p>
+<p>또 다른 예를 하나 들어보겠습니다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">kp</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">n</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="vm">__annotations__</span>
+<span class="go">{&#39;n&#39;: &lt;class &#39;int&#39;&gt;, &#39;return&#39;: &lt;class &#39;int&#39;&gt;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="vm">__defaults__</span>
+<span class="go">(5,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="vm">__kwdefaults__</span>
+<span class="go">{&#39;kp&#39;: None}</span>
+</pre></div>
+</div>
+<p><code class="xref py py-attr docutils literal"><span class="pre">__annotations__</span></code> 는 형 정보가 지정된 인자들과 반환값의 형 정보를 제공합니다. <code class="xref py py-attr docutils literal"><span class="pre">__defaults__</span></code> 는 위치가 할당된 인자들의 기본 값들을 제공합니다. 튜플의 길이는 위치가 할당된 인자들의 개수와 일치합니다. 예에서 <code class="docutils literal"><span class="pre">args</span></code> 는 기본값을 가지는 것이 불가능하기 때문에  <code class="xref py py-attr docutils literal"><span class="pre">__defaults__</span></code> 에 할당되는 자리도 없습니다. <code class="docutils literal"><span class="pre">*args</span></code> 뒤에 오는 인자들은 위치가 지정되지 않고, 오직 키워드 형태로만 전달될 수 있습니다. 이 것들의 기본 값은 <code class="xref py py-attr docutils literal"><span class="pre">__kwdefaults__</span></code> 에 딕셔너리 형태로 제공됩니다.</p>
+<p>이 값들은 단순한 정보가 아니고, 실제로 함수가 실행중에 사용하고 있는 값입니다. 때문에, 바꾸면 영향을 받습니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">()</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="vm">__defaults__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">9</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">()</span>
+<span class="go">9</span>
+</pre></div>
+</div>
+</div>
 </dd>
 <dt>인스턴스 메서드(Instance methods)</dt>
 <dd><p class="first" id="index-35">인스턴스 메서드는 클래스, 클래스 인스턴스와 모든 콜러블 객체 (보통 사용자 정의 함수)을 결합합니다.</p>
 <p id="index-36">특수 읽기 전용 어트리뷰트들: <code class="xref py py-attr docutils literal"><span class="pre">__self__</span></code> 는 클래스 인스턴스 객체, <code class="xref py py-attr docutils literal"><span class="pre">__func__</span></code> 는 함수 객체; <code class="xref py py-attr docutils literal"><span class="pre">__doc__</span></code> 은 메서드의 설명 (<code class="docutils literal"><span class="pre">__func__.__doc__</span></code> 과 같습니다); <a class="reference internal" href="../library/stdtypes.html#definition.__name__" title="definition.__name__"><code class="xref py py-attr docutils literal"><span class="pre">__name__</span></code></a> 은 메서드의 이름 (<code class="docutils literal"><span class="pre">__func__.__name__</span></code> 과 같습니다); <code class="xref py py-attr docutils literal"><span class="pre">__module__</span></code> 은 메서드가 정의된 모듈의 이름이거나 없는 경우 <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>예를 들면:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span> <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__self__</span> <span class="ow">is</span> <span class="n">i</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__func__</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">f</span> <span class="c1"># C.f 는 일반 사용자 정의 함수입니다.</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__func__</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__func__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span> <span class="c1"># 기반 함수의 어트리뷰트는 쓰기가능합니다</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span> <span class="c1"># 인스턴스 메서드는 기반 함수의 특수 어트리뷰트를 반영합니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s1">&#39;f&#39;</span>  <span class="c1"># 인스턴스 메서드의 특수 어트리뷰트는 읽기전용입니다</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;method&#39; object has no attribute &#39;__name__&#39;</span>
+</pre></div>
+</div>
+</div>
 <p>메서드는 기반 함수의 모든 함수 어트리뷰트들을 읽을 수 있도록 지원합니다(하지만 쓰기는 지원하지 않습니다).</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>앞의 예에서 계속됩니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># 함수 어트리뷰트</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">sample</span>        <span class="c1"># 함수 어트리뷰트는 인스턴스 메서드에도 따라옵니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># 하지만 인스턴스 메서드의 어트리뷰트에 쓸 수는 없습니다</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;method&#39; object has no attribute &#39;sample&#39;</span>
+</pre></div>
+</div>
+</div>
 <p>어트리뷰트가 사용자 정의 함수 객체이거나 클래스 메서드 객체면, 사용자 정의 메서드 객체는 클래스의 어트리뷰트를 읽을 때 만들어질 수 있습니다 (아마도 그 클래스의 인스턴스를 통해서).</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>예를 들면:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span>
+<span class="gp">... </span>    <span class="nd">@classmethod</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">cls</span>
+<span class="gp">... </span>    <span class="nd">@staticmethod</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">h</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span> <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">C</span><span class="o">.</span><span class="n">f</span> <span class="c1"># 인스턴스 메서드는 새로 만들어지는 객체입니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">g</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">C</span><span class="o">.</span><span class="n">g</span> <span class="c1"># 클래스 메서드도 새로 만들어집니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">C</span><span class="o">.</span><span class="n">h</span> <span class="c1"># 하지만 스태틱 메서드는 새로 만들어지지 않습니다</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">f</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">f</span> <span class="c1"># 클래스틀 통하면 사용자 정의 함수는 새로 만들어지지 않습니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">h</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">h</span> <span class="c1"># 스태틱 메서드도 마찬가지입니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">g</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">g</span> <span class="c1"># 하지만 클래스 메서드는 클래스를 통해 읽을 때도 새로 만들어집니다</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
 <p>인스턴스 메서드 객체가 클래스 인스턴스를 통해 클래스의 사용자 정의 함수 객체를 읽음으로써 만들어질 때, <code class="xref py py-attr docutils literal"><span class="pre">__self__</span></code> 어트리뷰트는 인스턴스이고, 메서드 객체는 결합(bound)하였다고 말합니다. 새 메서드의 <code class="xref py py-attr docutils literal"><span class="pre">__func__</span></code> 어트리뷰트는 원래의 함수 객체입니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>예를 들면:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span> <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span>    <span class="c1"># 인스턴스 메서드를 bound method 라고 부릅니다</span>
+<span class="go">&lt;bound method C.f of &lt;C object at 0x104f809b0&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__self__</span> <span class="ow">is</span> <span class="n">i</span> <span class="c1"># __self__ 는 연결된(bound) 인스턴스입니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="vm">__func__</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">f</span> <span class="c1"># __func__ 는 원래의 함수 객체입니다</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
 <p>클래스나 인스턴스로부터 다른 메서드 객체를 읽음으로써 사용자 정의 메서드 객체가 만들어질 때, 새 인스턴스의 <code class="xref py py-attr docutils literal"><span class="pre">__func__</span></code> 어트리뷰트가 원래의 메서드 객체가 아니라, 그것의 <code class="xref py py-attr docutils literal"><span class="pre">__func__</span></code> 어트리뷰트라는 점만 제외하고는 함수 객체의 경우와 같은 방식으로 동작합니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>예를 들면:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span>
+<span class="gp">... </span>    <span class="nd">@classmethod</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">cls</span>
+<span class="gp">... </span>    <span class="nd">@staticmethod</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">h</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span> <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">g</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">C</span><span class="o">.</span><span class="n">g</span> <span class="c1"># 클래스 메서드는 클래스로 접근해도 새로 만들어집니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">g</span> <span class="c1"># 클래스 메서드 역시 결합된 메서드입니다</span>
+<span class="go">&lt;bound method C.g of &lt;class &#39;C&#39;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="vm">__func__</span> <span class="c1"># __func__ 는 일반 사용자 정의 함수 객체입니다</span>
+<span class="go">&lt;function C.g at 0x10c4dc488&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="vm">__func__</span> <span class="c1"># 인스턴스 메서드의 __func__ 는 클래스 메서드 객체의 __func__ 로 연결됩니다</span>
+<span class="go">&lt;function C.g at 0x10c4dc488&gt;</span>
+</pre></div>
+</div>
+</div>
 <p>인스턴스 메서드 객체가 클래스나 인스턴스로부터 클래스 메서드 객체를 읽음으로써 만들어질 때, <code class="xref py py-attr docutils literal"><span class="pre">__self__</span></code> 어트리뷰트는 클래스 자신이고, <code class="xref py py-attr docutils literal"><span class="pre">__func__</span></code> 어트리뷰트는 클래스 메서드가 기반을 두는 함수 객체입니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>앞의 예에서 계속됩니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="vm">__self__</span> <span class="ow">is</span> <span class="n">C</span> <span class="c1"># 클래스 메서드의 __self__ 는 클래스입니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="vm">__self__</span> <span class="ow">is</span> <span class="n">C</span> <span class="c1"># 클래스 메서드로부터 만들어지는 인스턴스 메서드의 __self__ 역시 클래스입니다</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
 <p>인스턴스 메서드 객체가 호출될 때, 기반을 두는 함수 (<code class="xref py py-attr docutils literal"><span class="pre">__func__</span></code>) 가 호출되는데, 인자 목록의 앞에 클래스 인스턴스 (<code class="xref py py-attr docutils literal"><span class="pre">__self__</span></code>) 가 삽입됩니다. 예를 들어, <code class="xref py py-class docutils literal"><span class="pre">C</span></code> 가 함수 <code class="xref py py-meth docutils literal"><span class="pre">f()</span></code> 의 정의를 포함하는 클래스이고, <code class="docutils literal"><span class="pre">x</span></code> 가 <code class="xref py py-class docutils literal"><span class="pre">C</span></code> 의 인스턴스일 때, <code class="docutils literal"><span class="pre">x.f(1)</span></code> 를 호출하는 것은 <code class="docutils literal"><span class="pre">C.f(x,</span> <span class="pre">1)</span></code> 을 호출하는 것과 같습니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>앞의 예에서 계속됩니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="p">()</span> <span class="ow">is</span> <span class="n">i</span><span class="o">.</span>     <span class="c1"># 첫번째 인자로 __self__ 가 전달됩니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span><span class="p">()</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="c1"># i.f() 와 C.f(i) 는 같은 결과를 줍니다.</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">g</span><span class="p">()</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span>     <span class="c1"># 클래스 메서드는 __self__ 가 클래스입니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">g</span><span class="p">()</span> <span class="ow">is</span> <span class="n">C</span><span class="o">.</span><span class="n">g</span><span class="p">()</span><span class="o">.</span> <span class="c1"># 클래스 메서드는 i.g() 와 C.g() 가 같은 결과를 줍니다. C.g 도 결합된 메서드입니다</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
 <p>인스턴스 메서드 객체가 클래스 메서드 객체로부터 올 때, <code class="xref py py-attr docutils literal"><span class="pre">__self__</span></code> 에 저장된 &quot;클래스 인스턴스&quot; 는 실제로는 클래스 자신입니다. 그래서 <code class="docutils literal"><span class="pre">x.f(1)</span></code> 이나 <code class="docutils literal"><span class="pre">C.f(1)</span></code> 을 호출하는 것은 <code class="docutils literal"><span class="pre">f(C,1)</span></code> 를 호출하는 것과 같습니다 (<code class="docutils literal"><span class="pre">f</span></code> 는 기반 함수입니다).</p>
-<p class="last">함수 객체에서 인스턴스 객체로의 변환은 인스턴스로부터 어트리뷰트를 읽을 때마다 일어남에 주의해야 합니다. 어떤 경우에, 어트리뷰트를 지역 변수에 대입하고, 그 지역 변수를 호출하는 것이 효과적인 최적화가 됩니다. 또한, 이 변환이 사용자 정의 함수에 대해서만 발생함에 주의해야 합니다; 다른 콜러블 객체 (그리고 콜러블이 아닌 모든 객체)는 변환 없이 읽힙니다. 클래스 인스턴스의 어트리뷰트인 사용자 정의 함수는 결합한 메서드로 변환되지 않는다는 것도 중요합니다; 이 변환은 함수가 클래스 어트리뷰트일 때만 일어납니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>앞의 예에서 계속됩니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">g</span><span class="p">()</span> <span class="ow">is</span> <span class="n">i</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="vm">__func__</span><span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="c1"># 클래스 메서드로 부터 온 인스턴스 메서드를 호출하는 것은 기반 함수에 클래스를 전달해서 호출하는 것과 같습니다.</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<p>함수 객체에서 인스턴스 객체로의 변환은 인스턴스로부터 어트리뷰트를 읽을 때마다 일어남에 주의해야 합니다. 어떤 경우에, 어트리뷰트를 지역 변수에 대입하고, 그 지역 변수를 호출하는 것이 효과적인 최적화가 됩니다. 또한, 이 변환이 사용자 정의 함수에 대해서만 발생함에 주의해야 합니다; 다른 콜러블 객체 (그리고 콜러블이 아닌 모든 객체)는 변환 없이 읽힙니다. 클래스 인스턴스의 어트리뷰트인 사용자 정의 함수는 결합한 메서드로 변환되지 않는다는 것도 중요합니다; 이 변환은 함수가 클래스 어트리뷰트일 때만 일어납니다.</p>
+<div class="admonition-flowdas last admonition">
+<p class="first admonition-title">flowdas</p>
+<p>앞의 예에서 계속됩니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">f</span> <span class="c1"># 인스턴스 메서드는 읽을 때마다 새로 만들어집니다.</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">f</span> <span class="c1"># 인스턴스 메서드를 지역 변수에 저장해서 사용하면 성능을 개선할 수 있습니다</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">()</span> <span class="ow">is</span> <span class="n">i</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">timeit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;i.f()&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">locals</span><span class="p">())</span>
+<span class="go">0.136665727943182</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;f()&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">locals</span><span class="p">())</span>
+<span class="go">0.09192681103013456</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span> <span class="c1"># 클래스 어트리뷰트로 사용자 정의 함수를 넣으면 메서드를 정의한 것과 같은 결과를 줍니다.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">p</span><span class="p">()</span> <span class="ow">is</span> <span class="n">i</span> <span class="c1"># 마찬가지 변환이 일어납니다.</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">q</span><span class="p">():</span> <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>     <span class="c1"># 인스턴스 어트리뷰트로 사용자 정의 함수를 넣으면</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">q</span> <span class="ow">is</span> <span class="n">q</span>    <span class="c1"># 변환이 일어나지 않습니다</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span><span class="o">.</span><span class="n">q</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="c1"># 따라서 __self__ 도 전달되지 않습니다.</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
 </dd>
 <dt>제너레이터 함수(Generator functions)</dt>
 <dd><p class="first last" id="index-37"><a class="reference internal" href="simple_stmts.html#yield"><code class="xref std std-keyword docutils literal"><span class="pre">yield</span></code></a> 문(<a class="reference internal" href="simple_stmts.html#yield"><span class="std std-ref">yield 문</span></a> 절 참조)을 사용하는 함수나 메서드를 <em class="dfn">제너레이터 함수 (generator function)</em> 라고 부릅니다. 이런 함수를 호출하면 항상 이터레이터(iterator) 객체를 돌려주는데, 함수의 바디(body)를 실행하는 데 사용됩니다: 이터레이터의 <a class="reference internal" href="../library/stdtypes.html#iterator.__next__" title="iterator.__next__"><code class="xref py py-meth docutils literal"><span class="pre">iterator.__next__()</span></code></a> 메서드를 호출하면 <a class="reference internal" href="simple_stmts.html#yield"><code class="xref std std-keyword docutils literal"><span class="pre">yield</span></code></a> 문이 값을 제공할 때까지 함수가 실행됩니다. 함수가 <a class="reference internal" href="simple_stmts.html#return"><code class="xref std std-keyword docutils literal"><span class="pre">return</span></code></a> 문을 실행하거나 끝에 도달하면 <a class="reference internal" href="../library/exceptions.html#StopIteration" title="StopIteration"><code class="xref py py-exc docutils literal"><span class="pre">StopIteration</span></code></a> 예외를 일으키고, 이터레이터는 반환하는 값들의 끝에 도달하게 됩니다.</p>

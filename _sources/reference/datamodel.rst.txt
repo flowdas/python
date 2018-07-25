@@ -578,6 +578,33 @@ Set types
    compare equal (e.g., ``1`` and ``1.0``), only one of them can be contained in a
    set.
 
+   .. admonition:: flowdas
+
+      딕셔너리 키와 동일한 불변성 규칙이라 함은 해시가능성(hashability)을 뜻합니다. 객체가
+      :meth:`__hash__` 메서드와 :meth:`__eq__` 메서드를 제공할 때 해시가능하다고 합니다.
+      또한 두 메서드의 구현에는 두 개의 제약 조건이 더 붙는데, :meth:`__hash__` 는 항상 같은 값을
+      제공해야 하고, :meth:`__eq__` 가 ``True`` 를 돌려주면 언제나 두 객체의 :meth:`__hash__`
+      도 동일한 값을 제공해야 한다는 것입니다. 이 때문에 대체로 해시 가능성은 불변성을 포함하는 경향이
+      있지만 언어에서 강제하는 것은 아닙니다. 가령 내장 불변형들이 해시 가능하고, 가변 내장 컨테이너들이
+      해시 가능하지 않다는 사실은 이 관례를 따르고 있지만, 사용자 정의형들은 가변성의 여부와 관계없이
+      기본적으로 해시 가능합니다. 이는 사용자 정의형들의 :meth:`__hash__` 와 :meth:`__eq__`
+      기본 구현이 값은 무시하고 아이덴티티만 고려하기 때문입니다.
+
+   .. admonition:: flowdas
+
+      내장 불변 컨테이너가 무조건 적으로 해시 가능하지는 않습니다. 저장된 값들 역시 해시 가능해야 합니다.
+      가령 ``()`` 와 ``(1, 'a')`` 는 해시 가능하지만, ``(1, ['a'])`` 는 해시 가능하지 않습니다.
+      이는 불변성과 해시 가능성이 다른 조건임을 보여주는 한 예입니다.
+
+   .. admonition:: flowdas
+
+      집합과 딕셔너리의 키에서 해시가능성을 요구하는 이유는, 둘 다 해시테이블(hashtable) 기반의 자료
+      구조인데, 해시값이 변경될 경우 해시테이블을 재배치할 수 있는 메커니즘이 없기 때문입니다.(있어봐야
+      부담만 커지고 실익이 없기 때문입니다.) 내장 불변 컨테이너들은 값 기반의 깊은 해싱(deep hashing)을
+      사용하는데, 이 조건이 모든 경우에 필요한 것은 아니고, 단지 :meth:`__hash__` 가 언제나 같은 값을
+      주어야 하고, :meth:`__eq__` 와 일관성이 있어야 하는데, 내장 불변형 컨테이너들은 :meth:`__eq__`
+      에서 이미 깊은 비교(deep comparison)를 제공하고 있기 때문입니다.
+
    There are currently two intrinsic set types:
 
    Sets
@@ -586,6 +613,11 @@ Set types
       These represent a mutable set. They are created by the built-in :func:`set`
       constructor and can be modified afterwards by several methods, such as
       :meth:`~set.add`.
+
+      .. admonition:: flowdas
+
+         중괄호 ``{}`` 를 쓰는 집합 리터럴을 사용해서 만들 수도 있습니다. 하지만 이 방법으로 빈 집합을
+         만들 수는 없습니다.
 
    Frozen sets
       .. index:: object: frozenset
@@ -742,6 +774,78 @@ Callable types
       Additional information about a function's definition can be retrieved from its
       code object; see the description of internal types below.
 
+      .. admonition:: flowdas
+
+         REPR 환경에서 정의된 경우 보통 :attr:`__module__` 은 ``None`` 입니다.
+
+      .. admonition:: flowdas
+
+         다른 함수 내에서 정의되는 함수가, 전역도 지역도 아닌 변수를 사용하는 경우가 있습니다. 이 변수들을 자유 변수(free variable)라고 하는데, 이 때 이 변수들의 값이 셀(cell) 이라는 내부 객체에 보관됩니다. :attr:`__closure__` 는 이 셀들의 목록을 튜플로 제공합니다. 예를 들면::
+
+             >>> def counter():
+             ...     n = 0
+             ...     def tick():
+             ...         nonlocal n
+             ...         n += 1
+             ...         return n
+             ...     return tick
+             ...
+             >>> c = counter()
+             >>> counter.__closure__ is None
+             True
+             >>> c.__closure__
+             (<cell at 0x103e51b28: int object at 0x1009dcc60>,)
+             >>> c.__closure__[0].cell_contents
+             0
+             >>> c()
+             1
+             >>> c.__closure__[0].cell_contents
+             1
+
+      .. admonition:: flowdas
+
+         모듈의 전역 함수로 정의되지 않은 함수들에 접근하기 위해서는, 다른 객체들을 거쳐야 할 수 있습니다. 가령 앞에 소개한 ``tick`` 도 그렇고, 클래스의 메서드로 정의되는 함수들도 그렇습니다. :attr:`~definition.__qualname__` 은 함수에 접근하는데 필요한 이름들을 (모듈명은 제외하고) 모두 제공합니다. 반면 :attr:`~definition.__name__` 은 함수의 이름만을 제공합니다. 앞의 예를 사용하면::
+
+             >>> counter.__name__
+             'counter'
+             >>> counter.__qualname__
+             'counter'
+             >>> c.__name__
+             'tick'
+             >>> c.__qualname__
+             'counter.<locals>.tick'
+             >>> class X:
+             ...     def f(self): pass
+             ...
+             >>> X.f.__name__
+             'f'
+             >>> X.f.__qualname__
+             'X.f'
+
+      .. admonition:: flowdas
+
+         또 다른 예를 하나 들어보겠습니다::
+
+             >>> def f(n: int = 5, *args, kp=None) -> int:
+             ...     return n
+             ...
+             >>> f.__annotations__
+             {'n': <class 'int'>, 'return': <class 'int'>}
+             >>> f.__defaults__
+             (5,)
+             >>> f.__kwdefaults__
+             {'kp': None}
+
+         :attr:`__annotations__` 는 형 정보가 지정된 인자들과 반환값의 형 정보를 제공합니다. :attr:`__defaults__` 는 위치가 할당된 인자들의 기본 값들을 제공합니다. 튜플의 길이는 위치가 할당된 인자들의 개수와 일치합니다. 예에서 ``args`` 는 기본값을 가지는 것이 불가능하기 때문에  :attr:`__defaults__` 에 할당되는 자리도 없습니다. ``*args`` 뒤에 오는 인자들은 위치가 지정되지 않고, 오직 키워드 형태로만 전달될 수 있습니다. 이 것들의 기본 값은 :attr:`__kwdefaults__` 에 딕셔너리 형태로 제공됩니다.
+
+         이 값들은 단순한 정보가 아니고, 실제로 함수가 실행중에 사용하고 있는 값입니다. 때문에, 바꾸면 영향을 받습니다::
+
+             >>> f()
+             5
+             >>> f.__defaults__ = (9,)
+             >>> f()
+             9
+
    Instance methods
       .. index::
          object: method
@@ -764,12 +868,76 @@ Callable types
       method name (same as ``__func__.__name__``); :attr:`__module__` is the
       name of the module the method was defined in, or ``None`` if unavailable.
 
+      .. admonition:: flowdas
+
+         예를 들면::
+
+             >>> class C:
+             ...     def f(self): return self
+             ...
+             >>> i = C()
+             >>> i.f.__self__ is i
+             True
+             >>> i.f.__func__ is C.f # C.f 는 일반 사용자 정의 함수입니다.
+             True
+             >>> i.f.__name__ == i.f.__func__.__name__
+             True
+             >>> i.f.__func__.__name__ = 'g' # 기반 함수의 어트리뷰트는 쓰기가능합니다
+             >>> C.f.__name__ == 'g'
+             True
+             >>> i.f.__name__ == 'g' # 인스턴스 메서드는 기반 함수의 특수 어트리뷰트를 반영합니다
+             True
+             >>> i.f.__name__ = 'f'  # 인스턴스 메서드의 특수 어트리뷰트는 읽기전용입니다
+             Traceback (most recent call last):
+               ...
+             AttributeError: 'method' object has no attribute '__name__'
+
       Methods also support accessing (but not setting) the arbitrary function
       attributes on the underlying function object.
+
+      .. admonition:: flowdas
+
+         앞의 예에서 계속됩니다::
+
+             >>> C.f.sample = True # 함수 어트리뷰트
+             >>> i.f.sample        # 함수 어트리뷰트는 인스턴스 메서드에도 따라옵니다
+             True
+             >>> i.f.sample = False # 하지만 인스턴스 메서드의 어트리뷰트에 쓸 수는 없습니다
+             Traceback (most recent call last):
+               ...
+             AttributeError: 'method' object has no attribute 'sample'
 
       User-defined method objects may be created when getting an attribute of a
       class (perhaps via an instance of that class), if that attribute is a
       user-defined function object or a class method object.
+
+      .. admonition:: flowdas
+
+         예를 들면::
+
+             >>> class C:
+             ...     def f(self):
+             ...         return self
+             ...     @classmethod
+             ...     def g(cls):
+             ...         return cls
+             ...     @staticmethod
+             ...     def h():
+             ...         pass
+             ...
+             >>> i = C()
+             >>> i.f is not C.f # 인스턴스 메서드는 새로 만들어지는 객체입니다
+             True
+             >>> i.g is not C.g # 클래스 메서드도 새로 만들어집니다
+             True
+             >>> i.h is not C.h # 하지만 스태틱 메서드는 새로 만들어지지 않습니다
+             False
+             >>> C.f is C.f # 클래스틀 통하면 사용자 정의 함수는 새로 만들어지지 않습니다
+             True
+             >>> C.h is C.h # 스태틱 메서드도 마찬가지입니다
+             True
+             >>> C.g is C.g # 하지만 클래스 메서드는 클래스를 통해 읽을 때도 새로 만들어집니다
+             True
 
       When an instance method object is created by retrieving a user-defined
       function object from a class via one of its instances, its
@@ -777,16 +945,64 @@ Callable types
       to be bound.  The new method's :attr:`__func__` attribute is the original
       function object.
 
+      .. admonition:: flowdas
+
+         예를 들면::
+
+             >>> class C:
+             ...     def f(self): return self
+             ...
+             >>> i = C()
+             >>> i.f    # 인스턴스 메서드를 bound method 라고 부릅니다
+             <bound method C.f of <C object at 0x104f809b0>>
+             >>> i.f.__self__ is i # __self__ 는 연결된(bound) 인스턴스입니다
+             True
+             >>> i.f.__func__ is C.f # __func__ 는 원래의 함수 객체입니다
+             True
+
       When a user-defined method object is created by retrieving another method
       object from a class or instance, the behaviour is the same as for a
       function object, except that the :attr:`__func__` attribute of the new
       instance is not the original method object but its :attr:`__func__`
       attribute.
 
+      .. admonition:: flowdas
+
+         예를 들면::
+
+             >>> class C:
+             ...     def f(self):
+             ...         return self
+             ...     @classmethod
+             ...     def g(cls):
+             ...         return cls
+             ...     @staticmethod
+             ...     def h():
+             ...         pass
+             ...
+             >>> i = C()
+             >>> C.g is not C.g # 클래스 메서드는 클래스로 접근해도 새로 만들어집니다
+             True
+             >>> C.g # 클래스 메서드 역시 결합된 메서드입니다
+             <bound method C.g of <class 'C'>>
+             >>> C.g.__func__ # __func__ 는 일반 사용자 정의 함수 객체입니다
+             <function C.g at 0x10c4dc488>
+             >>> i.g.__func__ # 인스턴스 메서드의 __func__ 는 클래스 메서드 객체의 __func__ 로 연결됩니다
+             <function C.g at 0x10c4dc488>
+
       When an instance method object is created by retrieving a class method
       object from a class or instance, its :attr:`__self__` attribute is the
       class itself, and its :attr:`__func__` attribute is the function object
       underlying the class method.
+
+      .. admonition:: flowdas
+
+         앞의 예에서 계속됩니다::
+
+             >>> C.g.__self__ is C # 클래스 메서드의 __self__ 는 클래스입니다
+             True
+             >>> i.g.__self__ is C # 클래스 메서드로부터 만들어지는 인스턴스 메서드의 __self__ 역시 클래스입니다
+             True
 
       When an instance method object is called, the underlying function
       (:attr:`__func__`) is called, inserting the class instance
@@ -795,10 +1011,30 @@ Callable types
       :meth:`f`, and ``x`` is an instance of :class:`C`, calling ``x.f(1)`` is
       equivalent to calling ``C.f(x, 1)``.
 
+      .. admonition:: flowdas
+
+         앞의 예에서 계속됩니다::
+
+             >>> i.f() is i.     # 첫번째 인자로 __self__ 가 전달됩니다
+             True
+             >>> i.f() is C.f(i) # i.f() 와 C.f(i) 는 같은 결과를 줍니다.
+             True
+             >>> i.g() is C.     # 클래스 메서드는 __self__ 가 클래스입니다
+             True
+             >>> i.g() is C.g(). # 클래스 메서드는 i.g() 와 C.g() 가 같은 결과를 줍니다. C.g 도 결합된 메서드입니다
+             True
+
       When an instance method object is derived from a class method object, the
       "class instance" stored in :attr:`__self__` will actually be the class
       itself, so that calling either ``x.f(1)`` or ``C.f(1)`` is equivalent to
       calling ``f(C,1)`` where ``f`` is the underlying function.
+
+      .. admonition:: flowdas
+
+         앞의 예에서 계속됩니다::
+
+             >>> i.g() is i.g.__func__(C) # 클래스 메서드로 부터 온 인스턴스 메서드를 호출하는 것은 기반 함수에 클래스를 전달해서 호출하는 것과 같습니다.
+             True
 
       Note that the transformation from function object to instance method
       object happens each time the attribute is retrieved from the instance.  In
@@ -810,6 +1046,31 @@ Callable types
       which are attributes of a class instance are not converted to bound
       methods; this *only* happens when the function is an attribute of the
       class.
+
+      .. admonition:: flowdas
+
+         앞의 예에서 계속됩니다::
+
+             >>> i.f is not i.f # 인스턴스 메서드는 읽을 때마다 새로 만들어집니다.
+             True
+             >>> f = i.f # 인스턴스 메서드를 지역 변수에 저장해서 사용하면 성능을 개선할 수 있습니다
+             >>> f() is i
+             True
+             >>> import timeit
+             >>> timeit('i.f()', globals=locals())
+             0.136665727943182
+             >>> timeit('f()', globals=locals())
+             0.09192681103013456
+             >>> C.p = lambda self: self # 클래스 어트리뷰트로 사용자 정의 함수를 넣으면 메서드를 정의한 것과 같은 결과를 줍니다.
+             >>> i.p() is i # 마찬가지 변환이 일어납니다.
+             True
+             >>> def q(): pass
+             ...
+             >>> i.q = q     # 인스턴스 어트리뷰트로 사용자 정의 함수를 넣으면
+             >>> i.q is q    # 변환이 일어나지 않습니다
+             True
+             >>> i.q() is None # 따라서 __self__ 도 전달되지 않습니다.
+             True
 
    Generator functions
       .. index::
