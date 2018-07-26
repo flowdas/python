@@ -1536,17 +1536,60 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 
 <div class="section" id="notes-on-using-slots">
 <h5>3.3.2.4.1. <em>__slots__</em> 사용에 관한 노트<a class="headerlink" href="#notes-on-using-slots" title="제목 주소">¶</a></h5>
-<ul class="simple">
-<li><em>__slots__</em> 가 없는 클래스를 계승할 때, 인스턴스의 <em>__dict__</em> 와 <em>__weakref__</em> 어트리뷰트는 항상 제공됩니다.</li>
-<li><em>__dict__</em> 변수가 없으므로 인스턴스는 <em>__slots__</em> 정의에 나열되지 않은 새 변수를 대입할 수 없습니다. 나열되지 않은 변수명으로 대입하려고 하면 <a class="reference internal" href="../library/exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal"><span class="pre">AttributeError</span></code></a> 를 일으킵니다. 만약 동적으로 새 변수를 대입하는 것이 필요하다면, <em>__slots__</em> 선언의 문자열 시퀀스에 <code class="docutils literal"><span class="pre">'__dict__'</span></code> 를 추가합니다.</li>
-<li>인스턴스마다 <em>__weakref__</em> 변수가 없으므로, <em>__slots__</em> 를 정의하는 클래스는 인스턴스에 대한 약한 참조(weak reference)를 지원하지 않습니다. 만약 약한 참조 지원이 필요하다면, <em>__slots__</em> 선언의 문자열 시퀀스에 <code class="docutils literal"><span class="pre">'__weakref__'</span></code> 를 추가합니다.</li>
-<li><em>__slots__</em> 는 각 변수 이름마다 디스크립터를 만드는 방식으로 클래스 수준에서 구현됩니다(<a class="reference internal" href="#descriptors"><span class="std std-ref">디스크립터 구현하기</span></a>). 결과적으로, 클래스 어트리뷰트는 <em>__slots__</em> 로 정의된 인스턴스 변수들을 위한 기본값을 제공할 목적으로 사용될 수 없습니다. 클래스 어트리뷰트는 디스크립터 대입을 무효로 합니다.</li>
-<li><em>__slots__</em> 선언으로 인한 효과는 그것이 정의된 클래스로 한정되지 않습니다. 부모가 선언한 <em>__slots__</em> 은 자식 클래스에 제공됩니다. 하지만, 자식 서브 클래스가 자신의 <em>__slots__</em> (새로 <em>추가되는</em> 변수들만 포함해야 합니다) 을 정의하지 않는다면 <em>__dict__</em> 와 <em>__weakref__</em> 를 갖게 됩니다.</li>
-<li>클래스가 베이스 클래스의 <em>__slots__</em> 에 정의된 이름과 같은 이름의 변수를 <em>__slots__</em> 에 선언한다면, 베이스 클래스가 정의한 변수는 액세스할 수 없는 상태가 됩니다(베이스 클래스로부터 디스크립터를 직접 조회하는 경우는 예외다). 이것은 프로그램을 정의되지 않은 상태로 보내게 됩니다. 미래에는, 이를 방지하기 위한 검사가 추가될 것입니다.</li>
-<li><a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-class docutils literal"><span class="pre">int</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal"><span class="pre">bytes</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></a>과 같은 &quot;가변 길이(valiable-length)&quot; 의 내장형들을 계승하는 클래스에서는 오직 빈 <em>__slots__</em> 만 지원됩니다.</li>
-<li><em>__slots__</em> 에는 문자열 이외의 이터러블을 대입할 수 있습니다. 매핑도 역시 사용할 수 있습니다. 하지만, 미래에, 각 키에 대응하는 값들의 의미가 부여될 수 있습니다.</li>
-<li>두 클래스가 같은 <em>__slots__</em> 을 갖는 경우만 <em>__class__</em> 대입이 동작합니다.</li>
-<li>슬롯을 사용하는 여러 부모 클래스들을 다중 상속할 수 있지만, 오직 하나의 부모만 슬롯으로 만들어진 어트리뷰트를 가질 수 있습니다 (다른 베이스들은 빈 슬롯을 가져야만 합니다) - 이를 어기면 <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code></a> 를 일으킵니다.</li>
+<ul>
+<li><p class="first"><em>__slots__</em> 가 없는 클래스를 계승할 때, 인스턴스의 <em>__dict__</em> 와 <em>__weakref__</em> 어트리뷰트는 항상 제공됩니다.</p>
+</li>
+<li><p class="first"><em>__dict__</em> 변수가 없으므로 인스턴스는 <em>__slots__</em> 정의에 나열되지 않은 새 변수를 대입할 수 없습니다. 나열되지 않은 변수명으로 대입하려고 하면 <a class="reference internal" href="../library/exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal"><span class="pre">AttributeError</span></code></a> 를 일으킵니다. 만약 동적으로 새 변수를 대입하는 것이 필요하다면, <em>__slots__</em> 선언의 문자열 시퀀스에 <code class="docutils literal"><span class="pre">'__dict__'</span></code> 를 추가합니다.</p>
+</li>
+<li><p class="first">인스턴스마다 <em>__weakref__</em> 변수가 없으므로, <em>__slots__</em> 를 정의하는 클래스는 인스턴스에 대한 약한 참조(weak reference)를 지원하지 않습니다. 만약 약한 참조 지원이 필요하다면, <em>__slots__</em> 선언의 문자열 시퀀스에 <code class="docutils literal"><span class="pre">'__weakref__'</span></code> 를 추가합니다.</p>
+</li>
+<li><p class="first"><em>__slots__</em> 는 각 변수 이름마다 디스크립터를 만드는 방식으로 클래스 수준에서 구현됩니다(<a class="reference internal" href="#descriptors"><span class="std std-ref">디스크립터 구현하기</span></a>). 결과적으로, 클래스 어트리뷰트는 <em>__slots__</em> 로 정의된 인스턴스 변수들을 위한 기본값을 제공할 목적으로 사용될 수 없습니다. 클래스 어트리뷰트는 디스크립터 대입을 무효로 합니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>클래스 정의에서 <em>__slots__</em> 로 정의된 인스턴스 변수와 같은 이름의 클래스 어트리뷰트를 제공하면
+예외를 일으킵니다. 하지만 클래스 어트리뷰트는 클래스 정의 밖에서도 제공할 수 있는데, 이 때
+디스크립터가 제거되게 됩니다. 예를 들어:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">X</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,)</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="c1"># 선언은 되었으나, self.value 에 아직 값이 대입되지 않았습니다.</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="o">...</span>
+<span class="gr">AttributeError</span>: <span class="n">value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">value</span> <span class="c1"># 클래스 어트리뷰트는 디스크립터입니다.</span>
+<span class="go">&lt;member &#39;value&#39; of &#39;X&#39; objects&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># 값을 대입할 수는 있습니다.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="c1"># 이제 예외가 발생하지 않습니다.</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># 기본 값으로 사용되도록 클래스 어트리뷰트를 설정하려고 하지만, 결과적으로 디스크립터를 제거하게됩니다.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">value</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="c1"># 디스크립터가 제거되어, 아까 설정한 값도 읽을 수 없게됩니다.</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># 값을 다시 대입할 수도 없게됩니다.</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="o">...</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;X&#39; object attribute &#39;value&#39; is read-only</span>
+</pre></div>
+</div>
+</div>
+</li>
+<li><p class="first"><em>__slots__</em> 선언으로 인한 효과는 그것이 정의된 클래스로 한정되지 않습니다. 부모가 선언한 <em>__slots__</em> 은 자식 클래스에 제공됩니다. 하지만, 자식 서브 클래스가 자신의 <em>__slots__</em> (새로 <em>추가되는</em> 변수들만 포함해야 합니다) 을 정의하지 않는다면 <em>__dict__</em> 와 <em>__weakref__</em> 를 갖게 됩니다.</p>
+</li>
+<li><p class="first">클래스가 베이스 클래스의 <em>__slots__</em> 에 정의된 이름과 같은 이름의 변수를 <em>__slots__</em> 에 선언한다면, 베이스 클래스가 정의한 변수는 액세스할 수 없는 상태가 됩니다(베이스 클래스로부터 디스크립터를 직접 조회하는 경우는 예외다). 이것은 프로그램을 정의되지 않은 상태로 보내게 됩니다. 미래에는, 이를 방지하기 위한 검사가 추가될 것입니다.</p>
+</li>
+<li><p class="first"><a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-class docutils literal"><span class="pre">int</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal"><span class="pre">bytes</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></a>과 같은 &quot;가변 길이(valiable-length)&quot; 의 내장형들을 계승하는 클래스에서는 오직 빈 <em>__slots__</em> 만 지원됩니다.</p>
+</li>
+<li><p class="first"><em>__slots__</em> 에는 문자열 이외의 이터러블을 대입할 수 있습니다. 매핑도 역시 사용할 수 있습니다. 하지만, 미래에, 각 키에 대응하는 값들의 의미가 부여될 수 있습니다.</p>
+</li>
+<li><p class="first">두 클래스가 같은 <em>__slots__</em> 을 갖는 경우만 <em>__class__</em> 대입이 동작합니다.</p>
+</li>
+<li><p class="first">슬롯을 사용하는 여러 부모 클래스들을 다중 상속할 수 있지만, 오직 하나의 부모만 슬롯으로 만들어진 어트리뷰트를 가질 수 있습니다 (다른 베이스들은 빈 슬롯을 가져야만 합니다) - 이를 어기면 <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code></a> 를 일으킵니다.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -1636,6 +1679,53 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <h4>3.3.3.5. 클래스 바디 실행하기<a class="headerlink" href="#executing-the-class-body" title="제목 주소">¶</a></h4>
 <p id="index-87">클래스 바디는 (대략) <code class="docutils literal"><span class="pre">exec(body,</span> <span class="pre">globals(),</span> <span class="pre">namespace)</span></code> 과같이 실행됩니다. 일반적인 <a class="reference internal" href="../library/functions.html#exec" title="exec"><code class="xref py py-func docutils literal"><span class="pre">exec()</span></code></a> 호출과 주된 차이점은 클래스 정의가 함수 내부에서 이루어질 때 구문 스코핑(lexical scoping) 이 클래스 바디(모든 메서드들을 포함해서)로 하여금 현재와 외부 스코프에 있는 이름들을 참조하도록 허락한다는 것입니다.</p>
 <p>하지만, 클래스 정의가 함수 내부에서 이루어질 때조차도, 클래스 내부에서 정의된 메서드들은 클래스 스코프에서 정의된 이름들을 볼 수 없습니다. 클래스 변수는 인스턴스나 클래스 메서드의 첫 번째 매개변수를 통해 액세스하거나 다음 섹션에서 설명하는 묵시적으로 구문 스코핑된 <code class="docutils literal"><span class="pre">__class__</span></code> 참조를 통해야 합니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>메서드에서 클래스 어트리뷰트를 직접 참조할 수 없다는 뜻입니다. 하지만 <em>self</em>, <em>cls</em>,
+<code class="docutils literal"><span class="pre">__class__</span></code> 를 통하는 것 외에도, 클래스 객체에 대한 직접적인 참조를 통해 접근할 수 있습니다.
+예를 들어:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">X</span><span class="p">:</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;X&#39;</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;type(self) is&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;__class__ is&#39;</span><span class="p">,</span> <span class="vm">__class__</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;X is&#39;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cls is&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;__class__ is&#39;</span><span class="p">,</span> <span class="vm">__class__</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;X is&#39;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">h</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;__class__ is&#39;</span><span class="p">,</span> <span class="vm">__class__</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;X is&#39;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>클래스 <code class="docutils literal"><span class="pre">X</span></code> 에 대한 직접적인 참조는, 클래스 정의가 함수 내부에서 이루어져도 가능한데, 메서드가
+함수의 자유 변수들을 볼 수 있다는 규칙 때문입니다. <code class="docutils literal"><span class="pre">__class__</span></code> 의 주 용도는, <a class="reference internal" href="../library/functions.html#super" title="super"><code class="xref py py-func docutils literal"><span class="pre">super()</span></code></a>
+에 인자를 주지 않을 경우(즉 <code class="docutils literal"><span class="pre">super()</span></code> 라고 쓸 경우), 현재 메서드가 정의된 클래스를 찾는 것입니다.
+이 때문에 <code class="docutils literal"><span class="pre">__class__</span></code> 는 <code class="docutils literal"><span class="pre">type(self)</span></code> 나 <em>cls</em> 보다는 <code class="docutils literal"><span class="pre">X</span></code> 를 사용할 때 처럼
+동작합니다. 가령:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Y</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;Y&#39;</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span><span class="p">()</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+<span class="go">type(self) is Y</span>
+<span class="go">__class__ is X</span>
+<span class="go">X is X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span><span class="o">.</span><span class="n">g</span><span class="p">()</span>
+<span class="go">cls is Y</span>
+<span class="go">__class__ is X</span>
+<span class="go">X is X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span><span class="o">.</span><span class="n">h</span><span class="p">()</span>
+<span class="go">__class__ is X</span>
+<span class="go">X is X</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="creating-the-class-object">
 <span id="class-object-creation"></span><h4>3.3.3.6. 클래스 객체 만들기<a class="headerlink" href="#creating-the-class-object" title="제목 주소">¶</a></h4>
@@ -1684,6 +1774,14 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <span class="o">&gt;&gt;&gt;</span> <span class="n">A</span><span class="o">.</span><span class="n">members</span>
 <span class="p">(</span><span class="s1">&#39;__module__&#39;</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">,</span> <span class="s1">&#39;three&#39;</span><span class="p">,</span> <span class="s1">&#39;four&#39;</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>사실은 <code class="docutils literal"><span class="pre">A.members</span></code> 에 <code class="docutils literal"><span class="pre">'__qualname__'</span></code> 이 더 포함되겠지만, 중요한 것은
+<code class="docutils literal"><span class="pre">'one'</span></code>, <code class="docutils literal"><span class="pre">'two'</span></code>, <code class="docutils literal"><span class="pre">'three'</span></code>, <code class="docutils literal"><span class="pre">'four'</span></code> 의 순서가 클래스 정의와 일치한다는
+것입니다.</p>
+<p class="last">하지만 이제 딕셔너리가 삽입 순서를 보존하기 때문에, 이런 테크닉은 파이썬 3.6 이전 버전에서만
+쓸모가 있습니다.</p>
 </div>
 <p><em>A</em> 의 클래스 정의가 실행될 때, 프로세스는 메타 클래스의 <code class="xref py py-meth docutils literal"><span class="pre">__prepare__()</span></code> 를 호출하는 것으로 시작하는데, 빈 <a class="reference internal" href="../library/collections.html#collections.OrderedDict" title="collections.OrderedDict"><code class="xref py py-class docutils literal"><span class="pre">collections.OrderedDict</span></code></a> 를 돌려줍니다. 이 매핑은 <em>A</em> 의 메서드와 어트리뷰트들을 클래스 문의 바디에 정의된 데로 기록합니다. 일단 그 정의들이 실행되면, 순서 있는 딕셔너리는 모두 채워지고, 메타 클래스의 <a class="reference internal" href="#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> 메서드가 호출됩니다. 이 메서드가 새 형을 만들고, 순서 있는 딕셔너리의 키들은 <code class="docutils literal"><span class="pre">members</span></code> 라 불리는 어트리뷰트에 저장됩니다.</p>
 </div>
@@ -1768,7 +1866,12 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">a</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">=</span> <span class="n">b</span>
 </pre></div>
 </div>
-<p class="last">로 번역되고, 다른 형태도 마찬가지입니다. 빠진 슬라이스 항목은 항상 <code class="docutils literal"><span class="pre">None</span></code> 으로 채워집니다.</p>
+<p>로 번역되고, 다른 형태도 마찬가지입니다. 빠진 슬라이스 항목은 항상 <code class="docutils literal"><span class="pre">None</span></code> 으로 채워집니다.</p>
+<div class="admonition-flowdas last admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">&quot;다음에 나오는 세 메서드들&quot; 은 <a class="reference internal" href="#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__getitem__()</span></code></a>, <a class="reference internal" href="#object.__setitem__" title="object.__setitem__"><code class="xref py py-meth docutils literal"><span class="pre">__setitem__()</span></code></a>,
+<a class="reference internal" href="#object.__delitem__" title="object.__delitem__"><code class="xref py py-meth docutils literal"><span class="pre">__delitem__()</span></code></a> 를 의미합니다.</p>
+</div>
 </div>
 <dl class="method">
 <dt id="object.__getitem__">
@@ -1776,7 +1879,14 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <dd><p id="index-95"><code class="docutils literal"><span class="pre">self[key]</span></code> 의 값을 구하기 위해 호출됩니다. 시퀀스형의 경우, 정수와 슬라이스 객체만 키로 허용됩니다. 음수 인덱스(만약 클래스가 시퀀스 형을 흉내 내길 원한다면)의 특별한 해석은 <a class="reference internal" href="#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__getitem__()</span></code></a> 메서드에 달려있음에 주의해야 합니다. 만약 <em>key</em> 가 적절하지 않은 형인 경우, <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code></a> 가 발생할 수 있습니다; 만약 시퀀스의 인덱스 범위를 벗어나면(음수에 대한 특별한 해석 후에), <a class="reference internal" href="../library/exceptions.html#IndexError" title="IndexError"><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code></a> 를 일으켜야 합니다. 매핑 형의 경우, <em>key</em> 가 (컨테이너에) 없으면, <a class="reference internal" href="../library/exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal"><span class="pre">KeyError</span></code></a> 를 일으켜야 합니다.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
-<p class="last"><a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 루프는 시퀀스의 끝을 올바로 감지하기 위해, 잘못된 인덱스에 대해 <a class="reference internal" href="../library/exceptions.html#IndexError" title="IndexError"><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code></a> 가 일어날 것으로 기대하고 있습니다.</p>
+<p><a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 루프는 시퀀스의 끝을 올바로 감지하기 위해, 잘못된 인덱스에 대해 <a class="reference internal" href="../library/exceptions.html#IndexError" title="IndexError"><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code></a> 가 일어날 것으로 기대하고 있습니다.</p>
+<div class="admonition-flowdas last admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last"><a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 루프는, 객체가 <a class="reference internal" href="#object.__iter__" title="object.__iter__"><code class="xref py py-meth docutils literal"><span class="pre">__iter__()</span></code></a> 를 정의하지 않을 경우, 0 부터 시작해서
+하나씩 증가하는 정수를 사용해서 차례대로 <a class="reference internal" href="#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__getitem__()</span></code></a> 을 호출합니다.
+<a class="reference internal" href="../library/exceptions.html#IndexError" title="IndexError"><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code></a> 가 발생할 때까지 이 과정을 계속 진행합니다. 이 때 <a class="reference internal" href="../library/exceptions.html#IndexError" title="IndexError"><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code></a>
+는 <a class="reference internal" href="compound_stmts.html#for"><code class="xref std std-keyword docutils literal"><span class="pre">for</span></code></a> 루프의 종료 신호로 사용될 뿐, 루프 바깥으로 확산되지 않습니다.</p>
+</div>
 </div>
 </dd></dl>
 
@@ -1784,6 +1894,10 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <dt id="object.__missing__">
 <code class="descclassname">object.</code><code class="descname">__missing__</code><span class="sig-paren">(</span><em>self</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#object.__missing__" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>.<a class="reference internal" href="#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">__getitem__()</span></code></a> 이 dict 서브 클래스에서 키가 딕셔너리에 없으면 <code class="docutils literal"><span class="pre">self[key]</span></code> 를 구현하기 위해 호출합니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last"><a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a> 가 이 메서드를 미리 정의하고 있지는 않습니다. 서브 클래스가 정의한다면 호출한다는 뜻입니다.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1922,6 +2036,30 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <dt id="object.__ior__">
 <code class="descclassname">object.</code><code class="descname">__ior__</code><span class="sig-paren">(</span><em>self</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#object.__ior__" title="정의 주소">¶</a></dt>
 <dd><p>이 메서드들은 증분 산술 대입(<code class="docutils literal"><span class="pre">+=</span></code>, <code class="docutils literal"><span class="pre">-=</span></code>, <code class="docutils literal"><span class="pre">*=</span></code>, <code class="docutils literal"><span class="pre">&#64;=</span></code>, <code class="docutils literal"><span class="pre">/=</span></code>, <code class="docutils literal"><span class="pre">//=</span></code>, <code class="docutils literal"><span class="pre">%=</span></code>, <code class="docutils literal"><span class="pre">**=</span></code>, <code class="docutils literal"><span class="pre">&lt;&lt;=</span></code>, <code class="docutils literal"><span class="pre">&gt;&gt;=</span></code>, <code class="docutils literal"><span class="pre">&amp;=</span></code>, <code class="docutils literal"><span class="pre">^=</span></code>, <code class="docutils literal"><span class="pre">|=</span></code>)을 구현하기 위해 호출됩니다. 이 메서드는 연산을 제자리에서(<em>self</em> 를 수정해서) 하도록 시도해야 하고, 결과(반드시 그래야 하는 것은 아니지만 <em>self</em> 일 수 있습니다)를 돌려줘야 합니다. 만약 특정 메서드가 정의되지 않으면, 중분 대입은 일반적인 메서드들을 대신 사용합니다. 예를 들어, <em>x</em> 가 <a class="reference internal" href="#object.__iadd__" title="object.__iadd__"><code class="xref py py-meth docutils literal"><span class="pre">__iadd__()</span></code></a> 메서드를 갖는 클래스의 인스턴스면, <code class="docutils literal"><span class="pre">x</span> <span class="pre">+=</span> <span class="pre">y</span></code> 는 <code class="docutils literal"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">x.__iadd__(y)</span></code> 와 동등합니다. 그렇지 않으면, <code class="docutils literal"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span></code> 의 값을 구할 때처럼, <code class="docutils literal"><span class="pre">x.__add__(y)</span></code> 와 <code class="docutils literal"><span class="pre">y.__radd__(x)</span></code> 가 고려됩니다. 어떤 상황에서, 증분 대입은 예상치 못한 에러로 이어질 수 있습니다. (<a class="reference internal" href="../faq/programming.html#faq-augmented-assignment-tuple-error"><span class="std std-ref">Why does a_tuple[i] += ['item'] raise an exception when the addition works?</span></a> 를 보십시오). 하지만 이 동작은 사실 데이터 모델의 일부입니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p><a class="reference internal" href="../faq/programming.html#faq-augmented-assignment-tuple-error"><span class="std std-ref">Why does a_tuple[i] += ['item'] raise an exception when the addition works?</span></a> 는 이런 상황을 예시하고 있습니다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_tuple</span> <span class="o">=</span> <span class="p">([</span><span class="s1">&#39;foo&#39;</span><span class="p">],</span> <span class="s1">&#39;bar&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;item&#39;</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">&#39;tuple&#39; object does not support item assignment</span>
+</pre></div>
+</div>
+<p>이 에러는 <code class="docutils literal"><span class="pre">a_tuple[0]</span> <span class="pre">+=</span> <span class="pre">['item']</span></code> 을 동등한 표현인
+<code class="docutils literal"><span class="pre">a_tuple[0]</span> <span class="pre">=</span> <span class="pre">a_tuple[0].__iadd__(['item'])</span></code> 로 풀어 써 보면 당연한 결과입니다.
+대입문의 우변을 계산하는데는 문제가 없지만, 튜플의 항목에 대입하려는 순간 에러가 발생합니다.
+이 사실 자체는 튜플이 불변객체이기 때문에 이상할 것이 없습니다.</p>
+<p>하지만 진짜 문제는 증분 대입문이 원자적이지 않다는 사실입니다. 원자적이지 않다는 것은 오류가
+발생해서 실패했음에도 불구하고, 실행 전과 비교할 때 뭔가 달라졌다는 뜻입니다. 우변의 표현은
+성공하는데, 이 때 실행된 것은 <code class="docutils literal"><span class="pre">list.__iadd__()</span></code> 입니다. 이 메서드는 자기 자신을 변경한
+후에 <code class="docutils literal"><span class="pre">self</span></code> 를 돌려줍니다. 그 결과, 비록 튜플을 변경하려는 시도는 실패하지만, 이미 튜플안에
+들어있던 리스트는 변경된 상태로 남게 됩니다:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_tuple</span>
+<span class="go">([&#39;foo&#39;, &#39;item&#39;], &#39;bar&#39;)</span>
+</pre></div>
+</div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1950,6 +2088,11 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <dt id="object.__index__">
 <code class="descclassname">object.</code><code class="descname">__index__</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#object.__index__" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="../library/operator.html#operator.index" title="operator.index"><code class="xref py py-func docutils literal"><span class="pre">operator.index()</span></code></a> 를 구현하기 위해 호출되고, 파이썬이 숫자 객체를 정수 객체로 손실 없이 변환해야 할 때(슬라이싱이나 내장 <a class="reference internal" href="../library/functions.html#bin" title="bin"><code class="xref py py-func docutils literal"><span class="pre">bin()</span></code></a>, <a class="reference internal" href="../library/functions.html#hex" title="hex"><code class="xref py py-func docutils literal"><span class="pre">hex()</span></code></a>, <a class="reference internal" href="../library/functions.html#oct" title="oct"><code class="xref py py-func docutils literal"><span class="pre">oct()</span></code></a> 함수들에서와같이)마다 호출됩니다. 이 메서드의 존재는 숫자 객체가 정수 형임을 가리킵니다. 반드시 정수를 돌려줘야 합니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">가령 <code class="docutils literal"><span class="pre">x[y:]</span></code> 라는 표현이 있을 때 <code class="docutils literal"><span class="pre">y</span></code> 가 정수형이 아니면
+<code class="docutils literal"><span class="pre">x[y.__index__():]</span></code> 와 같은 표현으로 변환된다는 뜻입니다.</p>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
 <p class="last">일관성 있는 정수형 클래스를 가지려고, <a class="reference internal" href="#object.__index__" title="object.__index__"><code class="xref py py-meth docutils literal"><span class="pre">__index__()</span></code></a> 가 정의될 때는 <a class="reference internal" href="#object.__int__" title="object.__int__"><code class="xref py py-meth docutils literal"><span class="pre">__int__()</span></code></a> 역시 정의되어야 하고, 둘 다 같은 값을 돌려줘야 합니다.</p>
@@ -2020,6 +2163,22 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <span class="gr">TypeError</span>: <span class="n">descriptor &#39;__hash__&#39; of &#39;int&#39; object needs an argument</span>
 </pre></div>
 </div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">구문 분석 단계를 무사히 통과하기 위해서, 숫자 리터럴 <code class="docutils literal"><span class="pre">1</span></code> 과 <code class="docutils literal"><span class="pre">.</span></code> 사이에 공백이 삽입되었습니다.
+그렇지 않으면 <code class="docutils literal"><span class="pre">.</span></code> 이 숫자 리터럴의 일부로 판단되어 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal"><span class="pre">SyntaxError</span></code></a> 가 발생합니다.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last"><code class="docutils literal"><span class="pre">int.__hash__()</span></code> 는 클래스 메서드가 아닌 일반 메서드입니다. 따라서 일반적인 메서드 호출 규칙을
+따르고, <code class="docutils literal"><span class="pre">self</span></code> 에 해당하는 인자를 필요로 합니다. 이렇게 모든 객체에 공통적으로 적용되는 메서드들은,
+한가지 유형을 공유해야 하기 때문에, <code class="docutils literal"><span class="pre">1</span> <span class="pre">.__hash__()</span></code> 에서는 일반 메서드 호출 규칙을 따르고,
+<code class="docutils literal"><span class="pre">int.__hash__()</span></code> 에서는 클래스 메서드 호출 규칙을 따르는 식으로 처리하려면, 메서드 호출 규칙이
+너무 복잡해집니다. 때문에 메서드 호출 규칙은 손대지 않고 <a class="reference internal" href="../library/functions.html#hash" title="hash"><code class="xref py py-func docutils literal"><span class="pre">hash()</span></code></a> 가 항상 대상 객체의 형에 정의된
+<code class="docutils literal"><span class="pre">__hash__()</span></code> 를 사용하는 것으로 딜레마를 해결합니다. 따라서 <code class="docutils literal"><span class="pre">hash(1)</span></code> 은 <code class="docutils literal"><span class="pre">int.__hash__()</span></code>
+를 사용하고, <code class="docutils literal"><span class="pre">hash(int)</span></code> 는 <code class="docutils literal"><span class="pre">type.__hash__()</span></code> 를 사용합니다.
+(<a class="reference internal" href="../library/functions.html#type" title="type"><code class="xref py py-class docutils literal"><span class="pre">type</span></code></a> 은 <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-class docutils literal"><span class="pre">int</span></code></a> 형의 메타클래스입니다.)</p>
+</div>
 <p>클래스의 연결되지 않은 메서드를 호출하려는 이런 식의 잘못된 시도는 종종 '메타 클래스 혼란(metaclass confusion)' 이라고 불리고, 특수 메서드를 조회할 때 인스턴스를 우회하는 방법으로 피할 수 있습니다.</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="fm">__hash__</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">True</span>
@@ -2059,6 +2218,10 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <div class="section" id="awaitable-objects">
 <h3>3.4.1. 어웨이터블 객체(Awaitable Objects)<a class="headerlink" href="#awaitable-objects" title="제목 주소">¶</a></h3>
 <p><a class="reference internal" href="../glossary.html#term-awaitable"><span class="xref std std-term">어웨이터블</span></a> 객체는 일반적으로 <a class="reference internal" href="#object.__await__" title="object.__await__"><code class="xref py py-meth docutils literal"><span class="pre">__await__()</span></code></a> 메서드를 구현합니다. <a class="reference internal" href="compound_stmts.html#async-def"><code class="xref std std-keyword docutils literal"><span class="pre">async</span> <span class="pre">def</span></code></a> 함수가 돌려주는 <a class="reference internal" href="../glossary.html#term-coroutine"><span class="xref std std-term">코루틴</span></a> 객체는 어웨이터블입니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">어웨이터블 객체란 <a class="reference internal" href="expressions.html#await"><code class="xref std std-keyword docutils literal"><span class="pre">await</span></code></a> 표현식에 사용될 수 있는 객체를 뜻합니다.</p>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
 <p class="last"><a class="reference internal" href="../library/types.html#types.coroutine" title="types.coroutine"><code class="xref py py-func docutils literal"><span class="pre">types.coroutine()</span></code></a> 이나 <a class="reference internal" href="../library/asyncio-task.html#asyncio.coroutine" title="asyncio.coroutine"><code class="xref py py-func docutils literal"><span class="pre">asyncio.coroutine()</span></code></a> 로 데코레이션된 제너레이터가 돌려주는 <a class="reference internal" href="../glossary.html#term-generator-iterator"><span class="xref std std-term">제너레이터 이터레이터</span></a> 객체 또한 어웨이터블이지만 <a class="reference internal" href="#object.__await__" title="object.__await__"><code class="xref py py-meth docutils literal"><span class="pre">__await__()</span></code></a> 를 구현하지 않습니다.</p>
@@ -2118,6 +2281,12 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <dt id="object.__anext__">
 <code class="descclassname">object.</code><code class="descname">__anext__</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#object.__anext__" title="정의 주소">¶</a></dt>
 <dd><p>이터레이터의 다음 값을 주는 <em>어웨이터블</em> 을 돌려줘야 합니다. 이터레이션이 끝나면 <a class="reference internal" href="../library/exceptions.html#StopAsyncIteration" title="StopAsyncIteration"><code class="xref py py-exc docutils literal"><span class="pre">StopAsyncIteration</span></code></a> 에러를 일으켜야 합니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">다음에 나오는 예에서 드러나듯이, <a class="reference internal" href="#object.__anext__" title="object.__anext__"><code class="xref py py-meth docutils literal"><span class="pre">__anext__()</span></code></a> 를 <code class="docutils literal"><span class="pre">async</span> <span class="pre">def</span></code> 로 구현하는 경우,
+코루틴이 만들어지기 때문에 항상 어웨이터블을 돌려줍니다. 이 경우, 메서드의 <a class="reference internal" href="simple_stmts.html#return"><code class="xref std std-keyword docutils literal"><span class="pre">return</span></code></a>
+문에서 이터레이터의 다음 값을 제공하면 됩니다.</p>
+</div>
 </dd></dl>
 
 <p>비동기 이터러블 객체의 예:</p>
@@ -2141,6 +2310,11 @@ Class)에서 사용되는 것인데, 클래스 정의에서 베이스 클래스�
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.7으로 변경: </span>파이썬 3.7 이전에, <code class="docutils literal"><span class="pre">__aiter__</span></code> 는 <a class="reference internal" href="../glossary.html#term-asynchronous-iterator"><span class="xref std std-term">비동기 이터레이터</span></a> 로 결정될 <em>어웨이터블</em> 을 반환 할 수 있었습니다.</p>
 <p>파이썬 3.7부터, <code class="docutils literal"><span class="pre">__aiter__</span></code> 는 반드시 비동기 이터레이터 객체를 돌려줘야 합니다. 다른 것을 돌려주면 <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code></a> 에러가 발생합니다.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">CPython 3.5.0 과 3.5.1 에서만 이 호환성 문제가 발생하는데, 이 버전들에서는 <code class="docutils literal"><span class="pre">__aiter__</span></code>
+가 <code class="docutils literal"><span class="pre">async</span> <span class="pre">def</span></code> 로 정의되었었습니다.</p>
 </div>
 </div>
 <div class="section" id="asynchronous-context-managers">
