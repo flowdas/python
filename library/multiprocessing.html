@@ -105,22 +105,38 @@
 <p><strong>소스 코드:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Lib/multiprocessing/">Lib/multiprocessing/</a></p>
 <hr class="docutils" />
 <div class="section" id="introduction">
-<h2>17.2.1. Introduction<a class="headerlink" href="#introduction" title="제목 주소">¶</a></h2>
-<p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> is a package that supports spawning processes using an
-API similar to the <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">threading</span></code></a> module.  The <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> package
-offers both local and remote concurrency, effectively side-stepping the
-<a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">Global Interpreter Lock</span></a> by using subprocesses instead of threads.  Due
-to this, the <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> module allows the programmer to fully
-leverage multiple processors on a given machine.  It runs on both Unix and
-Windows.</p>
-<p>The <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> module also introduces APIs which do not have
-analogs in the <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">threading</span></code></a> module.  A prime example of this is the
-<a class="reference internal" href="#multiprocessing.pool.Pool" title="multiprocessing.pool.Pool"><code class="xref py py-class docutils literal"><span class="pre">Pool</span></code></a> object which offers a convenient means of
-parallelizing the execution of a function across multiple input values,
-distributing the input data across processes (data parallelism).  The following
-example demonstrates the common practice of defining such functions in a module
-so that child processes can successfully import that module.  This basic example
-of data parallelism using <a class="reference internal" href="#multiprocessing.pool.Pool" title="multiprocessing.pool.Pool"><code class="xref py py-class docutils literal"><span class="pre">Pool</span></code></a>,</p>
+<h2>17.2.1. 소개<a class="headerlink" href="#introduction" title="제목 주소">¶</a></h2>
+<p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 은 <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">threading</span></code></a> 모듈과 유사한 API를 사용하여 프로세스 스포닝(spawning)을 지원하는 패키지입니다. <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 패키지는 지역과 원격 동시성을 모두 제공하며 스레드 대신 서브 프로세스를 사용하여 <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">전역 인터프리터 록</span></a> 을 효과적으로 피합니다. 이것 때문에, <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 모듈은 프로그래머가 주어진 기계에서 다중 프로세서를 최대한 활용할 수있게합니다. 유닉스와 윈도우에서 모두 실행됩니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>흔히 알려진 것과는 달리 <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 은 원격 동시성을 지원합니다. 즉 하나의 기계에서
+뿐만 아니라 여러대의 기계에서 실행되는 프로세스를 제어할 수 있습니다.</p>
+<p class="last">소위 분산 작업 큐(Distributed Task Queue)로 사용할 수 있는데, 이 영역에서 가장 널리 알려진 도구는
+<a class="reference external" href="http://www.celeryproject.org/">Celery</a> 입니다. 이런 별도의 도구들이 제공하는 수준의
+기능을 <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 이 모두 제공하고 있지는 않습니다.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>GIL(전역 인터프리터 록)은 다중 스레드 환경에서 파이썬의 바이트 코드가 안전하게 실행되도록 보장하기 위해
+인터프리터가 주기적으로 획득하는 록입니다. 이 록을 얻은 스레드만 실행될 수 있기 때문에, 한 프로세스에서
+여러 스레드를 만들어도 특정 시점에 파이썬 코드를 실행하는 스레드는 오직 하나뿐입니다. 이 때문에 멀티 코어
+환경에서 파이썬 프로세스는 하나의 코어밖에 사용하지 못하게됩니다. 확장 모듈을 만든다면, 파이썬 코드를
+실행하지 않는 C(혹은 Cython) 코드 에서 GIL 을 반납하고, 멀티 코어를 활용하도록 할 수는 있습니다.
+하지만 순수한 파이썬 코드만으로 하나의 프로세스에서 멀티 코어를 활용하도록 할 방법은 없습니다.</p>
+<p>프로세스를 여러개 만든다면 각 프로세스마다 코어를 하나씩 쓸 수 있게되기 때문에, 멀티 코어를 활용할 수 있게
+됩니다. <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 은 이렇게 하는데 필요한 도구를 제공합니다. 여기에 더해,
+멀티 코어 활용에만 머무르지 않고 멀티 인스턴스(호스트)를 활용하는 방법도 제공합니다.</p>
+<p class="last">보통 CPU 병목형 응용 프로그램에서 멀티 코어 활용이 요구됩니다. IO 병목형에서는 꼭 필요하지 않아서, 스레드를
+사용하는 것으로 충분한 경우가 많습니다. 하지만 IO 병목형도 병목 지점들을 제거하다보면 결국 CPU 병목형으로
+변하는 경우가 많으니, 속단하지는 마세요.</p>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">프로세스를 스폰(spawn) 한다는 것은 한 프로세스가 자식 프로세스를 새로 만들어 어떤 작업을 위임하는 것을
+뜻합니다. 하지만 자식 프로세스를 만드는 방법이 한가지가 아니고, 때로 spawn 은 그 중 한가지를 가리키는
+경우에도 사용됩니다. 여기에서는 넓은 의미로 사용되었습니다. 좁은 의미로 사용될 때는 그냥 영문으로 표기합니다.</p>
+</div>
+<p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 모듈은 <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">threading</span></code></a> 모듈에 대응물이없는 API도 제공합니다. 이것의 대표적인 예가 <a class="reference internal" href="#multiprocessing.pool.Pool" title="multiprocessing.pool.Pool"><code class="xref py py-class docutils literal"><span class="pre">Pool</span></code></a> 객체입니다. 이 객체는 여러 입력 값에 걸쳐 함수의 실행을 병렬 처리하고 입력 데이터를 프로세스에 분산시키는 편리한 방법을 제공합니다(데이터 병렬 처리). 다음 예제는 자식 프로세스가 해당 모듈을 성공적으로 임포트할 수 있도록, 모듈에서 이러한 함수를 정의하는 일반적인 방법을 보여줍니다. 다음은 <a class="reference internal" href="#multiprocessing.pool.Pool" title="multiprocessing.pool.Pool"><code class="xref py py-class docutils literal"><span class="pre">Pool</span></code></a> 를 사용하는 데이터 병렬 처리의 기본 예제 입니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Pool</span>
 
 <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -131,16 +147,17 @@ of data parallelism using <a class="reference internal" href="#multiprocessing.p
         <span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
 </pre></div>
 </div>
-<p>will print to standard output</p>
+<p>표준 출력으로 다음과 같은 것을 인쇄합니다</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
 </pre></div>
 </div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">예제 코드를 REPL 환경에서 실행하려고 하면 잘 안될 수 있습니다. 파일에 저장해서 스크립트로 실행시키세요.</p>
+</div>
 <div class="section" id="the-process-class">
-<h3>17.2.1.1. The <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a> class<a class="headerlink" href="#the-process-class" title="제목 주소">¶</a></h3>
-<p>In <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a>, processes are spawned by creating a <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a>
-object and then calling its <a class="reference internal" href="#multiprocessing.Process.start" title="multiprocessing.Process.start"><code class="xref py py-meth docutils literal"><span class="pre">start()</span></code></a> method.  <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a>
-follows the API of <a class="reference internal" href="threading.html#threading.Thread" title="threading.Thread"><code class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></code></a>.  A trivial example of a
-multiprocess program is</p>
+<h3>17.2.1.1. <code class="xref py py-class docutils literal"><span class="pre">Process</span></code> 클래스<a class="headerlink" href="#the-process-class" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 에서, 프로세스는 <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a> 객체를 생성 한 후 <a class="reference internal" href="#multiprocessing.Process.start" title="multiprocessing.Process.start"><code class="xref py py-meth docutils literal"><span class="pre">start()</span></code></a> 메소드를 호출해서 스폰합니다. <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a> 는 <a class="reference internal" href="threading.html#threading.Thread" title="threading.Thread"><code class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></code></a> 의 API를 따릅니다. 다중 프로세스 프로그램의 간단한 예는 다음과 같습니다</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
 
 <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
@@ -152,7 +169,7 @@ multiprocess program is</p>
     <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>To show the individual process IDs involved, here is an expanded example:</p>
+<p>이 과정에 참여하는 개별 프로세스의 ID를 보기위해, 이렇게 예제를 확장합니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
@@ -173,8 +190,7 @@ multiprocess program is</p>
     <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>For an explanation of why the <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__'</span></code> part is
-necessary, see <a class="reference internal" href="#multiprocessing-programming"><span class="std std-ref">Programming guidelines</span></a>.</p>
+<p><code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__'</span></code> 부분이 필요한 이유에 대한 설명은 <a class="reference internal" href="#multiprocessing-programming"><span class="std std-ref">Programming guidelines</span></a> 을 보십시오.</p>
 </div>
 <div class="section" id="contexts-and-start-methods">
 <h3>17.2.1.2. Contexts and start methods<a class="headerlink" href="#contexts-and-start-methods" title="제목 주소">¶</a></h3>
@@ -3265,8 +3281,8 @@ processes and collect the results:</p>
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
 <li><a class="reference internal" href="#">17.2. <code class="docutils literal"><span class="pre">multiprocessing</span></code> --- 프로세스 기반 병렬 처리</a><ul>
-<li><a class="reference internal" href="#introduction">17.2.1. Introduction</a><ul>
-<li><a class="reference internal" href="#the-process-class">17.2.1.1. The <code class="docutils literal"><span class="pre">Process</span></code> class</a></li>
+<li><a class="reference internal" href="#introduction">17.2.1. 소개</a><ul>
+<li><a class="reference internal" href="#the-process-class">17.2.1.1. <code class="docutils literal"><span class="pre">Process</span></code> 클래스</a></li>
 <li><a class="reference internal" href="#contexts-and-start-methods">17.2.1.2. Contexts and start methods</a></li>
 <li><a class="reference internal" href="#exchanging-objects-between-processes">17.2.1.3. Exchanging objects between processes</a></li>
 <li><a class="reference internal" href="#synchronization-between-processes">17.2.1.4. Synchronization between processes</a></li>
