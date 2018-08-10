@@ -212,25 +212,18 @@
 스레드 풀 전체가 사용불능 상태가 됩니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.5으로 변경: </span>If <em>max_workers</em> is <code class="docutils literal"><span class="pre">None</span></code> or
-not given, it will default to the number of processors on the machine,
-multiplied by <code class="docutils literal"><span class="pre">5</span></code>, assuming that <a class="reference internal" href="#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ThreadPoolExecutor</span></code></a> is often
-used to overlap I/O instead of CPU work and the number of workers
-should be higher than the number of workers
-for <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a>.</p>
+<p><span class="versionmodified">버전 3.5으로 변경: </span><em>max_workers</em> 가 <code class="docutils literal"><span class="pre">None</span></code> 이거나 주어지지 않았다면, 기본값으로 기계의 프로세서 수에 <code class="docutils literal"><span class="pre">5</span></code> 를 곱한값을 사용합니다. <a class="reference internal" href="#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ThreadPoolExecutor</span></code></a> 가 CPU 작업보다는 I/O 를 동시에 진행하는데 자주 쓰이고, 작업자의 수가 <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> 보다 많아야한다고 가정하고 있습니다.</p>
 </div>
 <div class="versionadded">
-<p><span class="versionmodified">버전 3.6에 추가: </span>The <em>thread_name_prefix</em> argument was added to allow users to
-control the threading.Thread names for worker threads created by
-the pool for easier debugging.</p>
+<p><span class="versionmodified">버전 3.6에 추가: </span><em>thread_name_prefix</em> 인자가 추가되어, 디버깅 편의를 위해 사용자가 풀이 만드는 작업자 스레드의 threading.Thread 이름을 제어 할 수 있습니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span>Added the <em>initializer</em> and <em>initargs</em> arguments.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span><em>initializer</em> 및 <em>initargs</em> 인자가 추가되었습니다.</p>
 </div>
 </dd></dl>
 
 <div class="section" id="threadpoolexecutor-example">
-<span id="id1"></span><h3>17.4.2.1. ThreadPoolExecutor Example<a class="headerlink" href="#threadpoolexecutor-example" title="제목 주소">¶</a></h3>
+<span id="id1"></span><h3>17.4.2.1. ThreadPoolExecutor 예제<a class="headerlink" href="#threadpoolexecutor-example" title="제목 주소">¶</a></h3>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">concurrent.futures</span>
 <span class="kn">import</span> <span class="nn">urllib.request</span>
 
@@ -240,14 +233,15 @@ the pool for easier debugging.</p>
         <span class="s1">&#39;http://www.bbc.co.uk/&#39;</span><span class="p">,</span>
         <span class="s1">&#39;http://some-made-up-domain.com/&#39;</span><span class="p">]</span>
 
-<span class="c1"># Retrieve a single page and report the URL and contents</span>
+<span class="c1"># 페이지 하나를 가져오고 URL 과 내용을 보고합니다</span>
 <span class="k">def</span> <span class="nf">load_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-<span class="c1"># We can use a with statement to ensure threads are cleaned up promptly</span>
+<span class="c1"># with 문을 사용하여 스레드가 즉시 정리되도록 할 수 있습니다</span>
 <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
     <span class="c1"># Start the load operations and mark each future with its URL</span>
+    <span class="c1"># 로드 작업을 시작하고 각 퓨처의 해당 URL을 기록합니다</span>
     <span class="n">future_to_url</span> <span class="o">=</span> <span class="p">{</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">load_url</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="mi">60</span><span class="p">):</span> <span class="n">url</span> <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">URLS</span><span class="p">}</span>
     <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">future_to_url</span><span class="p">):</span>
         <span class="n">url</span> <span class="o">=</span> <span class="n">future_to_url</span><span class="p">[</span><span class="n">future</span><span class="p">]</span>
@@ -263,46 +257,30 @@ the pool for easier debugging.</p>
 </div>
 <div class="section" id="processpoolexecutor">
 <h2>17.4.3. ProcessPoolExecutor<a class="headerlink" href="#processpoolexecutor" title="제목 주소">¶</a></h2>
-<p>The <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> class is an <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> subclass that
-uses a pool of processes to execute calls asynchronously.
-<a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> uses the <a class="reference internal" href="multiprocessing.html#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> module, which
-allows it to side-step the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">Global Interpreter Lock</span></a> but also means that
-only picklable objects can be executed and returned.</p>
-<p>The <code class="docutils literal"><span class="pre">__main__</span></code> module must be importable by worker subprocesses. This means
-that <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> will not work in the interactive interpreter.</p>
-<p>Calling <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> or <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> methods from a callable submitted
-to a <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> will result in deadlock.</p>
+<p><a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> 클래스는 프로세스 풀을 사용하여 호출을 비동기 적으로 실행하는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 서브 클래스입니다. <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> 는 <a class="reference internal" href="multiprocessing.html#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 모듈을 사용합니다. <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">전역 인터프리터 록</span></a> 을 피할 수 있도록하지만, 오직 피클가능한 객체만 실행되고 반환될 수 있음을 의미합니다.</p>
+<p><code class="docutils literal"><span class="pre">__main__</span></code> 모듈은 작업자 서브 프로세스가 임포트 할 수 있어야합니다. 즉, <a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> 는 대화형 인터프리터에서 작동하지 않습니다.</p>
+<p><a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code></a> 에 제출된 콜러블에서 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 나 <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 메서드를 호출하면 교착 상태가 발생합니다.</p>
 <dl class="class">
 <dt id="concurrent.futures.ProcessPoolExecutor">
 <em class="property">class </em><code class="descclassname">concurrent.futures.</code><code class="descname">ProcessPoolExecutor</code><span class="sig-paren">(</span><em>max_workers=None</em>, <em>mp_context=None</em>, <em>initializer=None</em>, <em>initargs=()</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.ProcessPoolExecutor" title="정의 주소">¶</a></dt>
-<dd><p>An <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> subclass that executes calls asynchronously using a pool
-of at most <em>max_workers</em> processes.  If <em>max_workers</em> is <code class="docutils literal"><span class="pre">None</span></code> or not
-given, it will default to the number of processors on the machine.
-If <em>max_workers</em> is lower or equal to <code class="docutils literal"><span class="pre">0</span></code>, then a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code></a>
-will be raised.
-<em>mp_context</em> can be a multiprocessing context or None. It will be used to
-launch the workers. If <em>mp_context</em> is <code class="docutils literal"><span class="pre">None</span></code> or not given, the default
-multiprocessing context is used.</p>
-<p><em>initializer</em> is an optional callable that is called at the start of
-each worker process; <em>initargs</em> is a tuple of arguments passed to the
-initializer.  Should <em>initializer</em> raise an exception, all currently
-pending jobs will raise a <a class="reference internal" href="#concurrent.futures.thread.BrokenThreadPool" title="concurrent.futures.thread.BrokenThreadPool"><code class="xref py py-exc docutils literal"><span class="pre">BrokenThreadPool</span></code></a>,
-as well any attempt to submit more jobs to the pool.</p>
-<div class="versionchanged">
-<p><span class="versionmodified">버전 3.3으로 변경: </span>When one of the worker processes terminates abruptly, a
-<code class="xref py py-exc docutils literal"><span class="pre">BrokenProcessPool</span></code> error is now raised.  Previously, behaviour
-was undefined but operations on the executor or its futures would often
-freeze or deadlock.</p>
+<dd><p>최대 <em>max_workers</em> 프로세스의 풀을 사용하여 호출을 비동기 적으로 실행하는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 서브 클래스. <em>max_workers</em> 가 <code class="docutils literal"><span class="pre">None</span></code> 이거나 주어지지 않았다면, 기계의 프로세서 수를 기본값으로 사용합니다. <em>max_workers</em> 가 <code class="docutils literal"><span class="pre">0</span></code> 보다 작거나 같으면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code></a> 가 발생합니다. <em>mp_context</em> 는 multiprocessing 컨텍스트이거나 None 일 수 있습니다. 작업자들을 만드는데 사용될 것입니다. <em>mp_context</em> 가 <code class="docutils literal"><span class="pre">None</span></code> 이거나 주어지지 않으면 기본 multiprocessing 컨텍스트가 사용됩니다.</p>
+<p><em>initializer</em> 는 각 작업자 프로세스의 시작 부분에서 호출되는 선택적 콜러블입니다; <em>initargs</em> 는 initializer에 전달되는 인자들의 튜플입니다. <em>initializer</em> 가 예외를 발생시키는 경우, 현재 계류중인 모든 작업과 풀에 추가로 작업을 제출하려는 시도는 <a class="reference internal" href="#concurrent.futures.thread.BrokenThreadPool" title="concurrent.futures.thread.BrokenThreadPool"><code class="xref py py-exc docutils literal"><span class="pre">BrokenThreadPool</span></code></a> 을 발생시킵니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last"><a class="reference internal" href="#concurrent.futures.thread.BrokenThreadPool" title="concurrent.futures.thread.BrokenThreadPool"><code class="xref py py-exc docutils literal"><span class="pre">BrokenThreadPool</span></code></a> 이 아니라
+<code class="xref py py-exc docutils literal"><span class="pre">BrokenProcessPool</span></code> 을 발생시킵니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span>The <em>mp_context</em> argument was added to allow users to control the
-start_method for worker processes created by the pool.</p>
-<p>Added the <em>initializer</em> and <em>initargs</em> arguments.</p>
+<p><span class="versionmodified">버전 3.3으로 변경: </span>작업자 프로세스 중 하나가 갑자기 종료되면, <code class="xref py py-exc docutils literal"><span class="pre">BrokenProcessPool</span></code> 오류가 발생합니다. 이전에는, 동작이 정의되지 않았지만, 실행기나 그 퓨처에 대한 연산이 종종 멈추거나 교착 상태에 빠졌습니다.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.7으로 변경: </span><em>mp_context</em> 인자가 추가되어 사용자가 풀에서 만드는 작업자 프로세스의 시작 방법을 제어 할 수 있습니다.</p>
+<p><em>initializer</em> 및 <em>initargs</em> 인자가 추가되었습니다.</p>
 </div>
 </dd></dl>
 
 <div class="section" id="processpoolexecutor-example">
-<span id="id2"></span><h3>17.4.3.1. ProcessPoolExecutor Example<a class="headerlink" href="#processpoolexecutor-example" title="제목 주소">¶</a></h3>
+<span id="id2"></span><h3>17.4.3.1. ProcessPoolExecutor 예제<a class="headerlink" href="#processpoolexecutor-example" title="제목 주소">¶</a></h3>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">concurrent.futures</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
@@ -337,124 +315,84 @@ start_method for worker processes created by the pool.</p>
 </div>
 <div class="section" id="future-objects">
 <h2>17.4.4. Future 객체<a class="headerlink" href="#future-objects" title="제목 주소">¶</a></h2>
-<p>The <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> class encapsulates the asynchronous execution of a callable.
-<a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> instances are created by <a class="reference internal" href="#concurrent.futures.Executor.submit" title="concurrent.futures.Executor.submit"><code class="xref py py-meth docutils literal"><span class="pre">Executor.submit()</span></code></a>.</p>
+<p><a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 클래스는 콜러블 객체의 비동기 실행을 캡슐화합니다. <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 인스턴스는 <a class="reference internal" href="#concurrent.futures.Executor.submit" title="concurrent.futures.Executor.submit"><code class="xref py py-meth docutils literal"><span class="pre">Executor.submit()</span></code></a> 에 의해 생성됩니다.</p>
 <dl class="class">
 <dt id="concurrent.futures.Future">
 <em class="property">class </em><code class="descclassname">concurrent.futures.</code><code class="descname">Future</code><a class="headerlink" href="#concurrent.futures.Future" title="정의 주소">¶</a></dt>
-<dd><p>Encapsulates the asynchronous execution of a callable.  <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a>
-instances are created by <a class="reference internal" href="#concurrent.futures.Executor.submit" title="concurrent.futures.Executor.submit"><code class="xref py py-meth docutils literal"><span class="pre">Executor.submit()</span></code></a> and should not be created
-directly except for testing.</p>
+<dd><p>콜러블 객체의 비동기 실행을 캡슐화합니다. <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 인스턴스는 <a class="reference internal" href="#concurrent.futures.Executor.submit" title="concurrent.futures.Executor.submit"><code class="xref py py-meth docutils literal"><span class="pre">Executor.submit()</span></code></a> 에 의해 생성되며 테스트를 제외하고는 직접 생성되어서는 안됩니다.</p>
 <blockquote>
 <div><dl class="method">
 <dt id="concurrent.futures.Future.cancel">
 <code class="descname">cancel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.cancel" title="정의 주소">¶</a></dt>
-<dd><p>Attempt to cancel the call.  If the call is currently being executed and
-cannot be cancelled then the method will return <code class="docutils literal"><span class="pre">False</span></code>, otherwise the
-call will be cancelled and the method will return <code class="docutils literal"><span class="pre">True</span></code>.</p>
+<dd><p>호출을 취소하려고 시도합니다. 호출이 현재 실행 중이면 취소 할 수 없는 경우 메서드는 <code class="docutils literal"><span class="pre">False</span></code> 를 반환하고, 그렇지 않으면 호출이 취소되고 메서드는 <code class="docutils literal"><span class="pre">True</span></code> 를 반환합니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.cancelled">
 <code class="descname">cancelled</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.cancelled" title="정의 주소">¶</a></dt>
-<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if the call was successfully cancelled.</p>
+<dd><p>호출이 성공적으로 취소되었으면 <code class="docutils literal"><span class="pre">True</span></code> 를 반환합니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.running">
 <code class="descname">running</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.running" title="정의 주소">¶</a></dt>
-<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if the call is currently being executed and cannot be
-cancelled.</p>
+<dd><p>호출이 현재 실행 중이고 취소 할 수 없는 경우 <code class="docutils literal"><span class="pre">True</span></code> 를 반환합니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.done">
 <code class="descname">done</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.done" title="정의 주소">¶</a></dt>
-<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if the call was successfully cancelled or finished
-running.</p>
+<dd><p>호출이 성공적으로 취소되었거나 실행이 완료되었으면 <code class="docutils literal"><span class="pre">True</span></code> 를 반환합니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.result">
 <code class="descname">result</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.result" title="정의 주소">¶</a></dt>
-<dd><p>Return the value returned by the call. If the call hasn't yet completed
-then this method will wait up to <em>timeout</em> seconds.  If the call hasn't
-completed in <em>timeout</em> seconds, then a
-<a class="reference internal" href="#concurrent.futures.TimeoutError" title="concurrent.futures.TimeoutError"><code class="xref py py-exc docutils literal"><span class="pre">concurrent.futures.TimeoutError</span></code></a> will be raised. <em>timeout</em> can be
-an int or float.  If <em>timeout</em> is not specified or <code class="docutils literal"><span class="pre">None</span></code>, there is no
-limit to the wait time.</p>
-<p>If the future is cancelled before completing then <a class="reference internal" href="#concurrent.futures.CancelledError" title="concurrent.futures.CancelledError"><code class="xref py py-exc docutils literal"><span class="pre">CancelledError</span></code></a>
-will be raised.</p>
-<p>If the call raised, this method will raise the same exception.</p>
+<dd><p>호출이 반환한 값을 돌려줍니다. 호출이 아직 완료되지 않는 경우, 이 메서드는 <em>timeout</em> 초까지 대기합니다. <em>timeout</em> 초 내에 호출이 완료되지 않으면 <a class="reference internal" href="#concurrent.futures.TimeoutError" title="concurrent.futures.TimeoutError"><code class="xref py py-exc docutils literal"><span class="pre">concurrent.futures.TimeoutError</span></code></a> 가 발생합니다. <em>timeout</em> 은 int 또는 float가 될 수 있습니다. <em>timeout</em> 이 지정되지 않았거나 <code class="docutils literal"><span class="pre">None</span></code> 인 경우, 대기 시간에는 제한이 없습니다.</p>
+<p>완료하기 전에 퓨처가 취소되면 <a class="reference internal" href="#concurrent.futures.CancelledError" title="concurrent.futures.CancelledError"><code class="xref py py-exc docutils literal"><span class="pre">CancelledError</span></code></a> 가 발생합니다.</p>
+<p>호출이 예외를 일으키는 경우, 이 메서드는 같은 예외를 발생시킵니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.exception">
 <code class="descname">exception</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.exception" title="정의 주소">¶</a></dt>
-<dd><p>Return the exception raised by the call.  If the call hasn't yet
-completed then this method will wait up to <em>timeout</em> seconds.  If the
-call hasn't completed in <em>timeout</em> seconds, then a
-<a class="reference internal" href="#concurrent.futures.TimeoutError" title="concurrent.futures.TimeoutError"><code class="xref py py-exc docutils literal"><span class="pre">concurrent.futures.TimeoutError</span></code></a> will be raised.  <em>timeout</em> can be
-an int or float.  If <em>timeout</em> is not specified or <code class="docutils literal"><span class="pre">None</span></code>, there is no
-limit to the wait time.</p>
-<p>If the future is cancelled before completing then <a class="reference internal" href="#concurrent.futures.CancelledError" title="concurrent.futures.CancelledError"><code class="xref py py-exc docutils literal"><span class="pre">CancelledError</span></code></a>
-will be raised.</p>
-<p>If the call completed without raising, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<dd><p>호출이 일으킨 예외를 돌려줍니다. 호출이 아직 완료되지 않는 경우, 이 메서드는 <em>timeout</em> 초까지 대기합니다. <em>timeout</em> 초 내에 호출이 완료되지 않으면 <a class="reference internal" href="#concurrent.futures.TimeoutError" title="concurrent.futures.TimeoutError"><code class="xref py py-exc docutils literal"><span class="pre">concurrent.futures.TimeoutError</span></code></a> 가 발생합니다. <em>timeout</em> 은 int 또는 float가 될 수 있습니다. <em>timeout</em> 이 지정되지 않았거나 <code class="docutils literal"><span class="pre">None</span></code> 인 경우, 대기 시간에는 제한이 없습니다.</p>
+<p>완료하기 전에 퓨처가 취소되면 <a class="reference internal" href="#concurrent.futures.CancelledError" title="concurrent.futures.CancelledError"><code class="xref py py-exc docutils literal"><span class="pre">CancelledError</span></code></a> 가 발생합니다.</p>
+<p>호출이 예외 없이 완료되면, <code class="docutils literal"><span class="pre">None</span></code> 이 반환됩니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.add_done_callback">
 <code class="descname">add_done_callback</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.add_done_callback" title="정의 주소">¶</a></dt>
-<dd><p>Attaches the callable <em>fn</em> to the future.  <em>fn</em> will be called, with the
-future as its only argument, when the future is cancelled or finishes
-running.</p>
-<p>Added callables are called in the order that they were added and are
-always called in a thread belonging to the process that added them.  If
-the callable raises an <a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-exc docutils literal"><span class="pre">Exception</span></code></a> subclass, it will be logged and
-ignored.  If the callable raises a <a class="reference internal" href="exceptions.html#BaseException" title="BaseException"><code class="xref py py-exc docutils literal"><span class="pre">BaseException</span></code></a> subclass, the
-behavior is undefined.</p>
-<p>If the future has already completed or been cancelled, <em>fn</em> will be
-called immediately.</p>
+<dd><p>콜러블 <em>fn</em> 을 퓨처에 연결합니다. <em>fn</em> 은 퓨처가 취소되거나 실행이 종료 될 때 퓨처를 유일한 인자로 호출됩니다.</p>
+<p>추가 된 콜러블은 추가 된 순서대로 호출되며, 항상 콜러블을 추가한 프로세스에 속하는 스레드에서 호출됩니다. 콜러블이 <a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-exc docutils literal"><span class="pre">Exception</span></code></a> 서브 클래스를 발생 시키면, 로그되고 무시됩니다. 콜러블이 <a class="reference internal" href="exceptions.html#BaseException" title="BaseException"><code class="xref py py-exc docutils literal"><span class="pre">BaseException</span></code></a> 서브 클래스를 발생 시키면, 동작은 정의되지 않습니다.</p>
+<p>퓨처가 이미 완료되었거나 취소 된 경우 <em>fn</em> 이 즉시 호출됩니다.</p>
 </dd></dl>
 
 </div></blockquote>
-<p>The following <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> methods are meant for use in unit tests and
-<a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> implementations.</p>
+<p>다음 <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 메서드는 단위 테스트와 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 의 구현을 위한 것입니다.</p>
 <blockquote>
 <div><dl class="method">
 <dt id="concurrent.futures.Future.set_running_or_notify_cancel">
 <code class="descname">set_running_or_notify_cancel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.set_running_or_notify_cancel" title="정의 주소">¶</a></dt>
-<dd><p>This method should only be called by <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> implementations
-before executing the work associated with the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> and by unit
-tests.</p>
-<p>If the method returns <code class="docutils literal"><span class="pre">False</span></code> then the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> was cancelled,
-i.e. <a class="reference internal" href="#concurrent.futures.Future.cancel" title="concurrent.futures.Future.cancel"><code class="xref py py-meth docutils literal"><span class="pre">Future.cancel()</span></code></a> was called and returned <cite>True</cite>.  Any threads
-waiting on the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> completing (i.e. through
-<a class="reference internal" href="#concurrent.futures.as_completed" title="concurrent.futures.as_completed"><code class="xref py py-func docutils literal"><span class="pre">as_completed()</span></code></a> or <a class="reference internal" href="#concurrent.futures.wait" title="concurrent.futures.wait"><code class="xref py py-func docutils literal"><span class="pre">wait()</span></code></a>) will be woken up.</p>
-<p>If the method returns <code class="docutils literal"><span class="pre">True</span></code> then the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> was not cancelled
-and has been put in the running state, i.e. calls to
-<a class="reference internal" href="#concurrent.futures.Future.running" title="concurrent.futures.Future.running"><code class="xref py py-meth docutils literal"><span class="pre">Future.running()</span></code></a> will return <cite>True</cite>.</p>
-<p>This method can only be called once and cannot be called after
-<a class="reference internal" href="#concurrent.futures.Future.set_result" title="concurrent.futures.Future.set_result"><code class="xref py py-meth docutils literal"><span class="pre">Future.set_result()</span></code></a> or <a class="reference internal" href="#concurrent.futures.Future.set_exception" title="concurrent.futures.Future.set_exception"><code class="xref py py-meth docutils literal"><span class="pre">Future.set_exception()</span></code></a> have been
-called.</p>
+<dd><p>이 메서드는 <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 와 관련된 작업을 실행하기 전에 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 구현에 의해서만 호출되거나 단위 테스트에서만 호출되어야 합니다.</p>
+<p>메서드가 <code class="docutils literal"><span class="pre">False</span></code> 를 반환하면, <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 가 취소된것입니다. 즉 <a class="reference internal" href="#concurrent.futures.Future.cancel" title="concurrent.futures.Future.cancel"><code class="xref py py-meth docutils literal"><span class="pre">Future.cancel()</span></code></a> 이 호출되었고 <cite>True</cite> 를 반환했습니다. <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 완료를 기다리는 (즉, <a class="reference internal" href="#concurrent.futures.as_completed" title="concurrent.futures.as_completed"><code class="xref py py-func docutils literal"><span class="pre">as_completed()</span></code></a> 또는 <a class="reference internal" href="#concurrent.futures.wait" title="concurrent.futures.wait"><code class="xref py py-func docutils literal"><span class="pre">wait()</span></code></a> 를 통해) 모든 스레드는 깨어납니다.</p>
+<p>메서드가 <code class="docutils literal"><span class="pre">True</span></code> 를 반환하면, <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 가 취소되지 않았고 실행 상태로 진입했습니다. 즉 <a class="reference internal" href="#concurrent.futures.Future.running" title="concurrent.futures.Future.running"><code class="xref py py-meth docutils literal"><span class="pre">Future.running()</span></code></a> 을 호출하면 <cite>True</cite> 가 반환됩니다.</p>
+<p>이 메서드는 한 번만 호출 할 수 있으며, <a class="reference internal" href="#concurrent.futures.Future.set_result" title="concurrent.futures.Future.set_result"><code class="xref py py-meth docutils literal"><span class="pre">Future.set_result()</span></code></a> 또는 <a class="reference internal" href="#concurrent.futures.Future.set_exception" title="concurrent.futures.Future.set_exception"><code class="xref py py-meth docutils literal"><span class="pre">Future.set_exception()</span></code></a> 이 호출 된 후에는 호출 할 수 없습니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.set_result">
 <code class="descname">set_result</code><span class="sig-paren">(</span><em>result</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.set_result" title="정의 주소">¶</a></dt>
-<dd><p>Sets the result of the work associated with the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> to
-<em>result</em>.</p>
-<p>This method should only be used by <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> implementations and
-unit tests.</p>
+<dd><p><a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 와 관련된 작업 결과를 <em>result</em> 로 설정합니다.</p>
+<p>이 메서드는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 구현과 단위 테스트에서만 사용해야합니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="concurrent.futures.Future.set_exception">
 <code class="descname">set_exception</code><span class="sig-paren">(</span><em>exception</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.set_exception" title="정의 주소">¶</a></dt>
-<dd><p>Sets the result of the work associated with the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> to the
-<a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></a> <em>exception</em>.</p>
-<p>This method should only be used by <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> implementations and
-unit tests.</p>
+<dd><p><a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 와 관련된 작업 결과를 <a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></a> <em>exception</em> 으로 설정합니다.</p>
+<p>이 메서드는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 구현과 단위 테스트에서만 사용해야합니다.</p>
 </dd></dl>
 
 </div></blockquote>
@@ -466,41 +404,28 @@ unit tests.</p>
 <dl class="function">
 <dt id="concurrent.futures.wait">
 <code class="descclassname">concurrent.futures.</code><code class="descname">wait</code><span class="sig-paren">(</span><em>fs</em>, <em>timeout=None</em>, <em>return_when=ALL_COMPLETED</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.wait" title="정의 주소">¶</a></dt>
-<dd><p>Wait for the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> instances (possibly created by different
-<a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> instances) given by <em>fs</em> to complete.  Returns a named
-2-tuple of sets.  The first set, named <code class="docutils literal"><span class="pre">done</span></code>, contains the futures that
-completed (finished or were cancelled) before the wait completed.  The second
-set, named <code class="docutils literal"><span class="pre">not_done</span></code>, contains uncompleted futures.</p>
-<p><em>timeout</em> can be used to control the maximum number of seconds to wait before
-returning.  <em>timeout</em> can be an int or float.  If <em>timeout</em> is not specified
-or <code class="docutils literal"><span class="pre">None</span></code>, there is no limit to the wait time.</p>
-<p><em>return_when</em> indicates when this function should return.  It must be one of
-the following constants:</p>
+<dd><p><em>fs</em> 로 주어진 여러 (서로 다른 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 인스턴스가 만든 것들도 가능합니다) <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 인스턴스들이 완료할 때 까지 기다립니다. 집합들의 이름있는 2-튜플을 돌려줍니다. <code class="docutils literal"><span class="pre">done</span></code> 이라는 이름의 첫 번째 집합은 대기가 끝나기 전에 완료된 (끝났거나 취소된) 퓨처를 담고있습니다. <code class="docutils literal"><span class="pre">not_done</span></code> 이라는 이름의 두 번째 집합은 완료되지 않은 퓨처를 담고있습니다.</p>
+<p><em>timeout</em> 은 반환하기 전에 대기 할 최대 시간(초)을 제어하는 ​​데 사용할 수 있습니다. <em>timeout</em> 은 int 또는 float가 될 수 있습니다. <em>timeout</em> 이 지정되지 않았거나 <code class="docutils literal"><span class="pre">None</span></code> 인 경우, 대기 시간에는 제한이 없습니다.</p>
+<p><em>return_when</em> 은 이 함수가 언제 반환되어야 하는지를 나타냅니다. 다음 상수 중 하나 여야 합니다:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="42%" />
 <col width="58%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Constant</th>
-<th class="head">Description</th>
+<tr class="row-odd"><th class="head">상수</th>
+<th class="head">설명</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><code class="xref py py-const docutils literal"><span class="pre">FIRST_COMPLETED</span></code></td>
-<td>The function will return when any
-future finishes or is cancelled.</td>
+<td>퓨처가 어느 하나라도 끝나거나 취소 될 때 함수가 반환됩니다.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-const docutils literal"><span class="pre">FIRST_EXCEPTION</span></code></td>
-<td>The function will return when any
-future finishes by raising an
-exception.  If no future raises an
-exception then it is equivalent to
-<code class="xref py py-const docutils literal"><span class="pre">ALL_COMPLETED</span></code>.</td>
+<td>어느 한 퓨처가 예외를 일으켜 완료하면 함수가 반환됩니다. 어떤 퓨처도 예외를 발생시키지 않으면 <code class="xref py py-const docutils literal"><span class="pre">ALL_COMPLETED</span></code> 와 동일합니다.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-const docutils literal"><span class="pre">ALL_COMPLETED</span></code></td>
-<td>The function will return when all
-futures finish or are cancelled.</td>
+<td>모든 퓨처가 끝나거나 취소되면 함수가 반환됩니다.</td>
 </tr>
 </tbody>
 </table>
@@ -509,46 +434,35 @@ futures finish or are cancelled.</td>
 <dl class="function">
 <dt id="concurrent.futures.as_completed">
 <code class="descclassname">concurrent.futures.</code><code class="descname">as_completed</code><span class="sig-paren">(</span><em>fs</em>, <em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.as_completed" title="정의 주소">¶</a></dt>
-<dd><p>Returns an iterator over the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> instances (possibly created by
-different <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> instances) given by <em>fs</em> that yields futures as
-they complete (finished or were cancelled). Any futures given by <em>fs</em> that
-are duplicated will be returned once. Any futures that completed before
-<a class="reference internal" href="#concurrent.futures.as_completed" title="concurrent.futures.as_completed"><code class="xref py py-func docutils literal"><span class="pre">as_completed()</span></code></a> is called will be yielded first.  The returned iterator
-raises a <a class="reference internal" href="#concurrent.futures.TimeoutError" title="concurrent.futures.TimeoutError"><code class="xref py py-exc docutils literal"><span class="pre">concurrent.futures.TimeoutError</span></code></a> if <a class="reference internal" href="stdtypes.html#iterator.__next__" title="iterator.__next__"><code class="xref py py-meth docutils literal"><span class="pre">__next__()</span></code></a>
-is called and the result isn't available after <em>timeout</em> seconds from the
-original call to <a class="reference internal" href="#concurrent.futures.as_completed" title="concurrent.futures.as_completed"><code class="xref py py-func docutils literal"><span class="pre">as_completed()</span></code></a>.  <em>timeout</em> can be an int or float. If
-<em>timeout</em> is not specified or <code class="docutils literal"><span class="pre">None</span></code>, there is no limit to the wait time.</p>
+<dd><p><em>fs</em> 로 주어진 여러 (서로 다른 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal"><span class="pre">Executor</span></code></a> 인스턴스가 만든 것들도 가능합니다) 퓨처들이 완료되는대로 (끝나거나 취소되는대로) 일드하는 <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal"><span class="pre">Future</span></code></a> 인스턴스의 이터레이터를 반환합니다. <em>fs</em> 에 중복된 퓨처가 들어있으면 한 번만 반환됩니다. <a class="reference internal" href="#concurrent.futures.as_completed" title="concurrent.futures.as_completed"><code class="xref py py-func docutils literal"><span class="pre">as_completed()</span></code></a> 가 호출되기 전에 완료한 모든 퓨처들이 먼저 일드됩니다. 반환된 이터레이터는, <a class="reference internal" href="stdtypes.html#iterator.__next__" title="iterator.__next__"><code class="xref py py-meth docutils literal"><span class="pre">__next__()</span></code></a> 가 호출되고, <a class="reference internal" href="#concurrent.futures.as_completed" title="concurrent.futures.as_completed"><code class="xref py py-func docutils literal"><span class="pre">as_completed()</span></code></a> 호출 시점으로 부터 <em>timeout</em> 초 후에 결과를 얻을 수 없는 경우 <a class="reference internal" href="#concurrent.futures.TimeoutError" title="concurrent.futures.TimeoutError"><code class="xref py py-exc docutils literal"><span class="pre">concurrent.futures.TimeoutError</span></code></a> 를 발생시킵니다. <em>timeout</em> 은 int 또는 float가 될 수 있습니다. <em>timeout</em> 이 지정되지 않았거나 <code class="docutils literal"><span class="pre">None</span></code> 인 경우, 대기 시간에는 제한이 없습니다.</p>
 </dd></dl>
 
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
 <dl class="last docutils">
-<dt><span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3148"><strong>PEP 3148</strong></a> -- futures - execute computations asynchronously</dt>
-<dd>The proposal which described this feature for inclusion in the Python
-standard library.</dd>
+<dt><span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3148"><strong>PEP 3148</strong></a> -- 퓨처 - 계산을 비동기적으로 실행</dt>
+<dd>파이썬 표준 라이브러리에 포함시키기 위해, 이 기능을 설명한 제안.</dd>
 </dl>
 </div>
 </div>
 <div class="section" id="exception-classes">
-<h2>17.4.6. Exception classes<a class="headerlink" href="#exception-classes" title="제목 주소">¶</a></h2>
+<h2>17.4.6. 예외 클래스<a class="headerlink" href="#exception-classes" title="제목 주소">¶</a></h2>
 <dl class="exception">
 <dt id="concurrent.futures.CancelledError">
 <em class="property">exception </em><code class="descclassname">concurrent.futures.</code><code class="descname">CancelledError</code><a class="headerlink" href="#concurrent.futures.CancelledError" title="정의 주소">¶</a></dt>
-<dd><p>Raised when a future is cancelled.</p>
+<dd><p>퓨처가 취소 될 때 발생합니다.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="concurrent.futures.TimeoutError">
 <em class="property">exception </em><code class="descclassname">concurrent.futures.</code><code class="descname">TimeoutError</code><a class="headerlink" href="#concurrent.futures.TimeoutError" title="정의 주소">¶</a></dt>
-<dd><p>Raised when a future operation exceeds the given timeout.</p>
+<dd><p>퓨처 연산이 지정된 제한시간을 초과할 때 발생합니다.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="concurrent.futures.BrokenExecutor">
 <em class="property">exception </em><code class="descclassname">concurrent.futures.</code><code class="descname">BrokenExecutor</code><a class="headerlink" href="#concurrent.futures.BrokenExecutor" title="정의 주소">¶</a></dt>
-<dd><p>Derived from <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code></a>, this exception class is raised
-when an executor is broken for some reason, and cannot be used
-to submit or execute new tasks.</p>
+<dd><p><a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code></a> 에서 파생됩니다, 이 예외 클래스는 어떤 이유로 실행기가 망가져서 새 작업을 제출하거나 실행할 수 없을 때 발생합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -557,9 +471,7 @@ to submit or execute new tasks.</p>
 <dl class="exception">
 <dt id="concurrent.futures.thread.BrokenThreadPool">
 <em class="property">exception </em><code class="descclassname">concurrent.futures.thread.</code><code class="descname">BrokenThreadPool</code><a class="headerlink" href="#concurrent.futures.thread.BrokenThreadPool" title="정의 주소">¶</a></dt>
-<dd><p>Derived from <a class="reference internal" href="#concurrent.futures.BrokenExecutor" title="concurrent.futures.BrokenExecutor"><code class="xref py py-exc docutils literal"><span class="pre">BrokenExecutor</span></code></a>, this exception
-class is raised when one of the workers of a <code class="xref py py-class docutils literal"><span class="pre">ThreadPoolExecutor</span></code>
-has failed initializing.</p>
+<dd><p><a class="reference internal" href="#concurrent.futures.BrokenExecutor" title="concurrent.futures.BrokenExecutor"><code class="xref py py-exc docutils literal"><span class="pre">BrokenExecutor</span></code></a> 에서 파생됩니다, 이 예외 클래스는 <code class="xref py py-class docutils literal"><span class="pre">ThreadPoolExecutor</span></code> 의 작업자 중 하나가 초기화에 실패했을 때 발생합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -568,10 +480,7 @@ has failed initializing.</p>
 <dl class="exception">
 <dt id="concurrent.futures.process.BrokenProcessPool">
 <em class="property">exception </em><code class="descclassname">concurrent.futures.process.</code><code class="descname">BrokenProcessPool</code><a class="headerlink" href="#concurrent.futures.process.BrokenProcessPool" title="정의 주소">¶</a></dt>
-<dd><p>Derived from <a class="reference internal" href="#concurrent.futures.BrokenExecutor" title="concurrent.futures.BrokenExecutor"><code class="xref py py-exc docutils literal"><span class="pre">BrokenExecutor</span></code></a> (formerly
-<a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code></a>), this exception class is raised when one of the
-workers of a <code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code> has terminated in a non-clean
-fashion (for example, if it was killed from the outside).</p>
+<dd><p><a class="reference internal" href="#concurrent.futures.BrokenExecutor" title="concurrent.futures.BrokenExecutor"><code class="xref py py-exc docutils literal"><span class="pre">BrokenExecutor</span></code></a> 에서 파생됩니다 (예전에는 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code></a>), 이 예외 클래스는 <code class="xref py py-class docutils literal"><span class="pre">ProcessPoolExecutor</span></code> 의 작업자 중 하나가 깨끗하지 못한 방식으로 (예를 들어, 외부에서 강제 종료된 경우) 종료되었을 때 발생합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.3에 추가.</span></p>
 </div>
@@ -591,16 +500,16 @@ fashion (for example, if it was killed from the outside).</p>
 <li><a class="reference internal" href="#">17.4. <code class="docutils literal"><span class="pre">concurrent.futures</span></code> --- 병렬 작업 시작하기</a><ul>
 <li><a class="reference internal" href="#executor-objects">17.4.1. Executor 객체</a></li>
 <li><a class="reference internal" href="#threadpoolexecutor">17.4.2. ThreadPoolExecutor</a><ul>
-<li><a class="reference internal" href="#threadpoolexecutor-example">17.4.2.1. ThreadPoolExecutor Example</a></li>
+<li><a class="reference internal" href="#threadpoolexecutor-example">17.4.2.1. ThreadPoolExecutor 예제</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#processpoolexecutor">17.4.3. ProcessPoolExecutor</a><ul>
-<li><a class="reference internal" href="#processpoolexecutor-example">17.4.3.1. ProcessPoolExecutor Example</a></li>
+<li><a class="reference internal" href="#processpoolexecutor-example">17.4.3.1. ProcessPoolExecutor 예제</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#future-objects">17.4.4. Future 객체</a></li>
 <li><a class="reference internal" href="#module-functions">17.4.5. 모듈 함수</a></li>
-<li><a class="reference internal" href="#exception-classes">17.4.6. Exception classes</a></li>
+<li><a class="reference internal" href="#exception-classes">17.4.6. 예외 클래스</a></li>
 </ul>
 </li>
 </ul>
