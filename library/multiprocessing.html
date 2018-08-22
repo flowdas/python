@@ -685,7 +685,7 @@
 <p>이 것은, 여러분이 그 자식 프로세스를 조인하려고 하면, 큐에 넣은 모든 할목을 소진시키지 않는한 교착 상태가 발생할 수 있다는 뜻입니다. 마찬가지로, 그 자식 프로세스가 데몬이 아니면 부모 프로세스가 종료시점에 데몬이 아닌 모든 자식들을 조인하려고 할 때 정지 될 수 있습니다.</p>
 <p class="last">관리자를 사용하여 생성 된 큐에는 이 문제가 없습니다. <a class="reference internal" href="#multiprocessing-programming"><span class="std std-ref">프로그래밍 지침</span></a> 를 참조하세요.</p>
 </div>
-<p>프로세스 간 통신을 위해 큐를 사용하는 예는 <a class="reference internal" href="#multiprocessing-examples"><span class="std std-ref">Examples</span></a> 을 참조하십시오.</p>
+<p>프로세스 간 통신을 위해 큐를 사용하는 예는 <a class="reference internal" href="#multiprocessing-examples"><span class="std std-ref">예제</span></a> 을 참조하십시오.</p>
 <dl class="function">
 <dt id="multiprocessing.Pipe">
 <code class="descclassname">multiprocessing.</code><code class="descname">Pipe</code><span class="sig-paren">(</span><span class="optional">[</span><em>duplex</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#multiprocessing.Pipe" title="정의 주소">¶</a></dt>
@@ -2169,70 +2169,39 @@ HELLO WORLD
 </div>
 <div class="section" id="programming-guidelines">
 <span id="multiprocessing-programming"></span><h2>17.2.3. 프로그래밍 지침<a class="headerlink" href="#programming-guidelines" title="제목 주소">¶</a></h2>
-<p>There are certain guidelines and idioms which should be adhered to when using
-<a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a>.</p>
+<p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 를 사용할 때 준수해야 할 지침과 관용구가 있습니다.</p>
 <div class="section" id="all-start-methods">
-<h3>17.2.3.1. All start methods<a class="headerlink" href="#all-start-methods" title="제목 주소">¶</a></h3>
-<p>The following applies to all start methods.</p>
-<p>Avoid shared state</p>
+<h3>17.2.3.1. 모든 시작 방법<a class="headerlink" href="#all-start-methods" title="제목 주소">¶</a></h3>
+<p>다음은 모든 시작 방법에 적용됩니다.</p>
+<p>공유 상태를 피하세요</p>
 <blockquote>
-<div><p>As far as possible one should try to avoid shifting large amounts of data
-between processes.</p>
-<p>It is probably best to stick to using queues or pipes for communication
-between processes rather than using the lower level synchronization
-primitives.</p>
+<div><p>가능한 한 프로세스간에 많은 양의 데이터가 이동하지 않도록 해야합니다.</p>
+<p>저수준 동기화 프리미티브를 사용하기보다, 프로세스 간 통신을 위해 큐나 파이프를 사용하는 것이 아마도 최선입니다.</p>
 </div></blockquote>
-<p>Picklability</p>
+<p>피클 가능성</p>
 <blockquote>
-<div>Ensure that the arguments to the methods of proxies are picklable.</div></blockquote>
-<p>Thread safety of proxies</p>
+<div>프록시 메서드에 대한 인자가 피클 가능한지 확인하십시오.</div></blockquote>
+<p>프록시의 스레드 안전성</p>
 <blockquote>
-<div><p>Do not use a proxy object from more than one thread unless you protect it
-with a lock.</p>
-<p>(There is never a problem with different processes using the <em>same</em> proxy.)</p>
+<div><p>록으로 보호하지 않는 한 둘 이상의 스레드에서 프록시 객체를 사용하지 마십시오.</p>
+<p>(여러 프로세스가 <em>같은</em> 프록시를 사용하는 문제는 존재하지 않습니다.)</p>
 </div></blockquote>
-<p>Joining zombie processes</p>
+<p>좀비 프로세스 조인하기</p>
 <blockquote>
-<div>On Unix when a process finishes but has not been joined it becomes a zombie.
-There should never be very many because each time a new process starts (or
-<a class="reference internal" href="#multiprocessing.active_children" title="multiprocessing.active_children"><code class="xref py py-func docutils literal"><span class="pre">active_children()</span></code></a> is called) all completed processes
-which have not yet been joined will be joined.  Also calling a finished
-process's <a class="reference internal" href="#multiprocessing.Process.is_alive" title="multiprocessing.Process.is_alive"><code class="xref py py-meth docutils literal"><span class="pre">Process.is_alive</span></code></a> will
-join the process.  Even so it is probably good
-practice to explicitly join all the processes that you start.</div></blockquote>
-<p>Better to inherit than pickle/unpickle</p>
+<div>유닉스에서 프로세스가 끝났지만 조인되지 않으면 좀비가 됩니다. 너무 많이 생기지는 않아야하는데, 새로운 프로세스가 시작될 때마다 (또는 <a class="reference internal" href="#multiprocessing.active_children" title="multiprocessing.active_children"><code class="xref py py-func docutils literal"><span class="pre">active_children()</span></code></a> 이 호출 되면) 아직 조인되지 않은 모든 완료된 프로세스를 조인하기 때문입니다. 또한 완료된 프로세스의 <a class="reference internal" href="#multiprocessing.Process.is_alive" title="multiprocessing.Process.is_alive"><code class="xref py py-meth docutils literal"><span class="pre">Process.is_alive</span></code></a> 를 호출하면 조인합니다. 그렇다고 하더라도 여러분이 시작시키는 모든 프로세스를 명시 적으로 조인하는 것이 좋습니다.</div></blockquote>
+<p>피클/언피클보다 상속하는 것이 더 좋습니다.</p>
 <blockquote>
-<div>When using the <em>spawn</em> or <em>forkserver</em> start methods many types
-from <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> need to be picklable so that child
-processes can use them.  However, one should generally avoid
-sending shared objects to other processes using pipes or queues.
-Instead you should arrange the program so that a process which
-needs access to a shared resource created elsewhere can inherit it
-from an ancestor process.</div></blockquote>
-<p>Avoid terminating processes</p>
+<div><em>spawn</em> 이나 <em>forkserver</em> 시작 방법를 사용할 때, <a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 의 여러 형은 자식 프로세스가 사용할 수 있도록 피클 가능할 필요가 있습니다. 그러나, 일반적으로 파이프나 큐를 사용하여 공유 객체를 다른 프로세스로 보내는 것을 피해야합니다. 대신 다른 곳에 만들어진 공유 자원에 접근해야하는 프로세스가 조상 프로세스에서 그 것들을 상속받을 수 있도록 프로그램을 배치해야합니다.</div></blockquote>
+<p>프로세스 강제 종료를 피하세요</p>
 <blockquote>
-<div><p>Using the <a class="reference internal" href="#multiprocessing.Process.terminate" title="multiprocessing.Process.terminate"><code class="xref py py-meth docutils literal"><span class="pre">Process.terminate</span></code></a>
-method to stop a process is liable to
-cause any shared resources (such as locks, semaphores, pipes and queues)
-currently being used by the process to become broken or unavailable to other
-processes.</p>
-<p>Therefore it is probably best to only consider using
-<a class="reference internal" href="#multiprocessing.Process.terminate" title="multiprocessing.Process.terminate"><code class="xref py py-meth docutils literal"><span class="pre">Process.terminate</span></code></a> on processes
-which never use any shared resources.</p>
+<div><p><a class="reference internal" href="#multiprocessing.Process.terminate" title="multiprocessing.Process.terminate"><code class="xref py py-meth docutils literal"><span class="pre">Process.terminate</span></code></a> 메서드를 사용해서 프로세스를 정지시키는 것은, 그 프로세스가 현재 사용하고 있는 공유 자원(가령 록, 세마포어, 파이프, 큐)을 손상시키거나 다른 프로세스에서 사용할 수 없게 만들 수 있습니다.</p>
+<p>따라서, 아마도 어떤 공유 자원도 사용하지 않는 프로세스에만 <a class="reference internal" href="#multiprocessing.Process.terminate" title="multiprocessing.Process.terminate"><code class="xref py py-meth docutils literal"><span class="pre">Process.terminate</span></code></a> 사용을 고려하는 것이 최선일겁니다.</p>
 </div></blockquote>
-<p>Joining processes that use queues</p>
+<p>큐을 사용하는 프로세스 조인하기</p>
 <blockquote>
-<div><p>Bear in mind that a process that has put items in a queue will wait before
-terminating until all the buffered items are fed by the &quot;feeder&quot; thread to
-the underlying pipe.  (The child process can call the
-<a class="reference internal" href="#multiprocessing.Queue.cancel_join_thread" title="multiprocessing.Queue.cancel_join_thread"><code class="xref py py-meth docutils literal"><span class="pre">Queue.cancel_join_thread</span></code></a>
-method of the queue to avoid this behaviour.)</p>
-<p>This means that whenever you use a queue you need to make sure that all
-items which have been put on the queue will eventually be removed before the
-process is joined.  Otherwise you cannot be sure that processes which have
-put items on the queue will terminate.  Remember also that non-daemonic
-processes will be joined automatically.</p>
-<p>An example which will deadlock is the following:</p>
+<div><p>큐에 항목을 넣은 프로세스는 종료되기 전에 버퍼링 된 모든 항목이 &quot;피더&quot; 스레드에 의해 하부 파이프로 공급 될 때까지 대기합니다. (자식 프로세스는 <a class="reference internal" href="#multiprocessing.Queue.cancel_join_thread" title="multiprocessing.Queue.cancel_join_thread"><code class="xref py py-meth docutils literal"><span class="pre">Queue.cancel_join_thread</span></code></a> 메서드를 호출해서 이 동작을 회피할 수 있습니다.)</p>
+<p>이것은, 큐을 사용할 때마다 큐에 넣은 모든 항목이 결국 프로세스가 조인되기 전에 제거되도록해야함을 의미합니다. 그렇지 않으면 큐에 항목을 넣은 프로세스가 종료되리라고 보장할 수 없습니다. 데몬이 아닌 프로세스가 자동으로 조인된다는 것도 기억하세요.</p>
+<p>교착 상태에 빠지는 예는 다음과 같습니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
 
 <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
@@ -2242,30 +2211,21 @@ processes will be joined automatically.</p>
     <span class="n">queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">queue</span><span class="p">,))</span>
     <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-    <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>                    <span class="c1"># this deadlocks</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>                    <span class="c1"># 교착 상태를 만듭니다</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>A fix here would be to swap the last two lines (or simply remove the
-<code class="docutils literal"><span class="pre">p.join()</span></code> line).</p>
+<p>이 문제를 고치는 방법은 마지막 두 줄의 순서를 바꾸는 것입니다 (또는 간단히 <code class="docutils literal"><span class="pre">p.join()</span></code> 줄을 지우는 것입니다).</p>
 </div></blockquote>
-<p>Explicitly pass resources to child processes</p>
+<p>자식 프로세스에 자원을 명시적으로 전달하세요.</p>
 <blockquote>
-<div><p>On Unix using the <em>fork</em> start method, a child process can make
-use of a shared resource created in a parent process using a
-global resource.  However, it is better to pass the object as an
-argument to the constructor for the child process.</p>
-<p>Apart from making the code (potentially) compatible with Windows
-and the other start methods this also ensures that as long as the
-child process is still alive the object will not be garbage
-collected in the parent process.  This might be important if some
-resource is freed when the object is garbage collected in the
-parent process.</p>
-<p>So for instance</p>
+<div><p><em>fork</em> 시작 방법를 사용하는 유닉스에서, 자식 프로세스는 전역 자원을 사용하여 부모 프로세스에서 생성 된 공유 자원을 사용할 수 있습니다. 그러나 자식 프로세스의 생성자에 객체를 인자로 전달하는 것이 더 좋습니다.</p>
+<p>윈도우 및 다른 시작 방법과 (잠재적으로) 호환 될 수있는 코드를 만드는 것 외에도, 이 것은 자식 프로세스가 아직 살아있는 동안 객체가 부모 프로세스에서 가비지 수집되지 않음을 보장합니다. 부모 프로세스에서 그 객체가 가비지 수집 될 때 일부 자원이 해제되면 이것이 중요 할 수 있습니다.</p>
+<p>그래서 예를 들면</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Lock</span>
 
 <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
-    <span class="o">...</span> <span class="n">do</span> <span class="n">something</span> <span class="n">using</span> <span class="s2">&quot;lock&quot;</span> <span class="o">...</span>
+    <span class="o">...</span> <span class="s2">&quot;lock&quot;</span> <span class="n">을</span> <span class="n">사용해서</span> <span class="n">뭔가</span> <span class="n">합니다</span> <span class="o">...</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
@@ -2273,11 +2233,11 @@ parent process.</p>
         <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>should be rewritten as</p>
+<p>는 다음과 같이 다시 써야합니다</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Lock</span>
 
 <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
-    <span class="o">...</span> <span class="n">do</span> <span class="n">something</span> <span class="n">using</span> <span class="s2">&quot;l&quot;</span> <span class="o">...</span>
+    <span class="o">...</span> <span class="s2">&quot;l&quot;</span> <span class="n">을</span> <span class="n">사용해서</span> <span class="n">뭔가</span> <span class="n">합니다</span> <span class="o">...</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
@@ -2286,27 +2246,19 @@ parent process.</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p>Beware of replacing <a class="reference internal" href="sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-data docutils literal"><span class="pre">sys.stdin</span></code></a> with a &quot;file like object&quot;</p>
+<p><a class="reference internal" href="sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-data docutils literal"><span class="pre">sys.stdin</span></code></a> 을 &quot;파일류 객체&quot; 로 교체할 때 조심하세요</p>
 <blockquote>
-<div><p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> originally unconditionally called:</p>
+<div><p><a class="reference internal" href="#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></code></a> 는 원래 무조건적으로 다음과 같이 호출했습니다</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">fileno</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>in the <code class="xref py py-meth docutils literal"><span class="pre">multiprocessing.Process._bootstrap()</span></code> method --- this resulted
-in issues with processes-in-processes. This has been changed to:</p>
+<p><code class="xref py py-meth docutils literal"><span class="pre">multiprocessing.Process._bootstrap()</span></code> 메서드에서 하는 작업입니다 --- 이 것은 손자 프로세스와 관련된 문제로 이어졌습니다. 이것은 다음과 같이 변경되었습니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_RDONLY</span><span class="p">),</span> <span class="n">closefd</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Which solves the fundamental issue of processes colliding with each other
-resulting in a bad file descriptor error, but introduces a potential danger
-to applications which replace <a class="reference internal" href="sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-func docutils literal"><span class="pre">sys.stdin()</span></code></a> with a &quot;file-like object&quot;
-with output buffering.  This danger is that if multiple processes call
-<a class="reference internal" href="io.html#io.IOBase.close" title="io.IOBase.close"><code class="xref py py-meth docutils literal"><span class="pre">close()</span></code></a> on this file-like object, it could result in the same
-data being flushed to the object multiple times, resulting in corruption.</p>
-<p>If you write a file-like object and implement your own caching, you can
-make it fork-safe by storing the pid whenever you append to the cache,
-and discarding the cache when the pid changes. For example:</p>
+<p>이것은 프로세스가 서로 충돌해서 파일 기술자 에러를 일으키는 근본적인 문제를 해결하지만, <a class="reference internal" href="sys.html#sys.stdin" title="sys.stdin"><code class="xref py py-func docutils literal"><span class="pre">sys.stdin()</span></code></a> 을 출력 버퍼링을 사용하는 &quot;파일과 유사한 객체&quot; 로 교체하는 응용 프로그램에 잠재적 위험을 만듭니다. 이 위험은, 다중 프로세스가 이 파일류 객체에 <a class="reference internal" href="io.html#io.IOBase.close" title="io.IOBase.close"><code class="xref py py-meth docutils literal"><span class="pre">close()</span></code></a> 를 호출하면, 같은 데이터가 객체에 여러번 플러시되도록 만들어 손상을 야기할 수 있다는 것입니다.</p>
+<p>파일류 객체를 작성하고 여러분 자신의 캐싱을 구현하면, 캐시에 추가 할 때마다 pid를 저장하고, pid가 변경되면 캐시를 버려서 포크에 안전하게 만들 수 있습니다. 예를 들면:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="k">def</span> <span class="nf">cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">pid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
@@ -2316,34 +2268,24 @@ and discarding the cache when the pid changes. For example:</p>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span>
 </pre></div>
 </div>
-<p>For more information, see <a class="reference external" href="https://bugs.python.org/issue5155">bpo-5155</a>, <a class="reference external" href="https://bugs.python.org/issue5313">bpo-5313</a> and <a class="reference external" href="https://bugs.python.org/issue5331">bpo-5331</a></p>
+<p>자세한 내용은 <a class="reference external" href="https://bugs.python.org/issue5155">bpo-5155</a>, <a class="reference external" href="https://bugs.python.org/issue5313">bpo-5313</a> 및 <a class="reference external" href="https://bugs.python.org/issue5331">bpo-5331</a> 을 참조하십시오.</p>
 </div></blockquote>
 </div>
 <div class="section" id="the-spawn-and-forkserver-start-methods">
-<h3>17.2.3.2. The <em>spawn</em> and <em>forkserver</em> start methods<a class="headerlink" href="#the-spawn-and-forkserver-start-methods" title="제목 주소">¶</a></h3>
-<p>There are a few extra restriction which don't apply to the <em>fork</em>
-start method.</p>
-<p>More picklability</p>
+<h3>17.2.3.2. <em>spawn</em> 과 <em>forkserver</em> 시작 방법<a class="headerlink" href="#the-spawn-and-forkserver-start-methods" title="제목 주소">¶</a></h3>
+<p><em>fork</em> 시작 방법에는 적용되지 않는 몇 가지 추가 제한 사항이 있습니다.</p>
+<p>더 높은 피클 가능성</p>
 <blockquote>
-<div>Ensure that all arguments to <code class="xref py py-meth docutils literal"><span class="pre">Process.__init__()</span></code> are picklable.
-Also, if you subclass <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a> then make sure that
-instances will be picklable when the <a class="reference internal" href="#multiprocessing.Process.start" title="multiprocessing.Process.start"><code class="xref py py-meth docutils literal"><span class="pre">Process.start</span></code></a> method is called.</div></blockquote>
-<p>Global variables</p>
+<div><code class="xref py py-meth docutils literal"><span class="pre">Process.__init__()</span></code> 에 대한 모든 인자가 피클가능한지 확인하십시오. 또한, <a class="reference internal" href="#multiprocessing.Process" title="multiprocessing.Process"><code class="xref py py-class docutils literal"><span class="pre">Process</span></code></a> 의 서브 클래스를 만들면, <a class="reference internal" href="#multiprocessing.Process.start" title="multiprocessing.Process.start"><code class="xref py py-meth docutils literal"><span class="pre">Process.start</span></code></a> 메서드가 호출될 때 그 인스턴스가 피클 가능하도록 해야 합니다.</div></blockquote>
+<p>전역 변수</p>
 <blockquote>
-<div><p>Bear in mind that if code run in a child process tries to access a global
-variable, then the value it sees (if any) may not be the same as the value
-in the parent process at the time that <a class="reference internal" href="#multiprocessing.Process.start" title="multiprocessing.Process.start"><code class="xref py py-meth docutils literal"><span class="pre">Process.start</span></code></a> was called.</p>
-<p>However, global variables which are just module level constants cause no
-problems.</p>
+<div><p>자식 프로세스에서 실행되는 코드가 전역 변수에 접근하려고 시도하면, 그 값은 (있는 경우) <a class="reference internal" href="#multiprocessing.Process.start" title="multiprocessing.Process.start"><code class="xref py py-meth docutils literal"><span class="pre">Process.start</span></code></a> 가 호출되는 시점의 부모 프로세스의 값과 같지 않을 수 있습니다.</p>
+<p>하지만, 모듈 수준의 상수인 전역 변수는 문제가 되지 않습니다.</p>
 </div></blockquote>
-<p>Safe importing of main module</p>
+<p>메인 모듈의 안전한 임포트</p>
 <blockquote>
-<div><p>Make sure that the main module can be safely imported by a new Python
-interpreter without causing unintended side effects (such a starting a new
-process).</p>
-<p>For example, using the <em>spawn</em> or <em>forkserver</em> start method
-running the following module would fail with a
-<a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code></a>:</p>
+<div><p>메인 모듈이 의도하지 않은 부작용(가령 새 프로세스 시작)을 야기하지 않고 새 파이썬 인터프리터가 안전하게 임포트할 수 있는지 확인하십시오.</p>
+<p>예를 들어, <em>spawn</em> 또는 <em>forkserver</em> 시작 방법를 사용해서 다음 모듈을 실행하면 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code></a> 로 실패합니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
 
 <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
@@ -2353,8 +2295,7 @@ running the following module would fail with a
 <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Instead one should protect the &quot;entry point&quot; of the program by using <code class="docutils literal"><span class="pre">if</span>
-<span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__':</span></code> as follows:</p>
+<p>대신 다음과 같이 <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__':</span></code> 을 사용하여 프로그램의 &quot;진입 지점&quot; 을 보호해야합니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">freeze_support</span><span class="p">,</span> <span class="n">set_start_method</span>
 
 <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
@@ -2367,18 +2308,15 @@ running the following module would fail with a
     <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>(The <code class="docutils literal"><span class="pre">freeze_support()</span></code> line can be omitted if the program will be run
-normally instead of frozen.)</p>
-<p>This allows the newly spawned Python interpreter to safely import the module
-and then run the module's <code class="docutils literal"><span class="pre">foo()</span></code> function.</p>
-<p>Similar restrictions apply if a pool or manager is created in the main
-module.</p>
+<p>(<code class="docutils literal"><span class="pre">freeze_support()</span></code> 줄은 프로그램이 프로즌되지 않고 정상적으로 실행될 경우 생략 될 수 있습니다.)</p>
+<p>이것은 새로 스폰된 파이썬 인터프리터가 모듈을 안전하게 임포트한 다음 모듈의 <code class="docutils literal"><span class="pre">foo()</span></code> 함수를 ​​실행할 수있게 해줍니다.</p>
+<p>메인 모듈에서 풀이나 관리자를 만들면 비슷한 제한이 적용됩니다.</p>
 </div></blockquote>
 </div>
 </div>
 <div class="section" id="examples">
-<span id="multiprocessing-examples"></span><h2>17.2.4. Examples<a class="headerlink" href="#examples" title="제목 주소">¶</a></h2>
-<p>Demonstration of how to create and use customized managers and proxies:</p>
+<span id="multiprocessing-examples"></span><h2>17.2.4. 예제<a class="headerlink" href="#examples" title="제목 주소">¶</a></h2>
+<p>사용자 정의된 관리자와 프록시를 만들고 사용하는 방법에 대한 시연:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">freeze_support</span>
 <span class="kn">from</span> <span class="nn">multiprocessing.managers</span> <span class="k">import</span> <span class="n">BaseManager</span><span class="p">,</span> <span class="n">BaseProxy</span>
 <span class="kn">import</span> <span class="nn">operator</span>
@@ -2387,18 +2325,18 @@ module.</p>
 
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;you called Foo.f()&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Foo.f() 를 호출했습니다&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;you called Foo.g()&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Foo.g() 를 호출했습니다&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_h</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;you called Foo._h()&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Foo._h() 를 호출했습니다&#39;</span><span class="p">)</span>
 
-<span class="c1"># A simple generator function</span>
+<span class="c1"># 간단한 제너레이터 함수</span>
 <span class="k">def</span> <span class="nf">baz</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
         <span class="k">yield</span> <span class="n">i</span><span class="o">*</span><span class="n">i</span>
 
-<span class="c1"># Proxy type for generator objects</span>
+<span class="c1"># 제너레이터 객체의 프록시 형</span>
 <span class="k">class</span> <span class="nc">GeneratorProxy</span><span class="p">(</span><span class="n">BaseProxy</span><span class="p">):</span>
     <span class="n">_exposed_</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;__next__&#39;</span><span class="p">]</span>
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2406,7 +2344,7 @@ module.</p>
     <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callmethod</span><span class="p">(</span><span class="s1">&#39;__next__&#39;</span><span class="p">)</span>
 
-<span class="c1"># Function to return the operator module</span>
+<span class="c1"># operator 모듈을 반환하는 함수</span>
 <span class="k">def</span> <span class="nf">get_operator_module</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">operator</span>
 
@@ -2415,16 +2353,16 @@ module.</p>
 <span class="k">class</span> <span class="nc">MyManager</span><span class="p">(</span><span class="n">BaseManager</span><span class="p">):</span>
     <span class="k">pass</span>
 
-<span class="c1"># register the Foo class; make `f()` and `g()` accessible via proxy</span>
+<span class="c1"># Foo 클래스를 등록합니다; 프록시가 `f()` 와 `g()` 에 접근할 수 있게 합니다</span>
 <span class="n">MyManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;Foo1&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">)</span>
 
-<span class="c1"># register the Foo class; make `g()` and `_h()` accessible via proxy</span>
+<span class="c1"># Foo 클래스를 등록합니다; 프록시가 `g()` 와 `_h()` 에 접근할 수 있게 합니다</span>
 <span class="n">MyManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;Foo2&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">,</span> <span class="n">exposed</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;_h&#39;</span><span class="p">))</span>
 
-<span class="c1"># register the generator function baz; use `GeneratorProxy` to make proxies</span>
+<span class="c1"># 제너레이터 함수 baz 를 등록합니다; 프록시를 만드는데 `GeneratorProxy` 를 사용합니다</span>
 <span class="n">MyManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;baz&#39;</span><span class="p">,</span> <span class="n">baz</span><span class="p">,</span> <span class="n">proxytype</span><span class="o">=</span><span class="n">GeneratorProxy</span><span class="p">)</span>
 
-<span class="c1"># register get_operator_module(); make public functions accessible via proxy</span>
+<span class="c1"># get_operator_module() 를 등록합니다; 프록시가 공개 함수에 접근할 수 있게 합니다</span>
 <span class="n">MyManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;operator&#39;</span><span class="p">,</span> <span class="n">get_operator_module</span><span class="p">)</span>
 
 <span class="c1">##</span>
@@ -2470,14 +2408,14 @@ module.</p>
     <span class="n">test</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Using <a class="reference internal" href="#multiprocessing.pool.Pool" title="multiprocessing.pool.Pool"><code class="xref py py-class docutils literal"><span class="pre">Pool</span></code></a>:</p>
+<p><a class="reference internal" href="#multiprocessing.pool.Pool" title="multiprocessing.pool.Pool"><code class="xref py py-class docutils literal"><span class="pre">Pool</span></code></a> 사용하기:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="c1">#</span>
-<span class="c1"># Functions used by test code</span>
+<span class="c1"># 테스트 코드가 사용하는 함수</span>
 <span class="c1">#</span>
 
 <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
@@ -2508,16 +2446,16 @@ module.</p>
     <span class="k">pass</span>
 
 <span class="c1">#</span>
-<span class="c1"># Test code</span>
+<span class="c1"># 테스트 코드</span>
 <span class="c1">#</span>
 
 <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
     <span class="n">PROCESSES</span> <span class="o">=</span> <span class="mi">4</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating pool with </span><span class="si">%d</span><span class="s1"> processes</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">PROCESSES</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> 프로세스로 풀을 만듭니다</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">PROCESSES</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">PROCESSES</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
         <span class="c1">#</span>
-        <span class="c1"># Tests</span>
+        <span class="c1"># 테스트</span>
         <span class="c1">#</span>
 
         <span class="n">TASKS</span> <span class="o">=</span> <span class="p">[(</span><span class="n">mul</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span> <span class="o">+</span> \
@@ -2527,36 +2465,36 @@ module.</p>
         <span class="n">imap_it</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">calculatestar</span><span class="p">,</span> <span class="n">TASKS</span><span class="p">)</span>
         <span class="n">imap_unordered_it</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">calculatestar</span><span class="p">,</span> <span class="n">TASKS</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Ordered results using pool.apply_async():&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pool.apply_async() 를 사용한 순서있는 결과:&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="nb">print</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Ordered results using pool.imap():&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pool.imap() 를 사용한 순서있는 결과:&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imap_it</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unordered results using pool.imap_unordered():&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pool.imap_unordered() 를 사용한 순서없는 결과:&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imap_unordered_it</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Ordered results using pool.map() --- will block till complete:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pool.map() 를 사용한 순서있는 결과 --- 완료할 때까지 블록합니다:&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">calculatestar</span><span class="p">,</span> <span class="n">TASKS</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">()</span>
 
         <span class="c1">#</span>
-        <span class="c1"># Test error handling</span>
+        <span class="c1"># 에러 처리 테스트</span>
         <span class="c1">#</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Testing error handling:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;에러 처리를 검사합니다:&#39;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,)))</span>
         <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Got ZeroDivisionError as expected from pool.apply()&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">pool.apply() 로 부터 기대한 ZeroDivisionError 를 받았습니다&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;expected ZeroDivisionError&#39;</span><span class="p">)</span>
 
@@ -2592,7 +2530,7 @@ module.</p>
         <span class="nb">print</span><span class="p">()</span>
 
         <span class="c1">#</span>
-        <span class="c1"># Testing timeouts</span>
+        <span class="c1"># 시간 제한 테스트</span>
         <span class="c1">#</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Testing ApplyResult.get() with timeout:&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
@@ -2626,15 +2564,14 @@ module.</p>
     <span class="n">test</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>An example showing how to use queues to feed tasks to a collection of worker
-processes and collect the results:</p>
+<p>큐을 사용하여 작업을 작업자 프로세스 집단에 제공하고 결과를 수집하는 방법을 보여주는 예:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">random</span>
 
 <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">current_process</span><span class="p">,</span> <span class="n">freeze_support</span>
 
 <span class="c1">#</span>
-<span class="c1"># Function run by worker processes</span>
+<span class="c1"># 작업자 프로세스가 실행하는 함수</span>
 <span class="c1">#</span>
 
 <span class="k">def</span> <span class="nf">worker</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
@@ -2643,7 +2580,7 @@ processes and collect the results:</p>
         <span class="n">output</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 
 <span class="c1">#</span>
-<span class="c1"># Function used to calculate result</span>
+<span class="c1"># 결과를 계산하는데 사용되는 함수</span>
 <span class="c1">#</span>
 
 <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
@@ -2652,7 +2589,7 @@ processes and collect the results:</p>
         <span class="p">(</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
 
 <span class="c1">#</span>
-<span class="c1"># Functions referenced by tasks</span>
+<span class="c1"># 작업이 참조하는 함수</span>
 <span class="c1">#</span>
 
 <span class="k">def</span> <span class="nf">mul</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
@@ -2672,32 +2609,32 @@ processes and collect the results:</p>
     <span class="n">TASKS1</span> <span class="o">=</span> <span class="p">[(</span><span class="n">mul</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)]</span>
     <span class="n">TASKS2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">plus</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
 
-    <span class="c1"># Create queues</span>
+    <span class="c1"># 큐를 만듭니다</span>
     <span class="n">task_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="n">done_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
 
-    <span class="c1"># Submit tasks</span>
+    <span class="c1"># 작업을 제출합니다</span>
     <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">TASKS1</span><span class="p">:</span>
         <span class="n">task_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
-    <span class="c1"># Start worker processes</span>
+    <span class="c1"># 작업자 프로세스를 시작합니다</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUMBER_OF_PROCESSES</span><span class="p">):</span>
         <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">worker</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">task_queue</span><span class="p">,</span> <span class="n">done_queue</span><span class="p">))</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="c1"># Get and print results</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unordered results:&#39;</span><span class="p">)</span>
+    <span class="c1"># 결과를 갖고와서 인쇄합니다</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;순서없는 결과:&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">TASKS1</span><span class="p">)):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">done_queue</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-    <span class="c1"># Add more tasks using `put()`</span>
+    <span class="c1"># `put()` 을 사용해서 작업을 추가합니다</span>
     <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">TASKS2</span><span class="p">:</span>
         <span class="n">task_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
-    <span class="c1"># Get and print some more results</span>
+    <span class="c1"># 결과를 더 갖고와서 인쇄합니다</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">TASKS2</span><span class="p">)):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">done_queue</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-    <span class="c1"># Tell child processes to stop</span>
+    <span class="c1"># 자식 프로세스에게 정지하라고 알립니다</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUMBER_OF_PROCESSES</span><span class="p">):</span>
         <span class="n">task_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;STOP&#39;</span><span class="p">)</span>
 
@@ -2758,11 +2695,11 @@ processes and collect the results:</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#programming-guidelines">17.2.3. 프로그래밍 지침</a><ul>
-<li><a class="reference internal" href="#all-start-methods">17.2.3.1. All start methods</a></li>
-<li><a class="reference internal" href="#the-spawn-and-forkserver-start-methods">17.2.3.2. The <em>spawn</em> and <em>forkserver</em> start methods</a></li>
+<li><a class="reference internal" href="#all-start-methods">17.2.3.1. 모든 시작 방법</a></li>
+<li><a class="reference internal" href="#the-spawn-and-forkserver-start-methods">17.2.3.2. <em>spawn</em> 과 <em>forkserver</em> 시작 방법</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#examples">17.2.4. Examples</a></li>
+<li><a class="reference internal" href="#examples">17.2.4. 예제</a></li>
 </ul>
 </li>
 </ul>
