@@ -343,7 +343,7 @@ float 로 변환한 값으로 계산한 후 float 값을 돌려줍니다.</p>
 <span class="gr">DivisionByZero</span>: <span class="n">x / 0</span>
 </pre></div>
 </div>
-<p>컨텍스트에는 계산 중에 발생하는 예외 조건을 모니터링하기위한 신호 플래그도 있습니다. 플래그는 명시 적으로 지워질 때까지 설정된 상태로 유지되므로, <code class="xref py py-meth docutils literal"><span class="pre">clear_flags()</span></code> 메소드를 사용하여 모니터링되는 각 계산 집합 앞에서 플래그를 지우는 것이 가장 좋습니다.</p>
+<p>컨텍스트에는 계산 중에 발생하는 예외 조건을 모니터링하기위한 신호 플래그도 있습니다. 플래그는 명시 적으로 지워질 때까지 설정된 상태로 유지되므로, <code class="xref py py-meth docutils literal"><span class="pre">clear_flags()</span></code> 메서드를 사용하여 모니터링되는 각 계산 집합 앞에서 플래그를 지우는 것이 가장 좋습니다.</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">setcontext</span><span class="p">(</span><span class="n">ExtendedContext</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">clear_flags</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="mi">355</span><span class="p">)</span> <span class="o">/</span> <span class="n">Decimal</span><span class="p">(</span><span class="mi">113</span><span class="p">)</span>
@@ -440,24 +440,30 @@ float 로 변환한 값으로 계산한 후 float 값을 돌려줍니다.</p>
 <dl class="method">
 <dt id="decimal.Decimal.adjusted">
 <code class="descname">adjusted</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.adjusted" title="정의 주소">¶</a></dt>
-<dd><p>Return the adjusted exponent after shifting out the coefficient's
-rightmost digits until only the lead digit remains:
-<code class="docutils literal"><span class="pre">Decimal('321e+5').adjusted()</span></code> returns seven.  Used for determining the
-position of the most significant digit with respect to the decimal point.</p>
+<dd><p>최상위 숫자만 남을 때까지 계수의 가장 오른쪽 숫자들을 밀어내도록 조정된 지수를 반환합니다. <code class="docutils literal"><span class="pre">Decimal('321e+5').adjusted()</span></code> 는 7을 반환합니다. 소수점으로 부터의 최상위 유효 숫자의 위치를 ​​결정하는 데 사용됩니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">'321e+5' 를 '3.21e+7' 로 변환한 후에 <cite>7</cite> 을 취한다는 뜻입니다.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="decimal.Decimal.as_integer_ratio">
 <code class="descname">as_integer_ratio</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.as_integer_ratio" title="정의 주소">¶</a></dt>
-<dd><p>Return a pair <code class="docutils literal"><span class="pre">(n,</span> <span class="pre">d)</span></code> of integers that represent the given
-<a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> instance as a fraction, in lowest terms and
-with a positive denominator:</p>
+<dd><p>주어진 <a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> 인스턴스를, 분모가 양수인 기약 분수로 나타내는 정수의 쌍 <code class="docutils literal"><span class="pre">(n,</span> <span class="pre">d)</span></code> 을 돌려줍니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;-3.14&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">as_integer_ratio</span><span class="p">()</span>
 <span class="go">(-157, 50)</span>
 </pre></div>
 </div>
-<p>The conversion is exact.  Raise OverflowError on infinities and ValueError
-on NaNs.</p>
+<p>변환은 정확합니다. 무한대는 OverflowError를, NaN 은 ValueError를 일으킵니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>이 변환이 정확하기는 하지만, 기약 분수를 만들기 때문에 유효 숫자를 모두 보존하지는 않습니다.</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;-3.140&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">as_integer_ratio</span><span class="p">()</span>
+<span class="go">(-157, 50)</span>
+</pre></div>
+</div>
+</div>
 </dd></dl>
 
 <div class="versionadded">
@@ -466,73 +472,60 @@ on NaNs.</p>
 <dl class="method">
 <dt id="decimal.Decimal.as_tuple">
 <code class="descname">as_tuple</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.as_tuple" title="정의 주소">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">named tuple</span></a> representation of the number:
-<code class="docutils literal"><span class="pre">DecimalTuple(sign,</span> <span class="pre">digits,</span> <span class="pre">exponent)</span></code>.</p>
+<dd><p>숫자의 <a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">네임드 튜플</span></a> 표현을 반환합니다: <code class="docutils literal"><span class="pre">DecimalTuple(sign,</span> <span class="pre">digits,</span> <span class="pre">exponent)</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="decimal.Decimal.canonical">
 <code class="descname">canonical</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.canonical" title="정의 주소">¶</a></dt>
-<dd><p>Return the canonical encoding of the argument.  Currently, the encoding of
-a <a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> instance is always canonical, so this operation returns
-its argument unchanged.</p>
+<dd><p>인자의 규범적인 인코딩을 돌려줍니다. 현재 <a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> 인스턴스의 인코딩은 항상 규범적이므로, 이 연산은 인자를 변경하지 않고 반환합니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="decimal.Decimal.compare">
 <code class="descname">compare</code><span class="sig-paren">(</span><em>other</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.compare" title="정의 주소">¶</a></dt>
-<dd><p>Compare the values of two Decimal instances.  <a class="reference internal" href="#decimal.Decimal.compare" title="decimal.Decimal.compare"><code class="xref py py-meth docutils literal"><span class="pre">compare()</span></code></a> returns a
-Decimal instance, and if either operand is a NaN then the result is a
-NaN:</p>
-<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">NaN</span>  <span class="o">==&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;NaN&#39;</span><span class="p">)</span>
+<dd><p>두 Decimal 인스턴스의 값을 비교합니다. <a class="reference internal" href="#decimal.Decimal.compare" title="decimal.Decimal.compare"><code class="xref py py-meth docutils literal"><span class="pre">compare()</span></code></a> 는 Decimal 인스턴스를 반환하고, 피연산자 중 하나가 NaN이면 결과는 NaN입니다:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="n">나</span> <span class="n">b</span> <span class="n">가</span> <span class="n">NaN</span>     <span class="o">==&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;NaN&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span>            <span class="o">==&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;-1&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">==</span> <span class="n">b</span>           <span class="o">==&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span>            <span class="o">==&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last"><code class="docutils literal"><span class="pre">a.compare(b)</span></code> 의 결과가 어떻게 되는지에 대한 예시입니다.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="decimal.Decimal.compare_signal">
 <code class="descname">compare_signal</code><span class="sig-paren">(</span><em>other</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.compare_signal" title="정의 주소">¶</a></dt>
-<dd><p>This operation is identical to the <a class="reference internal" href="#decimal.Decimal.compare" title="decimal.Decimal.compare"><code class="xref py py-meth docutils literal"><span class="pre">compare()</span></code></a> method, except that all
-NaNs signal.  That is, if neither operand is a signaling NaN then any
-quiet NaN operand is treated as though it were a signaling NaN.</p>
+<dd><p>이 연산은, 모든 NaN 이 신호를 준다는 것을 제외하면 <a class="reference internal" href="#decimal.Decimal.compare" title="decimal.Decimal.compare"><code class="xref py py-meth docutils literal"><span class="pre">compare()</span></code></a> 메서드와 같습니다. 즉, 피연산자가 모두 신호를 주는 NaN이 아니면, 모든 조용한 NaN 피연산자가 마치 신호를 주는 NaN 인 것처럼 처리됩니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="decimal.Decimal.compare_total">
 <code class="descname">compare_total</code><span class="sig-paren">(</span><em>other</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.compare_total" title="정의 주소">¶</a></dt>
-<dd><p>Compare two operands using their abstract representation rather than their
-numerical value.  Similar to the <a class="reference internal" href="#decimal.Decimal.compare" title="decimal.Decimal.compare"><code class="xref py py-meth docutils literal"><span class="pre">compare()</span></code></a> method, but the result
-gives a total ordering on <a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> instances.  Two
-<a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> instances with the same numeric value but different
-representations compare unequal in this ordering:</p>
+<dd><p>두 개의 피연산자를 숫자 값 대신 추상 표현을 사용하여 비교합니다. <a class="reference internal" href="#decimal.Decimal.compare" title="decimal.Decimal.compare"><code class="xref py py-meth docutils literal"><span class="pre">compare()</span></code></a> 메서드와 비슷하지만, 결과는 <a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> 인스턴스에 대해 전 순서(total ordering)를 부여합니다. 같은 숫자 값을 갖지만 다른 표현의 두 <a class="reference internal" href="#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal"><span class="pre">Decimal</span></code></a> 인스턴스는 이 순서에의해 다른 것으로 비교됩니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;12.0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">compare_total</span><span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;12&#39;</span><span class="p">))</span>
 <span class="go">Decimal(&#39;-1&#39;)</span>
 </pre></div>
 </div>
-<p>Quiet and signaling NaNs are also included in the total ordering.  The
-result of this function is <code class="docutils literal"><span class="pre">Decimal('0')</span></code> if both operands have the same
-representation, <code class="docutils literal"><span class="pre">Decimal('-1')</span></code> if the first operand is lower in the
-total order than the second, and <code class="docutils literal"><span class="pre">Decimal('1')</span></code> if the first operand is
-higher in the total order than the second operand.  See the specification
-for details of the total order.</p>
-<p>This operation is unaffected by context and is quiet: no flags are changed
-and no rounding is performed.  As an exception, the C version may raise
-InvalidOperation if the second operand cannot be converted exactly.</p>
+<p>조용한 NaN과 신호를 주는 NaN도 전 순서에 포함됩니다. 이 함수의 결과는, 두 피연산자가 같은 표현을 가질 때 <code class="docutils literal"><span class="pre">Decimal('0')</span></code>, 첫 번째 피연산자가 전 순서에서 두 번째 피연산자보다 낮으면 <code class="docutils literal"><span class="pre">Decimal('-1')</span></code>, 첫 번째 피연산자가 전 순서에서 두 번째 피연산자보다 높으면 <code class="docutils literal"><span class="pre">Decimal('1')</span></code> 입니다. 전 순서에 대한 세부 사항은 명세를 참조하십시오.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p>전 순서에는 유효 숫자와 특수한 값에 대한 정의가 포함되지만, 일반적인 숫자 값의 대소 관계는
+그대로 보존됩니다. 대략 이런 순서를 갖도록 정의됩니다.</p>
+<p class="last"><code class="docutils literal"><span class="pre">-NaN</span> <span class="pre">-sNaN</span> <span class="pre">-Infinity</span> <span class="pre">-127</span> <span class="pre">-1.00</span> <span class="pre">-1</span> <span class="pre">-0.000</span> <span class="pre">-0</span> <span class="pre">0</span> <span class="pre">1.2300</span> <span class="pre">1.23</span> <span class="pre">1E+9</span> <span class="pre">Infinity</span> <span class="pre">sNaN</span> <span class="pre">NaN</span></code></p>
+</div>
+<p>이 연산은 컨텍스트의 영향을받지 않고, 조용합니다: 어떤 플래그도 변경되지 않고, 어떤 자리 올림도 수행되지 않습니다. 예외적으로, 두 번째 피연산자를 정확하게 변환할 수 없으면 C 버전은 InvalidOperation을 발생시킬 수 있습니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="decimal.Decimal.compare_total_mag">
 <code class="descname">compare_total_mag</code><span class="sig-paren">(</span><em>other</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.compare_total_mag" title="정의 주소">¶</a></dt>
-<dd><p>Compare two operands using their abstract representation rather than their
-value as in <a class="reference internal" href="#decimal.Decimal.compare_total" title="decimal.Decimal.compare_total"><code class="xref py py-meth docutils literal"><span class="pre">compare_total()</span></code></a>, but ignoring the sign of each operand.
-<code class="docutils literal"><span class="pre">x.compare_total_mag(y)</span></code> is equivalent to
-<code class="docutils literal"><span class="pre">x.copy_abs().compare_total(y.copy_abs())</span></code>.</p>
-<p>This operation is unaffected by context and is quiet: no flags are changed
-and no rounding is performed.  As an exception, the C version may raise
-InvalidOperation if the second operand cannot be converted exactly.</p>
+<dd><p><a class="reference internal" href="#decimal.Decimal.compare_total" title="decimal.Decimal.compare_total"><code class="xref py py-meth docutils literal"><span class="pre">compare_total()</span></code></a> 처럼 두 개의 피연산자를 숫자 값 대신 추상 표현을 사용하여 비교하지만, 각 피연산자의 부호를 무시합니다. <code class="docutils literal"><span class="pre">x.compare_total_mag(y)</span></code> 는 <code class="docutils literal"><span class="pre">x.copy_abs().compare_total(y.copy_abs())</span></code> 와 동등합니다.</p>
+<p>이 연산은 컨텍스트의 영향을받지 않고, 조용합니다: 어떤 플래그도 변경되지 않고, 어떤 자리 올림도 수행되지 않습니다. 예외적으로, 두 번째 피연산자를 정확하게 변환할 수 없으면 C 버전은 InvalidOperation을 발생시킬 수 있습니다.</p>
 </dd></dl>
 
 <dl class="method">
@@ -566,9 +559,7 @@ sign of the second operand.  For example:</p>
 <span class="go">Decimal(&#39;-2.3&#39;)</span>
 </pre></div>
 </div>
-<p>This operation is unaffected by context and is quiet: no flags are changed
-and no rounding is performed.  As an exception, the C version may raise
-InvalidOperation if the second operand cannot be converted exactly.</p>
+<p>이 연산은 컨텍스트의 영향을받지 않고, 조용합니다: 어떤 플래그도 변경되지 않고, 어떤 자리 올림도 수행되지 않습니다. 예외적으로, 두 번째 피연산자를 정확하게 변환할 수 없으면 C 버전은 InvalidOperation을 발생시킬 수 있습니다.</p>
 </dd></dl>
 
 <dl class="method">
@@ -909,9 +900,7 @@ are unchanged.</p>
 <code class="descname">same_quantum</code><span class="sig-paren">(</span><em>other</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decimal.Decimal.same_quantum" title="정의 주소">¶</a></dt>
 <dd><p>Test whether self and other have the same exponent or whether both are
 <code class="xref py py-const docutils literal"><span class="pre">NaN</span></code>.</p>
-<p>This operation is unaffected by context and is quiet: no flags are changed
-and no rounding is performed.  As an exception, the C version may raise
-InvalidOperation if the second operand cannot be converted exactly.</p>
+<p>이 연산은 컨텍스트의 영향을받지 않고, 조용합니다: 어떤 플래그도 변경되지 않고, 어떤 자리 올림도 수행되지 않습니다. 예외적으로, 두 번째 피연산자를 정확하게 변환할 수 없으면 C 버전은 InvalidOperation을 발생시킬 수 있습니다.</p>
 </dd></dl>
 
 <dl class="method">
