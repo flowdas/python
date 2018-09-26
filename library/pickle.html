@@ -328,37 +328,26 @@
 <li>모듈의 최상위 수준에서 정의 된 클래스</li>
 <li>그런 클래스의 인스턴스중에서 <a class="reference internal" href="stdtypes.html#object.__dict__" title="object.__dict__"><code class="xref py py-attr docutils literal"><span class="pre">__dict__</span></code></a> 나 <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 를 호출 한 결과가 피클 가능한 것들 (자세한 내용은 <a class="reference internal" href="#pickle-inst"><span class="std std-ref">Pickling Class Instances</span></a> 절을 참조하세요).</li>
 </ul>
-<p>Attempts to pickle unpicklable objects will raise the <a class="reference internal" href="#pickle.PicklingError" title="pickle.PicklingError"><code class="xref py py-exc docutils literal"><span class="pre">PicklingError</span></code></a>
-exception; when this happens, an unspecified number of bytes may have already
-been written to the underlying file.  Trying to pickle a highly recursive data
-structure may exceed the maximum recursion depth, a <a class="reference internal" href="exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal"><span class="pre">RecursionError</span></code></a> will be
-raised in this case.  You can carefully raise this limit with
-<a class="reference internal" href="sys.html#sys.setrecursionlimit" title="sys.setrecursionlimit"><code class="xref py py-func docutils literal"><span class="pre">sys.setrecursionlimit()</span></code></a>.</p>
-<p>Note that functions (built-in and user-defined) are pickled by &quot;fully qualified&quot;
-name reference, not by value. <a class="footnote-reference" href="#id7" id="id2">[2]</a>  This means that only the function name is
-pickled, along with the name of the module the function is defined in.  Neither
-the function's code, nor any of its function attributes are pickled.  Thus the
-defining module must be importable in the unpickling environment, and the module
-must contain the named object, otherwise an exception will be raised. <a class="footnote-reference" href="#id8" id="id3">[3]</a></p>
-<p>Similarly, classes are pickled by named reference, so the same restrictions in
-the unpickling environment apply.  Note that none of the class's code or data is
-pickled, so in the following example the class attribute <code class="docutils literal"><span class="pre">attr</span></code> is not
-restored in the unpickling environment:</p>
+<p>피클 가능하지 않은 객체를 피클하려고 하면 <a class="reference internal" href="#pickle.PicklingError" title="pickle.PicklingError"><code class="xref py py-exc docutils literal"><span class="pre">PicklingError</span></code></a> 예외가 발생합니다; 이런 일이 일어났을 때, 특정할 수 없는 길이의 바이트열이 하부 파일에 이미 기록되었을 수 있습니다. 매우 재귀적인 데이터 구조를 피클하려고하면 최대 재귀 깊이를 초과 할 수 있고, 이 때 <a class="reference internal" href="exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal"><span class="pre">RecursionError</span></code></a> 가 발생합니다. <a class="reference internal" href="sys.html#sys.setrecursionlimit" title="sys.setrecursionlimit"><code class="xref py py-func docutils literal"><span class="pre">sys.setrecursionlimit()</span></code></a> 을 사용하여이 이 제한을 조심스럽게 올릴 수 있습니다.</p>
+<p>함수(내장 및 사용자 정의)는 값이 아니라 &quot;완전히 정규화 된&quot; 이름 참조로 피클됨에 유의하십시오. <a class="footnote-reference" href="#id7" id="id2">[2]</a> 이것은 함수가 정의된 모듈의 이름과 함께 함수의 이름만 피클된다는 것을 의미합니다. 함수의 코드도 함수 어트리뷰트도 피클되지 않습니다. 따라서 정의하는 모듈은 언피클 환경에서 임토트가능해야하며, 모듈에는 그 이름의 객체가 있어야합니다. 그렇지 않으면 예외가 발생합니다. <a class="footnote-reference" href="#id8" id="id3">[3]</a></p>
+<p>마찬가지로, 클래스는 이름 참조로 피클되므로 언피클링 환경에서 같은 제한이 적용됩니다. 클래스의 코드 나 데이터가 피클되지 않음에 유의하세요. 그래서 다음 예제에서 클래스 어트리뷰트 <code class="docutils literal"><span class="pre">attr</span></code> 은 언피클링 환경에서 복원되지 않습니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
     <span class="n">attr</span> <span class="o">=</span> <span class="s1">&#39;A class attribute&#39;</span>
 
 <span class="n">picklestring</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>These restrictions are why picklable functions and classes must be defined in
-the top level of a module.</p>
-<p>Similarly, when class instances are pickled, their class's code and data are not
-pickled along with them.  Only the instance data are pickled.  This is done on
-purpose, so you can fix bugs in a class or add methods to the class and still
-load objects that were created with an earlier version of the class.  If you
-plan to have long-lived objects that will see many versions of a class, it may
-be worthwhile to put a version number in the objects so that suitable
-conversions can be made by the class's <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a> method.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">이 예는 약간 오해의 소지가 있습니다. <code class="docutils literal"><span class="pre">picklestring</span></code> 에 <code class="docutils literal"><span class="pre">attr</span></code> 어트리뷰트의 값이 포함되지
+않는 것은 맞습니다만, 언피클했을 때 <code class="docutils literal"><span class="pre">attr</span></code> 어트리뷰트가 사라지는 것은 아닙니다. 피클 데이터는
+<code class="docutils literal"><span class="pre">Foo</span></code> 의 이름 참조만을 포함하고, 언피클하면 <code class="docutils literal"><span class="pre">Foo</span></code> 클래스에 대한 참조로 복원됩니다.
+따라서 언피클 환경이 같은 <code class="docutils literal"><span class="pre">Foo</span></code> 의 정의를 포함하고 있다면 <code class="docutils literal"><span class="pre">attr</span></code> 어트리뷰트 역시 제공됩니다.
+다만 <code class="docutils literal"><span class="pre">attr</span></code> 어트리뷰트가 수정되고 있는 상황이라면 피클 시점의 <code class="docutils literal"><span class="pre">attr</span></code> 어트리뷰트의 값이
+복원되지는 않습니다.</p>
+</div>
+<p>이러한 제한이 피클 가능한 함수와 클래스가 모듈의 최상위 수준에서 정의되어야하는 이유입니다.</p>
+<p>마찬가지로, 클래스 인스턴스가 피클될 때, 클래스의 코드와 데이터는 함께 피클되지 않습니다. 인스턴스 데이터 만 피클됩니다. 이는 의도한 것으로, 클래스의 버그를 수정하거나 클래스에 메서드를 추가 할 수 있고, 이전 버전의 클래스로 만들어진 객체를 여전히 로드 할 수 있습니다. 여러 버전의 클래스에 걸치는 수명이 긴 객체를 만들 계획이라면, 클래스의 <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a> 메서드로 적절한 변환을 할 수 있도록 객체에 버전 번호를 넣는 것이 좋습니다.</p>
 </div>
 <div class="section" id="pickling-class-instances">
 <span id="pickle-inst"></span><h2>12.1.5. Pickling Class Instances<a class="headerlink" href="#pickling-class-instances" title="제목 주소">¶</a></h2>
@@ -830,25 +819,23 @@ Also, the <a class="reference internal" href="#module-pickle" title="pickle: Con
 <dd>High-performance serialization of built-in types.</dd>
 </dl>
 </div>
-<p class="rubric">Footnotes</p>
+<p class="rubric">각주</p>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Don't confuse this with the <a class="reference internal" href="marshal.html#module-marshal" title="marshal: Convert Python objects to streams of bytes and back (with different constraints)."><code class="xref py py-mod docutils literal"><span class="pre">marshal</span></code></a> module</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>이것을 <a class="reference internal" href="marshal.html#module-marshal" title="marshal: Convert Python objects to streams of bytes and back (with different constraints)."><code class="xref py py-mod docutils literal"><span class="pre">marshal</span></code></a> 모듈과 혼동하지 마십시오.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>This is why <a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal"><span class="pre">lambda</span></code></a> functions cannot be pickled:  all
-<a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal"><span class="pre">lambda</span></code></a> functions share the same name:  <code class="docutils literal"><span class="pre">&lt;lambda&gt;</span></code>.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>이것이 <a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal"><span class="pre">lambda</span></code></a> 함수가 pickle 될 수 없는 이유입니다: 모든 <a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal"><span class="pre">lambda</span></code></a> 함수는 같은 이름을 공유합니다: <code class="docutils literal"><span class="pre">&lt;lambda&gt;</span></code>.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>The exception raised will likely be an <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal"><span class="pre">ImportError</span></code></a> or an
-<a class="reference internal" href="exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal"><span class="pre">AttributeError</span></code></a> but it could be something else.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>발생하는 예외는 <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal"><span class="pre">ImportError</span></code></a> 나 <a class="reference internal" href="exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal"><span class="pre">AttributeError</span></code></a> 일 가능성이 높지만 그 밖의 다른 것일 수 있습니다.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id9" rules="none">
