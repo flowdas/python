@@ -326,7 +326,7 @@
 <li>모듈의 최상위 수준에서 정의 된 함수 (<a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal"><span class="pre">lambda</span></code></a> 가 아니라 <a class="reference internal" href="../reference/compound_stmts.html#def"><code class="xref std std-keyword docutils literal"><span class="pre">def</span></code></a> 를 사용하는)</li>
 <li>모듈의 최상위 수준에서 정의 된 내장 함수</li>
 <li>모듈의 최상위 수준에서 정의 된 클래스</li>
-<li>그런 클래스의 인스턴스중에서 <a class="reference internal" href="stdtypes.html#object.__dict__" title="object.__dict__"><code class="xref py py-attr docutils literal"><span class="pre">__dict__</span></code></a> 나 <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 를 호출 한 결과가 피클 가능한 것들 (자세한 내용은 <a class="reference internal" href="#pickle-inst"><span class="std std-ref">Pickling Class Instances</span></a> 절을 참조하세요).</li>
+<li>그런 클래스의 인스턴스중에서 <a class="reference internal" href="stdtypes.html#object.__dict__" title="object.__dict__"><code class="xref py py-attr docutils literal"><span class="pre">__dict__</span></code></a> 나 <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 를 호출 한 결과가 피클 가능한 것들 (자세한 내용은 <a class="reference internal" href="#pickle-inst"><span class="std std-ref">클래스 인스턴스 피클링</span></a> 절을 참조하세요).</li>
 </ul>
 <p>피클 가능하지 않은 객체를 피클하려고 하면 <a class="reference internal" href="#pickle.PicklingError" title="pickle.PicklingError"><code class="xref py py-exc docutils literal"><span class="pre">PicklingError</span></code></a> 예외가 발생합니다; 이런 일이 일어났을 때, 특정할 수 없는 길이의 바이트열이 하부 파일에 이미 기록되었을 수 있습니다. 매우 재귀적인 데이터 구조를 피클하려고하면 최대 재귀 깊이를 초과 할 수 있고, 이 때 <a class="reference internal" href="exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal"><span class="pre">RecursionError</span></code></a> 가 발생합니다. <a class="reference internal" href="sys.html#sys.setrecursionlimit" title="sys.setrecursionlimit"><code class="xref py py-func docutils literal"><span class="pre">sys.setrecursionlimit()</span></code></a> 을 사용하여이 이 제한을 조심스럽게 올릴 수 있습니다.</p>
 <p>함수(내장 및 사용자 정의)는 값이 아니라 &quot;완전히 정규화 된&quot; 이름 참조로 피클됨에 유의하십시오. <a class="footnote-reference" href="#id7" id="id2">[2]</a> 이것은 함수가 정의된 모듈의 이름과 함께 함수의 이름만 피클된다는 것을 의미합니다. 함수의 코드도 함수 어트리뷰트도 피클되지 않습니다. 따라서 정의하는 모듈은 언피클 환경에서 임토트가능해야하며, 모듈에는 그 이름의 객체가 있어야합니다. 그렇지 않으면 예외가 발생합니다. <a class="footnote-reference" href="#id8" id="id3">[3]</a></p>
@@ -350,15 +350,9 @@
 <p>마찬가지로, 클래스 인스턴스가 피클될 때, 클래스의 코드와 데이터는 함께 피클되지 않습니다. 인스턴스 데이터 만 피클됩니다. 이는 의도한 것으로, 클래스의 버그를 수정하거나 클래스에 메서드를 추가 할 수 있고, 이전 버전의 클래스로 만들어진 객체를 여전히 로드 할 수 있습니다. 여러 버전의 클래스에 걸치는 수명이 긴 객체를 만들 계획이라면, 클래스의 <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a> 메서드로 적절한 변환을 할 수 있도록 객체에 버전 번호를 넣는 것이 좋습니다.</p>
 </div>
 <div class="section" id="pickling-class-instances">
-<span id="pickle-inst"></span><h2>12.1.5. Pickling Class Instances<a class="headerlink" href="#pickling-class-instances" title="제목 주소">¶</a></h2>
-<p>In this section, we describe the general mechanisms available to you to define,
-customize, and control how class instances are pickled and unpickled.</p>
-<p>In most cases, no additional code is needed to make instances picklable.  By
-default, pickle will retrieve the class and the attributes of an instance via
-introspection. When a class instance is unpickled, its <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method
-is usually <em>not</em> invoked.  The default behaviour first creates an uninitialized
-instance and then restores the saved attributes.  The following code shows an
-implementation of this behaviour:</p>
+<span id="pickle-inst"></span><h2>12.1.5. 클래스 인스턴스 피클링<a class="headerlink" href="#pickling-class-instances" title="제목 주소">¶</a></h2>
+<p>이 절에서는 클래스 인스턴스를 피클 및 언피클하는 방법을 정의, 사용자 정의 및 제어 할 수 있는 일반적인 메커니즘을 설명합니다.</p>
+<p>대부분의 경우, 인스턴스를 피클 가능하게 만드는 데 추가 코드가 필요하지 않습니다. 기본적으로, pickle은 인트로스펙션을 통해 인스턴스의 클래스와 어트리뷰트를 조회합니다. 클래스 인스턴스가 언피클될 때, <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> 메서드는 보통 호출되지 <em>않습니다</em>. 기본 동작은, 먼저 초기화되지 않은 인스턴스를 만든 다음 저장된 어트리뷰트를 복원합니다. 다음 코드는이 동작의 구현을 보여줍니다:</p>
 <div class="highlight-python3"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
 
@@ -368,66 +362,44 @@ implementation of this behaviour:</p>
     <span class="k">return</span> <span class="n">obj</span>
 </pre></div>
 </div>
-<p>Classes can alter the default behaviour by providing one or several special
-methods:</p>
+<p>클래스는 다음과 같은 하나 이상의 특수 메서드를 제공하여 기본 동작을 변경할 수 있습니다:</p>
 <dl class="method">
 <dt id="object.__getnewargs_ex__">
 <code class="descclassname">object.</code><code class="descname">__getnewargs_ex__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#object.__getnewargs_ex__" title="정의 주소">¶</a></dt>
-<dd><p>In protocols 2 and newer, classes that implements the
-<a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> method can dictate the values passed to the
-<a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> method upon unpickling.  The method must return a pair
-<code class="docutils literal"><span class="pre">(args,</span> <span class="pre">kwargs)</span></code> where <em>args</em> is a tuple of positional arguments
-and <em>kwargs</em> a dictionary of named arguments for constructing the
-object.  Those will be passed to the <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> method upon
-unpickling.</p>
-<p>You should implement this method if the <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> method of your
-class requires keyword-only arguments.  Otherwise, it is recommended for
-compatibility to implement <a class="reference internal" href="#object.__getnewargs__" title="object.__getnewargs__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs__()</span></code></a>.</p>
+<dd><p>프로토콜 2 이상에서, <a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> 메서드를 구현하는 클래스는 언피클링 때 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> 메서드에 전달되는 값을 지시 할 수 있습니다. 이 메서드는 <code class="docutils literal"><span class="pre">(args,</span> <span class="pre">kwargs)</span></code> 쌍을 반환해야합니다. <em>args</em> 는 위치 인자의 튜플이고 <em>kwargs</em> 는 이름있는 인자의 딕셔너리인데, 객체를 구성하는데 사용됩니다. 그것들은 언피클링 때 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> 메서드로 전달 될 것입니다.</p>
+<p>클래스의 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> 메서드에 키워드 전용 인자가 필요하면 이 메서드를 구현해야합니다. 그렇지 않으면 호환성을 위해 <a class="reference internal" href="#object.__getnewargs__" title="object.__getnewargs__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs__()</span></code></a> 를 구현하는 것이 좋습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.6으로 변경: </span><a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> is now used in protocols 2 and 3.</p>
+<p><span class="versionmodified">버전 3.6으로 변경: </span><a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> 는 이제 프로토콜 2와 3에서 사용됩니다.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="object.__getnewargs__">
 <code class="descclassname">object.</code><code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#object.__getnewargs__" title="정의 주소">¶</a></dt>
-<dd><p>This method serves a similar purpose as <a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a>, but
-supports only positional arguments.  It must return a tuple of arguments
-<code class="docutils literal"><span class="pre">args</span></code> which will be passed to the <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> method upon unpickling.</p>
-<p><a class="reference internal" href="#object.__getnewargs__" title="object.__getnewargs__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs__()</span></code></a> will not be called if <a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> is
-defined.</p>
+<dd><p>이 메서드는 <a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> 와 비슷한 목적을 수행하지만, 위치 인자 만 지원합니다. 언피클링 때 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal"><span class="pre">__new__()</span></code></a> 메서드에 전달 될 인자의 튜플 <code class="docutils literal"><span class="pre">args</span></code> 를 반환해야합니다.</p>
+<p><a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> 가 정의되면 <a class="reference internal" href="#object.__getnewargs__" title="object.__getnewargs__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs__()</span></code></a> 는 호출되지 않습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.6으로 변경: </span>Before Python 3.6, <a class="reference internal" href="#object.__getnewargs__" title="object.__getnewargs__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs__()</span></code></a> was called instead of
-<a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> in protocols 2 and 3.</p>
+<p><span class="versionmodified">버전 3.6으로 변경: </span>파이썬 3.6 이전에는, 프로토콜 2와 3에서 <a class="reference internal" href="#object.__getnewargs_ex__" title="object.__getnewargs_ex__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs_ex__()</span></code></a> 대신 <a class="reference internal" href="#object.__getnewargs__" title="object.__getnewargs__"><code class="xref py py-meth docutils literal"><span class="pre">__getnewargs__()</span></code></a> 가 호출되었습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="object.__getstate__">
 <code class="descclassname">object.</code><code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#object.__getstate__" title="정의 주소">¶</a></dt>
-<dd><p>Classes can further influence how their instances are pickled; if the class
-defines the method <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a>, it is called and the returned object
-is pickled as the contents for the instance, instead of the contents of the
-instance's dictionary.  If the <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> method is absent, the
-instance's <a class="reference internal" href="stdtypes.html#object.__dict__" title="object.__dict__"><code class="xref py py-attr docutils literal"><span class="pre">__dict__</span></code></a> is pickled as usual.</p>
+<dd><p>클래스는 인스턴스가 피클되는 방식에 더 많은 영향을 줄 수 있습니다; 클래스가 메서드 <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 를 정의하면, 인스턴스의 딕셔너리 내용 대신, 이 메서드가 호출되고 반환된 객체를 인스턴스의 내용으로 피클합니다. <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 메서드가 없다면, 인스턴스의 <a class="reference internal" href="stdtypes.html#object.__dict__" title="object.__dict__"><code class="xref py py-attr docutils literal"><span class="pre">__dict__</span></code></a> 가 평소와 같이 피클됩니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="object.__setstate__">
 <code class="descclassname">object.</code><code class="descname">__setstate__</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#object.__setstate__" title="정의 주소">¶</a></dt>
-<dd><p>Upon unpickling, if the class defines <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a>, it is called with
-the unpickled state.  In that case, there is no requirement for the state
-object to be a dictionary.  Otherwise, the pickled state must be a dictionary
-and its items are assigned to the new instance's dictionary.</p>
+<dd><p>언피클링 때, 클래스가 <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a> 를 정의하면, 그것은 언피클된 상태(state)로 호출됩니다. 이 경우 상태 객체가 딕셔너리일 필요는 없습니다. 그렇지 않으면, 피클된 상태는 딕셔너리여야하고 그 항목이 새 인스턴스의 딕셔너리에 삽입됩니다.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
-<p class="last">If <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> returns a false value, the <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a>
-method will not be called upon unpickling.</p>
+<p class="last"><a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 가 거짓 값을 반환하면, <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a> 메서드가 언피클링 때 호출되지 않습니다.</p>
 </div>
 </dd></dl>
 
-<p>Refer to the section <a class="reference internal" href="#pickle-state"><span class="std std-ref">Handling Stateful Objects</span></a> for more information about how to use
-the methods <a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> and <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a>.</p>
+<p><a class="reference internal" href="#object.__getstate__" title="object.__getstate__"><code class="xref py py-meth docutils literal"><span class="pre">__getstate__()</span></code></a> 와 <a class="reference internal" href="#object.__setstate__" title="object.__setstate__"><code class="xref py py-meth docutils literal"><span class="pre">__setstate__()</span></code></a> 메서드를 사용하는 방법에 대한 더 자세한 정보는 <a class="reference internal" href="#pickle-state"><span class="std std-ref">Handling Stateful Objects</span></a> 절을 참조하십시오.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
 <p class="last">At unpickling time, some methods like <a class="reference internal" href="../reference/datamodel.html#object.__getattr__" title="object.__getattr__"><code class="xref py py-meth docutils literal"><span class="pre">__getattr__()</span></code></a>,
@@ -874,7 +846,7 @@ persistent IDs, the resulting pickle will become unreadable.</td></tr>
 <li><a class="reference internal" href="#data-stream-format">12.1.2. 데이터 스트림 형식</a></li>
 <li><a class="reference internal" href="#module-interface">12.1.3. 모듈 인터페이스</a></li>
 <li><a class="reference internal" href="#what-can-be-pickled-and-unpickled">12.1.4. 어떤 것이 피클되고 언피클될 수 있을까요?</a></li>
-<li><a class="reference internal" href="#pickling-class-instances">12.1.5. Pickling Class Instances</a><ul>
+<li><a class="reference internal" href="#pickling-class-instances">12.1.5. 클래스 인스턴스 피클링</a><ul>
 <li><a class="reference internal" href="#persistence-of-external-objects">12.1.5.1. Persistence of External Objects</a></li>
 <li><a class="reference internal" href="#dispatch-tables">12.1.5.2. Dispatch Tables</a></li>
 <li><a class="reference internal" href="#handling-stateful-objects">12.1.5.3. Handling Stateful Objects</a></li>
