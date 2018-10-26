@@ -107,23 +107,15 @@
   <div class="section" id="event-loop">
 <h1>이벤트 루프<a class="headerlink" href="#event-loop" title="제목 주소">¶</a></h1>
 <p class="rubric">머리말</p>
-<p>The event loop is the core of every asyncio application.
-Event loops run asynchronous tasks and callbacks, perform network
-IO operations, and run subprocesses.</p>
-<p>Application developers should typically use the high-level asyncio functions,
-such as <a class="reference internal" href="asyncio-task.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a>, and should rarely need to reference the loop
-object or call its methods.  This section is intended mostly for authors
-of lower-level code, libraries, and frameworks, who need finer control over
-the event loop behavior.</p>
+<p>이벤트 루프는 모든 asyncio 응용 프로그램의 핵심입니다. 이벤트 루프는 비동기 태스크 및 콜백을 실행하고 네트워크 IO 연산을 수행하며 자식 프로세스를 실행합니다.</p>
+<p>응용 프로그램 개발자는 일반적으로 <a class="reference internal" href="asyncio-task.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a>과 같은 고수준의 asyncio 함수를 사용해야하며, 루프 객체를 참조하거나 메서드를 호출 할 필요가 거의 없습니다. 이 절은 주로 이벤트 루프 동작을 세부적으로 제어해야하는 저수준 코드, 라이브러리 및 프레임 워크의 작성자를 대상으로합니다.</p>
 <p class="rubric">이벤트 루프 얻기</p>
-<p>The following low-level functions can be used to get, set, or create
-an event loop:</p>
+<p>다음 저수준 함수를 사용하여 이벤트 루프를 가져 오거나 설정하거나 만들 수 있습니다.:</p>
 <dl class="function">
 <dt id="asyncio.get_running_loop">
 <code class="descclassname">asyncio.</code><code class="descname">get_running_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.get_running_loop" title="정의 주소">¶</a></dt>
-<dd><p>Return the running event loop in the current OS thread.</p>
-<p>If there is no running event loop a <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> is raised.
-This function can only be called from a coroutine or a callback.</p>
+<dd><p>현재 OS 스레드에서 실행중인 이벤트 루프를 반환합니다.</p>
+<p>실행중인 이벤트 루프가 없으면 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>가 발생합니다. 이 함수는 코루틴이나 콜백에서만 호출 할 수 있습니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -132,79 +124,63 @@ This function can only be called from a coroutine or a callback.</p>
 <dl class="function">
 <dt id="asyncio.get_event_loop">
 <code class="descclassname">asyncio.</code><code class="descname">get_event_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.get_event_loop" title="정의 주소">¶</a></dt>
-<dd><p>Get the current event loop.  If there is no current event loop set
-in the current OS thread and <a class="reference internal" href="#asyncio.set_event_loop" title="asyncio.set_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_event_loop()</span></code></a> has not yet
-been called, asyncio will create a new event loop and set it as the
-current one.</p>
-<p>Because this function has rather complex behavior (especially
-when custom event loop policies are in use), using the
-<a class="reference internal" href="#asyncio.get_running_loop" title="asyncio.get_running_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_running_loop()</span></code></a> function is preferred to <a class="reference internal" href="#asyncio.get_event_loop" title="asyncio.get_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_event_loop()</span></code></a>
-in coroutines and callbacks.</p>
-<p>Consider also using the <a class="reference internal" href="asyncio-task.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a> function instead of using
-lower level functions to manually create and close an event loop.</p>
+<dd><p>현재의 이벤트 루프를 가져옵니다. 현재 OS 스레드에 현재 이벤트 루프가 설정되어 있지 않고 <a class="reference internal" href="#asyncio.set_event_loop" title="asyncio.set_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_event_loop()</span></code></a>가 아직 호출되지 않았으면, asyncio는 새 이벤트 루프를 만들어 현재 이벤트 루프로 설정합니다.</p>
+<p>이 함수는 (특히 사용자 정의 이벤트 루프 정책을 사용할 때) 다소 복잡한 동작을하기 때문에, 코루틴과 콜백에서 <a class="reference internal" href="#asyncio.get_event_loop" title="asyncio.get_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_event_loop()</span></code></a>보다 <a class="reference internal" href="#asyncio.get_running_loop" title="asyncio.get_running_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_running_loop()</span></code></a> 함수를 사용하는 것이 좋습니다.</p>
+<p>저수준 함수를 사용하여 수동으로 이벤트 루프를 만들고 닫는 대신 <a class="reference internal" href="asyncio-task.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a> 함수를 사용하는 것도 고려하십시오.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="asyncio.set_event_loop">
 <code class="descclassname">asyncio.</code><code class="descname">set_event_loop</code><span class="sig-paren">(</span><em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.set_event_loop" title="정의 주소">¶</a></dt>
-<dd><p>Set <em>loop</em> as a current event loop for the current OS thread.</p>
+<dd><p><em>loop</em>를 현재 OS 스레드의 현재 이벤트 루프로 설정합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="asyncio.new_event_loop">
 <code class="descclassname">asyncio.</code><code class="descname">new_event_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.new_event_loop" title="정의 주소">¶</a></dt>
-<dd><p>Create a new event loop object.</p>
+<dd><p>새 이벤트 루프 객체를 만듭니다.</p>
 </dd></dl>
 
-<p>Note that the behaviour of <a class="reference internal" href="#asyncio.get_event_loop" title="asyncio.get_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_event_loop()</span></code></a>, <a class="reference internal" href="#asyncio.set_event_loop" title="asyncio.set_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_event_loop()</span></code></a>,
-and <a class="reference internal" href="#asyncio.new_event_loop" title="asyncio.new_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">new_event_loop()</span></code></a> functions can be altered by
-<a class="reference internal" href="asyncio-policy.html#asyncio-policies"><span class="std std-ref">setting a custom event loop policy</span></a>.</p>
-<p class="rubric">Contents</p>
-<p>This documentation page contains the following sections:</p>
+<p><a class="reference internal" href="#asyncio.get_event_loop" title="asyncio.get_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_event_loop()</span></code></a>, <a class="reference internal" href="#asyncio.set_event_loop" title="asyncio.set_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_event_loop()</span></code></a> 및 <a class="reference internal" href="#asyncio.new_event_loop" title="asyncio.new_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">new_event_loop()</span></code></a> 함수의 동작은 <a class="reference internal" href="asyncio-policy.html#asyncio-policies"><span class="std std-ref">사용자 정의 이벤트 루프 정책 설정</span></a>에 의해 변경 될 수 있음에 유의하십시오.</p>
+<p class="rubric">목차</p>
+<p>이 설명서 페이지는 다음과 같은 절로 구성됩니다:</p>
 <ul class="simple">
-<li>The <a class="reference internal" href="#event-loop-methods">Event Loop Methods</a> section is the reference documentation of
-the event loop APIs;</li>
-<li>The <a class="reference internal" href="#callback-handles">Callback Handles</a> section documents the <a class="reference internal" href="#asyncio.Handle" title="asyncio.Handle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Handle</span></code></a> and
-<a class="reference internal" href="#asyncio.TimerHandle" title="asyncio.TimerHandle"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimerHandle</span></code></a> instances which are returned from scheduling
-methods such as <a class="reference internal" href="#asyncio.loop.call_soon" title="asyncio.loop.call_soon"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_soon()</span></code></a> and <a class="reference internal" href="#asyncio.loop.call_later" title="asyncio.loop.call_later"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_later()</span></code></a>;</li>
-<li>The <a class="reference internal" href="#server-objects">Server Objects</a> section documents types returned from
-event loop methods like <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>;</li>
-<li>The <a class="reference internal" href="#event-loop-implementations">Event Loop Implementations</a> section documents the
-<a class="reference internal" href="#asyncio.SelectorEventLoop" title="asyncio.SelectorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelectorEventLoop</span></code></a> and <a class="reference internal" href="#asyncio.ProactorEventLoop" title="asyncio.ProactorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a> classes;</li>
-<li>The <a class="reference internal" href="#examples">Examples</a> section showcases how to work with some event
-loop APIs.</li>
+<li><a class="reference internal" href="#event-loop-methods">이벤트 루프 메서드</a> 절은 이벤트 루프 API의 레퍼런스 설명서입니다.</li>
+<li><a class="reference internal" href="#callback-handles">콜백 핸들</a> 절은 <a class="reference internal" href="#asyncio.loop.call_soon" title="asyncio.loop.call_soon"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_soon()</span></code></a> 및 <a class="reference internal" href="#asyncio.loop.call_later" title="asyncio.loop.call_later"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_later()</span></code></a>와 같은 스케줄링 메서드에서 반환된 <a class="reference internal" href="#asyncio.Handle" title="asyncio.Handle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Handle</span></code></a> 및 <a class="reference internal" href="#asyncio.TimerHandle" title="asyncio.TimerHandle"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimerHandle</span></code></a> 인스턴스를 설명합니다.</li>
+<li><a class="reference internal" href="#server-objects">서버 객체</a> 절은 <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>와 같은 이벤트 루프 메서드에서 반환되는 형을 설명합니다.</li>
+<li><a class="reference internal" href="#event-loop-implementations">이벤트 루프 구현</a> 절은 <a class="reference internal" href="#asyncio.SelectorEventLoop" title="asyncio.SelectorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelectorEventLoop</span></code></a> 및 <a class="reference internal" href="#asyncio.ProactorEventLoop" title="asyncio.ProactorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a> 클래스를 설명합니다.</li>
+<li><a class="reference internal" href="#examples">예제</a> 절에서는 일부 이벤트 루프 API로 작업하는 방법을 보여줍니다.</li>
 </ul>
 <div class="section" id="event-loop-methods">
 <span id="asyncio-event-loop"></span><h2>이벤트 루프 메서드<a class="headerlink" href="#event-loop-methods" title="제목 주소">¶</a></h2>
-<p>Event loops have <strong>low-level</strong> APIs for the following:</p>
+<p>이벤트 루프에는 다음과 같은 <strong>저수준</strong> API가 있습니다:</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#running-and-stopping-the-loop" id="id1">Running and stopping the loop</a></li>
-<li><a class="reference internal" href="#scheduling-callbacks" id="id2">Scheduling callbacks</a></li>
-<li><a class="reference internal" href="#scheduling-delayed-callbacks" id="id3">Scheduling delayed callbacks</a></li>
-<li><a class="reference internal" href="#creating-futures-and-tasks" id="id4">Creating Futures and Tasks</a></li>
+<li><a class="reference internal" href="#running-and-stopping-the-loop" id="id1">루프 실행 및 중지</a></li>
+<li><a class="reference internal" href="#scheduling-callbacks" id="id2">콜백 스케줄하기</a></li>
+<li><a class="reference internal" href="#scheduling-delayed-callbacks" id="id3">지연된 콜백 스케줄하기</a></li>
+<li><a class="reference internal" href="#creating-futures-and-tasks" id="id4">퓨처와 태스크 만들기</a></li>
 <li><a class="reference internal" href="#opening-network-connections" id="id5">네트워크 연결 열기</a></li>
-<li><a class="reference internal" href="#creating-network-servers" id="id6">Creating network servers</a></li>
+<li><a class="reference internal" href="#creating-network-servers" id="id6">네트워크 서버 만들기</a></li>
 <li><a class="reference internal" href="#transferring-files" id="id7">파일 전송</a></li>
 <li><a class="reference internal" href="#tls-upgrade" id="id8">TLS 업그레이드</a></li>
 <li><a class="reference internal" href="#watching-file-descriptors" id="id9">파일 기술자 관찰하기</a></li>
-<li><a class="reference internal" href="#working-with-socket-objects-directly" id="id10">Working with socket objects directly</a></li>
+<li><a class="reference internal" href="#working-with-socket-objects-directly" id="id10">소켓 객체로 직접 작업하기</a></li>
 <li><a class="reference internal" href="#dns" id="id11">DNS</a></li>
-<li><a class="reference internal" href="#working-with-pipes" id="id12">Working with pipes</a></li>
+<li><a class="reference internal" href="#working-with-pipes" id="id12">파이프로 작업하기</a></li>
 <li><a class="reference internal" href="#unix-signals" id="id13">유닉스 시그널</a></li>
-<li><a class="reference internal" href="#executing-code-in-thread-or-process-pools" id="id14">Executing code in thread or process pools</a></li>
+<li><a class="reference internal" href="#executing-code-in-thread-or-process-pools" id="id14">스레드 또는 프로세스 풀에서 코드를 실행하기</a></li>
 <li><a class="reference internal" href="#error-handling-api" id="id15">에러 처리 API</a></li>
 <li><a class="reference internal" href="#enabling-debug-mode" id="id16">디버그 모드 활성화</a></li>
-<li><a class="reference internal" href="#running-subprocesses" id="id17">Running Subprocesses</a></li>
+<li><a class="reference internal" href="#running-subprocesses" id="id17">자식 프로세스 실행하기</a></li>
 </ul>
 </div>
 <div class="section" id="running-and-stopping-the-loop">
-<h3><a class="toc-backref" href="#id1">Running and stopping the loop</a><a class="headerlink" href="#running-and-stopping-the-loop" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id1">루프 실행 및 중지</a><a class="headerlink" href="#running-and-stopping-the-loop" title="제목 주소">¶</a></h3>
 <dl class="method">
 <dt id="asyncio.loop.run_until_complete">
 <code class="descclassname">loop.</code><code class="descname">run_until_complete</code><span class="sig-paren">(</span><em>future</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.run_until_complete" title="정의 주소">¶</a></dt>
-<dd><p>Run until the <em>future</em> (an instance of <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>) has
-completed.</p>
+<dd><p><em>future</em>(<a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>의 인스턴스)가 완료할 때까지 실행합니다.</p>
 <p>인자가 <a class="reference internal" href="asyncio-task.html#coroutine"><span class="std std-ref">코루틴 객체</span></a> 면, <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Task</span></code></a>로 실행되도록 묵시적으로 스케줄됩니다.</p>
 <p>퓨처의 결과를 반환하거나 퓨처의 예외를 일으킵니다.</p>
 </dd></dl>
@@ -212,16 +188,9 @@ completed.</p>
 <dl class="method">
 <dt id="asyncio.loop.run_forever">
 <code class="descclassname">loop.</code><code class="descname">run_forever</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.run_forever" title="정의 주소">¶</a></dt>
-<dd><p>Run the event loop until <a class="reference internal" href="#asyncio.loop.stop" title="asyncio.loop.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a> is called.</p>
-<p>If <a class="reference internal" href="#asyncio.loop.stop" title="asyncio.loop.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a> is called before <a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_forever()</span></code></a> is called,
-the loop will poll the I/O selector once with a timeout of zero,
-run all callbacks scheduled in response to I/O events (and
-those that were already scheduled), and then exit.</p>
-<p>If <a class="reference internal" href="#asyncio.loop.stop" title="asyncio.loop.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a> is called while <a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_forever()</span></code></a> is running,
-the loop will run the current batch of callbacks and then exit.
-Note that new callbacks scheduled by callbacks will not run in this
-case; instead, they will run the next time <a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_forever()</span></code></a> or
-<a class="reference internal" href="#asyncio.loop.run_until_complete" title="asyncio.loop.run_until_complete"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_until_complete()</span></code></a> is called.</p>
+<dd><p><a class="reference internal" href="#asyncio.loop.stop" title="asyncio.loop.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a>가 호출 될 때까지 이벤트 루프를 실행합니다.</p>
+<p><a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_forever()</span></code></a> 가 호출되기 전에 <a class="reference internal" href="#asyncio.loop.stop" title="asyncio.loop.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a> 이 호출되었으면, 루프는 시간제한 0으로 I/O 셀렉터를 한 번 폴링하고, I/O 이벤트에 따라 스케줄 된 모든 콜백(과 이미 스케줄 된 것들)을 실행한 다음 종료합니다.</p>
+<p>만약 <a class="reference internal" href="#asyncio.loop.stop" title="asyncio.loop.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a> 이 <a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_forever()</span></code></a> 가 실행 중일 때 호출되면, 루프는 현재 걸려있는 콜백들을 실행한 다음 종료합니다. 콜백에 의해 스케줄 되는 새 콜백은 이 경우 실행되지 않습니다; 대신 그것들은 다음에 <a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_forever()</span></code></a>나 <a class="reference internal" href="#asyncio.loop.run_until_complete" title="asyncio.loop.run_until_complete"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_until_complete()</span></code></a>가 호출될 때 실행됩니다.</p>
 <div class="admonition-flowdas admonition">
 <p class="first admonition-title">flowdas</p>
 <p>여기에서 구체적으로 제한하고 있지는 않지만, <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> 에서 제공되는 모든 이벤트 루프는
@@ -270,8 +239,7 @@ case; instead, they will run the next time <a class="reference internal" href="#
 <dt id="asyncio.loop.shutdown_asyncgens">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">shutdown_asyncgens</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.shutdown_asyncgens" title="정의 주소">¶</a></dt>
 <dd><p>현재 열려있는 <a class="reference internal" href="../glossary.html#term-asynchronous-generator"><span class="xref std std-term">비동기 제너레이터</span></a> 객체를 모두 <a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> 호출로 닫도록 스케줄 합니다. 이 메서드를 호출한 후에는, 새 비동기 생성기가 이터레이트 되면 이벤트 루프에서 경고를 보냅니다. 스케줄 된 모든 비동기 제너레이터를 신뢰성 있게 종료하는 데 사용해야 합니다.</p>
-<p>Note that there is no need to call this function when
-<a class="reference internal" href="asyncio-task.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a> is used.</p>
+<p><a class="reference internal" href="asyncio-task.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a>가 사용될 때 이 함수를 호출 할 필요는 없다는 점에 유의하세요.</p>
 <p>예:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_forever</span><span class="p">()</span>
@@ -287,23 +255,21 @@ case; instead, they will run the next time <a class="reference internal" href="#
 
 </div>
 <div class="section" id="scheduling-callbacks">
-<h3><a class="toc-backref" href="#id2">Scheduling callbacks</a><a class="headerlink" href="#scheduling-callbacks" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id2">콜백 스케줄하기</a><a class="headerlink" href="#scheduling-callbacks" title="제목 주소">¶</a></h3>
 <dl class="method">
 <dt id="asyncio.loop.call_soon">
 <code class="descclassname">loop.</code><code class="descname">call_soon</code><span class="sig-paren">(</span><em>callback</em>, <em>*args</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.call_soon" title="정의 주소">¶</a></dt>
-<dd><p>Schedule a <em>callback</em> to be called with <em>args</em> arguments at
-the next iteration of the event loop.</p>
+<dd><p>이벤트 루프의 다음 이터레이션 때 <em>args</em> 인자로 호출할 <em>callback</em>을 스케줄합니다.</p>
 <p>콜백은 등록된 순서대로 호출됩니다. 각 콜백은 정확히 한 번 호출됩니다.</p>
 <p>선택적인 키워드 전용 <em>context</em> 인자는 <em>callback</em> 을 실행할 사용자 정의 <a class="reference internal" href="contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextvars.Context</span></code></a> 를 지정할 수 있게 합니다. <em>context</em> 가 제공되지 않을 때는 현재 컨텍스트가 사용됩니다.</p>
 <p><a class="reference internal" href="#asyncio.Handle" title="asyncio.Handle"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Handle</span></code></a> 인스턴스가 반환되는데, 나중에 콜백을 취소하는 데 사용할 수 있습니다.</p>
-<p>This method is not thread-safe.</p>
+<p>이 메서드는 스레드 안전하지 않습니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="asyncio.loop.call_soon_threadsafe">
 <code class="descclassname">loop.</code><code class="descname">call_soon_threadsafe</code><span class="sig-paren">(</span><em>callback</em>, <em>*args</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.call_soon_threadsafe" title="정의 주소">¶</a></dt>
-<dd><p>A thread-safe variant of <a class="reference internal" href="#asyncio.loop.call_soon" title="asyncio.loop.call_soon"><code class="xref py py-meth docutils literal notranslate"><span class="pre">call_soon()</span></code></a>.  Must be used to
-schedule callbacks <em>from another thread</em>.</p>
+<dd><p>스레드 안전한 <a class="reference internal" href="#asyncio.loop.call_soon" title="asyncio.loop.call_soon"><code class="xref py py-meth docutils literal notranslate"><span class="pre">call_soon()</span></code></a> 변형입니다. <em>다른 스레드에서</em> 콜백을 스케줄하는 데 사용해야합니다.</p>
 <p>설명서의 <a class="reference internal" href="asyncio-dev.html#asyncio-multithreading"><span class="std std-ref">동시성과 다중 스레딩</span></a> 절을 참고하십시오.</p>
 </dd></dl>
 
@@ -312,23 +278,18 @@ schedule callbacks <em>from another thread</em>.</p>
 </div>
 <div class="admonition note" id="asyncio-pass-keywords">
 <p class="first admonition-title">주석</p>
-<p>Most <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> scheduling functions don't allow passing
-keyword arguments.  To do that, use <a class="reference internal" href="functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a>:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># will schedule &quot;print(&quot;Hello&quot;, flush=True)&quot;</span>
+<p>대부분 <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> 스케줄 함수는 키워드 인자 전달을 허용하지 않습니다. 그렇게 하려면 <a class="reference internal" href="functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a>을 사용하십시오:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># &quot;print(&quot;Hello&quot;, flush=True)&quot; 를 스케줄합니다</span>
 <span class="n">loop</span><span class="o">.</span><span class="n">call_soon</span><span class="p">(</span>
     <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
-<p class="last">Using partial objects is usually more convenient than using lambdas,
-as asyncio can render partial objects better in debug and error
-messages.</p>
+<p class="last">asyncio는 디버그 및 오류 메시지에서 partial 객체를 보다 잘 표시할 수 있으므로, partial 객체를 사용하는 것이 람다를 사용하는 것보다 편리합니다.</p>
 </div>
 </div>
 <div class="section" id="scheduling-delayed-callbacks">
-<span id="asyncio-delayed-calls"></span><h3><a class="toc-backref" href="#id3">Scheduling delayed callbacks</a><a class="headerlink" href="#scheduling-delayed-callbacks" title="제목 주소">¶</a></h3>
-<p>Event loop provides mechanisms to schedule callback functions
-to be called at some point in the future.  Event loop uses monotonic
-clocks to track time.</p>
+<span id="asyncio-delayed-calls"></span><h3><a class="toc-backref" href="#id3">지연된 콜백 스케줄하기</a><a class="headerlink" href="#scheduling-delayed-callbacks" title="제목 주소">¶</a></h3>
+<p>이벤트 루프는 콜백 함수가 미래의 어떤 시점에서 호출되도록 스케줄하는 메커니즘을 제공합니다. 이벤트 루프는 단조 시계를 사용하여 시간을 추적합니다.</p>
 <dl class="method">
 <dt id="asyncio.loop.call_later">
 <code class="descclassname">loop.</code><code class="descname">call_later</code><span class="sig-paren">(</span><em>delay</em>, <em>callback</em>, <em>*args</em>, <em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.call_later" title="정의 주소">¶</a></dt>
@@ -341,9 +302,7 @@ clocks to track time.</p>
 <p><span class="versionmodified">버전 3.7으로 변경: </span><em>context</em> 키워드 전용 매개 변수가 추가되었습니다. 자세한 정보는 <span class="target" id="index-9"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0567"><strong>PEP 567</strong></a>을 보십시오.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7.1으로 변경: </span>In Python 3.7.0 and earlier with the default event loop implementation,
-the <em>delay</em> could not exceed one day.
-This has been fixed in Python 3.7.1.</p>
+<p><span class="versionmodified">버전 3.7.1으로 변경: </span>파이썬 3.7.0 및 이전 버전에서 기본 이벤트 루프 구현을 사용할 때, <em>delay</em>는 하루를 초과 할 수 없었습니다. 이 문제는 파이썬 3.7.1에서 수정되었습니다.</p>
 </div>
 </dd></dl>
 
@@ -357,9 +316,7 @@ This has been fixed in Python 3.7.1.</p>
 <p><span class="versionmodified">버전 3.7으로 변경: </span><em>context</em> 키워드 전용 매개 변수가 추가되었습니다. 자세한 정보는 <span class="target" id="index-10"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0567"><strong>PEP 567</strong></a>을 보십시오.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7.1으로 변경: </span>In Python 3.7.0 and earlier with the default event loop implementation,
-the difference between <em>when</em> and the current time could not exceed
-one day.  This has been fixed in Python 3.7.1.</p>
+<p><span class="versionmodified">버전 3.7.1으로 변경: </span>파이썬 3.7.0 및 이전 버전에서 기본 이벤트 루프 구현을 사용할 때, <em>when</em>와 현재 시간의 차이는 하루를 초과 할 수 없었습니다. 이 문제는 파이썬 3.7.1에서 수정되었습니다.</p>
 </div>
 </dd></dl>
 
@@ -379,7 +336,7 @@ one day.  This has been fixed in Python 3.7.1.</p>
 </div>
 </div>
 <div class="section" id="creating-futures-and-tasks">
-<h3><a class="toc-backref" href="#id4">Creating Futures and Tasks</a><a class="headerlink" href="#creating-futures-and-tasks" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id4">퓨처와 태스크 만들기</a><a class="headerlink" href="#creating-futures-and-tasks" title="제목 주소">¶</a></h3>
 <dl class="method">
 <dt id="asyncio.loop.create_future">
 <code class="descclassname">loop.</code><code class="descname">create_future</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.create_future" title="정의 주소">¶</a></dt>
@@ -426,10 +383,10 @@ one day.  This has been fixed in Python 3.7.1.</p>
 <li>연결이 맺어지고, 이를 위한 <a class="reference internal" href="asyncio-protocol.html#asyncio-transport"><span class="std std-ref">트랜스포트(transport)</span></a> 가 만들어집니다.</li>
 <li><em>protocol_factory</em> 가 인자 없이 호출되고, <a class="reference internal" href="asyncio-protocol.html#asyncio-protocol"><span class="std std-ref">프로토콜(protocol)</span></a> 인스턴스를 반환할 것으로 기대됩니다.</li>
 <li>프로토콜 인스턴스는 <code class="xref py py-meth docutils literal notranslate"><span class="pre">connection_made()</span></code> 메서드를 호출함으로써 트랜스포트와 연결됩니다.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code> tuple is returned on success.</li>
+<li>성공하면 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code> 튜플이 반환됩니다.</li>
 </ol>
 <p>만들어진 트랜스포트는 구현 의존적인 양방향 스트림입니다.</p>
-<p>Other arguments:</p>
+<p>다른 인자들:</p>
 <ul>
 <li><p class="first"><em>ssl</em>: 주어지고 거짓이 아니면, SSL/TLS 트랜스포트가 만들어집니다 (기본적으로는 평범한 TCP 트랜스포트가 만들어집니다). <em>ssl</em> 이 <a class="reference internal" href="ssl.html#ssl.SSLContext" title="ssl.SSLContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> 객체면, 트랜스포트를 만들 때 이 컨텍스트가 사용됩니다; <em>ssl</em> 이 <a class="reference internal" href="constants.html#True" title="True"><code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code></a> 면, <a class="reference internal" href="ssl.html#ssl.create_default_context" title="ssl.create_default_context"><code class="xref py py-func docutils literal notranslate"><span class="pre">ssl.create_default_context()</span></code></a> 가 반환하는 기본 컨텍스트가 사용됩니다.</p>
 <div class="admonition seealso">
@@ -437,13 +394,7 @@ one day.  This has been fixed in Python 3.7.1.</p>
 <p class="last"><a class="reference internal" href="ssl.html#ssl-security"><span class="std std-ref">SSL/TLS 보안 고려 사항</span></a></p>
 </div>
 </li>
-<li><p class="first"><em>server_hostname</em> sets or overrides the hostname that the target
-server's certificate will be matched against.  Should only be passed
-if <em>ssl</em> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>.  By default the value of the <em>host</em> argument
-is used.  If <em>host</em> is empty, there is no default and you must pass a
-value for <em>server_hostname</em>.  If <em>server_hostname</em> is an empty
-string, hostname matching is disabled (which is a serious security
-risk, allowing for potential man-in-the-middle attacks).</p>
+<li><p class="first"><em>server_hostname</em>는 대상 서버의 인증서가 일치 될 호스트 이름을 설정하거나 대체합니다. <em>ssl</em>이 <code class="docutils literal notranslate"><span class="pre">None</span></code>이 아닐 때만 전달되어야합니다. 기본적으로 <em>host</em> 인자의 값이 사용됩니다. <em>host</em> 가 비어 있으면, 기본값이 없고 <em>server_hostname</em> 값을 전달해야 합니다. <em>server_hostname</em> 이 빈 문자열이면, 호스트 이름 일치가 비활성화됩니다 (이것은 심각한 보안 위험으로, 잠재적인 중간자 공격을 허용하게 됩니다).</p>
 </li>
 <li><p class="first"><em>family</em>, <em>proto</em>, <em>flags</em> 는 <em>host</em> 결정을 위해 getaddrinfo() 에 전달할 선택적 주소 패밀리, 프로토콜, 플래그입니다. 주어지면, 이것들은 모두 해당하는 <a class="reference internal" href="socket.html#module-socket" title="socket: Low-level networking interface."><code class="xref py py-mod docutils literal notranslate"><span class="pre">socket</span></code></a> 모듈 상수에 대응하는 정수여야 합니다.</p>
 </li>
@@ -458,11 +409,10 @@ risk, allowing for potential man-in-the-middle attacks).</p>
 <p><span class="versionmodified">버전 3.7에 추가: </span><em>ssl_handshake_timeout</em> 매개 변수.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.6으로 변경: </span>The socket option <code class="xref py py-data docutils literal notranslate"><span class="pre">TCP_NODELAY</span></code> is set by default
-for all TCP connections.</p>
+<p><span class="versionmodified">버전 3.6으로 변경: </span>소켓 옵션 <code class="xref py py-data docutils literal notranslate"><span class="pre">TCP_NODELAY</span></code>는 기본적으로 모든 TCP 연결에 대해 설정됩니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.5으로 변경: </span>Added support for SSL/TLS in <a class="reference internal" href="#asyncio.ProactorEventLoop" title="asyncio.ProactorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a>.</p>
+<p><span class="versionmodified">버전 3.5으로 변경: </span><a class="reference internal" href="#asyncio.ProactorEventLoop" title="asyncio.ProactorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a>에 SSL/TLS에 대한 지원이 추가되었습니다.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
@@ -489,8 +439,8 @@ for all TCP connections.</p>
 <a class="reference internal" href="socket.html#socket.SOCK_SEQPACKET" title="socket.SOCK_SEQPACKET"><code class="xref py py-data docutils literal notranslate"><span class="pre">SOCK_SEQPACKET</span></code></a> 을 지원하지 않습니다.</p>
 </div>
 <p><em>protocol_factory</em> 는 반드시 <a class="reference internal" href="asyncio-protocol.html#asyncio-protocol"><span class="std std-ref">프로토콜</span></a> 구현을 반환하는 콜러블이어야 합니다.</p>
-<p>A tuple of <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code> is returned on success.</p>
-<p>Other arguments:</p>
+<p>성공하면 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code> 튜플이 반환됩니다.</p>
+<p>다른 인자들:</p>
 <ul>
 <li><p class="first"><em>local_addr</em> 이 주어지면, 소켓을 로컬에 바인드하는 데 사용되는 <code class="docutils literal notranslate"><span class="pre">(local_host,</span> <span class="pre">local_port)</span></code> 튜플입니다. <em>local_host</em> 와 <em>local_port</em> 는 <a class="reference internal" href="#asyncio.loop.getaddrinfo" title="asyncio.loop.getaddrinfo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getaddrinfo()</span></code></a>를 사용하여 조회됩니다.</p>
 </li>
@@ -529,10 +479,9 @@ for all TCP connections.</p>
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">create_unix_connection</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>path=None</em>, <em>*</em>, <em>ssl=None</em>, <em>sock=None</em>, <em>server_hostname=None</em>, <em>ssl_handshake_timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.create_unix_connection" title="정의 주소">¶</a></dt>
 <dd><p>유닉스 연결을 만듭니다.</p>
 <p>소켓 패밀리는 <a class="reference internal" href="socket.html#socket.AF_UNIX" title="socket.AF_UNIX"><code class="xref py py-data docutils literal notranslate"><span class="pre">AF_UNIX</span></code></a>가 됩니다; 소켓 유형은 <a class="reference internal" href="socket.html#socket.SOCK_STREAM" title="socket.SOCK_STREAM"><code class="xref py py-data docutils literal notranslate"><span class="pre">SOCK_STREAM</span></code></a>이 됩니다.</p>
-<p>A tuple of <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code> is returned on success.</p>
+<p>성공하면 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code> 튜플이 반환됩니다.</p>
 <p><em>path</em> 는 유닉스 도메인 소켓의 이름이며, <em>sock</em> 매개 변수가 지정되지 않으면 필수입니다. 추상 유닉스 소켓, <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>, <a class="reference internal" href="pathlib.html#pathlib.Path" title="pathlib.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> 경로가 지원됩니다.</p>
-<p>See the documentation of the <a class="reference internal" href="#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> method
-for information about arguments to this method.</p>
+<p>이 메서드의 인자에 관한 정보는 <a class="reference internal" href="#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드의 설명서를 참조하십시오.</p>
 <p class="availability">가용성: 유닉스.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가: </span><em>ssl_handshake_timeout</em> 매개 변수.</p>
@@ -544,7 +493,7 @@ for information about arguments to this method.</p>
 
 </div>
 <div class="section" id="creating-network-servers">
-<h3><a class="toc-backref" href="#id6">Creating network servers</a><a class="headerlink" href="#creating-network-servers" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">네트워크 서버 만들기</a><a class="headerlink" href="#creating-network-servers" title="제목 주소">¶</a></h3>
 <dl class="method">
 <dt id="asyncio.loop.create_server">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">create_server</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>host=None</em>, <em>port=None</em>, <em>*</em>, <em>family=socket.AF_UNSPEC</em>, <em>flags=socket.AI_PASSIVE</em>, <em>sock=None</em>, <em>backlog=100</em>, <em>ssl=None</em>, <em>reuse_address=None</em>, <em>reuse_port=None</em>, <em>ssl_handshake_timeout=None</em>, <em>start_serving=True</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.create_server" title="정의 주소">¶</a></dt>
@@ -554,16 +503,11 @@ for information about arguments to this method.</p>
 <ul>
 <li><p class="first"><em>protocol_factory</em> 는 반드시 <a class="reference internal" href="asyncio-protocol.html#asyncio-protocol"><span class="std std-ref">프로토콜</span></a> 구현을 반환하는 콜러블이어야 합니다.</p>
 </li>
-<li><p class="first">The <em>host</em> parameter can be set to several types which determine where
-the server would be listening:</p>
+<li><p class="first"><em>host</em> 매개 변수는 서버가 리스닝할 위치를 결정하는 여러 형으로 설정할 수 있습니다.:</p>
 <ul class="simple">
-<li>If <em>host</em> is a string, the TCP server is bound to a single network
-interface specified by <em>host</em>.</li>
-<li>If <em>host</em> is a sequence of strings, the TCP server is bound to all
-network interfaces specified by the sequence.</li>
-<li>If <em>host</em> is an empty string or <code class="docutils literal notranslate"><span class="pre">None</span></code>, all interfaces are
-assumed and a list of multiple sockets will be returned (most likely
-one for IPv4 and another one for IPv6).</li>
+<li><em>host</em>가 문자열이면, TCP 서버는 <em>host</em>로 지정된 단일 네트워크 인터페이스에 바인딩됩니다.</li>
+<li><em>host</em>가 문자열의 시퀀스면, TCP 서버는 시퀀스로 지정된 모든 네트워크 인터페이스에 바인딩됩니다.</li>
+<li><em>host</em>가 빈 문자열이거나 <code class="docutils literal notranslate"><span class="pre">None</span></code>이면, 모든 인터페이스가 사용되는 것으로 가정하고, 여러 소켓의 리스트가 반환됩니다 (대체로 IPv4 하나와 IPv6 하나).</li>
 </ul>
 </li>
 <li><p class="first"><em>family</em> 는 <a class="reference internal" href="socket.html#socket.AF_INET" title="socket.AF_INET"><code class="xref py py-data docutils literal notranslate"><span class="pre">socket.AF_INET</span></code></a> 또는 <a class="reference internal" href="socket.html#socket.AF_INET6" title="socket.AF_INET6"><code class="xref py py-data docutils literal notranslate"><span class="pre">AF_INET6</span></code></a> 중 하나로 설정되어, 소켓이 IPv4 또는 IPv6을 사용하게 할 수 있습니다. 설정되지 않으면, <em>family</em> 는 호스트 이름에 의해 결정됩니다(기본값 <code class="xref py py-data docutils literal notranslate"><span class="pre">socket.AF_UNSPEC</span></code>).</p>
@@ -593,20 +537,17 @@ one for IPv4 and another one for IPv6).</li>
 <p><span class="versionmodified">버전 3.7에 추가: </span><em>ssl_handshake_timeout</em> 과 <em>start_serving</em> 매개 변수 추가.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.6으로 변경: </span>The socket option <code class="xref py py-data docutils literal notranslate"><span class="pre">TCP_NODELAY</span></code> is set by default
-for all TCP connections.</p>
+<p><span class="versionmodified">버전 3.6으로 변경: </span>소켓 옵션 <code class="xref py py-data docutils literal notranslate"><span class="pre">TCP_NODELAY</span></code>는 기본적으로 모든 TCP 연결에 대해 설정됩니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.5으로 변경: </span>Added support for SSL/TLS in <a class="reference internal" href="#asyncio.ProactorEventLoop" title="asyncio.ProactorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a>.</p>
+<p><span class="versionmodified">버전 3.5으로 변경: </span><a class="reference internal" href="#asyncio.ProactorEventLoop" title="asyncio.ProactorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a>에 SSL/TLS에 대한 지원이 추가되었습니다.</p>
 </div>
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.5.1으로 변경: </span><em>host</em> 매개 변수는 문자열의 시퀀스가 될 수 있습니다.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
-<p class="last">The <a class="reference internal" href="asyncio-stream.html#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a> function is a higher-level alternative API
-that returns a pair of <a class="reference internal" href="asyncio-stream.html#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> and <a class="reference internal" href="asyncio-stream.html#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a>
-that can be used in an async/await code.</p>
+<p class="last"><a class="reference internal" href="asyncio-stream.html#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a> 함수는 async/await 코드에서 사용할 수 있는 <a class="reference internal" href="asyncio-stream.html#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 및 <a class="reference internal" href="asyncio-stream.html#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> 쌍을 반환하는 고수준의 대체 API입니다.</p>
 </div>
 </dd></dl>
 
@@ -615,8 +556,7 @@ that can be used in an async/await code.</p>
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">create_unix_server</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>path=None</em>, <em>*</em>, <em>sock=None</em>, <em>backlog=100</em>, <em>ssl=None</em>, <em>ssl_handshake_timeout=None</em>, <em>start_serving=True</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.create_unix_server" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>와 유사하지만, 소켓 패밀리 <a class="reference internal" href="socket.html#socket.AF_UNIX" title="socket.AF_UNIX"><code class="xref py py-data docutils literal notranslate"><span class="pre">AF_UNIX</span></code></a> 용 입니다.</p>
 <p><em>path</em> 는 유닉스 도메인 소켓의 이름이며, <em>sock</em> 매개 변수가 제공되지 않으면 필수입니다. 추상 유닉스 소켓, <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>, <a class="reference internal" href="pathlib.html#pathlib.Path" title="pathlib.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> 경로가 지원됩니다.</p>
-<p>See the documentation of the <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a> method
-for information about arguments to this method.</p>
+<p>이 메서드의 인자에 대한 정보는 <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a> 메서드의 설명서를 참조하십시오.</p>
 <p class="availability">가용성: 유닉스.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가: </span><em>ssl_handshake_timeout</em> 과 <em>start_serving</em> 매개 변수.</p>
@@ -629,7 +569,7 @@ for information about arguments to this method.</p>
 <dl class="method">
 <dt id="asyncio.loop.connect_accepted_socket">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">connect_accepted_socket</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>sock</em>, <em>*</em>, <em>ssl=None</em>, <em>ssl_handshake_timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.connect_accepted_socket" title="정의 주소">¶</a></dt>
-<dd><p>Wrap an already accepted connection into a transport/protocol pair.</p>
+<dd><p>이미 받아들인 연결을 트랜스포트/프로토콜 쌍으로 래핑합니다.</p>
 <p>이 메서드는 asyncio 밖에서 연결을 받아들이지만, 그 연결을 처리하는데 asyncio 를 사용하는 서버에서 사용됩니다.</p>
 <p>매개 변수:</p>
 <ul class="simple">
@@ -713,22 +653,16 @@ for information about arguments to this method.</p>
 <dd><p><em>fd</em> 파일 기술자가 쓰기 가능한지 관찰하는 것을 중단합니다.</p>
 </dd></dl>
 
-<p>See also <a class="reference internal" href="asyncio-platforms.html#asyncio-platform-support"><span class="std std-ref">Platform Support</span></a> section
-for some limitations of these methods.</p>
+<p>이 메서드의 일부 제한 사항은 <a class="reference internal" href="asyncio-platforms.html#asyncio-platform-support"><span class="std std-ref">플랫폼 지원</span></a> 절을 참조하십시오.</p>
 </div>
 <div class="section" id="working-with-socket-objects-directly">
-<h3><a class="toc-backref" href="#id10">Working with socket objects directly</a><a class="headerlink" href="#working-with-socket-objects-directly" title="제목 주소">¶</a></h3>
-<p>In general, protocol implementations that use transport-based APIs
-such as <a class="reference internal" href="#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> and <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>
-are faster than implementations that work with sockets directly.
-However, there are some use cases when performance is not critical, and
-working with <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket</span></code></a> objects directly is more
-convenient.</p>
+<h3><a class="toc-backref" href="#id10">소켓 객체로 직접 작업하기</a><a class="headerlink" href="#working-with-socket-objects-directly" title="제목 주소">¶</a></h3>
+<p>일반적으로 <a class="reference internal" href="#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 및 <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>와 같은 트랜스포트 기반 API를 사용하는 프로토콜 구현은 소켓을 직접 사용하는 구현보다 빠릅니다. 그러나, 성능이 결정적이지 않고 <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket</span></code></a> 객체로 직접 작업하는 것이 더 편리한 사용 사례가 있습니다.</p>
 <dl class="method">
 <dt id="asyncio.loop.sock_recv">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">sock_recv</code><span class="sig-paren">(</span><em>sock</em>, <em>nbytes</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.sock_recv" title="정의 주소">¶</a></dt>
 <dd><p><em>sock</em> 에서 최대 <em>nbytes</em> 를 수신합니다. <a class="reference internal" href="socket.html#socket.socket.recv" title="socket.socket.recv"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.recv()</span></code></a> 의 비동기 버전.</p>
-<p>Return the received data as a bytes object.</p>
+<p>수신한 데이터를 바이트열 객체로 반환합니다.</p>
 <p><em>sock</em> 은 반드시 비 블로킹 소켓이어야 합니다.</p>
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.7으로 변경: </span>이 메서드가 항상 코루틴 메서드라고 설명되어왔지만, 파이썬 3.7 이전에는 <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>를 반환했습니다. 파이썬 3.7부터, 이것은 <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">def</span></code> 메서드입니다.</p>
@@ -747,7 +681,7 @@ convenient.</p>
 <a class="reference internal" href="socket.html#socket.socket.recvmsg_into" title="socket.socket.recvmsg_into"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.socket.recvmsg_into()</span></code></a> 메서드를 사용하는 Scatter/Gather IO는
 제공되지 않고 있습니다.</p>
 </div>
-<p>Return the number of bytes written to the buffer.</p>
+<p>버퍼에 기록된 바이트 수를 돌려줍니다.</p>
 <p><em>sock</em> 은 반드시 비 블로킹 소켓이어야 합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
@@ -773,7 +707,7 @@ convenient.</p>
 <dl class="method">
 <dt id="asyncio.loop.sock_connect">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">sock_connect</code><span class="sig-paren">(</span><em>sock</em>, <em>address</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.sock_connect" title="정의 주소">¶</a></dt>
-<dd><p>Connect <em>sock</em> to a remote socket at <em>address</em>.</p>
+<dd><p><em>sock</em>을 <em>address</em>에 있는 원격 소켓에 연결합니다.</p>
 <p><a class="reference internal" href="socket.html#socket.socket.connect" title="socket.socket.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.connect()</span></code></a> 의 비동기 버전.</p>
 <p><em>sock</em> 은 반드시 비 블로킹 소켓이어야 합니다.</p>
 <div class="versionchanged">
@@ -832,20 +766,18 @@ convenient.</p>
 </dd></dl>
 
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span><em>getaddrinfo</em> 와 <em>getnameinfo</em> 메서드는 모두 코루틴 메서드라고 설명되어왔지만, 파이썬 3.7 이전에 실제로는 <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> 객체를 반환했습니다. Python 3.7부터 두 가지 메서드 모두 코루틴입니다.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span><em>getaddrinfo</em> 와 <em>getnameinfo</em> 메서드는 모두 코루틴 메서드라고 설명되어왔지만, 파이썬 3.7 이전에 실제로는 <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> 객체를 반환했습니다. 파이썬 3.7부터 두 가지 메서드 모두 코루틴입니다.</p>
 </div>
 </div>
 <div class="section" id="working-with-pipes">
-<h3><a class="toc-backref" href="#id12">Working with pipes</a><a class="headerlink" href="#working-with-pipes" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">파이프로 작업하기</a><a class="headerlink" href="#working-with-pipes" title="제목 주소">¶</a></h3>
 <dl class="method">
 <dt id="asyncio.loop.connect_read_pipe">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">connect_read_pipe</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>pipe</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.connect_read_pipe" title="정의 주소">¶</a></dt>
 <dd><p>이벤트 루프에 <em>pipe</em>의 읽기용 끝을 등록합니다.</p>
 <p><em>protocol_factory</em> 는 반드시 <a class="reference internal" href="asyncio-protocol.html#asyncio-protocol"><span class="std std-ref">asyncio 프로토콜</span></a> 구현을 반환하는 콜러블이어야 합니다.</p>
-<p><em>pipe</em> is a <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">file-like object</span></a>.</p>
-<p>Return pair <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code>, where <em>transport</em> supports
-the <a class="reference internal" href="asyncio-protocol.html#asyncio.ReadTransport" title="asyncio.ReadTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadTransport</span></code></a> interface and <em>protocol</em> is an object
-instantiated by the <em>protocol_factory</em>.</p>
+<p><em>pipe</em>는 <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">파일류 객체</span></a>입니다.</p>
+<p>쌍 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code>를 반환합니다. 여기서 <em>transport</em>는 <a class="reference internal" href="asyncio-protocol.html#asyncio.ReadTransport" title="asyncio.ReadTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadTransport</span></code></a> 인터페이스를 지원하고, <em>protocol</em>은 <em>protocol_factory</em>에 의해 인스턴스로 만들어진 객체입니다.</p>
 <p><a class="reference internal" href="#asyncio.SelectorEventLoop" title="asyncio.SelectorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelectorEventLoop</span></code></a> 이벤트 루프를 사용하면, <em>pipe</em> 는 비 블로킹 모드로 설정됩니다.</p>
 </dd></dl>
 
@@ -854,10 +786,8 @@ instantiated by the <em>protocol_factory</em>.</p>
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">connect_write_pipe</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>pipe</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.connect_write_pipe" title="정의 주소">¶</a></dt>
 <dd><p>이벤트 루프에 <em>pipe</em>의 쓰기용 끝을 등록합니다.</p>
 <p><em>protocol_factory</em> 는 반드시 <a class="reference internal" href="asyncio-protocol.html#asyncio-protocol"><span class="std std-ref">asyncio 프로토콜</span></a> 구현을 반환하는 콜러블이어야 합니다.</p>
-<p><em>pipe</em> is <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">file-like object</span></a>.</p>
-<p>Return pair <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code>, where <em>transport</em> supports
-<a class="reference internal" href="asyncio-protocol.html#asyncio.WriteTransport" title="asyncio.WriteTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriteTransport</span></code></a> interface and <em>protocol</em> is an object
-instantiated by the <em>protocol_factory</em>.</p>
+<p><em>pipe</em>는 <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">파일류 객체</span></a>입니다.</p>
+<p>쌍 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code>를 반환합니다. 여기서 <em>transport</em>는 <a class="reference internal" href="asyncio-protocol.html#asyncio.WriteTransport" title="asyncio.WriteTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriteTransport</span></code></a> 인터페이스를 지원하고, <em>protocol</em>은 <em>protocol_factory</em>에 의해 인스턴스로 만들어진 객체입니다.</p>
 <p><a class="reference internal" href="#asyncio.SelectorEventLoop" title="asyncio.SelectorEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelectorEventLoop</span></code></a> 이벤트 루프를 사용하면, <em>pipe</em> 는 비 블로킹 모드로 설정됩니다.</p>
 </dd></dl>
 
@@ -875,7 +805,7 @@ instantiated by the <em>protocol_factory</em>.</p>
 <dl class="method">
 <dt id="asyncio.loop.add_signal_handler">
 <code class="descclassname">loop.</code><code class="descname">add_signal_handler</code><span class="sig-paren">(</span><em>signum</em>, <em>callback</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.add_signal_handler" title="정의 주소">¶</a></dt>
-<dd><p>Set <em>callback</em> as the handler for the <em>signum</em> signal.</p>
+<dd><p><em>callback</em>을 <em>signum</em> 시그널의 처리기로 설정합니다.</p>
 <p>시그널 번호가 유효하지 않거나 잡을 수 없으면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> 를 발생시킵니다. 처리기를 설정하는 데 문제가 있는 경우 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> 를 발생시킵니다.</p>
 <p><em>func</em> 에 <a class="reference internal" href="#asyncio-pass-keywords"><span class="std std-ref">키워드 인자를 전달하려면</span></a> <a class="reference internal" href="functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a>를 사용하십시오.</p>
 </dd></dl>
@@ -894,7 +824,7 @@ instantiated by the <em>protocol_factory</em>.</p>
 </div>
 </div>
 <div class="section" id="executing-code-in-thread-or-process-pools">
-<h3><a class="toc-backref" href="#id14">Executing code in thread or process pools</a><a class="headerlink" href="#executing-code-in-thread-or-process-pools" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id14">스레드 또는 프로세스 풀에서 코드를 실행하기</a><a class="headerlink" href="#executing-code-in-thread-or-process-pools" title="제목 주소">¶</a></h3>
 <dl class="method">
 <dt id="asyncio.loop.run_in_executor">
 <em class="property">awaitable </em><code class="descclassname">loop.</code><code class="descname">run_in_executor</code><span class="sig-paren">(</span><em>executor</em>, <em>func</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.run_in_executor" title="정의 주소">¶</a></dt>
@@ -905,34 +835,33 @@ instantiated by the <em>protocol_factory</em>.</p>
 <span class="kn">import</span> <span class="nn">concurrent.futures</span>
 
 <span class="k">def</span> <span class="nf">blocking_io</span><span class="p">():</span>
-    <span class="c1"># File operations (such as logging) can block the</span>
-    <span class="c1"># event loop: run them in a thread pool.</span>
+    <span class="c1"># 파일 연산(가령 로깅)은 이벤트 루프를 블록할 수 있습니다:</span>
+    <span class="c1"># 스레드 풀에서 실행하십시오.</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/dev/urandom&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">cpu_bound</span><span class="p">():</span>
-    <span class="c1"># CPU-bound operations will block the event loop:</span>
-    <span class="c1"># in general it is preferable to run them in a</span>
-    <span class="c1"># process pool.</span>
+    <span class="c1"># CPU 병목 작업은 이벤트 루프를 블록합니다:</span>
+    <span class="c1"># 일반적으로 프로세스 풀에서 실행하는 것이 좋습니다.</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">7</span><span class="p">))</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
 
-    <span class="c1">## Options:</span>
+    <span class="c1">## 선택지:</span>
 
-    <span class="c1"># 1. Run in the default loop&#39;s executor:</span>
+    <span class="c1"># 1. 기본 루프의 실행기에서 실행:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span>
         <span class="kc">None</span><span class="p">,</span> <span class="n">blocking_io</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;default thread pool&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
 
-    <span class="c1"># 2. Run in a custom thread pool:</span>
+    <span class="c1"># 2. 사용자 정의 스레드 풀에서 실행:</span>
     <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span>
             <span class="n">pool</span><span class="p">,</span> <span class="n">blocking_io</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;custom thread pool&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
 
-    <span class="c1"># 3. Run in a custom process pool:</span>
+    <span class="c1"># 3. 사용자 정의 프로세스 풀에서 실행:</span>
     <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span>
             <span class="n">pool</span><span class="p">,</span> <span class="n">cpu_bound</span><span class="p">)</span>
@@ -951,16 +880,11 @@ instantiated by the <em>protocol_factory</em>.</p>
 <dl class="method">
 <dt id="asyncio.loop.set_default_executor">
 <code class="descclassname">loop.</code><code class="descname">set_default_executor</code><span class="sig-paren">(</span><em>executor</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.set_default_executor" title="정의 주소">¶</a></dt>
-<dd><p>Set <em>executor</em> as the default executor used by <a class="reference internal" href="#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_in_executor()</span></code></a>.
-<em>executor</em> should be an instance of
-<a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<dd><p><em>executor</em>를 <a class="reference internal" href="#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_in_executor()</span></code></a>에서 사용하는 기본 실행기로 설정합니다. <em>executor</em>는 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>의 인스턴스여야 합니다.</p>
 <div class="deprecated">
-<p><span class="versionmodified">버전 3.7 폐지: </span>Using an executor that is not an instance of
-<a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a> is deprecated and
-will trigger an error in Python 3.9.</p>
+<p><span class="versionmodified">버전 3.7 폐지: </span><a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a> 인스턴스가 아닌 실행기의 사용은 폐지되었고, 파이썬 3.9에서는 에러를 일으키게 됩니다.</p>
 </div>
-<p><em>executor</em> must be an instance of
-<a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ThreadPoolExecutor</span></code></a>.</p>
+<p><em>executor</em>는 반드시 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ThreadPoolExecutor</span></code></a>의 인스턴스여야 합니다.</p>
 </dd></dl>
 
 </div>
@@ -971,13 +895,7 @@ will trigger an error in Python 3.9.</p>
 <dt id="asyncio.loop.set_exception_handler">
 <code class="descclassname">loop.</code><code class="descname">set_exception_handler</code><span class="sig-paren">(</span><em>handler</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.set_exception_handler" title="정의 주소">¶</a></dt>
 <dd><p><em>handler</em> 를 새 이벤트 루프 예외 처리기로 설정합니다.</p>
-<p>If <em>handler</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the default exception handler will
-be set.  Otherwise, <em>handler</em> must be a callable with the signature
-matching <code class="docutils literal notranslate"><span class="pre">(loop,</span> <span class="pre">context)</span></code>, where <code class="docutils literal notranslate"><span class="pre">loop</span></code>
-is a reference to the active event loop, and <code class="docutils literal notranslate"><span class="pre">context</span></code>
-is a <code class="docutils literal notranslate"><span class="pre">dict</span></code> object containing the details of the exception
-(see <a class="reference internal" href="#asyncio.loop.call_exception_handler" title="asyncio.loop.call_exception_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">call_exception_handler()</span></code></a> documentation for details
-about context).</p>
+<p><em>handler</em>가 <code class="docutils literal notranslate"><span class="pre">None</span></code> 이면, 기본 예외 처리기가 설정됩니다. 그렇지 않으면, <em>handler</em>는 반드시 <code class="docutils literal notranslate"><span class="pre">(loop,</span> <span class="pre">context)</span></code> 와 일치하는 서명을 가진 콜러블이어야 합니다. 여기서 <code class="docutils literal notranslate"><span class="pre">loop</span></code>는 활성 이벤트 루프에 대한 참조가 될 것이고, <code class="docutils literal notranslate"><span class="pre">context</span></code> 는 예외에 관한 세부 정보를 담고있는 <code class="docutils literal notranslate"><span class="pre">dict</span></code> 객체가 됩니다 (context에 대한 자세한 내용은 <a class="reference internal" href="#asyncio.loop.call_exception_handler" title="asyncio.loop.call_exception_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">call_exception_handler()</span></code></a> 문서를 참조하십시오).</p>
 </dd></dl>
 
 <dl class="method">
@@ -1032,8 +950,7 @@ about context).</p>
 <code class="descclassname">loop.</code><code class="descname">set_debug</code><span class="sig-paren">(</span><em>enabled: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.set_debug" title="정의 주소">¶</a></dt>
 <dd><p>이벤트 루프의 디버그 모드를 설정합니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span>The new <code class="docutils literal notranslate"><span class="pre">-X</span> <span class="pre">dev</span></code> command line option can now also be used
-to enable the debug mode.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span>이제 새로운 <code class="docutils literal notranslate"><span class="pre">-X</span> <span class="pre">dev</span></code> 명령 줄 옵션을 사용하여 디버그 모드를 활성화할 수 있습니다.</p>
 </div>
 </dd></dl>
 
@@ -1043,26 +960,20 @@ to enable the debug mode.</p>
 </div>
 </div>
 <div class="section" id="running-subprocesses">
-<h3><a class="toc-backref" href="#id17">Running Subprocesses</a><a class="headerlink" href="#running-subprocesses" title="제목 주소">¶</a></h3>
-<p>Methods described in this subsections are low-level.  In regular
-async/await code consider using the high-level
-<a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_shell" title="asyncio.create_subprocess_shell"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_subprocess_shell()</span></code></a> and
-<a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_exec" title="asyncio.create_subprocess_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_subprocess_exec()</span></code></a> convenience functions instead.</p>
+<h3><a class="toc-backref" href="#id17">자식 프로세스 실행하기</a><a class="headerlink" href="#running-subprocesses" title="제목 주소">¶</a></h3>
+<p>이 하위 절에서 설명하는 메서드는 저수준입니다. 일반적인 async/await 코드에서는 대신 고수준의 <a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_shell" title="asyncio.create_subprocess_shell"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_subprocess_shell()</span></code></a> 및 <a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_exec" title="asyncio.create_subprocess_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_subprocess_exec()</span></code></a> 편리 함수를 사용하는 것을 고려하십시오.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
-<p class="last">The default asyncio event loop on <strong>Windows</strong> does not support
-subprocesses. See <a class="reference internal" href="asyncio-platforms.html#asyncio-windows-subprocess"><span class="std std-ref">Subprocess Support on Windows</span></a> for details.</p>
+<p class="last"><strong>Windows</strong> 의 기본 asyncio 이벤트 루프는 자식 프로세스를 지원하지 않습니다. 자세한 내용은 <a class="reference internal" href="asyncio-platforms.html#asyncio-windows-subprocess"><span class="std std-ref">윈도우에서의 자식 프로세스 지원</span></a>을 참조하십시오.</p>
 </div>
 <dl class="method">
 <dt id="asyncio.loop.subprocess_exec">
 <em class="property">coroutine </em><code class="descclassname">loop.</code><code class="descname">subprocess_exec</code><span class="sig-paren">(</span><em>protocol_factory</em>, <em>*args</em>, <em>stdin=subprocess.PIPE</em>, <em>stdout=subprocess.PIPE</em>, <em>stderr=subprocess.PIPE</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.loop.subprocess_exec" title="정의 주소">¶</a></dt>
-<dd><p>Create a subprocess from one or more string arguments specified by
-<em>args</em>.</p>
-<p><em>args</em> must be a list of strings represented by:</p>
+<dd><p><em>args</em>로 지정된 하나 이상의 문자열 인자로 서브 프로세스를 만듭니다.</p>
+<p><em>args</em>는 반드시 다음과 같은 것으로 표현되는 문자열의 목록이어야 합니다:</p>
 <ul class="simple">
 <li><a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>;</li>
-<li>or <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>, encoded to the
-<a class="reference internal" href="os.html#filesystem-encoding"><span class="std std-ref">filesystem encoding</span></a>.</li>
+<li>또는 <a class="reference internal" href="os.html#filesystem-encoding"><span class="std std-ref">파일 시스템 인코딩</span></a>으로로 인코딩 된 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>.</li>
 </ul>
 <p>The first string specifies the program executable,
 and the remaining strings specify the arguments.  Together, string
@@ -1139,7 +1050,7 @@ are going to be used to construct shell commands.</p>
 </div>
 </div>
 <div class="section" id="callback-handles">
-<h2>Callback Handles<a class="headerlink" href="#callback-handles" title="제목 주소">¶</a></h2>
+<h2>콜백 핸들<a class="headerlink" href="#callback-handles" title="제목 주소">¶</a></h2>
 <dl class="class">
 <dt id="asyncio.Handle">
 <em class="property">class </em><code class="descclassname">asyncio.</code><code class="descname">Handle</code><a class="headerlink" href="#asyncio.Handle" title="정의 주소">¶</a></dt>
@@ -1180,7 +1091,7 @@ are going to be used to construct shell commands.</p>
 
 </div>
 <div class="section" id="server-objects">
-<h2>Server Objects<a class="headerlink" href="#server-objects" title="제목 주소">¶</a></h2>
+<h2>서버 객체<a class="headerlink" href="#server-objects" title="제목 주소">¶</a></h2>
 <p>Server 객체는 <a class="reference internal" href="#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>, <a class="reference internal" href="#asyncio.loop.create_unix_server" title="asyncio.loop.create_unix_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_server()</span></code></a>, <a class="reference internal" href="asyncio-stream.html#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>, <a class="reference internal" href="asyncio-stream.html#asyncio.start_unix_server" title="asyncio.start_unix_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_unix_server()</span></code></a>로 만듭니다.</p>
 <p>클래스의 인스턴스를 직접 만들지 마십시오.</p>
 <dl class="class">
@@ -1270,7 +1181,7 @@ are going to be used to construct shell commands.</p>
 <code class="descname">sockets</code><a class="headerlink" href="#asyncio.Server.sockets" title="정의 주소">¶</a></dt>
 <dd><p>서버가 리스닝하고 있는 <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a> 객체의 리스트, 또는 서버가 닫혀 있다면 <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span>Python 3.7 이전에는 <code class="docutils literal notranslate"><span class="pre">Server.sockets</span></code> 가 서버 소켓의 내부 리스트를 직접 반환했습니다. 3.7에서는 그 리스트의 복사본이 반환됩니다.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span>파이썬 3.7 이전에는 <code class="docutils literal notranslate"><span class="pre">Server.sockets</span></code> 가 서버 소켓의 내부 리스트를 직접 반환했습니다. 3.7에서는 그 리스트의 복사본이 반환됩니다.</p>
 </div>
 </dd></dl>
 
@@ -1337,7 +1248,7 @@ should have defined.</p>
 
 </div>
 <div class="section" id="examples">
-<h2>예<a class="headerlink" href="#examples" title="제목 주소">¶</a></h2>
+<h2>예제<a class="headerlink" href="#examples" title="제목 주소">¶</a></h2>
 <p>Note that all examples in this section <strong>purposefully</strong> show how
 to use the low-level event loop APIs, such as <a class="reference internal" href="#asyncio.loop.run_forever" title="asyncio.loop.run_forever"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_forever()</span></code></a>
 and <a class="reference internal" href="#asyncio.loop.call_soon" title="asyncio.loop.call_soon"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_soon()</span></code></a>.  Modern asyncio applications rarely
@@ -1495,29 +1406,29 @@ and streams.</li>
   <ul>
 <li><a class="reference internal" href="#">이벤트 루프</a><ul>
 <li><a class="reference internal" href="#event-loop-methods">이벤트 루프 메서드</a><ul>
-<li><a class="reference internal" href="#running-and-stopping-the-loop">Running and stopping the loop</a></li>
-<li><a class="reference internal" href="#scheduling-callbacks">Scheduling callbacks</a></li>
-<li><a class="reference internal" href="#scheduling-delayed-callbacks">Scheduling delayed callbacks</a></li>
-<li><a class="reference internal" href="#creating-futures-and-tasks">Creating Futures and Tasks</a></li>
+<li><a class="reference internal" href="#running-and-stopping-the-loop">루프 실행 및 중지</a></li>
+<li><a class="reference internal" href="#scheduling-callbacks">콜백 스케줄하기</a></li>
+<li><a class="reference internal" href="#scheduling-delayed-callbacks">지연된 콜백 스케줄하기</a></li>
+<li><a class="reference internal" href="#creating-futures-and-tasks">퓨처와 태스크 만들기</a></li>
 <li><a class="reference internal" href="#opening-network-connections">네트워크 연결 열기</a></li>
-<li><a class="reference internal" href="#creating-network-servers">Creating network servers</a></li>
+<li><a class="reference internal" href="#creating-network-servers">네트워크 서버 만들기</a></li>
 <li><a class="reference internal" href="#transferring-files">파일 전송</a></li>
 <li><a class="reference internal" href="#tls-upgrade">TLS 업그레이드</a></li>
 <li><a class="reference internal" href="#watching-file-descriptors">파일 기술자 관찰하기</a></li>
-<li><a class="reference internal" href="#working-with-socket-objects-directly">Working with socket objects directly</a></li>
+<li><a class="reference internal" href="#working-with-socket-objects-directly">소켓 객체로 직접 작업하기</a></li>
 <li><a class="reference internal" href="#dns">DNS</a></li>
-<li><a class="reference internal" href="#working-with-pipes">Working with pipes</a></li>
+<li><a class="reference internal" href="#working-with-pipes">파이프로 작업하기</a></li>
 <li><a class="reference internal" href="#unix-signals">유닉스 시그널</a></li>
-<li><a class="reference internal" href="#executing-code-in-thread-or-process-pools">Executing code in thread or process pools</a></li>
+<li><a class="reference internal" href="#executing-code-in-thread-or-process-pools">스레드 또는 프로세스 풀에서 코드를 실행하기</a></li>
 <li><a class="reference internal" href="#error-handling-api">에러 처리 API</a></li>
 <li><a class="reference internal" href="#enabling-debug-mode">디버그 모드 활성화</a></li>
-<li><a class="reference internal" href="#running-subprocesses">Running Subprocesses</a></li>
+<li><a class="reference internal" href="#running-subprocesses">자식 프로세스 실행하기</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#callback-handles">Callback Handles</a></li>
-<li><a class="reference internal" href="#server-objects">Server Objects</a></li>
+<li><a class="reference internal" href="#callback-handles">콜백 핸들</a></li>
+<li><a class="reference internal" href="#server-objects">서버 객체</a></li>
 <li><a class="reference internal" href="#event-loop-implementations">이벤트 루프 구현</a></li>
-<li><a class="reference internal" href="#examples">예</a><ul>
+<li><a class="reference internal" href="#examples">예제</a><ul>
 <li><a class="reference internal" href="#hello-world-with-call-soon">call_soon()을 사용하는 Hello World</a></li>
 <li><a class="reference internal" href="#display-the-current-date-with-call-later">call_later()로 현재 날짜를 표시합니다.</a></li>
 <li><a class="reference internal" href="#watch-a-file-descriptor-for-read-events">파일 기술자에서 읽기 이벤트를 관찰하기</a></li>
