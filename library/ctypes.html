@@ -1222,73 +1222,41 @@ PyPy 에서는 대체로 <a class="reference internal" href="#module-ctypes" tit
 </div>
 <div class="section" id="foreign-functions">
 <span id="ctypes-foreign-functions"></span><h3>외부 함수<a class="headerlink" href="#foreign-functions" title="제목 주소">¶</a></h3>
-<p>As explained in the previous section, foreign functions can be accessed as
-attributes of loaded shared libraries.  The function objects created in this way
-by default accept any number of arguments, accept any ctypes data instances as
-arguments, and return the default result type specified by the library loader.
-They are instances of a private class:</p>
+<p>이전 섹션에서 설명한 것처럼, 외부 함수는 로드 된 공유 라이브러리의 어트리뷰트로 액세스 할 수 있습니다. 이런 방식으로 만들어진 함수 객체는 기본적으로 임의의 개수의 인자를 허용하고, 임의의 ctypes 데이터 인스턴스를 인자로 받아들이고, 라이브러리 로더에 의해 지정된 기본 결과형을 반환합니다. 이 것들은 내부 클래스의 인스턴스입니다:</p>
 <dl class="class">
 <dt id="ctypes._FuncPtr">
 <em class="property">class </em><code class="descclassname">ctypes.</code><code class="descname">_FuncPtr</code><a class="headerlink" href="#ctypes._FuncPtr" title="정의 주소">¶</a></dt>
-<dd><p>Base class for C callable foreign functions.</p>
-<p>Instances of foreign functions are also C compatible data types; they
-represent C function pointers.</p>
-<p>This behavior can be customized by assigning to special attributes of the
-foreign function object.</p>
+<dd><p>C 호출 가능한 외부 함수의 베이스 클래스.</p>
+<p>외부 함수의 인스턴스는 C 호환 데이터 형이기도 합니다; C 함수 포인터를 나타냅니다.</p>
+<p>이 동작은 외부 함수 객체의 특수 어트리뷰트에 대입하여 사용자 정의 할 수 있습니다.</p>
 <dl class="attribute">
 <dt id="ctypes._FuncPtr.restype">
 <code class="descname">restype</code><a class="headerlink" href="#ctypes._FuncPtr.restype" title="정의 주소">¶</a></dt>
-<dd><p>Assign a ctypes type to specify the result type of the foreign function.
-Use <code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="xref c c-type docutils literal notranslate"><span class="pre">void</span></code>, a function not returning anything.</p>
-<p>It is possible to assign a callable Python object that is not a ctypes
-type, in this case the function is assumed to return a C <code class="xref c c-type docutils literal notranslate"><span class="pre">int</span></code>, and
-the callable will be called with this integer, allowing further
-processing or error checking.  Using this is deprecated, for more flexible
-post processing or error checking use a ctypes data type as
-<a class="reference internal" href="#ctypes._FuncPtr.restype" title="ctypes._FuncPtr.restype"><code class="xref py py-attr docutils literal notranslate"><span class="pre">restype</span></code></a> and assign a callable to the <a class="reference internal" href="#ctypes._FuncPtr.errcheck" title="ctypes._FuncPtr.errcheck"><code class="xref py py-attr docutils literal notranslate"><span class="pre">errcheck</span></code></a> attribute.</p>
+<dd><p>ctypes 형을 대입하여 외부 함수의 결과형을 지정합니다. 아무 것도 반환하지 않는 함수인 <code class="xref c c-type docutils literal notranslate"><span class="pre">void</span></code>는 <code class="docutils literal notranslate"><span class="pre">None</span></code>를 사용하십시오.</p>
+<p>ctypes 형이 아닌 콜러블 파이썬 객체를 대입 할 수 있습니다. 이 때 함수는 C <code class="xref c c-type docutils literal notranslate"><span class="pre">int</span></code>를 반환한다고 가정하고, 이 콜러블 객체는 이 정수로 호출되어, 사후 처리나 에러 검사를 허용합니다. 이 기능을 사용하는 것은 폐지되었습니다. 더 유연한 사후 처리나 에러 검사를 위해, ctypes 데이터형을 <a class="reference internal" href="#ctypes._FuncPtr.restype" title="ctypes._FuncPtr.restype"><code class="xref py py-attr docutils literal notranslate"><span class="pre">restype</span></code></a>로 사용하고, 콜러블을 <a class="reference internal" href="#ctypes._FuncPtr.errcheck" title="ctypes._FuncPtr.errcheck"><code class="xref py py-attr docutils literal notranslate"><span class="pre">errcheck</span></code></a> 어트리뷰트에 대입하십시오.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ctypes._FuncPtr.argtypes">
 <code class="descname">argtypes</code><a class="headerlink" href="#ctypes._FuncPtr.argtypes" title="정의 주소">¶</a></dt>
-<dd><p>Assign a tuple of ctypes types to specify the argument types that the
-function accepts.  Functions using the <code class="docutils literal notranslate"><span class="pre">stdcall</span></code> calling convention can
-only be called with the same number of arguments as the length of this
-tuple; functions using the C calling convention accept additional,
-unspecified arguments as well.</p>
-<p>When a foreign function is called, each actual argument is passed to the
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">from_param()</span></code> class method of the items in the <a class="reference internal" href="#ctypes._FuncPtr.argtypes" title="ctypes._FuncPtr.argtypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">argtypes</span></code></a>
-tuple, this method allows adapting the actual argument to an object that
-the foreign function accepts.  For example, a <a class="reference internal" href="#ctypes.c_char_p" title="ctypes.c_char_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_char_p</span></code></a> item in
-the <a class="reference internal" href="#ctypes._FuncPtr.argtypes" title="ctypes._FuncPtr.argtypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">argtypes</span></code></a> tuple will convert a string passed as argument into
-a bytes object using ctypes conversion rules.</p>
-<p>New: It is now possible to put items in argtypes which are not ctypes
-types, but each item must have a <code class="xref py py-meth docutils literal notranslate"><span class="pre">from_param()</span></code> method which returns a
-value usable as argument (integer, string, ctypes instance).  This allows
-defining adapters that can adapt custom objects as function parameters.</p>
+<dd><p>ctypes 형의 튜플을 대입하여 함수가 받아들이는 인자 형을 지정합니다. <code class="docutils literal notranslate"><span class="pre">stdcall</span></code> 호출 규칙을 사용하는 함수는 이 튜플의 길이와 같은 수의 인자로만 호출 할 수 있습니다; C 호출 규칙을 사용하는 함수는 추가적인 지정되지 않은 인자도 허용합니다.</p>
+<p>외부 함수가 호출 될 때, 각 실제 인자는 <a class="reference internal" href="#ctypes._FuncPtr.argtypes" title="ctypes._FuncPtr.argtypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">argtypes</span></code></a> 튜플의 항목의 <code class="xref py py-meth docutils literal notranslate"><span class="pre">from_param()</span></code> 클래스 메서드에 전달됩니다. 이 메서드는 실제 인자를 외부 함수가 받아들이는 객체에 맞출 수 있습니다. 예를 들어, <a class="reference internal" href="#ctypes._FuncPtr.argtypes" title="ctypes._FuncPtr.argtypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">argtypes</span></code></a> 튜플의 <a class="reference internal" href="#ctypes.c_char_p" title="ctypes.c_char_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_char_p</span></code></a> 항목은 ctypes 변환 규칙을 사용하여 인자로 전달 된 문자열을 바이트열 객체로 변환합니다.</p>
+<p>새로운 기능: 이제 ctypes 형이 아닌 항목을 argtypes에 넣을 수 있습니다. 하지만 각 항목에는 인자로 사용할 수 있는 값(정수, 문자열, ctypes 인스턴스)을 반환하는 <code class="xref py py-meth docutils literal notranslate"><span class="pre">from_param()</span></code> 메서드가 있어야합니다. 이를 통해 사용자 정의 객체를 함수 매개 변수로 맞출 수 있는 어댑터를 정의 할 수 있습니다.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ctypes._FuncPtr.errcheck">
 <code class="descname">errcheck</code><a class="headerlink" href="#ctypes._FuncPtr.errcheck" title="정의 주소">¶</a></dt>
-<dd><p>Assign a Python function or another callable to this attribute. The
-callable will be called with three or more arguments:</p>
+<dd><p>이 어트리뷰트에 파이썬 함수나 다른 콜러블를 대입합니다. 콜러블은 3개 이상의 인자로 호출됩니다:</p>
 <dl class="function">
 <dt>
 <code class="descname">callable</code><span class="sig-paren">(</span><em>result</em>, <em>func</em>, <em>arguments</em><span class="sig-paren">)</span></dt>
-<dd><p><em>result</em> is what the foreign function returns, as specified by the
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">restype</span></code> attribute.</p>
-<p><em>func</em> is the foreign function object itself, this allows reusing the
-same callable object to check or post process the results of several
-functions.</p>
-<p><em>arguments</em> is a tuple containing the parameters originally passed to
-the function call, this allows specializing the behavior on the
-arguments used.</p>
+<dd><p><em>result</em>는 <code class="xref py py-attr docutils literal notranslate"><span class="pre">restype</span></code> 어트리뷰트에 지정된대로 외부 함수가 반환하는 것입니다.</p>
+<p><em>func</em>는 외부 함수 객체 자체이며, 같은 콜러블 객체를 재 사용하여 여러 함수의 결과를 확인하거나 사후 처리 할 수 있도록합니다.</p>
+<p><em>arguments</em>는 원래 함수 호출에 전달 된 매개 변수를 포함하는 튜플입니다. 사용 된 인자에 따라 동작을 특수화 할 수 있도록합니다.</p>
 </dd></dl>
 
-<p>The object that this function returns will be returned from the
-foreign function call, but it can also check the result value
-and raise an exception if the foreign function call failed.</p>
+<p>이 함수가 반환하는 객체는 외부 함수 호출에서 반환되지만, 결과 값을 확인하고 외부 함수 호출이 실패하면 예외를 발생시킬 수도 있습니다.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1296,13 +1264,12 @@ and raise an exception if the foreign function call failed.</p>
 <dl class="exception">
 <dt id="ctypes.ArgumentError">
 <em class="property">exception </em><code class="descclassname">ctypes.</code><code class="descname">ArgumentError</code><a class="headerlink" href="#ctypes.ArgumentError" title="정의 주소">¶</a></dt>
-<dd><p>This exception is raised when a foreign function call cannot convert one of the
-passed arguments.</p>
+<dd><p>외부 함수 호출이 전달 된 인자 중 하나를 변환 할 수 없을 때 발생하는 예외.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="function-prototypes">
-<span id="ctypes-function-prototypes"></span><h3>Function prototypes<a class="headerlink" href="#function-prototypes" title="제목 주소">¶</a></h3>
+<span id="ctypes-function-prototypes"></span><h3>함수 프로토타입<a class="headerlink" href="#function-prototypes" title="제목 주소">¶</a></h3>
 <p>Foreign functions can also be created by instantiating function prototypes.
 Function prototypes are similar to function prototypes in C; they describe a
 function (return type, argument types, calling convention) without defining an
@@ -2272,7 +2239,7 @@ attribute changes the pointer to point to the assigned object.</p>
 <li><a class="reference internal" href="#finding-shared-libraries">공유 라이브러리 찾기</a></li>
 <li><a class="reference internal" href="#loading-shared-libraries">공유 라이브러리 로드하기</a></li>
 <li><a class="reference internal" href="#foreign-functions">외부 함수</a></li>
-<li><a class="reference internal" href="#function-prototypes">Function prototypes</a></li>
+<li><a class="reference internal" href="#function-prototypes">함수 프로토타입</a></li>
 <li><a class="reference internal" href="#utility-functions">Utility functions</a></li>
 <li><a class="reference internal" href="#data-types">Data types</a></li>
 <li><a class="reference internal" href="#ctypes-fundamental-data-types-2">기본 데이터형</a></li>
