@@ -140,7 +140,7 @@
 </pre></div>
 </div>
 <p>일반적으로 SQL 연산은 파이썬 변수의 값을 사용해야합니다. 파이썬의 문자열 연산을 사용하여 쿼리를 조합해서는 안됩니다. 그렇게하는 것은 안전하지 않기 때문입니다; 프로그램이 SQL 인젝션 공격에 취약하게 만듭니다 (잘못 될 수 있는 유머러스한 예를 보려면 <a class="reference external" href="https://xkcd.com/327/">https://xkcd.com/327/</a> 를 참조하십시오).</p>
-<p>대신 DB-API의 매개 변수 치환을 사용하십시오. 값을 사용하고자 할 때마다 <code class="docutils literal notranslate"><span class="pre">?</span></code>를 자리표시자로 넣은 다음, 커서의 <a class="reference internal" href="#sqlite3.Cursor.execute" title="sqlite3.Cursor.execute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">execute()</span></code></a> 메서드에 두 번째 인자로 값들의 튜플을 제공하십시오. (다른 데이터베이스 모듈은 다른 자리 표시자를 사용할 수 있습니다, 가령 <code class="docutils literal notranslate"><span class="pre">%s</span></code> 나 <code class="docutils literal notranslate"><span class="pre">:1</span></code>.) 예를 들면:</p>
+<p>대신 DB-API의 매개 변수 치환을 사용하십시오. 값을 사용하고자 할 때마다 <code class="docutils literal notranslate"><span class="pre">?</span></code>를 자리표시자로 넣은 다음, 커서의 <a class="reference internal" href="#sqlite3.Cursor.execute" title="sqlite3.Cursor.execute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">execute()</span></code></a> 메서드에 두 번째 인자로 값들의 튜플을 제공하십시오. (다른 데이터베이스 모듈은 다른 자리표시자를 사용할 수 있습니다, 가령 <code class="docutils literal notranslate"><span class="pre">%s</span></code> 나 <code class="docutils literal notranslate"><span class="pre">:1</span></code>.) 예를 들면:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 절대로 하지 마십시오 -- 안전하지 않습니다!</span>
 <span class="n">symbol</span> <span class="o">=</span> <span class="s1">&#39;RHAT&#39;</span>
 <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM stocks WHERE symbol = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">symbol</span><span class="p">)</span>
@@ -184,6 +184,12 @@
 </div>
 <div class="section" id="module-functions-and-constants">
 <span id="sqlite3-module-contents"></span><h2>모듈 함수와 상수<a class="headerlink" href="#module-functions-and-constants" title="제목 주소">¶</a></h2>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">이 설명서에는 나와있지 않지만 DB-API 2.0은 세 개의 모듈 전역 상수를 정의하고 있습니다:
+<code class="docutils literal notranslate"><span class="pre">apilevel</span></code>, <code class="docutils literal notranslate"><span class="pre">threadsafety</span></code>, <code class="docutils literal notranslate"><span class="pre">paramstyle</span></code>.
+<a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> 에는 세 상수 모두 정의되어 있습니다.</p>
+</div>
 <dl class="data">
 <dt id="sqlite3.version">
 <code class="descclassname">sqlite3.</code><code class="descname">version</code><a class="headerlink" href="#sqlite3.version" title="정의 주소">¶</a></dt>
@@ -665,26 +671,12 @@
 <dl class="method">
 <dt id="sqlite3.Connection.backup">
 <code class="descname">backup</code><span class="sig-paren">(</span><em>target</em>, <em>*</em>, <em>pages=0</em>, <em>progress=None</em>, <em>name=&quot;main&quot;</em>, <em>sleep=0.250</em><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Connection.backup" title="정의 주소">¶</a></dt>
-<dd><p>This method makes a backup of a SQLite database even while it's being accessed
-by other clients, or concurrently by the same connection.  The copy will be
-written into the mandatory argument <em>target</em>, that must be another
-<a class="reference internal" href="#sqlite3.Connection" title="sqlite3.Connection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Connection</span></code></a> instance.</p>
-<p>By default, or when <em>pages</em> is either <code class="docutils literal notranslate"><span class="pre">0</span></code> or a negative integer, the entire
-database is copied in a single step; otherwise the method performs a loop
-copying up to <em>pages</em> pages at a time.</p>
-<p>If <em>progress</em> is specified, it must either be <code class="docutils literal notranslate"><span class="pre">None</span></code> or a callable object that
-will be executed at each iteration with three integer arguments, respectively
-the <em>status</em> of the last iteration, the <em>remaining</em> number of pages still to be
-copied and the <em>total</em> number of pages.</p>
-<p>The <em>name</em> argument specifies the database name that will be copied: it must be
-a string containing either <code class="docutils literal notranslate"><span class="pre">&quot;main&quot;</span></code>, the default, to indicate the main
-database, <code class="docutils literal notranslate"><span class="pre">&quot;temp&quot;</span></code> to indicate the temporary database or the name specified
-after the <code class="docutils literal notranslate"><span class="pre">AS</span></code> keyword in an <code class="docutils literal notranslate"><span class="pre">ATTACH</span> <span class="pre">DATABASE</span></code> statement for an attached
-database.</p>
-<p>The <em>sleep</em> argument specifies the number of seconds to sleep by between
-successive attempts to backup remaining pages, can be specified either as an
-integer or a floating point value.</p>
-<p>Example 1, copy an existing database into another:</p>
+<dd><p>이 메서드는 SQLite 데이터베이스의 백업을 만드는데, 다른 클라이언트가 액세스하고 있거나 같은 연결로 동시에 액세스하고 있어도 됩니다. 복사본은 필수 인자 <em>target</em>에 쓰여지며, 이 것은 다른 <a class="reference internal" href="#sqlite3.Connection" title="sqlite3.Connection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Connection</span></code></a> 인스턴스여야 합니다.</p>
+<p>기본적으로, 또는 <em>pages</em>가 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이나 음의 정수이면, 전체 데이터베이스가 단일 단계로 복사됩니다; 그렇지 않으면 이 메서드는 한 번에 최대 <em>pages</em> 페이지만큼 복사하는 루프를 수행합니다.</p>
+<p><em>progress</em>가 지정되면, <code class="docutils literal notranslate"><span class="pre">None</span></code> 또는 매 이터레이션마다 세 개의 정수 인자로 실행되는 콜러블 객체여야합니다. 세 인자는 각각 직전 이터레이션의 <em>상태(status)</em>, 아직 복사해야 할 <em>남은(remaining)</em> 페이지 수, <em>전체(total)</em> 페이지 수입니다.</p>
+<p><em>name</em> 인자는 복사 할 데이터베이스 이름을 지정합니다: main 데이터베이스를 나타내는 <code class="docutils literal notranslate"><span class="pre">&quot;main&quot;</span></code>, 기본값, 임시 데이터베이스를 나타내는 <code class="docutils literal notranslate"><span class="pre">&quot;temp&quot;</span></code> 또는 첨부된 데이터베이스를 위한 <code class="docutils literal notranslate"><span class="pre">ATTACH</span> <span class="pre">DATABASE</span></code> 문에서 <code class="docutils literal notranslate"><span class="pre">AS</span></code> 키워드 뒤에 지정된 이름을 포함하는 문자열이어야합니다.</p>
+<p><em>sleep</em> 인자는 남은 페이지를 백업하는 연속적인 시도 사이에서 잠잘 시간을 초 단위로 지정하며, 정수 또는 부동 소수점 값으로 지정할 수 있습니다.</p>
+<p>예제 1, 기존 데이터베이스를 다른 데이터베이스로 복사:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
 
 <span class="k">def</span> <span class="nf">progress</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">total</span><span class="p">):</span>
@@ -695,7 +687,7 @@ integer or a floating point value.</p>
     <span class="n">con</span><span class="o">.</span><span class="n">backup</span><span class="p">(</span><span class="n">bck</span><span class="p">,</span> <span class="n">pages</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Example 2, copy an existing database into a transient copy:</p>
+<p>예제 2, 기존 데이터베이스를 임시 복사본으로 복사:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
 
 <span class="n">source</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;existing_db.db&#39;</span><span class="p">)</span>
@@ -703,7 +695,7 @@ integer or a floating point value.</p>
 <span class="n">source</span><span class="o">.</span><span class="n">backup</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Availability: SQLite 3.6.11 or higher</p>
+<p>가용성: SQLite 3.6.11 이상</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -713,19 +705,35 @@ integer or a floating point value.</p>
 
 </div>
 <div class="section" id="cursor-objects">
-<span id="sqlite3-cursor-objects"></span><h2>Cursor Objects<a class="headerlink" href="#cursor-objects" title="제목 주소">¶</a></h2>
+<span id="sqlite3-cursor-objects"></span><h2>Cursor 객체<a class="headerlink" href="#cursor-objects" title="제목 주소">¶</a></h2>
 <dl class="class">
 <dt id="sqlite3.Cursor">
 <em class="property">class </em><code class="descclassname">sqlite3.</code><code class="descname">Cursor</code><a class="headerlink" href="#sqlite3.Cursor" title="정의 주소">¶</a></dt>
-<dd><p>A <a class="reference internal" href="#sqlite3.Cursor" title="sqlite3.Cursor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cursor</span></code></a> instance has the following attributes and methods.</p>
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 클래스입니다. 이 설명서에는 나와있지 않지만 DB-API 2.0이 필수로 정의하는
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">setinputsizes()</span></code> 와 <code class="xref py py-meth docutils literal notranslate"><span class="pre">setoutputsize()</span></code> 메서드도 정의되어 있습니다.
+두 메서드 모두 아무일도 하지 않습니다.</p>
+</div>
+<p><a class="reference internal" href="#sqlite3.Cursor" title="sqlite3.Cursor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cursor</span></code></a> 인스턴스에는 다음과 같은 어트리뷰트와 메서드가 있습니다.</p>
 <dl class="method">
 <dt id="sqlite3.Cursor.execute">
 <code class="descname">execute</code><span class="sig-paren">(</span><em>sql</em><span class="optional">[</span>, <em>parameters</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Cursor.execute" title="정의 주소">¶</a></dt>
-<dd><p>Executes an SQL statement. The SQL statement may be parameterized (i. e.
-placeholders instead of SQL literals). The <a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> module supports two
-kinds of placeholders: question marks (qmark style) and named placeholders
-(named style).</p>
-<p>Here's an example of both styles:</p>
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 메서드입니다.</p>
+</div>
+<p>SQL 문을 실행합니다. SQL 문을 매개 변수화(즉, SQL 리터럴 대신 자리표시자)할 수 있습니다. <a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> 모듈은 두 가지 자리표시자를 지원합니다: 물음표(qmark 스타일)와 이름있는 자리표시자(named 스타일).</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0은 다섯 종류의 자리표시자를 정의하고 있습니다: <code class="docutils literal notranslate"><span class="pre">qmark</span></code>, <code class="docutils literal notranslate"><span class="pre">numeric</span></code>, <code class="docutils literal notranslate"><span class="pre">named</span></code>,
+<code class="docutils literal notranslate"><span class="pre">format</span></code>, <code class="docutils literal notranslate"><span class="pre">pyformat</span></code>. 이 중 어느 것을 지원하는지는 모듈 전역으로 정의되는
+<code class="docutils literal notranslate"><span class="pre">paramstyle</span></code> 문자열 상수로 알려주도록 하고 있습니다. <a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> 는
+<code class="docutils literal notranslate"><span class="pre">qmark</span></code> 와 <code class="docutils literal notranslate"><span class="pre">named</span></code> 를 지원하지만, <code class="xref py py-data docutils literal notranslate"><span class="pre">sqlite3.paramstyle</span></code> 는 <code class="docutils literal notranslate"><span class="pre">qmark</span></code> 라고
+알려주고 있습니다. 하지만 DB-API 2.0 은 가능하다면 <code class="docutils literal notranslate"><span class="pre">numeric</span></code>, <code class="docutils literal notranslate"><span class="pre">named</span></code>, <code class="docutils literal notranslate"><span class="pre">pyformat</span></code> 중
+하나를 사용하도록 권고하고 있습니다.</p>
+</div>
+<p>다음은 두 스타일의 예입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
 
 <span class="n">con</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;:memory:&quot;</span><span class="p">)</span>
@@ -735,10 +743,10 @@ kinds of placeholders: question marks (qmark style) and named placeholders
 <span class="n">who</span> <span class="o">=</span> <span class="s2">&quot;Yeltsin&quot;</span>
 <span class="n">age</span> <span class="o">=</span> <span class="mi">72</span>
 
-<span class="c1"># This is the qmark style:</span>
+<span class="c1"># qmark 스타일입니다:</span>
 <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;insert into people values (?, ?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">who</span><span class="p">,</span> <span class="n">age</span><span class="p">))</span>
 
-<span class="c1"># And this is the named style:</span>
+<span class="c1"># named 스타일입니다:</span>
 <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select * from people where name_last=:who and age=:age&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;who&quot;</span><span class="p">:</span> <span class="n">who</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="n">age</span><span class="p">})</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">())</span>
@@ -753,7 +761,11 @@ call.</p>
 <dl class="method">
 <dt id="sqlite3.Cursor.executemany">
 <code class="descname">executemany</code><span class="sig-paren">(</span><em>sql</em>, <em>seq_of_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Cursor.executemany" title="정의 주소">¶</a></dt>
-<dd><p>Executes an SQL command against all parameter sequences or mappings found in
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 메서드입니다.</p>
+</div>
+<p>Executes an SQL command against all parameter sequences or mappings found in
 the sequence <em>seq_of_parameters</em>.  The <a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> module also allows
 using an <a class="reference internal" href="../glossary.html#term-iterator"><span class="xref std std-term">iterator</span></a> yielding parameters instead of a sequence.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
@@ -841,14 +853,22 @@ gets as a parameter.</p>
 <dl class="method">
 <dt id="sqlite3.Cursor.fetchone">
 <code class="descname">fetchone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Cursor.fetchone" title="정의 주소">¶</a></dt>
-<dd><p>Fetches the next row of a query result set, returning a single sequence,
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 메서드입니다.</p>
+</div>
+<p>Fetches the next row of a query result set, returning a single sequence,
 or <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a> when no more data is available.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sqlite3.Cursor.fetchmany">
 <code class="descname">fetchmany</code><span class="sig-paren">(</span><em>size=cursor.arraysize</em><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Cursor.fetchmany" title="정의 주소">¶</a></dt>
-<dd><p>Fetches the next set of rows of a query result, returning a list.  An empty
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 메서드입니다.</p>
+</div>
+<p>Fetches the next set of rows of a query result, returning a list.  An empty
 list is returned when no more rows are available.</p>
 <p>The number of rows to fetch per call is specified by the <em>size</em> parameter.
 If it is not given, the cursor's arraysize determines the number of rows
@@ -864,7 +884,11 @@ value from one <a class="reference internal" href="#sqlite3.Cursor.fetchmany" ti
 <dl class="method">
 <dt id="sqlite3.Cursor.fetchall">
 <code class="descname">fetchall</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Cursor.fetchall" title="정의 주소">¶</a></dt>
-<dd><p>Fetches all (remaining) rows of a query result, returning a list.  Note that
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 메서드입니다.</p>
+</div>
+<p>Fetches all (remaining) rows of a query result, returning a list.  Note that
 the cursor's arraysize attribute can affect the performance of this operation.
 An empty list is returned when no rows are available.</p>
 </dd></dl>
@@ -872,7 +896,11 @@ An empty list is returned when no rows are available.</p>
 <dl class="method">
 <dt id="sqlite3.Cursor.close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sqlite3.Cursor.close" title="정의 주소">¶</a></dt>
-<dd><p>Close the cursor now (rather than whenever <code class="docutils literal notranslate"><span class="pre">__del__</span></code> is called).</p>
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 메서드입니다.</p>
+</div>
+<p>Close the cursor now (rather than whenever <code class="docutils literal notranslate"><span class="pre">__del__</span></code> is called).</p>
 <p>The cursor will be unusable from this point forward; a <a class="reference internal" href="#sqlite3.ProgrammingError" title="sqlite3.ProgrammingError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ProgrammingError</span></code></a>
 exception will be raised if any operation is attempted with the cursor.</p>
 </dd></dl>
@@ -880,7 +908,11 @@ exception will be raised if any operation is attempted with the cursor.</p>
 <dl class="attribute">
 <dt id="sqlite3.Cursor.rowcount">
 <code class="descname">rowcount</code><a class="headerlink" href="#sqlite3.Cursor.rowcount" title="정의 주소">¶</a></dt>
-<dd><p>Although the <a class="reference internal" href="#sqlite3.Cursor" title="sqlite3.Cursor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cursor</span></code></a> class of the <a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> module implements this
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 어트리뷰트입니다.</p>
+</div>
+<p>Although the <a class="reference internal" href="#sqlite3.Cursor" title="sqlite3.Cursor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cursor</span></code></a> class of the <a class="reference internal" href="#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> module implements this
 attribute, the database engine's own support for the determination of &quot;rows
 affected&quot;/&quot;rows selected&quot; is quirky.</p>
 <p>For <a class="reference internal" href="#sqlite3.Cursor.executemany" title="sqlite3.Cursor.executemany"><code class="xref py py-meth docutils literal notranslate"><span class="pre">executemany()</span></code></a> statements, the number of modifications are summed up
@@ -912,14 +944,22 @@ successful rowid is returned.</p>
 <dl class="attribute">
 <dt id="sqlite3.Cursor.arraysize">
 <code class="descname">arraysize</code><a class="headerlink" href="#sqlite3.Cursor.arraysize" title="정의 주소">¶</a></dt>
-<dd><p>Read/write attribute that controls the number of rows returned by <a class="reference internal" href="#sqlite3.Cursor.fetchmany" title="sqlite3.Cursor.fetchmany"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fetchmany()</span></code></a>.
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 어트리뷰트입니다.</p>
+</div>
+<p>Read/write attribute that controls the number of rows returned by <a class="reference internal" href="#sqlite3.Cursor.fetchmany" title="sqlite3.Cursor.fetchmany"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fetchmany()</span></code></a>.
 The default value is 1 which means a single row would be fetched per call.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sqlite3.Cursor.description">
 <code class="descname">description</code><a class="headerlink" href="#sqlite3.Cursor.description" title="정의 주소">¶</a></dt>
-<dd><p>This read-only attribute provides the column names of the last query. To
+<dd><div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">DB-API 2.0이 정의하는 어트리뷰트입니다.</p>
+</div>
+<p>This read-only attribute provides the column names of the last query. To
 remain compatible with the Python DB API, it returns a 7-tuple for each
 column where the last six items of each tuple are <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 <p>It is set for <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> statements without any matching rows as well.</p>
@@ -1475,7 +1515,7 @@ only makes sense to call from a different thread.</p>
 <li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">sqlite3</span></code> --- SQLite 데이터베이스용 DB-API 2.0 인터페이스</a><ul>
 <li><a class="reference internal" href="#module-functions-and-constants">모듈 함수와 상수</a></li>
 <li><a class="reference internal" href="#connection-objects">Connection 객체</a></li>
-<li><a class="reference internal" href="#cursor-objects">Cursor Objects</a></li>
+<li><a class="reference internal" href="#cursor-objects">Cursor 객체</a></li>
 <li><a class="reference internal" href="#row-objects">Row Objects</a></li>
 <li><a class="reference internal" href="#exceptions">Exceptions</a></li>
 <li><a class="reference internal" href="#sqlite-and-python-types">SQLite and Python types</a><ul>
