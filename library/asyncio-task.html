@@ -112,14 +112,14 @@
 <li><a class="reference internal" href="#coroutines" id="id1">코루틴</a></li>
 <li><a class="reference internal" href="#awaitables" id="id2">어웨이터블</a></li>
 <li><a class="reference internal" href="#running-an-asyncio-program" id="id3">asyncio 프로그램 실행하기</a></li>
-<li><a class="reference internal" href="#creating-tasks" id="id4">Creating Tasks</a></li>
-<li><a class="reference internal" href="#sleeping" id="id5">Sleeping</a></li>
-<li><a class="reference internal" href="#running-tasks-concurrently" id="id6">Running Tasks Concurrently</a></li>
-<li><a class="reference internal" href="#shielding-from-cancellation" id="id7">Shielding From Cancellation</a></li>
-<li><a class="reference internal" href="#timeouts" id="id8">Timeouts</a></li>
-<li><a class="reference internal" href="#waiting-primitives" id="id9">Waiting Primitives</a></li>
-<li><a class="reference internal" href="#scheduling-from-other-threads" id="id10">Scheduling From Other Threads</a></li>
-<li><a class="reference internal" href="#introspection" id="id11">Introspection</a></li>
+<li><a class="reference internal" href="#creating-tasks" id="id4">태스크 만들기</a></li>
+<li><a class="reference internal" href="#sleeping" id="id5">잠자기</a></li>
+<li><a class="reference internal" href="#running-tasks-concurrently" id="id6">동시에 태스크 실행하기</a></li>
+<li><a class="reference internal" href="#shielding-from-cancellation" id="id7">취소로부터 보호하기</a></li>
+<li><a class="reference internal" href="#timeouts" id="id8">시간 제한</a></li>
+<li><a class="reference internal" href="#waiting-primitives" id="id9">대기 프리미티브</a></li>
+<li><a class="reference internal" href="#scheduling-from-other-threads" id="id10">다른 스레드에서 예약하기</a></li>
+<li><a class="reference internal" href="#introspection" id="id11">인트로스팩션</a></li>
 <li><a class="reference internal" href="#task-object" id="id12">Task Object</a></li>
 <li><a class="reference internal" href="#generator-based-coroutines" id="id13">Generator-based Coroutines</a></li>
 </ul>
@@ -276,43 +276,32 @@
 <dl class="function">
 <dt id="asyncio.run">
 <code class="descclassname">asyncio.</code><code class="descname">run</code><span class="sig-paren">(</span><em>coro</em>, <em>*</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.run" title="정의 주소">¶</a></dt>
-<dd><p>This function runs the passed coroutine, taking care of
-managing the asyncio event loop and <em>finalizing asynchronous
-generators</em>.</p>
-<p>This function cannot be called when another asyncio event loop is
-running in the same thread.</p>
-<p>If <em>debug</em> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the event loop will be run in debug mode.</p>
-<p>This function always creates a new event loop and closes it at
-the end.  It should be used as a main entry point for asyncio
-programs, and should ideally only be called once.</p>
+<dd><p>이 함수는 전달된 코루틴을 실행하고, asyncio 이벤트 루프와 <em>비동기 제너레이터의 파이널리제이션</em>을 관리합니다.</p>
+<p>다른 asyncio 이벤트 루프가 같은 스레드에서 실행 중일 때, 이 함수를 호출 할 수 없습니다.</p>
+<p><em>debug</em>이 <code class="docutils literal notranslate"><span class="pre">True</span></code>면, 이벤트 루프가 디버그 모드로 실행됩니다.</p>
+<p>이 함수는 항상 새 이벤트 루프를 만들고 끝에 이벤트 루프를 닫습니다. asyncio 프로그램의 메인 진입 지점으로 사용해야하고, 이상적으로는 한 번만 호출해야합니다.</p>
 <div class="versionadded">
-<p><span class="versionmodified">버전 3.7에 추가: </span><strong>Important:</strong> this function has been added to asyncio in
-Python 3.7 on a <a class="reference internal" href="../glossary.html#term-provisional-api"><span class="xref std std-term">provisional basis</span></a>.</p>
+<p><span class="versionmodified">버전 3.7에 추가: </span><strong>중요:</strong> 이 함수는 파이썬 3.7에서 <a class="reference internal" href="../glossary.html#term-provisional-api"><span class="xref std std-term">잠정적으로</span></a> asyncio에 추가되었습니다.</p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="creating-tasks">
-<h2><a class="toc-backref" href="#id4">Creating Tasks</a><a class="headerlink" href="#creating-tasks" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">태스크 만들기</a><a class="headerlink" href="#creating-tasks" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.create_task">
 <code class="descclassname">asyncio.</code><code class="descname">create_task</code><span class="sig-paren">(</span><em>coro</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.create_task" title="정의 주소">¶</a></dt>
-<dd><p>Wrap the <em>coro</em> <a class="reference internal" href="#coroutine"><span class="std std-ref">coroutine</span></a> into a <a class="reference internal" href="#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>
-and schedule its execution.  Return the Task object.</p>
-<p>The task is executed in the loop returned by <a class="reference internal" href="asyncio-eventloop.html#asyncio.get_running_loop" title="asyncio.get_running_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_running_loop()</span></code></a>,
-<a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> is raised if there is no running loop in
-current thread.</p>
-<p>This function has been <strong>added in Python 3.7</strong>.  Prior to
-Python 3.7, the low-level <a class="reference internal" href="asyncio-future.html#asyncio.ensure_future" title="asyncio.ensure_future"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.ensure_future()</span></code></a> function
-can be used instead:</p>
+<dd><p><em>coro</em> <a class="reference internal" href="#coroutine"><span class="std std-ref">코루틴</span></a>을 <a class="reference internal" href="#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>로 감싸고 실행을 예약합니다. Task 객체를 반환합니다.</p>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.get_running_loop" title="asyncio.get_running_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_running_loop()</span></code></a>에 의해 반환 된 루프에서 태스크가 실행되고, 현재 스레드에 실행중인 루프가없으면 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>가 발생합니다.</p>
+<p>이 함수는 <strong>파이썬 3.7에서 추가되었습니다</strong>. 파이썬 3.7 이전 버전에서는, 대신 저수준 <a class="reference internal" href="asyncio-future.html#asyncio.ensure_future" title="asyncio.ensure_future"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.ensure_future()</span></code></a> 함수를 사용할 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">coro</span><span class="p">():</span>
     <span class="o">...</span>
 
-<span class="c1"># In Python 3.7+</span>
+<span class="c1"># 파이썬 3.7+ 에서</span>
 <span class="n">task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">coro</span><span class="p">())</span>
 <span class="o">...</span>
 
-<span class="c1"># This works in all Python versions but is less readable</span>
+<span class="c1"># 이것은 모든 파이썬 버전에서 작동하지만 읽기 쉽지 않습니다</span>
 <span class="n">task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">ensure_future</span><span class="p">(</span><span class="n">coro</span><span class="p">())</span>
 <span class="o">...</span>
 </pre></div>
@@ -324,19 +313,15 @@ can be used instead:</p>
 
 </div>
 <div class="section" id="sleeping">
-<h2><a class="toc-backref" href="#id5">Sleeping</a><a class="headerlink" href="#sleeping" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">잠자기</a><a class="headerlink" href="#sleeping" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.sleep">
 <em class="property">coroutine </em><code class="descclassname">asyncio.</code><code class="descname">sleep</code><span class="sig-paren">(</span><em>delay</em>, <em>result=None</em>, <em>*</em>, <em>loop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.sleep" title="정의 주소">¶</a></dt>
-<dd><p>Block for <em>delay</em> seconds.</p>
-<p>If <em>result</em> is provided, it is returned to the caller
-when the coroutine completes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">sleep()</span></code> always suspends the current task, allowing other tasks
-to run.</p>
-<p>The <em>loop</em> argument is deprecated and scheduled for removal
-in Python 3.10.</p>
-<p id="asyncio-example-sleep">Example of coroutine displaying the current date every second
-for 5 seconds:</p>
+<dd><p><em>delay</em> 초 동안 블록합니다.</p>
+<p><em>result</em>가 제공되면, 코루틴이 완료될 때 호출자에게 반환됩니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sleep()</span></code>은 항상 현재 태스크를 일시 중단해서 다른 태스크를 실행할 수 있도록 합니다.</p>
+<p><em>loop</em> 인자는 폐지되었고 파이썬 3.10에서 삭제 예정입니다.</p>
+<p id="asyncio-example-sleep">5초 동안 현재 날짜를 매초 표시하는 코루틴의 예:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 
@@ -356,31 +341,18 @@ for 5 seconds:</p>
 
 </div>
 <div class="section" id="running-tasks-concurrently">
-<h2><a class="toc-backref" href="#id6">Running Tasks Concurrently</a><a class="headerlink" href="#running-tasks-concurrently" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">동시에 태스크 실행하기</a><a class="headerlink" href="#running-tasks-concurrently" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.gather">
 <em class="property">awaitable </em><code class="descclassname">asyncio.</code><code class="descname">gather</code><span class="sig-paren">(</span><em>*aws</em>, <em>loop=None</em>, <em>return_exceptions=False</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.gather" title="정의 주소">¶</a></dt>
-<dd><p>Run <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">awaitable objects</span></a> in the <em>aws</em>
-sequence <em>concurrently</em>.</p>
-<p>If any awaitable in <em>aws</em> is a coroutine, it is automatically
-scheduled as a Task.</p>
-<p>If all awaitables are completed successfully, the result is an
-aggregate list of returned values.  The order of result values
-corresponds to the order of awaitables in <em>aws</em>.</p>
-<p>If <em>return_exceptions</em> is <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the first
-raised exception is immediately propagated to the task that
-awaits on <code class="docutils literal notranslate"><span class="pre">gather()</span></code>.  Other awaitables in the <em>aws</em> sequence
-<strong>won't be cancelled</strong> and will continue to run.</p>
-<p>If <em>return_exceptions</em> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, exceptions are treated the
-same as successful results, and aggregated in the result list.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">gather()</span></code> is <em>cancelled</em>, all submitted awaitables
-(that have not completed yet) are also <em>cancelled</em>.</p>
-<p>If any Task or Future from the <em>aws</em> sequence is <em>cancelled</em>, it is
-treated as if it raised <a class="reference internal" href="asyncio-exceptions.html#asyncio.CancelledError" title="asyncio.CancelledError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">CancelledError</span></code></a> -- the <code class="docutils literal notranslate"><span class="pre">gather()</span></code>
-call is <strong>not</strong> cancelled in this case.  This is to prevent the
-cancellation of one submitted Task/Future to cause other
-Tasks/Futures to be cancelled.</p>
-<p id="asyncio-example-gather">Example:</p>
+<dd><p><em>aws</em> 시퀀스에 있는 <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">어웨이터블 객체</span></a>를 <em>동시에</em> 실행합니다.</p>
+<p><em>aws</em>에 있는 어웨이터블이 코루틴이면 자동으로 태스크로 예약됩니다.</p>
+<p>모든 어웨이터블이 성공적으로 완료되면, 결과는 반환 된 값들이 합쳐진 리스트입니다. 결과 값의 순서는 <em>aws</em>에 있는 어웨이터블의 순서와 일치합니다.</p>
+<p><em>return_exceptions</em>가 <code class="docutils literal notranslate"><span class="pre">False</span></code>(기본값)면, 첫 번째 발생한 예외가 <code class="docutils literal notranslate"><span class="pre">gather()</span></code>를 기다리는 태스크로 즉시 전파됩니다. <em>aws</em> 시퀀스의 다른 어웨이터블은 <strong>취소되지 않고</strong> 계속 실행됩니다.</p>
+<p><em>return_exceptions</em>가 <code class="docutils literal notranslate"><span class="pre">True</span></code>면, 예외는 성공적인 결과처럼 처리되고, 결과 리스트에 집계됩니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gather()</span></code>가 <em>취소되면</em>, 모든 제출된 (아직 완료되지 않은) 어웨이터블도 <em>취소됩니다</em>.</p>
+<p><em>aws</em> 시퀀스의 Task나 Future가 <em>취소되면</em>, 그 것이 <a class="reference internal" href="asyncio-exceptions.html#asyncio.CancelledError" title="asyncio.CancelledError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">CancelledError</span></code></a>를 일으킨 것처럼 처리됩니다 -- 이때 <code class="docutils literal notranslate"><span class="pre">gather()</span></code> 호출은 취소되지 <strong>않습니다</strong>. 이것은 제출 된 태스크/퓨처 하나를 취소하는 것이 다른 다른 태스크/퓨처를 취소하게되는 것을 막기 위한 것입니다.</p>
+<p id="asyncio-example-gather">예:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">factorial</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
@@ -392,7 +364,7 @@ Tasks/Futures to be cancelled.</p>
     <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Task </span><span class="si">{name}</span><span class="s2">: factorial(</span><span class="si">{number}</span><span class="s2">) = </span><span class="si">{f}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="c1"># Schedule three calls *concurrently*:</span>
+    <span class="c1"># 3개의 호출을 *동시에* 예약합니다:</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
         <span class="n">factorial</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
         <span class="n">factorial</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -401,7 +373,7 @@ Tasks/Futures to be cancelled.</p>
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 
-<span class="c1"># Expected output:</span>
+<span class="c1"># 기대되는 출력:</span>
 <span class="c1">#</span>
 <span class="c1">#     Task A: Compute factorial(2)...</span>
 <span class="c1">#     Task B: Compute factorial(2)...</span>
@@ -415,38 +387,29 @@ Tasks/Futures to be cancelled.</p>
 </pre></div>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span>If the <em>gather</em> itself is cancelled, the cancellation is
-propagated regardless of <em>return_exceptions</em>.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span><em>gather</em> 자체가 취소되면, <em>return_exceptions</em>와 관계없이 취소가 전파됩니다.</p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="shielding-from-cancellation">
-<h2><a class="toc-backref" href="#id7">Shielding From Cancellation</a><a class="headerlink" href="#shielding-from-cancellation" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">취소로부터 보호하기</a><a class="headerlink" href="#shielding-from-cancellation" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.shield">
 <em class="property">awaitable </em><code class="descclassname">asyncio.</code><code class="descname">shield</code><span class="sig-paren">(</span><em>aw</em>, <em>*</em>, <em>loop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.shield" title="정의 주소">¶</a></dt>
-<dd><p>Protect an <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">awaitable object</span></a>
-from being <a class="reference internal" href="#asyncio.Task.cancel" title="asyncio.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cancelled</span></code></a>.</p>
-<p>If <em>aw</em> is a coroutine it is automatically scheduled as a Task.</p>
-<p>The statement:</p>
+<dd><p><a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">어웨이터블 객체</span></a>를 <a class="reference internal" href="#asyncio.Task.cancel" title="asyncio.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">취소</span></code></a>로부터 보호합니다.</p>
+<p><em>aw</em>가 코루틴이면 자동으로 태스크로 예약됩니다.</p>
+<p>다음 문장:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">shield</span><span class="p">(</span><span class="n">something</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>is equivalent to:</p>
+<p>은 다음과 동등합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">something</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><em>except</em> that if the coroutine containing it is cancelled, the
-Task running in <code class="docutils literal notranslate"><span class="pre">something()</span></code> is not cancelled.  From the point
-of view of <code class="docutils literal notranslate"><span class="pre">something()</span></code>, the cancellation did not happen.
-Although its caller is still cancelled, so the &quot;await&quot; expression
-still raises a <a class="reference internal" href="asyncio-exceptions.html#asyncio.CancelledError" title="asyncio.CancelledError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">CancelledError</span></code></a>.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">something()</span></code> is cancelled by other means (i.e. from within
-itself) that would also cancel <code class="docutils literal notranslate"><span class="pre">shield()</span></code>.</p>
-<p>If it is desired to completely ignore cancellation (not recommended)
-the <code class="docutils literal notranslate"><span class="pre">shield()</span></code> function should be combined with a try/except
-clause, as follows:</p>
+<p><em>단</em>, 그 것을 포함하는 코루틴이 취소되면, <code class="docutils literal notranslate"><span class="pre">something()</span></code>에서 실행중인 태스크는 취소되지 않는다는 것만 예외입니다. <code class="docutils literal notranslate"><span class="pre">something()</span></code>의 관점에서는, 취소가 일어나지 않았습니다. 호출자는 여전히 취소되었고, &quot;await&quot; 표현식은 여전히 <a class="reference internal" href="asyncio-exceptions.html#asyncio.CancelledError" title="asyncio.CancelledError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">CancelledError</span></code></a>를 발생시킵니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">something()</span></code>가 다른 수단(즉, 그 안에서 스스로)에 의해 취소되면, <code class="docutils literal notranslate"><span class="pre">shield()</span></code>도 취소됩니다.</p>
+<p>취소를 완전히 무시하려면(권장되지 않습니다), 다음과 같이 <code class="docutils literal notranslate"><span class="pre">shield()</span></code> 함수를 try/except 절과 결합해야합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">shield</span><span class="p">(</span><span class="n">something</span><span class="p">())</span>
 <span class="k">except</span> <span class="n">CancelledError</span><span class="p">:</span>
@@ -457,33 +420,26 @@ clause, as follows:</p>
 
 </div>
 <div class="section" id="timeouts">
-<h2><a class="toc-backref" href="#id8">Timeouts</a><a class="headerlink" href="#timeouts" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">시간 제한</a><a class="headerlink" href="#timeouts" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.wait_for">
 <em class="property">coroutine </em><code class="descclassname">asyncio.</code><code class="descname">wait_for</code><span class="sig-paren">(</span><em>aw</em>, <em>timeout</em>, <em>*</em>, <em>loop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.wait_for" title="정의 주소">¶</a></dt>
-<dd><p>Wait for the <em>aw</em> <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">awaitable</span></a>
-to complete with a timeout.</p>
-<p>If <em>aw</em> is a coroutine it is automatically scheduled as a Task.</p>
-<p><em>timeout</em> can either be <code class="docutils literal notranslate"><span class="pre">None</span></code> or a float or int number of seconds
-to wait for.  If <em>timeout</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, block until the future
-completes.</p>
-<p>If a timeout occurs, it cancels the task and raises
-<a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>.</p>
-<p>To avoid the task <a class="reference internal" href="#asyncio.Task.cancel" title="asyncio.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cancellation</span></code></a>,
-wrap it in <a class="reference internal" href="#asyncio.shield" title="asyncio.shield"><code class="xref py py-func docutils literal notranslate"><span class="pre">shield()</span></code></a>.</p>
-<p>The function will wait until the future is actually cancelled,
-so the total wait time may exceed the <em>timeout</em>.</p>
-<p>If the wait is cancelled, the future <em>aw</em> is also cancelled.</p>
-<p>The <em>loop</em> argument is deprecated and scheduled for removal
-in Python 3.10.</p>
-<p id="asyncio-example-waitfor">Example:</p>
+<dd><p><em>aw</em> <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">어웨이터블</span></a>이 제한된 시간내에 완료 될 때까지 기다립니다.</p>
+<p><em>aw</em>가 코루틴이면 자동으로 태스크로 예약됩니다.</p>
+<p><em>timeout</em>은 <code class="docutils literal notranslate"><span class="pre">None</span></code> 또는 대기 할 float 나 int 초 수입니다. <em>timeout</em>이 <code class="docutils literal notranslate"><span class="pre">None</span></code>이면 퓨처가 완료 될 때까지 블록합니다.</p>
+<p>시간 초과가 발생하면, 태스크를 취소하고 <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>를 발생시킵니다.</p>
+<p>태스크 <a class="reference internal" href="#asyncio.Task.cancel" title="asyncio.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">취소</span></code></a>를 피하려면, <a class="reference internal" href="#asyncio.shield" title="asyncio.shield"><code class="xref py py-func docutils literal notranslate"><span class="pre">shield()</span></code></a>로 감싸십시오.</p>
+<p>이 함수는 퓨처가 실제로 취소 될 때까지 대기하므로, 총 대기 시간이 <em>timeout</em>을 초과 할 수 있습니다.</p>
+<p>대기가 취소되면, 퓨처 <em>aw</em>도 취소됩니다.</p>
+<p><em>loop</em> 인자는 폐지되었고 파이썬 3.10에서 삭제 예정입니다.</p>
+<p id="asyncio-example-waitfor">예:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">eternity</span><span class="p">():</span>
-    <span class="c1"># Sleep for one hour</span>
+    <span class="c1"># 1시간 동안 잠잡니다</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3600</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;yay!&#39;</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="c1"># Wait for at most 1 second</span>
+    <span class="c1"># 최대 1초간 대기합니다</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">eternity</span><span class="p">(),</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
@@ -491,80 +447,62 @@ in Python 3.10.</p>
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 
-<span class="c1"># Expected output:</span>
+<span class="c1"># 기대되는 출력:</span>
 <span class="c1">#</span>
 <span class="c1">#     timeout!</span>
 </pre></div>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span>When <em>aw</em> is cancelled due to a timeout, <code class="docutils literal notranslate"><span class="pre">wait_for</span></code> waits
-for <em>aw</em> to be cancelled.  Previously, it raised
-<a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a> immediately.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span>시간 초과로 인해 <em>aw</em>가 취소되면, <code class="docutils literal notranslate"><span class="pre">wait_for</span></code>는 <em>aw</em>가 취소 될 때까지 대기합니다. 이전에는 <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>가 즉시 발생했습니다.</p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="waiting-primitives">
-<h2><a class="toc-backref" href="#id9">Waiting Primitives</a><a class="headerlink" href="#waiting-primitives" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">대기 프리미티브</a><a class="headerlink" href="#waiting-primitives" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.wait">
 <em class="property">coroutine </em><code class="descclassname">asyncio.</code><code class="descname">wait</code><span class="sig-paren">(</span><em>aws</em>, <em>*</em>, <em>loop=None</em>, <em>timeout=None</em>, <em>return_when=ALL_COMPLETED</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.wait" title="정의 주소">¶</a></dt>
-<dd><p>Run <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">awaitable objects</span></a> in the <em>aws</em>
-set concurrently and block until the condition specified
-by <em>return_when</em>.</p>
+<dd><p><em>aws</em> 집합에 있는 <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">어웨이터블 객체</span></a>를 동시에 실행하고, <em>return_when</em>에 의해 지정된 조건이 만족될 때까지 블록합니다.</p>
 <p>If any awaitable in <em>aws</em> is a coroutine, it is automatically
 scheduled as a Task.  Passing coroutines objects to
 <code class="docutils literal notranslate"><span class="pre">wait()</span></code> directly is deprecated as it leads to
 <a class="reference internal" href="#asyncio-example-wait-coroutine"><span class="std std-ref">confusing behavior</span></a>.</p>
-<p>Returns two sets of Tasks/Futures: <code class="docutils literal notranslate"><span class="pre">(done,</span> <span class="pre">pending)</span></code>.</p>
-<p>Usage:</p>
+<p>두 집합의 태스크/퓨처를 반환합니다: <code class="docutils literal notranslate"><span class="pre">(done,</span> <span class="pre">pending)</span></code>.</p>
+<p>사용법:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">done</span><span class="p">,</span> <span class="n">pending</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">aws</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <em>loop</em> argument is deprecated and scheduled for removal
-in Python 3.10.</p>
-<p><em>timeout</em> (a float or int), if specified, can be used to control
-the maximum number of seconds to wait before returning.</p>
-<p>Note that this function does not raise <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>.
-Futures or Tasks that aren't done when the timeout occurs are simply
-returned in the second set.</p>
-<p><em>return_when</em> indicates when this function should return.  It must
-be one of the following constants:</p>
+<p><em>loop</em> 인자는 폐지되었고 파이썬 3.10에서 삭제 예정입니다.</p>
+<p><em>timeout</em>(float나 int)을 지정하면, 반환하기 전에 대기 할 최대 시간(초)을 제어할 수 있습니다.</p>
+<p>이 함수는 <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>를 발생시키지 않음에 유의하십시오. 시간 초과가 발생할 때 완료되지 않은 퓨처나 태스크는 단순히 두 번째 집합으로 반환됩니다.</p>
+<p><em>return_when</em>는 이 함수가 언제 반환해야하는지 나타냅니다. 다음 상수 중 하나여야 합니다:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="42%" />
 <col width="58%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Constant</th>
-<th class="head">Description</th>
+<tr class="row-odd"><th class="head">상수</th>
+<th class="head">설명</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><code class="xref py py-const docutils literal notranslate"><span class="pre">FIRST_COMPLETED</span></code></td>
-<td>The function will return when any
-future finishes or is cancelled.</td>
+<td>퓨처가 하나라도 끝나거나 취소될 때 함수가 반환됩니다.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-const docutils literal notranslate"><span class="pre">FIRST_EXCEPTION</span></code></td>
-<td>The function will return when any
-future finishes by raising an
-exception.  If no future raises an
-exception then it is equivalent to
-<code class="xref py py-const docutils literal notranslate"><span class="pre">ALL_COMPLETED</span></code>.</td>
+<td>퓨처가 하나라도 예외를 일으켜 끝나면 함수가 반환됩니다. 어떤 퓨처도 예외를 일으키지 않으면 <code class="xref py py-const docutils literal notranslate"><span class="pre">ALL_COMPLETED</span></code>와 같습니다.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-const docutils literal notranslate"><span class="pre">ALL_COMPLETED</span></code></td>
-<td>The function will return when all
-futures finish or are cancelled.</td>
+<td>모든 퓨처가 끝나거나 취소되면 함수가 반환됩니다.</td>
 </tr>
 </tbody>
 </table>
-<p>Unlike <a class="reference internal" href="#asyncio.wait_for" title="asyncio.wait_for"><code class="xref py py-func docutils literal notranslate"><span class="pre">wait_for()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">wait()</span></code> does not cancel the
-futures when a timeout occurs.</p>
+<p><a class="reference internal" href="#asyncio.wait_for" title="asyncio.wait_for"><code class="xref py py-func docutils literal notranslate"><span class="pre">wait_for()</span></code></a>와 달리, <code class="docutils literal notranslate"><span class="pre">wait()</span></code>는 시간 초과가 발생할 때 퓨처를 취소하지 않습니다.</p>
 <div class="admonition note" id="asyncio-example-wait-coroutine">
 <p class="first admonition-title">주석</p>
-<p><code class="docutils literal notranslate"><span class="pre">wait()</span></code> schedules coroutines as Tasks automatically and later
-returns those implicitly created Task objects in <code class="docutils literal notranslate"><span class="pre">(done,</span> <span class="pre">pending)</span></code>
-sets.  Therefore the following code won't work as expected:</p>
+<p><code class="docutils literal notranslate"><span class="pre">wait()</span></code>는 코루틴을 태스크로 자동 예약하고, 나중에 묵시적으로 생성된 Task 객체를 <code class="docutils literal notranslate"><span class="pre">(done,</span> <span class="pre">pending)</span></code> 집합으로 반환합니다. 따라서 다음 코드는 기대한대로 작동하지 않습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
     <span class="k">return</span> <span class="mi">42</span>
 
@@ -572,10 +510,10 @@ sets.  Therefore the following code won't work as expected:</p>
 <span class="n">done</span><span class="p">,</span> <span class="n">pending</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">({</span><span class="n">coro</span><span class="p">})</span>
 
 <span class="k">if</span> <span class="n">coro</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
-    <span class="c1"># This branch will never be run!</span>
+    <span class="c1"># 이 분기는 절대 실행되지 않습니다!</span>
 </pre></div>
 </div>
-<p>Here is how the above snippet can be fixed:</p>
+<p>위의 조각을 고치는 방법은 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
     <span class="k">return</span> <span class="mi">42</span>
 
@@ -583,24 +521,19 @@ sets.  Therefore the following code won't work as expected:</p>
 <span class="n">done</span><span class="p">,</span> <span class="n">pending</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">({</span><span class="n">task</span><span class="p">})</span>
 
 <span class="k">if</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
-    <span class="c1"># Everything will work as expected now.</span>
+    <span class="c1"># 이제 모든 것이 예상대로 작동합니다.</span>
 </pre></div>
 </div>
-<p class="last">Passing coroutine objects to <code class="docutils literal notranslate"><span class="pre">wait()</span></code> directly is
-deprecated.</p>
+<p class="last">코루틴 객체를 <code class="docutils literal notranslate"><span class="pre">wait()</span></code>로 직접 전달하는 것은 폐지되었습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="asyncio.as_completed">
 <code class="descclassname">asyncio.</code><code class="descname">as_completed</code><span class="sig-paren">(</span><em>aws</em>, <em>*</em>, <em>loop=None</em>, <em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.as_completed" title="정의 주소">¶</a></dt>
-<dd><p>Run <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">awaitable objects</span></a> in the <em>aws</em>
-set concurrently.  Return an iterator of <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> objects.
-Each Future object returned represents the earliest result
-from the set of the remaining awaitables.</p>
-<p>Raises <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a> if the timeout occurs before
-all Futures are done.</p>
-<p>Example:</p>
+<dd><p><em>aws</em> 집합에 있는 <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">어웨이터블 객체</span></a>를 동시에 실행합니다. <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> 객체의 이터레이터를 반환합니다. 반환된 각 Future 객체는 남아있는 어웨이터블 집합의 가장 빠른 결과를 나타냅니다.</p>
+<p>모든 퓨처가 완료되기 전에 시간 초과가 발생하면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>를 발생시킵니다.</p>
+<p>예:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">aws</span><span class="p">):</span>
     <span class="n">earliest_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">f</span>
     <span class="c1"># ...</span>
@@ -610,28 +543,24 @@ all Futures are done.</p>
 
 </div>
 <div class="section" id="scheduling-from-other-threads">
-<h2><a class="toc-backref" href="#id10">Scheduling From Other Threads</a><a class="headerlink" href="#scheduling-from-other-threads" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">다른 스레드에서 예약하기</a><a class="headerlink" href="#scheduling-from-other-threads" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.run_coroutine_threadsafe">
 <code class="descclassname">asyncio.</code><code class="descname">run_coroutine_threadsafe</code><span class="sig-paren">(</span><em>coro</em>, <em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.run_coroutine_threadsafe" title="정의 주소">¶</a></dt>
-<dd><p>Submit a coroutine to the given event loop.  Thread-safe.</p>
-<p>Return a <a class="reference internal" href="concurrent.futures.html#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.Future</span></code></a> to wait for the result
-from another OS thread.</p>
-<p>This function is meant to be called from a different OS thread
-than the one where the event loop is running.  Example:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a coroutine</span>
+<dd><p>주어진 이벤트 루프에 코루틴을 제출합니다. 스레드 안전합니다.</p>
+<p>다른 OS 스레드에서 결과를 기다리는 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.Future</span></code></a>를 반환합니다.</p>
+<p>이 함수는 이벤트 루프가 실행중인 스레드가 아닌, 다른 OS 스레드에서 호출하기위한 것입니다. 예:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 코루틴을 만듭니다</span>
 <span class="n">coro</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
-<span class="c1"># Submit the coroutine to a given loop</span>
+<span class="c1"># 주어진 루프로 코루틴을 제출합니다</span>
 <span class="n">future</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run_coroutine_threadsafe</span><span class="p">(</span><span class="n">coro</span><span class="p">,</span> <span class="n">loop</span><span class="p">)</span>
 
-<span class="c1"># Wait for the result with an optional timeout argument</span>
+<span class="c1"># 선택적 시간제한 인자로 결과를 기다립니다</span>
 <span class="k">assert</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
 </pre></div>
 </div>
-<p>If an exception is raised in the coroutine, the returned Future
-will be notified.  It can also be used to cancel the task in
-the event loop:</p>
+<p>코루틴에서 예외가 발생하면, 반환된 Future에 통지됩니다. 또한 이벤트 루프에서 태스크를 취소하는 데 사용할 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
@@ -643,10 +572,8 @@ the event loop:</p>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The coroutine returned: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>See the <a class="reference internal" href="asyncio-dev.html#asyncio-multithreading"><span class="std std-ref">concurrency and multithreading</span></a>
-section of the documentation.</p>
-<p>Unlike other asyncio functions this functions requires the <em>loop</em>
-argument to be passed explicitly.</p>
+<p>설명서의 <a class="reference internal" href="asyncio-dev.html#asyncio-multithreading"><span class="std std-ref">동시성과 다중 스레드</span></a> 절을 참조하십시오.</p>
+<p>다른 asyncio 함수와 달리, 이 함수는 <em>loop</em> 인자가 명시적으로 전달되어야합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.5.1에 추가.</span></p>
 </div>
@@ -654,7 +581,7 @@ argument to be passed explicitly.</p>
 
 </div>
 <div class="section" id="introspection">
-<h2><a class="toc-backref" href="#id11">Introspection</a><a class="headerlink" href="#introspection" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">인트로스팩션</a><a class="headerlink" href="#introspection" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.current_task">
 <code class="descclassname">asyncio.</code><code class="descname">current_task</code><span class="sig-paren">(</span><em>loop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.current_task" title="정의 주소">¶</a></dt>
@@ -950,14 +877,14 @@ decorated with <a class="reference internal" href="#asyncio.coroutine" title="as
 <li><a class="reference internal" href="#coroutines">코루틴</a></li>
 <li><a class="reference internal" href="#awaitables">어웨이터블</a></li>
 <li><a class="reference internal" href="#running-an-asyncio-program">asyncio 프로그램 실행하기</a></li>
-<li><a class="reference internal" href="#creating-tasks">Creating Tasks</a></li>
-<li><a class="reference internal" href="#sleeping">Sleeping</a></li>
-<li><a class="reference internal" href="#running-tasks-concurrently">Running Tasks Concurrently</a></li>
-<li><a class="reference internal" href="#shielding-from-cancellation">Shielding From Cancellation</a></li>
-<li><a class="reference internal" href="#timeouts">Timeouts</a></li>
-<li><a class="reference internal" href="#waiting-primitives">Waiting Primitives</a></li>
-<li><a class="reference internal" href="#scheduling-from-other-threads">Scheduling From Other Threads</a></li>
-<li><a class="reference internal" href="#introspection">Introspection</a></li>
+<li><a class="reference internal" href="#creating-tasks">태스크 만들기</a></li>
+<li><a class="reference internal" href="#sleeping">잠자기</a></li>
+<li><a class="reference internal" href="#running-tasks-concurrently">동시에 태스크 실행하기</a></li>
+<li><a class="reference internal" href="#shielding-from-cancellation">취소로부터 보호하기</a></li>
+<li><a class="reference internal" href="#timeouts">시간 제한</a></li>
+<li><a class="reference internal" href="#waiting-primitives">대기 프리미티브</a></li>
+<li><a class="reference internal" href="#scheduling-from-other-threads">다른 스레드에서 예약하기</a></li>
+<li><a class="reference internal" href="#introspection">인트로스팩션</a></li>
 <li><a class="reference internal" href="#task-object">Task Object</a></li>
 <li><a class="reference internal" href="#generator-based-coroutines">Generator-based Coroutines</a></li>
 </ul>
