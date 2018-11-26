@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Buffer Protocol &#8212; 파이썬 설명서 주석판</title>
+    <title>버퍼 프로토콜 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -104,158 +104,86 @@
           <div class="body" role="main">
             
   <div class="section" id="buffer-protocol">
-<span id="bufferobjects"></span><span id="index-0"></span><h1>Buffer Protocol<a class="headerlink" href="#buffer-protocol" title="제목 주소">¶</a></h1>
-<p>Certain objects available in Python wrap access to an underlying memory
-array or <em>buffer</em>.  Such objects include the built-in <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> and
-<a class="reference internal" href="../library/stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>, and some extension types like <a class="reference internal" href="../library/array.html#array.array" title="array.array"><code class="xref py py-class docutils literal notranslate"><span class="pre">array.array</span></code></a>.
-Third-party libraries may define their own types for special purposes, such
-as image processing or numeric analysis.</p>
-<p>While each of these types have their own semantics, they share the common
-characteristic of being backed by a possibly large memory buffer.  It is
-then desirable, in some situations, to access that buffer directly and
-without intermediate copying.</p>
-<p>Python provides such a facility at the C level in the form of the <a class="reference internal" href="#bufferobjects"><span class="std std-ref">buffer
-protocol</span></a>.  This protocol has two sides:</p>
+<span id="bufferobjects"></span><span id="index-0"></span><h1>버퍼 프로토콜<a class="headerlink" href="#buffer-protocol" title="제목 주소">¶</a></h1>
+<p>파이썬에서 사용할 수있는 어떤 객체는 하부 메모리 배열 또는 <em>버퍼</em>에 대한 액세스를 래핑합니다. 이러한 객체에는 내장 <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 와 <a class="reference internal" href="../library/stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>, 그리고 <a class="reference internal" href="../library/array.html#array.array" title="array.array"><code class="xref py py-class docutils literal notranslate"><span class="pre">array.array</span></code></a>와 같은 일부 확장 형이 포함됩니다. 제삼자 라이브러리도 이미지 처리나 수치 해석과 같은 특수한 용도로 자체 형을 정의 할 수 있습니다.</p>
+<p>이러한 형은 각각 고유의 의미를 가지지만, (아마도) 큰 메모리 버퍼에 의해 뒷받침되는 공통된 특징을 공유합니다. 어떤 상황에서는 중간 복사없이 직접 버퍼에 액세스하는 것이 바람직합니다.</p>
+<p>파이썬은 C 수준에서 <a class="reference internal" href="#bufferobjects"><span class="std std-ref">버퍼 프로토콜</span></a> 형식으로 이러한 기능을 제공합니다. 이 프로토콜에는 두 가지 측면이 있습니다:</p>
 <ul class="simple" id="index-1">
-<li>on the producer side, a type can export a &quot;buffer interface&quot; which allows
-objects of that type to expose information about their underlying buffer.
-This interface is described in the section <a class="reference internal" href="typeobj.html#buffer-structs"><span class="std std-ref">Buffer Object Structures</span></a>;</li>
-<li>on the consumer side, several means are available to obtain a pointer to
-the raw underlying data of an object (for example a method parameter).</li>
+<li>생산자 측에서는, 형이 &quot;버퍼 인터페이스&quot;를 내보낼 수 있는데, 그 형의 객체가 하부 버퍼의 정보를 노출 할 수있게 합니다. 이 인터페이스는 <a class="reference internal" href="typeobj.html#buffer-structs"><span class="std std-ref">Buffer Object Structures</span></a> 절에서 설명됩니다.</li>
+<li>소비자 측에서는, 객체의 원시 하부 데이터에 대한 포인터를 얻기 위해 여러 가지 방법을 사용할 수 있습니다 (예를 들어 메서드 매개 변수).</li>
 </ul>
-<p>Simple objects such as <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> and <a class="reference internal" href="../library/stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a> expose their
-underlying buffer in byte-oriented form.  Other forms are possible; for example,
-the elements exposed by an <a class="reference internal" href="../library/array.html#array.array" title="array.array"><code class="xref py py-class docutils literal notranslate"><span class="pre">array.array</span></code></a> can be multi-byte values.</p>
-<p>An example consumer of the buffer interface is the <a class="reference internal" href="../library/io.html#io.BufferedIOBase.write" title="io.BufferedIOBase.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>
-method of file objects: any object that can export a series of bytes through
-the buffer interface can be written to a file.  While <code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code> only
-needs read-only access to the internal contents of the object passed to it,
-other methods such as <a class="reference internal" href="../library/io.html#io.BufferedIOBase.readinto" title="io.BufferedIOBase.readinto"><code class="xref py py-meth docutils literal notranslate"><span class="pre">readinto()</span></code></a> need write access
-to the contents of their argument.  The buffer interface allows objects to
-selectively allow or reject exporting of read-write and read-only buffers.</p>
-<p>There are two ways for a consumer of the buffer interface to acquire a buffer
-over a target object:</p>
+<p><a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 와 <a class="reference internal" href="../library/stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>와 같은 간단한 객체는 하부 버퍼를 바이트 지향 형식으로 노출합니다. 다른 형태도 가능합니다; 예를 들어, <a class="reference internal" href="../library/array.html#array.array" title="array.array"><code class="xref py py-class docutils literal notranslate"><span class="pre">array.array</span></code></a>에 의해 노출되는 요소는 멀티 바이트 값이 될 수 있습니다.</p>
+<p>버퍼 인터페이스의 소비자 예는 파일 객체의 <a class="reference internal" href="../library/io.html#io.BufferedIOBase.write" title="io.BufferedIOBase.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a> 메서드입니다: 버퍼 인터페이스를 통해 일련의 바이트를 내보낼 수있는 모든 객체는 파일에 기록 될 수 있습니다. <code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code>가 전달 된 객체의 내부 내용에 대한 읽기 전용 액세스 만 필요한 반면, <a class="reference internal" href="../library/io.html#io.BufferedIOBase.readinto" title="io.BufferedIOBase.readinto"><code class="xref py py-meth docutils literal notranslate"><span class="pre">readinto()</span></code></a>와 같은 다른 메서드는 인자의 내용에 대한 쓰기 액세스가 필요합니다. 버퍼 인터페이스는 객체가 읽기-쓰기와 읽기 전용 버퍼를 선택적으로 허용하거나 거부할 수 있도록합니다.</p>
+<p>버퍼 인터페이스의 소비자가 대상 객체에 대해 버퍼를 얻는 방법에는 두 가지가 있습니다:</p>
 <ul class="simple">
-<li>call <a class="reference internal" href="#c.PyObject_GetBuffer" title="PyObject_GetBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetBuffer()</span></code></a> with the right parameters;</li>
-<li>call <a class="reference internal" href="arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> (or one of its siblings) with one of the
-<code class="docutils literal notranslate"><span class="pre">y*</span></code>, <code class="docutils literal notranslate"><span class="pre">w*</span></code> or <code class="docutils literal notranslate"><span class="pre">s*</span></code> <a class="reference internal" href="arg.html#arg-parsing"><span class="std std-ref">format codes</span></a>.</li>
+<li>올바른 매개 변수로 <a class="reference internal" href="#c.PyObject_GetBuffer" title="PyObject_GetBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetBuffer()</span></code></a>를 호출합니다;</li>
+<li><code class="docutils literal notranslate"><span class="pre">y*</span></code>, <code class="docutils literal notranslate"><span class="pre">w*</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">s*</span></code> <a class="reference internal" href="arg.html#arg-parsing"><span class="std std-ref">형식 코드</span></a> 중 하나를 사용하여 <a class="reference internal" href="arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>(또는 그 형제 중 하나)을 호출합니다.</li>
 </ul>
-<p>In both cases, <a class="reference internal" href="#c.PyBuffer_Release" title="PyBuffer_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyBuffer_Release()</span></code></a> must be called when the buffer
-isn't needed anymore.  Failure to do so could lead to various issues such as
-resource leaks.</p>
+<p>두 경우 모두, 버퍼가 더는 필요하지 않으면 <a class="reference internal" href="#c.PyBuffer_Release" title="PyBuffer_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyBuffer_Release()</span></code></a>를 호출해야합니다. 그렇게하지 않으면 자원 누수와 같은 다양한 문제가 발생할 수 있습니다.</p>
 <div class="section" id="buffer-structure">
-<span id="id1"></span><h2>Buffer structure<a class="headerlink" href="#buffer-structure" title="제목 주소">¶</a></h2>
-<p>Buffer structures (or simply &quot;buffers&quot;) are useful as a way to expose the
-binary data from another object to the Python programmer.  They can also be
-used as a zero-copy slicing mechanism.  Using their ability to reference a
-block of memory, it is possible to expose any data to the Python programmer
-quite easily.  The memory could be a large, constant array in a C extension,
-it could be a raw block of memory for manipulation before passing to an
-operating system library, or it could be used to pass around structured data
-in its native, in-memory format.</p>
-<p>Contrary to most data types exposed by the Python interpreter, buffers
-are not <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> pointers but rather simple C structures.  This
-allows them to be created and copied very simply.  When a generic wrapper
-around a buffer is needed, a <a class="reference internal" href="memoryview.html#memoryview-objects"><span class="std std-ref">memoryview</span></a> object
-can be created.</p>
-<p>For short instructions how to write an exporting object, see
-<a class="reference internal" href="typeobj.html#buffer-structs"><span class="std std-ref">Buffer Object Structures</span></a>. For obtaining
-a buffer, see <a class="reference internal" href="#c.PyObject_GetBuffer" title="PyObject_GetBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetBuffer()</span></code></a>.</p>
+<span id="id1"></span><h2>버퍼 구조체<a class="headerlink" href="#buffer-structure" title="제목 주소">¶</a></h2>
+<p>버퍼 구조체(또는 단순히 &quot;버퍼&quot;)는 다른 객체의 바이너리 데이터를 파이썬 프로그래머에게 노출시키는 방법으로 유용합니다. 또한 복사 없는(zero-copy) 슬라이싱 메커니즘으로 사용할 수 있습니다. 메모리 블록을 참조하는 능력을 사용해서, 임의의 데이터를 파이썬 프로그래머에게 아주 쉽게 노출시킬 수 있습니다. 메모리는 C 확장의 큰 상수 배열 일 수 있으며, 운영 체제 라이브러리로 전달되기 전에 조작하기 위한 원시 메모리 블록 일 수도 있고, 네이티브 인 메모리(in-memory) 형식으로 구조화 된 데이터를 전달하는 데 사용될 수도 있습니다.</p>
+<p>파이썬 인터프리터가 노출하는 대부분의 데이터 형과 달리, 버퍼는 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> 포인터가 아니라 단순한 C 구조체입니다. 이를 통해 매우 간단하게 만들고 복사 할 수 있습니다. 버퍼를 감싸는 일반 래퍼가 필요할 때는, <a class="reference internal" href="memoryview.html#memoryview-objects"><span class="std std-ref">메모리 뷰</span></a> 객체를 만들 수 있습니다.</p>
+<p>제공하는(exporting) 객체를 작성하는 간단한 지침은 <a class="reference internal" href="typeobj.html#buffer-structs"><span class="std std-ref">버퍼 객체 구조체</span></a>를 참조하십시오. 버퍼를 얻으려면, <a class="reference internal" href="#c.PyObject_GetBuffer" title="PyObject_GetBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetBuffer()</span></code></a>를 참조하십시오.</p>
 <dl class="type">
 <dt id="c.Py_buffer">
 <code class="descname">Py_buffer</code><a class="headerlink" href="#c.Py_buffer" title="정의 주소">¶</a></dt>
 <dd><dl class="member">
 <dt id="c.Py_buffer.buf">
 void *<code class="descname">buf</code><a class="headerlink" href="#c.Py_buffer.buf" title="정의 주소">¶</a></dt>
-<dd><p>A pointer to the start of the logical structure described by the buffer
-fields. This can be any location within the underlying physical memory
-block of the exporter. For example, with negative <a class="reference internal" href="#c.Py_buffer.strides" title="Py_buffer.strides"><code class="xref c c-member docutils literal notranslate"><span class="pre">strides</span></code></a>
-the value may point to the end of the memory block.</p>
-<p>For <a class="reference internal" href="../glossary.html#term-contiguous"><span class="xref std std-term">contiguous</span></a> arrays, the value points to the beginning of
-the memory block.</p>
+<dd><p>버퍼 필드에 의해 기술 된 논리적 구조의 시작을 가리키는 포인터. 이것은 제공자(exporter)의 하부 물리적 메모리 블록 내의 모든 위치 일 수 있습니다. 예를 들어, 음의 <a class="reference internal" href="#c.Py_buffer.strides" title="Py_buffer.strides"><code class="xref c c-member docutils literal notranslate"><span class="pre">strides</span></code></a>를 사용하면 값이 메모리 블록의 끝을 가리킬 수 있습니다.</p>
+<p><a class="reference internal" href="../glossary.html#term-contiguous"><span class="xref std std-term">연속</span></a> 배열의 경우, 값은 메모리 블록의 시작을 가리킵니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.obj">
 void *<code class="descname">obj</code><a class="headerlink" href="#c.Py_buffer.obj" title="정의 주소">¶</a></dt>
-<dd><p>A new reference to the exporting object. The reference is owned by
-the consumer and automatically decremented and set to <em>NULL</em> by
-<a class="reference internal" href="#c.PyBuffer_Release" title="PyBuffer_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyBuffer_Release()</span></code></a>. The field is the equivalent of the return
-value of any standard C-API function.</p>
-<p>As a special case, for <em>temporary</em> buffers that are wrapped by
-<a class="reference internal" href="memoryview.html#c.PyMemoryView_FromBuffer" title="PyMemoryView_FromBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyMemoryView_FromBuffer()</span></code></a> or <a class="reference internal" href="#c.PyBuffer_FillInfo" title="PyBuffer_FillInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyBuffer_FillInfo()</span></code></a>
-this field is <em>NULL</em>. In general, exporting objects MUST NOT
-use this scheme.</p>
+<dd><p>제공하는(exporting) 객체에 대한 새 참조. 참조는 소비자가 소유하고, <a class="reference internal" href="#c.PyBuffer_Release" title="PyBuffer_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyBuffer_Release()</span></code></a>에 의해 자동으로 감소되고 <em>NULL</em>로 설정됩니다. 이 필드는 표준 C-API 함수의 반환 값과 동등합니다.</p>
+<p>특수한 경우로, <a class="reference internal" href="memoryview.html#c.PyMemoryView_FromBuffer" title="PyMemoryView_FromBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyMemoryView_FromBuffer()</span></code></a> 나 <a class="reference internal" href="#c.PyBuffer_FillInfo" title="PyBuffer_FillInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyBuffer_FillInfo()</span></code></a>로 감싸진 <em>임시(temporary)</em> 버퍼의 경우, 이 필드는 <em>NULL</em>입니다. 일반적으로, 제공하는(exporting) 객체는 이 체계를 사용하지 않아야합니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.len">
 Py_ssize_t <code class="descname">len</code><a class="headerlink" href="#c.Py_buffer.len" title="정의 주소">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">product(shape)</span> <span class="pre">*</span> <span class="pre">itemsize</span></code>. For contiguous arrays, this is the length
-of the underlying memory block. For non-contiguous arrays, it is the length
-that the logical structure would have if it were copied to a contiguous
-representation.</p>
-<p>Accessing <code class="docutils literal notranslate"><span class="pre">((char</span> <span class="pre">*)buf)[0]</span> <span class="pre">up</span> <span class="pre">to</span> <span class="pre">((char</span> <span class="pre">*)buf)[len-1]</span></code> is only valid
-if the buffer has been obtained by a request that guarantees contiguity. In
-most cases such a request will be <a class="reference internal" href="#c.PyBUF_SIMPLE" title="PyBUF_SIMPLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_SIMPLE</span></code></a> or <a class="reference internal" href="#c.PyBUF_WRITABLE" title="PyBUF_WRITABLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_WRITABLE</span></code></a>.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">product(shape)</span> <span class="pre">*</span> <span class="pre">itemsize</span></code>. 연속 배열의 경우, 하부 메모리 블록의 길이입니다. 불연속 배열의 경우, 연속 표현으로 복사된다면 논리적 구조체가 갖게될 길이입니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">((char</span> <span class="pre">*)buf)[0]</span> <span class="pre">에서</span> <span class="pre">((char</span> <span class="pre">*)buf)[len-1]</span></code> 까지의 액세스는 연속성을 보장하는 요청에 의해 버퍼가 확보 된 경우에만 유효합니다. 대부분의 경우 이러한 요청은 <a class="reference internal" href="#c.PyBUF_SIMPLE" title="PyBUF_SIMPLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_SIMPLE</span></code></a> 또는 <a class="reference internal" href="#c.PyBUF_WRITABLE" title="PyBUF_WRITABLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_WRITABLE</span></code></a>입니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.readonly">
 int <code class="descname">readonly</code><a class="headerlink" href="#c.Py_buffer.readonly" title="정의 주소">¶</a></dt>
-<dd><p>An indicator of whether the buffer is read-only. This field is controlled
-by the <a class="reference internal" href="#c.PyBUF_WRITABLE" title="PyBUF_WRITABLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_WRITABLE</span></code></a> flag.</p>
+<dd><p>버퍼가 읽기 전용인지를 나타내는 표시기입니다. 이 필드는 <a class="reference internal" href="#c.PyBUF_WRITABLE" title="PyBUF_WRITABLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_WRITABLE</span></code></a> 플래그로 제어됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.itemsize">
 Py_ssize_t <code class="descname">itemsize</code><a class="headerlink" href="#c.Py_buffer.itemsize" title="정의 주소">¶</a></dt>
-<dd><p>Item size in bytes of a single element. Same as the value of <a class="reference internal" href="../library/struct.html#struct.calcsize" title="struct.calcsize"><code class="xref py py-func docutils literal notranslate"><span class="pre">struct.calcsize()</span></code></a>
-called on non-NULL <a class="reference internal" href="#c.Py_buffer.format" title="Py_buffer.format"><code class="xref c c-member docutils literal notranslate"><span class="pre">format</span></code></a> values.</p>
-<p>Important exception: If a consumer requests a buffer without the
-<a class="reference internal" href="#c.PyBUF_FORMAT" title="PyBUF_FORMAT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_FORMAT</span></code></a> flag, <a class="reference internal" href="#c.Py_buffer.format" title="Py_buffer.format"><code class="xref c c-member docutils literal notranslate"><span class="pre">format</span></code></a> will
-be set to  <em>NULL</em>,  but <a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a> still has
-the value for the original format.</p>
-<p>If <a class="reference internal" href="#c.Py_buffer.shape" title="Py_buffer.shape"><code class="xref c c-member docutils literal notranslate"><span class="pre">shape</span></code></a> is present, the equality
-<code class="docutils literal notranslate"><span class="pre">product(shape)</span> <span class="pre">*</span> <span class="pre">itemsize</span> <span class="pre">==</span> <span class="pre">len</span></code> still holds and the consumer
-can use <a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a> to navigate the buffer.</p>
-<p>If <a class="reference internal" href="#c.Py_buffer.shape" title="Py_buffer.shape"><code class="xref c c-member docutils literal notranslate"><span class="pre">shape</span></code></a> is <em>NULL</em> as a result of a <a class="reference internal" href="#c.PyBUF_SIMPLE" title="PyBUF_SIMPLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_SIMPLE</span></code></a>
-or a <a class="reference internal" href="#c.PyBUF_WRITABLE" title="PyBUF_WRITABLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_WRITABLE</span></code></a> request, the consumer must disregard
-<a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a> and assume <code class="docutils literal notranslate"><span class="pre">itemsize</span> <span class="pre">==</span> <span class="pre">1</span></code>.</p>
+<dd><p>단일 요소의 항목 크기(바이트)입니다. NULL이 아닌 <a class="reference internal" href="#c.Py_buffer.format" title="Py_buffer.format"><code class="xref c c-member docutils literal notranslate"><span class="pre">format</span></code></a> 값에 호출 된 <a class="reference internal" href="../library/struct.html#struct.calcsize" title="struct.calcsize"><code class="xref py py-func docutils literal notranslate"><span class="pre">struct.calcsize()</span></code></a> 값과 같습니다.</p>
+<p>중요한 예외: 소비자가 <a class="reference internal" href="#c.PyBUF_FORMAT" title="PyBUF_FORMAT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_FORMAT</span></code></a> 플래그없이 버퍼를 요청하면, <a class="reference internal" href="#c.Py_buffer.format" title="Py_buffer.format"><code class="xref c c-member docutils literal notranslate"><span class="pre">format</span></code></a>은 <em>NULL</em>로 설정되지만, <a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a>는 여전히 원래 형식의 값을 갖습니다.</p>
+<p><a class="reference internal" href="#c.Py_buffer.shape" title="Py_buffer.shape"><code class="xref c c-member docutils literal notranslate"><span class="pre">shape</span></code></a>이 있으면, <code class="docutils literal notranslate"><span class="pre">product(shape)</span> <span class="pre">*</span> <span class="pre">itemsize</span> <span class="pre">==</span> <span class="pre">len</span></code> 동치가 계속 성립하고 소비자는 <a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a>를 사용하여 버퍼를 탐색 할 수 있습니다.</p>
+<p><a class="reference internal" href="#c.PyBUF_SIMPLE" title="PyBUF_SIMPLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_SIMPLE</span></code></a> 이나 <a class="reference internal" href="#c.PyBUF_WRITABLE" title="PyBUF_WRITABLE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_WRITABLE</span></code></a> 요청의 결과로 <a class="reference internal" href="#c.Py_buffer.shape" title="Py_buffer.shape"><code class="xref c c-member docutils literal notranslate"><span class="pre">shape</span></code></a>이 <em>NULL</em>이면, 소비자는 <a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a>를 무시하고 <code class="docutils literal notranslate"><span class="pre">itemsize</span> <span class="pre">==</span> <span class="pre">1</span></code>로 가정해야합니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.format">
 const char *<code class="descname">format</code><a class="headerlink" href="#c.Py_buffer.format" title="정의 주소">¶</a></dt>
-<dd><p>A <em>NUL</em> terminated string in <a class="reference internal" href="../library/struct.html#module-struct" title="struct: Interpret bytes as packed binary data."><code class="xref py py-mod docutils literal notranslate"><span class="pre">struct</span></code></a> module style syntax describing
-the contents of a single item. If this is <em>NULL</em>, <code class="docutils literal notranslate"><span class="pre">&quot;B&quot;</span></code> (unsigned bytes)
-is assumed.</p>
-<p>This field is controlled by the <a class="reference internal" href="#c.PyBUF_FORMAT" title="PyBUF_FORMAT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_FORMAT</span></code></a> flag.</p>
+<dd><p>단일 항목의 내용을 설명하는 <a class="reference internal" href="../library/struct.html#module-struct" title="struct: Interpret bytes as packed binary data."><code class="xref py py-mod docutils literal notranslate"><span class="pre">struct</span></code></a> 모듈 스타일 문법의 <em>NUL</em> 종료 문자열. 이것이 <em>NULL</em>이면, <code class="docutils literal notranslate"><span class="pre">&quot;B&quot;</span></code>(부호없는 바이트)를 가정합니다.</p>
+<p>이 필드는 <a class="reference internal" href="#c.PyBUF_FORMAT" title="PyBUF_FORMAT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_FORMAT</span></code></a> 플래그로 제어됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.ndim">
 int <code class="descname">ndim</code><a class="headerlink" href="#c.Py_buffer.ndim" title="정의 주소">¶</a></dt>
-<dd><p>The number of dimensions the memory represents as an n-dimensional array.
-If it is <code class="docutils literal notranslate"><span class="pre">0</span></code>, <a class="reference internal" href="#c.Py_buffer.buf" title="Py_buffer.buf"><code class="xref c c-member docutils literal notranslate"><span class="pre">buf</span></code></a> points to a single item representing
-a scalar. In this case, <a class="reference internal" href="#c.Py_buffer.shape" title="Py_buffer.shape"><code class="xref c c-member docutils literal notranslate"><span class="pre">shape</span></code></a>, <a class="reference internal" href="#c.Py_buffer.strides" title="Py_buffer.strides"><code class="xref c c-member docutils literal notranslate"><span class="pre">strides</span></code></a>
-and <a class="reference internal" href="#c.Py_buffer.suboffsets" title="Py_buffer.suboffsets"><code class="xref c c-member docutils literal notranslate"><span class="pre">suboffsets</span></code></a> MUST be <em>NULL</em>.</p>
-<p>The macro <code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_MAX_NDIM</span></code> limits the maximum number of dimensions
-to 64. Exporters MUST respect this limit, consumers of multi-dimensional
-buffers SHOULD be able to handle up to <code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_MAX_NDIM</span></code> dimensions.</p>
+<dd><p>메모리가 n 차원 배열로 나타내는 차원 수. <code class="docutils literal notranslate"><span class="pre">0</span></code>이면, <a class="reference internal" href="#c.Py_buffer.buf" title="Py_buffer.buf"><code class="xref c c-member docutils literal notranslate"><span class="pre">buf</span></code></a>는 스칼라를 나타내는 단일 항목을 가리 킵니다. 이 경우, <a class="reference internal" href="#c.Py_buffer.shape" title="Py_buffer.shape"><code class="xref c c-member docutils literal notranslate"><span class="pre">shape</span></code></a>, <a class="reference internal" href="#c.Py_buffer.strides" title="Py_buffer.strides"><code class="xref c c-member docutils literal notranslate"><span class="pre">strides</span></code></a> 및 <a class="reference internal" href="#c.Py_buffer.suboffsets" title="Py_buffer.suboffsets"><code class="xref c c-member docutils literal notranslate"><span class="pre">suboffsets</span></code></a>는 반드시 <em>NULL</em> 이어야합니다.</p>
+<p>매크로 <code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_MAX_NDIM</span></code>는 최대 차원 수를 64로 제한합니다. 제공자는 이 제한을 존중해야하며, 다차원 버퍼의 소비자는 <code class="xref c c-macro docutils literal notranslate"><span class="pre">PyBUF_MAX_NDIM</span></code> 차원까지 처리 할 수 있어야합니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.shape">
 Py_ssize_t *<code class="descname">shape</code><a class="headerlink" href="#c.Py_buffer.shape" title="정의 주소">¶</a></dt>
-<dd><p>An array of <code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code> of length <a class="reference internal" href="#c.Py_buffer.ndim" title="Py_buffer.ndim"><code class="xref c c-member docutils literal notranslate"><span class="pre">ndim</span></code></a>
-indicating the shape of the memory as an n-dimensional array. Note that
-<code class="docutils literal notranslate"><span class="pre">shape[0]</span> <span class="pre">*</span> <span class="pre">...</span> <span class="pre">*</span> <span class="pre">shape[ndim-1]</span> <span class="pre">*</span> <span class="pre">itemsize</span></code> MUST be equal to
-<a class="reference internal" href="#c.Py_buffer.len" title="Py_buffer.len"><code class="xref c c-member docutils literal notranslate"><span class="pre">len</span></code></a>.</p>
-<p>Shape values are restricted to <code class="docutils literal notranslate"><span class="pre">shape[n]</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>. The case
-<code class="docutils literal notranslate"><span class="pre">shape[n]</span> <span class="pre">==</span> <span class="pre">0</span></code> requires special attention. See <a class="reference internal" href="#complex-arrays">complex arrays</a>
-for further information.</p>
-<p>The shape array is read-only for the consumer.</p>
+<dd><p>n-차원 배열로 메모리의 모양을 나타내는 길이 <a class="reference internal" href="#c.Py_buffer.ndim" title="Py_buffer.ndim"><code class="xref c c-member docutils literal notranslate"><span class="pre">ndim</span></code></a>의 <code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code> 배열. <code class="docutils literal notranslate"><span class="pre">shape[0]</span> <span class="pre">*</span> <span class="pre">...</span> <span class="pre">*</span> <span class="pre">shape[ndim-1]</span> <span class="pre">*</span> <span class="pre">itemsize</span></code>는 <a class="reference internal" href="#c.Py_buffer.len" title="Py_buffer.len"><code class="xref c c-member docutils literal notranslate"><span class="pre">len</span></code></a>과 같아야합니다.</p>
+<p>모양 값은 <code class="docutils literal notranslate"><span class="pre">shape[n]</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>로 제한됩니다. <code class="docutils literal notranslate"><span class="pre">shape[n]</span> <span class="pre">==</span> <span class="pre">0</span></code>인 경우는 특별한 주의가 필요합니다. 자세한 정보는 <a class="reference internal" href="#complex-arrays">복잡한 배열</a>을 참조하십시오.</p>
+<p>shape 배열은 소비자에게 읽기 전용입니다.</p>
 </dd></dl>
 
 <dl class="member">
@@ -264,44 +192,30 @@ Py_ssize_t *<code class="descname">strides</code><a class="headerlink" href="#c.
 <dd><p>An array of <code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code> of length <a class="reference internal" href="#c.Py_buffer.ndim" title="Py_buffer.ndim"><code class="xref c c-member docutils literal notranslate"><span class="pre">ndim</span></code></a>
 giving the number of bytes to skip to get to a new element in each
 dimension.</p>
-<p>Stride values can be any integer. For regular arrays, strides are
-usually positive, but a consumer MUST be able to handle the case
-<code class="docutils literal notranslate"><span class="pre">strides[n]</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code>. See <a class="reference internal" href="#complex-arrays">complex arrays</a> for further information.</p>
-<p>The strides array is read-only for the consumer.</p>
+<p>스트라이드 값은 임의의 정수일 수 있습니다. 일반 배열의 경우, 스트라이드는 보통 양수이지만, 소비자는 <code class="docutils literal notranslate"><span class="pre">strides[n]</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code>인 경우를 처리 할 수 있어야합니다. 자세한 내용은 <a class="reference internal" href="#complex-arrays">복잡한 배열</a>을 참조하십시오.</p>
+<p>strides 배열은 소비자에게 읽기 전용입니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.suboffsets">
 Py_ssize_t *<code class="descname">suboffsets</code><a class="headerlink" href="#c.Py_buffer.suboffsets" title="정의 주소">¶</a></dt>
-<dd><p>An array of <code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code> of length <a class="reference internal" href="#c.Py_buffer.ndim" title="Py_buffer.ndim"><code class="xref c c-member docutils literal notranslate"><span class="pre">ndim</span></code></a>.
-If <code class="docutils literal notranslate"><span class="pre">suboffsets[n]</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>, the values stored along the nth dimension are
-pointers and the suboffset value dictates how many bytes to add to each
-pointer after de-referencing. A suboffset value that is negative
-indicates that no de-referencing should occur (striding in a contiguous
-memory block).</p>
-<p>If all suboffsets are negative (i.e. no de-referencing is needed, then
-this field must be NULL (the default value).</p>
-<p>This type of array representation is used by the Python Imaging Library
-(PIL). See <a class="reference internal" href="#complex-arrays">complex arrays</a> for further information how to access elements
-of such an array.</p>
-<p>The suboffsets array is read-only for the consumer.</p>
+<dd><p>길이 <a class="reference internal" href="#c.Py_buffer.ndim" title="Py_buffer.ndim"><code class="xref c c-member docutils literal notranslate"><span class="pre">ndim</span></code></a>의 <code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code> 배열. <code class="docutils literal notranslate"><span class="pre">suboffsets[n]</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code> 면, n 번째 차원을 따라 저장된 값은 포인터이고 서브 오프셋 값은 역참조(de-referencing) 후 각 포인터에 더할 바이트 수를 나타냅니다. 음의 서브 오프셋 값은 역참조(de-referencing)가 발생하지 않아야 함을 나타냅니다 (연속 메모리 블록에서의 스트라이드).</p>
+<p>모든 서브 오프셋이 음수면 (즉, 역참조가 필요하지 않으면), 이 필드는 NULL(기본값)이어야합니다.</p>
+<p>이 유형의 배열 표현은 파이썬 이미징 라이브러리(PIL)에서 사용됩니다. 이러한 배열 요소에 액세스하는 방법에 대한 자세한 내용은 <a class="reference internal" href="#complex-arrays">복잡한 배열</a>을 참조하십시오.</p>
+<p>suboffsets 배열은 소비자에게 읽기 전용입니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.Py_buffer.internal">
 void *<code class="descname">internal</code><a class="headerlink" href="#c.Py_buffer.internal" title="정의 주소">¶</a></dt>
-<dd><p>This is for use internally by the exporting object. For example, this
-might be re-cast as an integer by the exporter and used to store flags
-about whether or not the shape, strides, and suboffsets arrays must be
-freed when the buffer is released. The consumer MUST NOT alter this
-value.</p>
+<dd><p>이것은 제공하는(exporting) 객체에 의해 내부적으로 사용됩니다. 예를 들어, 이것은 제공자(exporter)가 정수로 다시 캐스팅 할 수 있으며, 버퍼가 해제될 때 shape, strides 및 suboffsets 배열을 해제해야하는지에 대한 플래그를 저장하는 데 사용됩니다. 소비자가 이 값을 변경해서는 안됩니다.</p>
 </dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="buffer-request-types">
-<span id="id2"></span><h2>Buffer request types<a class="headerlink" href="#buffer-request-types" title="제목 주소">¶</a></h2>
+<span id="id2"></span><h2>버퍼 요청 유형<a class="headerlink" href="#buffer-request-types" title="제목 주소">¶</a></h2>
 <p>Buffers are usually obtained by sending a buffer request to an exporting
 object via <a class="reference internal" href="#c.PyObject_GetBuffer" title="PyObject_GetBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetBuffer()</span></code></a>. Since the complexity of the logical
 structure of the memory can vary drastically, the consumer uses the <em>flags</em>
@@ -609,7 +523,7 @@ have to call <a class="reference internal" href="#c.PyBuffer_IsContiguous" title
 </div>
 </div>
 <div class="section" id="complex-arrays">
-<h2>Complex arrays<a class="headerlink" href="#complex-arrays" title="제목 주소">¶</a></h2>
+<h2>복잡한 배열<a class="headerlink" href="#complex-arrays" title="제목 주소">¶</a></h2>
 <div class="section" id="numpy-style-shape-and-strides">
 <h3>NumPy-style: shape and strides<a class="headerlink" href="#numpy-style-shape-and-strides" title="제목 주소">¶</a></h3>
 <p>The logical structure of NumPy-style arrays is defined by <a class="reference internal" href="#c.Py_buffer.itemsize" title="Py_buffer.itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">itemsize</span></code></a>,
@@ -779,9 +693,9 @@ unmodified. Otherwise, <em>exporter</em> MUST be NULL.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">Table of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Buffer Protocol</a><ul>
-<li><a class="reference internal" href="#buffer-structure">Buffer structure</a></li>
-<li><a class="reference internal" href="#buffer-request-types">Buffer request types</a><ul>
+<li><a class="reference internal" href="#">버퍼 프로토콜</a><ul>
+<li><a class="reference internal" href="#buffer-structure">버퍼 구조체</a></li>
+<li><a class="reference internal" href="#buffer-request-types">버퍼 요청 유형</a><ul>
 <li><a class="reference internal" href="#request-independent-fields">request-independent fields</a></li>
 <li><a class="reference internal" href="#readonly-format">readonly, format</a></li>
 <li><a class="reference internal" href="#shape-strides-suboffsets">shape, strides, suboffsets</a></li>
@@ -789,7 +703,7 @@ unmodified. Otherwise, <em>exporter</em> MUST be NULL.</p>
 <li><a class="reference internal" href="#compound-requests">compound requests</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#complex-arrays">Complex arrays</a><ul>
+<li><a class="reference internal" href="#complex-arrays">복잡한 배열</a><ul>
 <li><a class="reference internal" href="#numpy-style-shape-and-strides">NumPy-style: shape and strides</a></li>
 <li><a class="reference internal" href="#pil-style-shape-strides-and-suboffsets">PIL-style: shape, strides and suboffsets</a></li>
 </ul>
