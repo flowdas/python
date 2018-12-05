@@ -148,7 +148,7 @@
 <p>파이썬을 확장하는 것과 파이썬을 내장하는 것은 다른 의도에도 불구하고 꽤 똑같은 활동이라는 점에 유의해야합니다. 이전 장에서 논의 된 대부분의 주제는 여전히 유효합니다. 이것을 보시려면, 파이썬에서 C 로의 확장 코드가 실제로하는 일을 생각해보십시오:</p>
 <ol class="arabic simple">
 <li>데이터 값을 파이썬에서 C로 변환하고,</li>
-<li>Perform a function call to a C routine using the converted values, and</li>
+<li>변환 된 값을 사용하여 C 루틴으로 함수 호출을 수행하고,</li>
 <li>그 호출에서 얻은 데이터 값을 C에서 파이썬으로 변환합니다.</li>
 </ol>
 <p>파이썬을 내장할 때, 인터페이스 코드는 다음을 수행합니다:</p>
@@ -251,21 +251,16 @@
 <span class="go">Result of call: 6</span>
 </pre></div>
 </div>
-<p>Although the program is quite large for its functionality, most of the code is
-for data conversion between Python and C, and for error reporting.  The
-interesting part with respect to embedding Python starts with</p>
+<p>프로그램이 기능에 비해 상당히 큰 편이지만, 대부분 코드는 파이썬과 C 사이의 데이터 변환과 에러 보고를 위한 것입니다. 파이썬 임베딩과 관련된 흥미로운 부분은 다음처럼 시작합니다</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_Initialize</span><span class="p">();</span>
 <span class="n">pName</span> <span class="o">=</span> <span class="n">PyUnicode_DecodeFSDefault</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
-<span class="cm">/* Error checking of pName left out */</span>
+<span class="cm">/* pName의 에러 검사가 생략되었습니다 */</span>
 <span class="n">pModule</span> <span class="o">=</span> <span class="n">PyImport_Import</span><span class="p">(</span><span class="n">pName</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>After initializing the interpreter, the script is loaded using
-<a class="reference internal" href="../c-api/import.html#c.PyImport_Import" title="PyImport_Import"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_Import()</span></code></a>.  This routine needs a Python string as its argument,
-which is constructed using the <a class="reference internal" href="../c-api/unicode.html#c.PyUnicode_FromString" title="PyUnicode_FromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnicode_FromString()</span></code></a> data conversion
-routine.</p>
+<p>인터프리터를 초기화 한 후, 스크립트는 <a class="reference internal" href="../c-api/import.html#c.PyImport_Import" title="PyImport_Import"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_Import()</span></code></a>를 사용하여 로드됩니다. 이 루틴은 인자로 파이썬 문자열을 필요로하는데, <a class="reference internal" href="../c-api/unicode.html#c.PyUnicode_FromString" title="PyUnicode_FromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnicode_FromString()</span></code></a> 데이터 변환 루틴을 사용하여 구성됩니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">pFunc</span> <span class="o">=</span> <span class="n">PyObject_GetAttrString</span><span class="p">(</span><span class="n">pModule</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
-<span class="cm">/* pFunc is a new reference */</span>
+<span class="cm">/* pFunc는 새로운 참조입니다 */</span>
 
 <span class="k">if</span> <span class="p">(</span><span class="n">pFunc</span> <span class="o">&amp;&amp;</span> <span class="n">PyCallable_Check</span><span class="p">(</span><span class="n">pFunc</span><span class="p">))</span> <span class="p">{</span>
     <span class="p">...</span>
@@ -273,31 +268,18 @@ routine.</p>
 <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">pFunc</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Once the script is loaded, the name we're looking for is retrieved using
-<a class="reference internal" href="../c-api/object.html#c.PyObject_GetAttrString" title="PyObject_GetAttrString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetAttrString()</span></code></a>.  If the name exists, and the object returned is
-callable, you can safely assume that it is a function.  The program then
-proceeds by constructing a tuple of arguments as normal.  The call to the Python
-function is then made with:</p>
+<p>일단 스크립트가 로드되면, 우리가 찾고있는 이름이 <a class="reference internal" href="../c-api/object.html#c.PyObject_GetAttrString" title="PyObject_GetAttrString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetAttrString()</span></code></a>를 사용하여 검색됩니다. 이름이 존재하고, 반환 된 객체가 콜러블이면, 그것이 함수라고 안전하게 가정 할 수 있습니다. 그런 다음 프로그램은 인자의 튜플을 일반적인 방법으로 구성하여 진행합니다. 그런 다음 파이썬 함수 호출은 이렇게 이루어집니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">pValue</span> <span class="o">=</span> <span class="n">PyObject_CallObject</span><span class="p">(</span><span class="n">pFunc</span><span class="p">,</span> <span class="n">pArgs</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Upon return of the function, <code class="docutils literal notranslate"><span class="pre">pValue</span></code> is either <em>NULL</em> or it contains a
-reference to the return value of the function.  Be sure to release the reference
-after examining the value.</p>
+<p>함수가 반환되면, <code class="docutils literal notranslate"><span class="pre">pValue</span></code>는 <em>NULL</em>이거나 함수의 반환 값에 대한 참조를 포함합니다. 값을 검토 한 후 참조를 해제해야합니다.</p>
 </div>
 <div class="section" id="extending-embedded-python">
-<span id="extending-with-embedding"></span><h2>1.4. Extending Embedded Python<a class="headerlink" href="#extending-embedded-python" title="제목 주소">¶</a></h2>
-<p>Until now, the embedded Python interpreter had no access to functionality from
-the application itself.  The Python API allows this by extending the embedded
-interpreter.  That is, the embedded interpreter gets extended with routines
-provided by the application. While it sounds complex, it is not so bad.  Simply
-forget for a while that the application starts the Python interpreter.  Instead,
-consider the application to be a set of subroutines, and write some glue code
-that gives Python access to those routines, just like you would write a normal
-Python extension.  For example:</p>
+<span id="extending-with-embedding"></span><h2>1.4. 내장된 파이썬을 확장하기<a class="headerlink" href="#extending-embedded-python" title="제목 주소">¶</a></h2>
+<p>지금까지 내장된 파이썬 인터프리터는 애플리케이션 자체의 기능에 액세스 할 수 없었습니다. 파이썬 API는 내장된 인터프리터를 확장함으로써 이것을 허용합니다. 즉, 내장된 인터프리터는 응용 프로그램에서 제공하는 루틴으로 확장됩니다. 복잡하게 들리지만, 그렇게 나쁘지는 않습니다. 잠시 응용 프로그램이 파이썬 인터프리터를 시작한다는 것을 잊어 버리십시오. 대신, 응용 프로그램을 서브 루틴의 집합으로 간주하고, 일반 파이썬 확장을 작성하는 것처럼 파이썬에서 해당 루틴에 액세스 할 수 있도록 연결 코드를 작성하십시오. 예를 들면:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="n">numargs</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
 
-<span class="cm">/* Return the number of arguments of the application command line */</span>
+<span class="cm">/* 응용 프로그램 명령 줄의 인자 수를 반환합니다 */</span>
 <span class="k">static</span> <span class="n">PyObject</span><span class="o">*</span>
 <span class="nf">emb_numargs</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
 <span class="p">{</span>
@@ -324,51 +306,34 @@ Python extension.  For example:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Insert the above code just above the <code class="xref c c-func docutils literal notranslate"><span class="pre">main()</span></code> function. Also, insert the
-following two statements before the call to <a class="reference internal" href="../c-api/init.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>:</p>
+<p>위의 코드를 <code class="xref c c-func docutils literal notranslate"><span class="pre">main()</span></code> 함수 바로 위에 삽입하십시오. 또한, <a class="reference internal" href="../c-api/init.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>에 대한 호출 전에 다음 두 문장을 삽입하십시오:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">numargs</span> <span class="o">=</span> <span class="n">argc</span><span class="p">;</span>
 <span class="n">PyImport_AppendInittab</span><span class="p">(</span><span class="s">&quot;emb&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyInit_emb</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>These two lines initialize the <code class="docutils literal notranslate"><span class="pre">numargs</span></code> variable, and make the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">emb.numargs()</span></code> function accessible to the embedded Python interpreter.
-With these extensions, the Python script can do things like</p>
+<p>이 두 줄은 <code class="docutils literal notranslate"><span class="pre">numargs</span></code> 변수를 초기화하고, <code class="xref py py-func docutils literal notranslate"><span class="pre">emb.numargs()</span></code> 함수를 내장된 파이썬 인터프리터가 액세스할 수 있도록 만듭니다. 이러한 확장을 통해, 파이썬 스크립트는 다음과 같은 작업을 수행 할 수 있습니다</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">emb</span>
 <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Number of arguments&quot;</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">numargs</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>In a real application, the methods will expose an API of the application to
-Python.</p>
+<p>실제 응용 프로그램에서, 이 방법은 응용 프로그램의 API를 파이썬에 노출합니다.</p>
 </div>
 <div class="section" id="embedding-python-in-c">
-<span id="embeddingincplusplus"></span><h2>1.5. Embedding Python in C++<a class="headerlink" href="#embedding-python-in-c" title="제목 주소">¶</a></h2>
-<p>It is also possible to embed Python in a C++ program; precisely how this is done
-will depend on the details of the C++ system used; in general you will need to
-write the main program in C++, and use the C++ compiler to compile and link your
-program.  There is no need to recompile Python itself using C++.</p>
+<span id="embeddingincplusplus"></span><h2>1.5. C++로 파이썬 내장하기<a class="headerlink" href="#embedding-python-in-c" title="제목 주소">¶</a></h2>
+<p>파이썬을 C++ 프로그램에 내장하는 것도 가능합니다; 이것이 어떻게 수행되는지는 사용 된 C++ 시스템의 세부 사항에 달려 있습니다; 일반적으로 C++로 메인 프로그램을 작성하고, C++ 컴파일러를 사용하여 프로그램을 컴파일하고 링크해야합니다. C++을 사용하여 파이썬 자체를 다시 컴파일 할 필요는 없습니다.</p>
 </div>
 <div class="section" id="compiling-and-linking-under-unix-like-systems">
-<span id="compiling"></span><h2>1.6. Compiling and Linking under Unix-like systems<a class="headerlink" href="#compiling-and-linking-under-unix-like-systems" title="제목 주소">¶</a></h2>
-<p>It is not necessarily trivial to find the right flags to pass to your
-compiler (and linker) in order to embed the Python interpreter into your
-application, particularly because Python needs to load library modules
-implemented as C dynamic extensions (<code class="file docutils literal notranslate"><span class="pre">.so</span></code> files) linked against
-it.</p>
-<p>To find out the required compiler and linker flags, you can execute the
-<code class="file docutils literal notranslate"><span class="pre">python</span><em><span class="pre">X.Y</span></em><span class="pre">-config</span></code> script which is generated as part of the
-installation process (a <code class="file docutils literal notranslate"><span class="pre">python3-config</span></code> script may also be
-available).  This script has several options, of which the following will
-be directly useful to you:</p>
+<span id="compiling"></span><h2>1.6. 유닉스 계열 시스템에서 컴파일과 링크하기<a class="headerlink" href="#compiling-and-linking-under-unix-like-systems" title="제목 주소">¶</a></h2>
+<p>파이썬 인터프리터를 응용 프로그램에 내장하기 위해 컴파일러(와 링커)에 적절한 플래그를 찾는 것이 늘 간단하지는 않습니다. 특히, 특히 파이썬이 자신에게 링크 된 C 동적 확장(<code class="file docutils literal notranslate"><span class="pre">.so</span></code> 파일)로 구현 된 라이브러리 모듈을 로드해야하기 때문입니다.</p>
+<p>필요한 컴파일러와 링커 플래그를 찾으려면, 설치 절차의 일부로 생성 된 <code class="file docutils literal notranslate"><span class="pre">python</span><em><span class="pre">X.Y</span></em><span class="pre">-config</span></code> 스크립트를 실행할 수 있습니다 (<code class="file docutils literal notranslate"><span class="pre">python3-config</span></code> 스크립트도 사용 가능할 수 있습니다). 이 스크립트에는 여러 옵션이 있으며, 다음과 같은 것들은 여러분에 직접적으로 유용할 것입니다:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">pythonX.Y-config</span> <span class="pre">--cflags</span></code> will give you the recommended flags when
-compiling:</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">pythonX.Y-config</span> <span class="pre">--cflags</span></code>는 컴파일 할 때의 권장 플래그를 제공합니다:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> /opt/bin/python3.4-config --cflags
 <span class="go">-I/opt/include/python3.4m -I/opt/include/python3.4m -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">pythonX.Y-config</span> <span class="pre">--ldflags</span></code> will give you the recommended flags when
-linking:</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">pythonX.Y-config</span> <span class="pre">--ldflags</span></code>는 링크 할 때의 권장 플래그를 제공합니다:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> /opt/bin/python3.4-config --ldflags
 <span class="go">-L/opt/lib/python3.4/config-3.4m -lpthread -ldl -lutil -lm -lpython3.4m -Xlinker -export-dynamic</span>
 </pre></div>
@@ -377,19 +342,9 @@ linking:</p>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
-<p class="last">To avoid confusion between several Python installations (and especially
-between the system Python and your own compiled Python), it is recommended
-that you use the absolute path to <code class="file docutils literal notranslate"><span class="pre">python</span><em><span class="pre">X.Y</span></em><span class="pre">-config</span></code>, as in the above
-example.</p>
+<p class="last">여러 파이썬 설치 간의 (특히 시스템 파이썬과 여러분이 직접 컴파일한 파이썬 간의) 혼란을 피하려면, 위의 예와 같이 <code class="file docutils literal notranslate"><span class="pre">python</span><em><span class="pre">X.Y</span></em><span class="pre">-config</span></code>의 절대 경로를 사용하는 것이 좋습니다.</p>
 </div>
-<p>If this procedure doesn't work for you (it is not guaranteed to work for
-all Unix-like platforms; however, we welcome <a class="reference internal" href="../bugs.html#reporting-bugs"><span class="std std-ref">bug reports</span></a>)
-you will have to read your system's documentation about dynamic linking and/or
-examine Python's <code class="file docutils literal notranslate"><span class="pre">Makefile</span></code> (use <a class="reference internal" href="../library/sysconfig.html#sysconfig.get_makefile_filename" title="sysconfig.get_makefile_filename"><code class="xref py py-func docutils literal notranslate"><span class="pre">sysconfig.get_makefile_filename()</span></code></a>
-to find its location) and compilation
-options.  In this case, the <a class="reference internal" href="../library/sysconfig.html#module-sysconfig" title="sysconfig: Python's configuration information"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sysconfig</span></code></a> module is a useful tool to
-programmatically extract the configuration values that you will want to
-combine together.  For example:</p>
+<p>이 절차가 여러분을 위해 작동하지 않는다면 (모든 유닉스 계열 플랫폼에서 작동하는 것은 보장되지 않습니다; 하지만, <a class="reference internal" href="../bugs.html#reporting-bugs"><span class="std std-ref">버그 보고</span></a>를 환영합니다), 동적 링크에 관한 시스템의 설명서를 읽는 것과/이나 파이썬의 <code class="file docutils literal notranslate"><span class="pre">Makefile</span></code>과 (그 위치를 찾으려면 <a class="reference internal" href="../library/sysconfig.html#sysconfig.get_makefile_filename" title="sysconfig.get_makefile_filename"><code class="xref py py-func docutils literal notranslate"><span class="pre">sysconfig.get_makefile_filename()</span></code></a>를 사용하십시오) 컴파일 옵션을 검사해야합니다. 이 때, <a class="reference internal" href="../library/sysconfig.html#module-sysconfig" title="sysconfig: Python's configuration information"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sysconfig</span></code></a> 모듈은 여러분이 결합하려는 구성 값을 프로그래밍 방식으로 추출하는 데 유용한 도구입니다. 예를 들어:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sysconfig</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sysconfig</span><span class="o">.</span><span class="n">get_config_var</span><span class="p">(</span><span class="s1">&#39;LIBS&#39;</span><span class="p">)</span>
 <span class="go">&#39;-lpthread -ldl  -lutil&#39;</span>
@@ -412,9 +367,9 @@ combine together.  For example:</p>
 <li><a class="reference internal" href="#very-high-level-embedding">1.1. 매우 고수준의 내장</a></li>
 <li><a class="reference internal" href="#beyond-very-high-level-embedding-an-overview">1.2. 매우 고수준 내장을 넘어서: 개요</a></li>
 <li><a class="reference internal" href="#pure-embedding">1.3. 순수한 내장</a></li>
-<li><a class="reference internal" href="#extending-embedded-python">1.4. Extending Embedded Python</a></li>
-<li><a class="reference internal" href="#embedding-python-in-c">1.5. Embedding Python in C++</a></li>
-<li><a class="reference internal" href="#compiling-and-linking-under-unix-like-systems">1.6. Compiling and Linking under Unix-like systems</a></li>
+<li><a class="reference internal" href="#extending-embedded-python">1.4. 내장된 파이썬을 확장하기</a></li>
+<li><a class="reference internal" href="#embedding-python-in-c">1.5. C++로 파이썬 내장하기</a></li>
+<li><a class="reference internal" href="#compiling-and-linking-under-unix-like-systems">1.6. 유닉스 계열 시스템에서 컴파일과 링크하기</a></li>
 </ul>
 </li>
 </ul>
