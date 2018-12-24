@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>codeop --- Compile Python code &#8212; 파이썬 설명서 주석판</title>
+    <title>codeop --- 파이썬 코드 컴파일 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -104,65 +104,39 @@
           <div class="body" role="main">
             
   <div class="section" id="module-codeop">
-<span id="codeop-compile-python-code"></span><h1><a class="reference internal" href="#module-codeop" title="codeop: Compile (possibly incomplete) Python code."><code class="xref py py-mod docutils literal notranslate"><span class="pre">codeop</span></code></a> --- Compile Python code<a class="headerlink" href="#module-codeop" title="제목 주소">¶</a></h1>
-<p><strong>Source code:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Lib/codeop.py">Lib/codeop.py</a></p>
+<span id="codeop-compile-python-code"></span><h1><a class="reference internal" href="#module-codeop" title="codeop: Compile (possibly incomplete) Python code."><code class="xref py py-mod docutils literal notranslate"><span class="pre">codeop</span></code></a> --- 파이썬 코드 컴파일<a class="headerlink" href="#module-codeop" title="제목 주소">¶</a></h1>
+<p><strong>소스 코드:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Lib/codeop.py">Lib/codeop.py</a></p>
 <hr class="docutils" />
-<p>The <a class="reference internal" href="#module-codeop" title="codeop: Compile (possibly incomplete) Python code."><code class="xref py py-mod docutils literal notranslate"><span class="pre">codeop</span></code></a> module provides utilities upon which the Python
-read-eval-print loop can be emulated, as is done in the <a class="reference internal" href="code.html#module-code" title="code: Facilities to implement read-eval-print loops."><code class="xref py py-mod docutils literal notranslate"><span class="pre">code</span></code></a> module.  As
-a result, you probably don't want to use the module directly; if you want to
-include such a loop in your program you probably want to use the <a class="reference internal" href="code.html#module-code" title="code: Facilities to implement read-eval-print loops."><code class="xref py py-mod docutils literal notranslate"><span class="pre">code</span></code></a>
-module instead.</p>
-<p>There are two parts to this job:</p>
+<p><a class="reference internal" href="#module-codeop" title="codeop: Compile (possibly incomplete) Python code."><code class="xref py py-mod docutils literal notranslate"><span class="pre">codeop</span></code></a> 모듈은 <a class="reference internal" href="code.html#module-code" title="code: Facilities to implement read-eval-print loops."><code class="xref py py-mod docutils literal notranslate"><span class="pre">code</span></code></a> 모듈에서와같이 파이썬 읽기-평가-인쇄 루프를 에뮬레이트 할 수 있는 유틸리티를 제공합니다. 결과적으로, 모듈을 직접 사용하고 싶지 않을 것입니다; 여러분의 프로그램에 이러한 루프를 포함 시키려면 대신 <a class="reference internal" href="code.html#module-code" title="code: Facilities to implement read-eval-print loops."><code class="xref py py-mod docutils literal notranslate"><span class="pre">code</span></code></a> 모듈을 사용하는 것이 좋습니다.</p>
+<p>이 작업에는 두 가지 부분이 있습니다:</p>
 <ol class="arabic simple">
-<li>Being able to tell if a line of input completes a Python  statement: in
-short, telling whether to print '<code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span></code>' or '<code class="docutils literal notranslate"><span class="pre">...</span></code>' next.</li>
-<li>Remembering which future statements the user has entered, so  subsequent
-input can be compiled with these in effect.</li>
+<li>입력 줄이 파이썬 문장을 완성하는지 알려주는 것: 간단히 말해서, '<code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span></code>' 나 '<code class="docutils literal notranslate"><span class="pre">...</span></code>' 를 다음에 인쇄할지 알려주기.</li>
+<li>사용자가 입력한 퓨처 문을 기억해서, 후속 입력을 컴파일할 때 이것들이 효과가 있도록 하기.</li>
 </ol>
-<p>The <a class="reference internal" href="#module-codeop" title="codeop: Compile (possibly incomplete) Python code."><code class="xref py py-mod docutils literal notranslate"><span class="pre">codeop</span></code></a> module provides a way of doing each of these things, and a way
-of doing them both.</p>
-<p>To do just the former:</p>
+<p><a class="reference internal" href="#module-codeop" title="codeop: Compile (possibly incomplete) Python code."><code class="xref py py-mod docutils literal notranslate"><span class="pre">codeop</span></code></a> 모듈은 이들을 각각 수행하는 방법과 이들을 모두 수행하는 방법을 제공합니다.</p>
+<p>단지 전자를 수행하려면:</p>
 <dl class="function">
 <dt id="codeop.compile_command">
 <code class="descclassname">codeop.</code><code class="descname">compile_command</code><span class="sig-paren">(</span><em>source</em>, <em>filename=&quot;&lt;input&gt;&quot;</em>, <em>symbol=&quot;single&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#codeop.compile_command" title="정의 주소">¶</a></dt>
-<dd><p>Tries to compile <em>source</em>, which should be a string of Python code and return a
-code object if <em>source</em> is valid Python code. In that case, the filename
-attribute of the code object will be <em>filename</em>, which defaults to
-<code class="docutils literal notranslate"><span class="pre">'&lt;input&gt;'</span></code>. Returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if <em>source</em> is <em>not</em> valid Python code, but is a
-prefix of valid Python code.</p>
-<p>If there is a problem with <em>source</em>, an exception will be raised.
-<a class="reference internal" href="exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a> is raised if there is invalid Python syntax, and
-<a class="reference internal" href="exceptions.html#OverflowError" title="OverflowError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OverflowError</span></code></a> or <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> if there is an invalid literal.</p>
-<p>The <em>symbol</em> argument determines whether <em>source</em> is compiled as a statement
-(<code class="docutils literal notranslate"><span class="pre">'single'</span></code>, the default) or as an <a class="reference internal" href="../glossary.html#term-expression"><span class="xref std std-term">expression</span></a> (<code class="docutils literal notranslate"><span class="pre">'eval'</span></code>).  Any
-other value will cause <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> to  be raised.</p>
+<dd><p><em>source</em>를 컴파일하려고 시도합니다. <em>source</em>는 파이썬 코드의 문자열이어야 하며, <em>source</em>가 유효한 파이썬 코드면 코드 객체를 반환합니다. 이 경우, 코드 객체의 filename 어트리뷰트는 <em>filename</em>가 되는데, 기본값은 <code class="docutils literal notranslate"><span class="pre">'&lt;input&gt;'</span></code>입니다. <em>source</em>가 <em>유효한 파이썬 코드가 *아니지만</em> 유효한 파이썬 코드의 앞부분이면 <code class="docutils literal notranslate"><span class="pre">None</span></code>을 반환합니다.</p>
+<p><em>source</em>에 문제가 있으면, 예외가 발생합니다. 유효하지 않은 파이썬 구문이 있으면 <a class="reference internal" href="exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>가 발생하고, 유효하지 않은 리터럴이 있으면 <a class="reference internal" href="exceptions.html#OverflowError" title="OverflowError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OverflowError</span></code></a> 나 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다.</p>
+<p><em>symbol</em> 인자는 <em>source</em>가 문장(<code class="docutils literal notranslate"><span class="pre">'single'</span></code>, 기본값)으로 컴파일되는지, <a class="reference internal" href="../glossary.html#term-expression"><span class="xref std std-term">표현식</span></a>(<code class="docutils literal notranslate"><span class="pre">'eval'</span></code>)으로 컴파일되는지 결정합니다. 다른 값을 지정하면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다.</p>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
-<p class="last">It is possible (but not likely) that the parser stops parsing with a
-successful outcome before reaching the end of the source; in this case,
-trailing symbols may be ignored instead of causing an error.  For example,
-a backslash followed by two newlines may be followed by arbitrary garbage.
-This will be fixed once the API for the parser is better.</p>
+<p class="last">구문 분석기가 source의 끝에 도달하기 전에 성공적인 결과로 구문 분석을 중지하는 것이 가능합니다 (하지만 대체로 그렇지 않습니다); 이 경우, 뒤따르는 기호는 에러를 유발하는 대신 무시 될 수 있습니다. 예를 들어, 백 슬래시 뒤에 두 개의 개행이 오면 그 뒤에 임의의 가비지가 올 수 있습니다. 구문 분석기를 위한 API가 개선되면 이 문제가 해결될 것입니다.</p>
 </div>
 </dd></dl>
 
 <dl class="class">
 <dt id="codeop.Compile">
 <em class="property">class </em><code class="descclassname">codeop.</code><code class="descname">Compile</code><a class="headerlink" href="#codeop.Compile" title="정의 주소">¶</a></dt>
-<dd><p>Instances of this class have <a class="reference internal" href="../reference/datamodel.html#object.__call__" title="object.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> methods identical in signature to
-the built-in function <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a>, but with the difference that if the
-instance compiles program text containing a <a class="reference internal" href="__future__.html#module-__future__" title="__future__: Future statement definitions"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__future__</span></code></a> statement, the
-instance 'remembers' and compiles all subsequent program texts with the
-statement in force.</p>
+<dd><p>이 클래스의 인스턴스는 내장 함수 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a>와 같은 서명의 <a class="reference internal" href="../reference/datamodel.html#object.__call__" title="object.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> 메서드를 갖지만, 인스턴스가 <a class="reference internal" href="__future__.html#module-__future__" title="__future__: Future statement definitions"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__future__</span></code></a> 문을 포함하는 프로그램 텍스트를 컴파일하면 인스턴스가 이를 '기억'하고 모든 후속 프로그램 텍스트를 이 문장의 효과 아래에서 컴파일한다는 차이점이 있습니다.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="codeop.CommandCompiler">
 <em class="property">class </em><code class="descclassname">codeop.</code><code class="descname">CommandCompiler</code><a class="headerlink" href="#codeop.CommandCompiler" title="정의 주소">¶</a></dt>
-<dd><p>Instances of this class have <a class="reference internal" href="../reference/datamodel.html#object.__call__" title="object.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> methods identical in signature to
-<a class="reference internal" href="#codeop.compile_command" title="codeop.compile_command"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_command()</span></code></a>; the difference is that if the instance compiles program
-text containing a <code class="docutils literal notranslate"><span class="pre">__future__</span></code> statement, the instance 'remembers' and
-compiles all subsequent program texts with the statement in force.</p>
+<dd><p>이 클래스의 인스턴스는 <a class="reference internal" href="#codeop.compile_command" title="codeop.compile_command"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_command()</span></code></a>와 같은 서명의 <a class="reference internal" href="../reference/datamodel.html#object.__call__" title="object.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> 메서드를 갖습니다; 차이점은, 인스턴스가 <code class="docutils literal notranslate"><span class="pre">__future__</span></code> 문을 포함하는 프로그램 텍스트를 컴파일하면 인스턴스가 이를 '기억'하고 모든 후속 프로그램 텍스트를 이 문장의 효과 아래에서 컴파일한다는 것입니다.</p>
 </dd></dl>
 
 </div>
