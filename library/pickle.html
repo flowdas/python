@@ -132,7 +132,14 @@
 </li>
 <li><p class="first"><a class="reference internal" href="marshal.html#module-marshal" title="marshal: Convert Python objects to streams of bytes and back (with different constraints)."><code class="xref py py-mod docutils literal notranslate"><span class="pre">marshal</span></code></a>은 사용자 정의 클래스와 인스턴스를 직렬화하는 데 사용할 수 없습니다. <a class="reference internal" href="#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> 은 클래스 인스턴스를 투명하게 저장하고 복원할 수 있지만, 클래스 정의는 객체를 저장할 때와 같은 모듈에 존재하고 임포트 할 수 있어야 합니다.</p>
 </li>
-<li><p class="first"><a class="reference internal" href="marshal.html#module-marshal" title="marshal: Convert Python objects to streams of bytes and back (with different constraints)."><code class="xref py py-mod docutils literal notranslate"><span class="pre">marshal</span></code></a> 직렬화 형식은 파이썬 버전 간에 이식성이 보장되지 않습니다. 가장 중요한 일은 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일을 지원하는 것이므로, 파이썬 구현자는 필요할 때 직렬화 형식을 과거 호환되지 않는 방식으로 변경할 권리를 갖습니다. <a class="reference internal" href="#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> 직렬화 형식은 파이썬 배포 간의 과거 호환성을 보장합니다.</p>
+<li><p class="first">The <a class="reference internal" href="marshal.html#module-marshal" title="marshal: Convert Python objects to streams of bytes and back (with different constraints)."><code class="xref py py-mod docutils literal notranslate"><span class="pre">marshal</span></code></a> serialization format is not guaranteed to be portable
+across Python versions.  Because its primary job in life is to support
+<code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> files, the Python implementers reserve the right to change the
+serialization format in non-backwards compatible ways should the need arise.
+The <a class="reference internal" href="#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> serialization format is guaranteed to be backwards compatible
+across Python releases provided a compatible pickle protocol is chosen and
+pickling and unpickling code deals with Python 2 to Python 3 type differences
+if your data is crossing that unique breaking change language boundary.</p>
 </li>
 </ul>
 </div>
@@ -208,7 +215,16 @@
 <dd><p>열린 <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">파일 객체</span></a> <em>file</em> 에서 피클 된 객체 표현을 읽고, 그 안에 지정된 객체 계층 구조를 재구성하여 반환합니다. 이것은 <code class="docutils literal notranslate"><span class="pre">Unpickler(file).load()</span></code> 와 동등합니다.</p>
 <p>피클의 프로토콜 버전이 자동으로 감지되므로 프로토콜 인자가 필요하지 않습니다. 피클 된 객체의 표현 뒤에 남는 바이트열은 무시됩니다.</p>
 <p>인자 <em>file</em> 에는 두 가지 메서드가 있어야 합니다, 정수 인자를 받아들이는 read() 메서드와 인자가 없는 readline() 메서드. 두 메서드 모두 바이트열를 반환해야 합니다. 따라서 <em>file</em> 은 바이너리 읽기를 위해 열린 디스크 상의 파일, <a class="reference internal" href="io.html#io.BytesIO" title="io.BytesIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">io.BytesIO</span></code></a> 객체 또는 이 인터페이스를 만족하는 다른 사용자 정의 객체일 수 있습니다.</p>
-<p>선택적 키워드 인자는 <em>fix_imports</em>, <em>encoding</em> 및 <em>errors</em> 인데, 파이썬 2에서 생성된 피클 스트림에 대한 호환성 지원을 제어하는 데 사용됩니다. <em>fix_imports</em> 가 참이면, pickle은 이전 파이썬 2 이름을 파이썬 3에서 사용된 새로운 이름으로 매핑하려고 합니다. <em>encoding</em> 과 <em>errors</em> 는 파이썬 2에 의해 피클 된 8비트 문자열 인스턴스를 디코딩하는 방법을 pickle에게 알려줍니다. 기본값은 각각 'ASCII'와 'strict' 입니다. <em>encoding</em> 은 'bytes' 가 될 수 있는데, 8비트 문자열 인스턴스를 바이트열 객체로 읽습니다.</p>
+<p>Optional keyword arguments are <em>fix_imports</em>, <em>encoding</em> and <em>errors</em>,
+which are used to control compatibility support for pickle stream generated
+by Python 2.  If <em>fix_imports</em> is true, pickle will try to map the old
+Python 2 names to the new names used in Python 3.  The <em>encoding</em> and
+<em>errors</em> tell pickle how to decode 8-bit string instances pickled by Python
+2; these default to 'ASCII' and 'strict', respectively.  The <em>encoding</em> can
+be 'bytes' to read these 8-bit string instances as bytes objects.
+Using <code class="docutils literal notranslate"><span class="pre">encoding='latin1'</span></code> is required for unpickling NumPy arrays and
+instances of <a class="reference internal" href="datetime.html#datetime.datetime" title="datetime.datetime"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>, <a class="reference internal" href="datetime.html#datetime.date" title="datetime.date"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></a> and
+<a class="reference internal" href="datetime.html#datetime.time" title="datetime.time"><code class="xref py py-class docutils literal notranslate"><span class="pre">time</span></code></a> pickled by Python 2.</p>
 </dd></dl>
 
 <dl class="function">
@@ -216,7 +232,16 @@
 <code class="descclassname">pickle.</code><code class="descname">loads</code><span class="sig-paren">(</span><em>bytes_object</em>, <em>*</em>, <em>fix_imports=True</em>, <em>encoding=&quot;ASCII&quot;</em>, <em>errors=&quot;strict&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#pickle.loads" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 객체에서 피클 된 객체 계층 구조를 읽고 그 안에 지정된 객체 계층 구조를 재구성하여 반환합니다.</p>
 <p>피클의 프로토콜 버전이 자동으로 감지되므로 프로토콜 인자가 필요하지 않습니다. 피클 된 객체의 표현 뒤에 남는 바이트열은 무시됩니다.</p>
-<p>선택적 키워드 인자는 <em>fix_imports</em>, <em>encoding</em> 및 <em>errors</em> 인데, 파이썬 2에서 생성된 피클 스트림에 대한 호환성 지원을 제어하는 데 사용됩니다. <em>fix_imports</em> 가 참이면, pickle은 이전 파이썬 2 이름을 파이썬 3에서 사용된 새로운 이름으로 매핑하려고 합니다. <em>encoding</em> 과 <em>errors</em> 는 파이썬 2에 의해 피클 된 8비트 문자열 인스턴스를 디코딩하는 방법을 pickle에게 알려줍니다. 기본값은 각각 'ASCII'와 'strict' 입니다. <em>encoding</em> 은 'bytes' 가 될 수 있는데, 8비트 문자열 인스턴스를 바이트열 객체로 읽습니다.</p>
+<p>Optional keyword arguments are <em>fix_imports</em>, <em>encoding</em> and <em>errors</em>,
+which are used to control compatibility support for pickle stream generated
+by Python 2.  If <em>fix_imports</em> is true, pickle will try to map the old
+Python 2 names to the new names used in Python 3.  The <em>encoding</em> and
+<em>errors</em> tell pickle how to decode 8-bit string instances pickled by Python
+2; these default to 'ASCII' and 'strict', respectively.  The <em>encoding</em> can
+be 'bytes' to read these 8-bit string instances as bytes objects.
+Using <code class="docutils literal notranslate"><span class="pre">encoding='latin1'</span></code> is required for unpickling NumPy arrays and
+instances of <a class="reference internal" href="datetime.html#datetime.datetime" title="datetime.datetime"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>, <a class="reference internal" href="datetime.html#datetime.date" title="datetime.date"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></a> and
+<a class="reference internal" href="datetime.html#datetime.time" title="datetime.time"><code class="xref py py-class docutils literal notranslate"><span class="pre">time</span></code></a> pickled by Python 2.</p>
 </dd></dl>
 
 <p><a class="reference internal" href="#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> 모듈은 세 가지 예외를 정의합니다:</p>
@@ -733,7 +758,8 @@
 <table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>이것이 <a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">lambda</span></code></a> 함수가 pickle 될 수 없는 이유입니다: 모든 <a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">lambda</span></code></a> 함수는 같은 이름을 공유합니다: <code class="docutils literal notranslate"><span class="pre">&lt;lambda&gt;</span></code>.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>This is why <a class="reference internal" href="../reference/expressions.html#lambda"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">lambda</span></code></a> functions cannot be pickled:  all
+<code class="xref std std-keyword docutils literal notranslate"><span class="pre">lambda</span></code> functions share the same name:  <code class="docutils literal notranslate"><span class="pre">&lt;lambda&gt;</span></code>.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id8" rules="none">
