@@ -1276,54 +1276,31 @@ socket.SOCK_STREAM | socket.SOCK_NONBLOCK)</dd>
 </div>
 <div class="section" id="notes-on-socket-timeouts">
 <span id="socket-timeouts"></span><h2>소켓 시간제한에 대한 참고 사항<a class="headerlink" href="#notes-on-socket-timeouts" title="제목 주소">¶</a></h2>
-<p>A socket object can be in one of three modes: blocking, non-blocking, or
-timeout.  Sockets are by default always created in blocking mode, but this
-can be changed by calling <a class="reference internal" href="#socket.setdefaulttimeout" title="socket.setdefaulttimeout"><code class="xref py py-func docutils literal notranslate"><span class="pre">setdefaulttimeout()</span></code></a>.</p>
+<p>소켓 객체는 세가지 모드 중 하나일 수 있습니다: 블로킹, 비 블로킹, 또는 시간 제한. 소켓은 기본적으로 항상 블로킹 모드로 생성되지만, 이는 <a class="reference internal" href="#socket.setdefaulttimeout" title="socket.setdefaulttimeout"><code class="xref py py-func docutils literal notranslate"><span class="pre">setdefaulttimeout()</span></code></a>를 호출하여 변경할 수 있습니다.</p>
 <ul class="simple">
-<li>In <em>blocking mode</em>, operations block until complete or the system returns
-an error (such as connection timed out).</li>
-<li>In <em>non-blocking mode</em>, operations fail (with an error that is unfortunately
-system-dependent) if they cannot be completed immediately: functions from the
-<a class="reference internal" href="select.html#module-select" title="select: Wait for I/O completion on multiple streams."><code class="xref py py-mod docutils literal notranslate"><span class="pre">select</span></code></a> can be used to know when and whether a socket is available for
-reading or writing.</li>
-<li>In <em>timeout mode</em>, operations fail if they cannot be completed within the
-timeout specified for the socket (they raise a <a class="reference internal" href="#socket.timeout" title="socket.timeout"><code class="xref py py-exc docutils literal notranslate"><span class="pre">timeout</span></code></a> exception)
-or if the system returns an error.</li>
+<li><em>블로킹 모드</em>에서, 연산은 완료되거나 시스템에서 에러(가령 연결 시간 초과)를 반환할 때까지 블록합니다.</li>
+<li><em>비 블로킹 모드</em>에서, 연산은 즉시 완료 할 수 없으면 실패합니다 (불행히도 시스템 종속적인 에러로): <a class="reference internal" href="select.html#module-select" title="select: Wait for I/O completion on multiple streams."><code class="xref py py-mod docutils literal notranslate"><span class="pre">select</span></code></a>의 함수를 사용하여 소켓이 읽기나 쓰기가 가능한 시기를 알 수 있습니다.</li>
+<li><em>시간제한 모드</em>에서, 연산은 소켓에 대해 지정된 제한 시간 내에 완료할 수 없거나 (<a class="reference internal" href="#socket.timeout" title="socket.timeout"><code class="xref py py-exc docutils literal notranslate"><span class="pre">timeout</span></code></a> 예외 발생), 시스템이 에러를 반환하면 실패합니다.</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">주석</p>
-<p class="last">At the operating system level, sockets in <em>timeout mode</em> are internally set
-in non-blocking mode.  Also, the blocking and timeout modes are shared between
-file descriptors and socket objects that refer to the same network endpoint.
-This implementation detail can have visible consequences if e.g. you decide
-to use the <a class="reference internal" href="#socket.socket.fileno" title="socket.socket.fileno"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fileno()</span></code></a> of a socket.</p>
+<p class="last">운영 체제 수준에서, <em>시간제한 모드</em>의 소켓은 내부적으로 비 블로킹 모드로 설정됩니다. 또한, 블로킹과 시간제한 모드는 같은 네트워크 끝점을 가리키는 파일 기술자와 소켓 객체간에 공유됩니다. 이 구현 세부 사항은 가시적인 결과를 가져올 수 있습니다, 예를 들어, 소켓의 <a class="reference internal" href="#socket.socket.fileno" title="socket.socket.fileno"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fileno()</span></code></a>를 사용하기로 결정한 경우가 그렇습니다.</p>
 </div>
 <div class="section" id="timeouts-and-the-connect-method">
-<h3>Timeouts and the <code class="docutils literal notranslate"><span class="pre">connect</span></code> method<a class="headerlink" href="#timeouts-and-the-connect-method" title="제목 주소">¶</a></h3>
-<p>The <a class="reference internal" href="#socket.socket.connect" title="socket.socket.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a> operation is also subject to the timeout
-setting, and in general it is recommended to call <a class="reference internal" href="#socket.socket.settimeout" title="socket.socket.settimeout"><code class="xref py py-meth docutils literal notranslate"><span class="pre">settimeout()</span></code></a>
-before calling <a class="reference internal" href="#socket.socket.connect" title="socket.socket.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a> or pass a timeout parameter to
-<a class="reference internal" href="#socket.create_connection" title="socket.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_connection()</span></code></a>.  However, the system network stack may also
-return a connection timeout error of its own regardless of any Python socket
-timeout setting.</p>
+<h3>시간제한과 <code class="docutils literal notranslate"><span class="pre">connect</span></code> 메서드<a class="headerlink" href="#timeouts-and-the-connect-method" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#socket.socket.connect" title="socket.socket.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a> 연산도 시간제한 설정의 영향을받으며, 일반적으로 <a class="reference internal" href="#socket.socket.connect" title="socket.socket.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a>를 호출하기 전에 <a class="reference internal" href="#socket.socket.settimeout" title="socket.socket.settimeout"><code class="xref py py-meth docutils literal notranslate"><span class="pre">settimeout()</span></code></a>를 호출하거나 <a class="reference internal" href="#socket.create_connection" title="socket.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_connection()</span></code></a>에 timeout 매개 변수를 전달하는 것이 좋습니다. 그러나, 시스템 네트워크 스택은 파이썬 소켓 시간제한 설정에 관계없이 자체의 연결 시간제한 에러를 반환 할 수 있습니다.</p>
 </div>
 <div class="section" id="timeouts-and-the-accept-method">
-<h3>Timeouts and the <code class="docutils literal notranslate"><span class="pre">accept</span></code> method<a class="headerlink" href="#timeouts-and-the-accept-method" title="제목 주소">¶</a></h3>
-<p>If <a class="reference internal" href="#socket.getdefaulttimeout" title="socket.getdefaulttimeout"><code class="xref py py-func docutils literal notranslate"><span class="pre">getdefaulttimeout()</span></code></a> is not <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>, sockets returned by
-the <a class="reference internal" href="#socket.socket.accept" title="socket.socket.accept"><code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code></a> method inherit that timeout.  Otherwise, the
-behaviour depends on settings of the listening socket:</p>
+<h3>시간제한과 <code class="docutils literal notranslate"><span class="pre">accept</span></code> 메서드<a class="headerlink" href="#timeouts-and-the-accept-method" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#socket.getdefaulttimeout" title="socket.getdefaulttimeout"><code class="xref py py-func docutils literal notranslate"><span class="pre">getdefaulttimeout()</span></code></a>가 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>이 아니면, <a class="reference internal" href="#socket.socket.accept" title="socket.socket.accept"><code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code></a> 메서드에서 반환된 소켓은 그 시간제한을 상속합니다. 그렇지 않으면, 동작은 리스닝 소켓의 설정에 따라 다릅니다:</p>
 <ul class="simple">
-<li>if the listening socket is in <em>blocking mode</em> or in <em>timeout mode</em>,
-the socket returned by <a class="reference internal" href="#socket.socket.accept" title="socket.socket.accept"><code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code></a> is in <em>blocking mode</em>;</li>
-<li>if the listening socket is in <em>non-blocking mode</em>, whether the socket
-returned by <a class="reference internal" href="#socket.socket.accept" title="socket.socket.accept"><code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code></a> is in blocking or non-blocking mode
-is operating system-dependent.  If you want to ensure cross-platform
-behaviour, it is recommended you manually override this setting.</li>
+<li>리스닝 소켓이 <em>블로킹 모드</em> 나 <em>시간제한 모드</em>에 있으면, <a class="reference internal" href="#socket.socket.accept" title="socket.socket.accept"><code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code></a>에 의해 반환된 소켓은 <em>블로킹 모드</em>에 있습니다.</li>
+<li>리스닝 소켓이 <em>비 블로킹 모드</em>에 있으면, <a class="reference internal" href="#socket.socket.accept" title="socket.socket.accept"><code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code></a>에 의해 반환된 소켓이 블로킹 모드인지 비 블로킹 모드인지는 운영 체제에 따라 다릅니다. 플랫폼 간 동작을 보장하려면, 이 설정을 직접 재정의하는 것이 좋습니다.</li>
 </ul>
 </div>
 </div>
 <div class="section" id="example">
-<span id="socket-example"></span><h2>Example<a class="headerlink" href="#example" title="제목 주소">¶</a></h2>
+<span id="socket-example"></span><h2>예제<a class="headerlink" href="#example" title="제목 주소">¶</a></h2>
 <p>Here are four minimal example programs using the TCP/IP protocol: a server that
 echoes all data that it receives back (servicing only one client), and a client
 using it.  Note that a server must perform the sequence <a class="reference internal" href="#socket.socket" title="socket.socket"><code class="xref py py-func docutils literal notranslate"><span class="pre">socket()</span></code></a>,
@@ -1564,11 +1541,11 @@ want to refer to <span class="target" id="index-15"></span><a class="rfc referen
 </li>
 <li><a class="reference internal" href="#socket-objects">소켓 객체</a></li>
 <li><a class="reference internal" href="#notes-on-socket-timeouts">소켓 시간제한에 대한 참고 사항</a><ul>
-<li><a class="reference internal" href="#timeouts-and-the-connect-method">Timeouts and the <code class="docutils literal notranslate"><span class="pre">connect</span></code> method</a></li>
-<li><a class="reference internal" href="#timeouts-and-the-accept-method">Timeouts and the <code class="docutils literal notranslate"><span class="pre">accept</span></code> method</a></li>
+<li><a class="reference internal" href="#timeouts-and-the-connect-method">시간제한과 <code class="docutils literal notranslate"><span class="pre">connect</span></code> 메서드</a></li>
+<li><a class="reference internal" href="#timeouts-and-the-accept-method">시간제한과 <code class="docutils literal notranslate"><span class="pre">accept</span></code> 메서드</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#example">예제</a></li>
 </ul>
 </li>
 </ul>
