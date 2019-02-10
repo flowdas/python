@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4. Building C and C++ Extensions &#8212; 파이썬 설명서 주석판</title>
+    <title>4. C와 C++ 확장 빌드하기 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -103,26 +103,17 @@
           <div class="body" role="main">
             
   <div class="section" id="building-c-and-c-extensions">
-<span id="building"></span><h1>4. Building C and C++ Extensions<a class="headerlink" href="#building-c-and-c-extensions" title="제목 주소">¶</a></h1>
-<p>A C extension for CPython is a shared library (e.g. a <code class="docutils literal notranslate"><span class="pre">.so</span></code> file on Linux,
-<code class="docutils literal notranslate"><span class="pre">.pyd</span></code> on Windows), which exports an <em>initialization function</em>.</p>
-<p>To be importable, the shared library must be available on <span class="target" id="index-0"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONPATH"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPATH</span></code></a>,
-and must be named after the module name, with an appropriate extension.
-When using distutils, the correct filename is generated automatically.</p>
-<p>The initialization function has the signature:</p>
+<span id="building"></span><h1>4. C와 C++ 확장 빌드하기<a class="headerlink" href="#building-c-and-c-extensions" title="제목 주소">¶</a></h1>
+<p>CPython의 C 확장은 <em>초기화 함수</em>를 내보내는 공유 라이브러리입니다 (예를 들어, 리눅스는 <code class="docutils literal notranslate"><span class="pre">.so</span></code>, 윈도우는 <code class="docutils literal notranslate"><span class="pre">.pyd</span></code>).</p>
+<p>임포트 할 수 있으려면, 공유 라이브러리가 <span class="target" id="index-4"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONPATH"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPATH</span></code></a>에 있어야 하며, 모듈 이름을 따라 적절한 확장자를 붙여서 이름 지어야 합니다. distutils를 사용하면, 올바른 파일 이름이 자동으로 생성됩니다.</p>
+<p>초기화 함수는 다음과 같은 서명을 갖습니다:</p>
 <dl class="function">
 <dt id="c.PyInit_modulename">
 <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="descname">PyInit_modulename</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.PyInit_modulename" title="정의 주소">¶</a></dt>
 <dd></dd></dl>
 
-<p>It returns either a fully-initialized module, or a <a class="reference internal" href="../c-api/module.html#c.PyModuleDef" title="PyModuleDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code></a>
-instance. See <a class="reference internal" href="../c-api/module.html#initializing-modules"><span class="std std-ref">Initializing C modules</span></a> for details.</p>
-<p>For modules with ASCII-only names, the function must be named
-<code class="docutils literal notranslate"><span class="pre">PyInit_&lt;modulename&gt;</span></code>, with <code class="docutils literal notranslate"><span class="pre">&lt;modulename&gt;</span></code> replaced by the name of the
-module. When using <a class="reference internal" href="../c-api/module.html#multi-phase-initialization"><span class="std std-ref">Multi-phase initialization</span></a>, non-ASCII module names
-are allowed. In this case, the initialization function name is
-<code class="docutils literal notranslate"><span class="pre">PyInitU_&lt;modulename&gt;</span></code>, with <code class="docutils literal notranslate"><span class="pre">&lt;modulename&gt;</span></code> encoded using Python's
-<em>punycode</em> encoding with hyphens replaced by underscores. In Python:</p>
+<p>완전히 초기화된 모듈이나 <a class="reference internal" href="../c-api/module.html#c.PyModuleDef" title="PyModuleDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code></a> 인스턴스를 반환합니다. 자세한 내용은 <a class="reference internal" href="../c-api/module.html#initializing-modules"><span class="std std-ref">Initializing C modules</span></a>을 참조하십시오.</p>
+<p>ASCII로만 이루어진 이름을 가진 모듈의 경우, 함수의 이름을 <code class="docutils literal notranslate"><span class="pre">PyInit_&lt;modulename&gt;</span></code>이어야 합니다. 여기서 <code class="docutils literal notranslate"><span class="pre">&lt;modulename&gt;</span></code>을 모듈의 이름으로 치환합니다. <a class="reference internal" href="../c-api/module.html#multi-phase-initialization"><span class="std std-ref">Multi-phase initialization</span></a>를 사용할 때 ASCII가 아닌 모듈 이름이 허용됩니다. 이 경우, 초기화 함수 이름은 <code class="docutils literal notranslate"><span class="pre">PyInitU_&lt;modulename&gt;</span></code>이며 <code class="docutils literal notranslate"><span class="pre">&lt;modulename&gt;</span></code>은 파이썬의 <em>punycode</em> 인코딩으로 인코딩되고 하이픈을 밑줄로 대체합니다. 파이썬에서:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">initfunc_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">suffix</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
@@ -131,18 +122,11 @@ are allowed. In this case, the initialization function name is
     <span class="k">return</span> <span class="sa">b</span><span class="s1">&#39;PyInit&#39;</span> <span class="o">+</span> <span class="n">suffix</span>
 </pre></div>
 </div>
-<p>It is possible to export multiple modules from a single shared library by
-defining multiple initialization functions. However, importing them requires
-using symbolic links or a custom importer, because by default only the
-function corresponding to the filename is found.
-See the <em>&quot;Multiple modules in one library&quot;</em> section in <span class="target" id="index-1"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0489"><strong>PEP 489</strong></a> for details.</p>
+<p>여러 초기화 함수를 정의하여 단일 공유 라이브러리에서 여러 모듈을 내보낼 수 있습니다. 그러나, 이들을 임포트 하려면 심볼릭 링크나 사용자 정의 임포터를 사용해야 합니다. 기본적으로 파일 이름에 해당하는 함수만 발견되기 때문입니다. 자세한 내용은 <span class="target" id="index-5"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0489"><strong>PEP 489</strong></a>의 <em>&quot;한 라이브러리에 여러 모듈&quot;</em> 절을 참조하십시오.</p>
 <div class="section" id="building-c-and-c-extensions-with-distutils">
-<h2>4.1. Building C and C++ Extensions with distutils<a class="headerlink" href="#building-c-and-c-extensions-with-distutils" title="제목 주소">¶</a></h2>
-<p>Extension modules can be built using distutils,  which is included in Python.
-Since distutils also supports creation of binary packages, users don't
-necessarily need a compiler and distutils to install the extension.</p>
-<p>A distutils package contains a driver script, <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code>. This is a plain
-Python file, which, in the most simple case, could look like this:</p>
+<h2>4.1. distutils로 C와 C ++ 확장 빌드하기<a class="headerlink" href="#building-c-and-c-extensions-with-distutils" title="제목 주소">¶</a></h2>
+<p>확장 모듈은 파이썬에 포함된 distutils를 사용하여 빌드할 수 있습니다. distutils가 바이너리 패키지의 생성을 지원하기 때문에, 사용자는 확장을 설치하기 위해 꼭 컴파일러와 distutils가 필요하지는 않습니다.</p>
+<p>distutils 패키지에는 드라이버 스크립트인 <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code>가 들어 있습니다. 이것은 평범한 파이썬 파일인데, 대부분 간단한 경우에 이런 식입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="k">import</span> <span class="n">setup</span><span class="p">,</span> <span class="n">Extension</span>
 
 <span class="n">module1</span> <span class="o">=</span> <span class="n">Extension</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span>
@@ -154,32 +138,14 @@ Python file, which, in the most simple case, could look like this:</p>
        <span class="n">ext_modules</span> <span class="o">=</span> <span class="p">[</span><span class="n">module1</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>With this <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code>, and a file <code class="file docutils literal notranslate"><span class="pre">demo.c</span></code>, running</p>
+<p>이 <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code>와 파일 <code class="file docutils literal notranslate"><span class="pre">demo.c</span></code>로 다음을 실행하면</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">build</span>
 </pre></div>
 </div>
-<p>will compile <code class="file docutils literal notranslate"><span class="pre">demo.c</span></code>, and produce an extension module named <code class="docutils literal notranslate"><span class="pre">demo</span></code> in
-the <code class="file docutils literal notranslate"><span class="pre">build</span></code> directory. Depending on the system, the module file will end
-up in a subdirectory <code class="file docutils literal notranslate"><span class="pre">build/lib.system</span></code>, and may have a name like
-<code class="file docutils literal notranslate"><span class="pre">demo.so</span></code> or <code class="file docutils literal notranslate"><span class="pre">demo.pyd</span></code>.</p>
-<p>In the <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code>, all execution is performed by calling the <code class="docutils literal notranslate"><span class="pre">setup</span></code>
-function. This takes a variable number of keyword arguments, of which the
-example above uses only a subset. Specifically, the example specifies
-meta-information to build packages, and it specifies the contents of the
-package.  Normally, a package will contain additional modules, like Python
-source modules, documentation, subpackages, etc. Please refer to the distutils
-documentation in <a class="reference internal" href="../distutils/index.html#distutils-index"><span class="std std-ref">파이썬 모듈 배포 (레거시 버전)</span></a> to learn more about the features of
-distutils; this section explains building extension modules only.</p>
-<p>It is common to pre-compute arguments to <code class="xref py py-func docutils literal notranslate"><span class="pre">setup()</span></code>, to better structure the
-driver script. In the example above, the <code class="docutils literal notranslate"><span class="pre">ext_modules</span></code> argument to
-<a class="reference internal" href="../distutils/apiref.html#distutils.core.setup" title="distutils.core.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup()</span></code></a> is a list of extension modules, each of which is
-an instance of
-the <code class="xref py py-class docutils literal notranslate"><span class="pre">Extension</span></code>. In the example, the instance
-defines an extension named <code class="docutils literal notranslate"><span class="pre">demo</span></code> which is build by compiling a single source
-file, <code class="file docutils literal notranslate"><span class="pre">demo.c</span></code>.</p>
-<p>In many cases, building an extension is more complex, since additional
-preprocessor defines and libraries may be needed. This is demonstrated in the
-example below.</p>
+<p><code class="file docutils literal notranslate"><span class="pre">demo.c</span></code>를 컴파일하고, <code class="file docutils literal notranslate"><span class="pre">build</span></code> 디렉터리에 <code class="docutils literal notranslate"><span class="pre">demo</span></code>라는 확장 모듈을 생성합니다. 시스템에 따라, 모듈 파일은 <code class="file docutils literal notranslate"><span class="pre">build/lib.system</span></code> 하위 디렉터리에 들어가고, <code class="file docutils literal notranslate"><span class="pre">demo.so</span></code>나 <code class="file docutils literal notranslate"><span class="pre">demo.pyd</span></code>와 같은 이름을 가질 수 있습니다.</p>
+<p><code class="file docutils literal notranslate"><span class="pre">setup.py</span></code>에서, 모든 실행은 <code class="docutils literal notranslate"><span class="pre">setup</span></code> 함수를 호출하여 수행됩니다. 이것은 다양한 키워드 인자를 받아들입니다. 위의 예에서는 일부만 사용합니다. 구체적으로, 이 예는 패키지를 빌드하기 위한 메타 정보를 지정하고 패키지의 내용을 지정합니다. 일반적으로, 패키지는 파이썬 소스 모듈, 문서, 서브 패키지 등과 같은 추가 모듈이 포함됩니다. distutils의 기능에 대한 자세한 내용은 <a class="reference internal" href="../distutils/index.html#distutils-index"><span class="std std-ref">파이썬 모듈 배포 (레거시 버전)</span></a>의 distutils 설명서를 참조하십시오; 이 절에서는 확장 모듈을 빌드하는 것만 설명합니다.</p>
+<p>드라이버 스크립트를 더 잘 구조화하기 위해, <code class="xref py py-func docutils literal notranslate"><span class="pre">setup()</span></code>에 대한 인자를 미리 계산하는 것이 일반적입니다. 위의 예에서, <a class="reference internal" href="../distutils/apiref.html#distutils.core.setup" title="distutils.core.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup()</span></code></a>에 대한 <code class="docutils literal notranslate"><span class="pre">ext_modules</span></code> 인자는 확장 모듈의 리스트며, 각 모듈은 <code class="xref py py-class docutils literal notranslate"><span class="pre">Extension</span></code>의 인스턴스입니다. 이 예에서, 인스턴스는 단일 소스 파일 <code class="file docutils literal notranslate"><span class="pre">demo.c</span></code>를 컴파일하여 빌드하는 <code class="docutils literal notranslate"><span class="pre">demo</span></code>라는 확장을 정의합니다.</p>
+<p>많은 경우, 확장을 빌드하는 것은 더 복잡합니다. 왜냐하면, 추가적인 전처리기 정의와 라이브러리가 필요할 수 있기 때문입니다. 이는 아래에서 예시합니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="k">import</span> <span class="n">setup</span><span class="p">,</span> <span class="n">Extension</span>
 
 <span class="n">module1</span> <span class="o">=</span> <span class="n">Extension</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span>
@@ -202,37 +168,27 @@ example below.</p>
        <span class="n">ext_modules</span> <span class="o">=</span> <span class="p">[</span><span class="n">module1</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>In this example, <a class="reference internal" href="../distutils/apiref.html#distutils.core.setup" title="distutils.core.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup()</span></code></a> is called with additional
-meta-information, which
-is recommended when distribution packages have to be built. For the extension
-itself, it specifies preprocessor defines, include directories, library
-directories, and libraries. Depending on the compiler, distutils passes this
-information in different ways to the compiler. For example, on Unix, this may
-result in the compilation commands</p>
+<p>이 예에서, <a class="reference internal" href="../distutils/apiref.html#distutils.core.setup" title="distutils.core.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup()</span></code></a>는 추가 메타 정보로 호출되며, 배포 패키지를 빌드해야 할 때 권장됩니다. 확장 자체에 대해서는, 전처리기 정의, 인클루드 디렉터리, 라이브러리 디렉터리 및 라이브러리를 지정합니다. 컴파일러에 따라, distutils는 이 정보를 다양한 방법으로 컴파일러에 전달합니다. 예를 들어, 유닉스에서는 다음과 같은 컴파일 명령으로 이어질 수 있습니다</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">gcc</span> <span class="o">-</span><span class="n">DNDEBUG</span> <span class="o">-</span><span class="n">g</span> <span class="o">-</span><span class="n">O3</span> <span class="o">-</span><span class="n">Wall</span> <span class="o">-</span><span class="n">Wstrict</span><span class="o">-</span><span class="n">prototypes</span> <span class="o">-</span><span class="n">fPIC</span> <span class="o">-</span><span class="n">DMAJOR_VERSION</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span><span class="n">DMINOR_VERSION</span><span class="o">=</span><span class="mi">0</span> <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">include</span> <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">include</span><span class="o">/</span><span class="n">python2</span><span class="mf">.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">demo</span><span class="p">.</span><span class="n">c</span> <span class="o">-</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="p">.</span><span class="n">linux</span><span class="o">-</span><span class="n">i686</span><span class="o">-</span><span class="mf">2.2</span><span class="o">/</span><span class="n">demo</span><span class="p">.</span><span class="n">o</span>
 
 <span class="n">gcc</span> <span class="o">-</span><span class="n">shared</span> <span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="p">.</span><span class="n">linux</span><span class="o">-</span><span class="n">i686</span><span class="o">-</span><span class="mf">2.2</span><span class="o">/</span><span class="n">demo</span><span class="p">.</span><span class="n">o</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">ltcl83</span> <span class="o">-</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">lib</span><span class="p">.</span><span class="n">linux</span><span class="o">-</span><span class="n">i686</span><span class="o">-</span><span class="mf">2.2</span><span class="o">/</span><span class="n">demo</span><span class="p">.</span><span class="n">so</span>
 </pre></div>
 </div>
-<p>These lines are for demonstration purposes only; distutils users should trust
-that distutils gets the invocations right.</p>
+<p>이 줄은 예시 목적일 뿐입니다; distutils 사용자는 distutils가 올바르게 호출한다고 믿어야 합니다.</p>
 </div>
 <div class="section" id="distributing-your-extension-modules">
-<span id="distributing"></span><h2>4.2. Distributing your extension modules<a class="headerlink" href="#distributing-your-extension-modules" title="제목 주소">¶</a></h2>
-<p>When an extension has been successfully build, there are three ways to use it.</p>
-<p>End-users will typically want to install the module, they do so by running</p>
+<span id="distributing"></span><h2>4.2. 확장 모듈 배포하기<a class="headerlink" href="#distributing-your-extension-modules" title="제목 주소">¶</a></h2>
+<p>확장이 성공적으로 빌드되면, 이를 사용하는 세 가지 방법이 있습니다.</p>
+<p>최종 사용자는 보통 모듈을 설치하고 싶을 것이고, 다음을 실행합니다</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>Module maintainers should produce source packages; to do so, they run</p>
+<p>모듈 관리자는 소스 패키지를 생성해야 합니다; 그러려면, 이렇게 실행합니다</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">sdist</span>
 </pre></div>
 </div>
-<p>In some cases, additional files need to be included in a source distribution;
-this is done through a <code class="file docutils literal notranslate"><span class="pre">MANIFEST.in</span></code> file; see <a class="reference internal" href="../distutils/sourcedist.html#manifest"><span class="std std-ref">Specifying the files to distribute</span></a> for details.</p>
-<p>If the source distribution has been build successfully, maintainers can also
-create binary distributions. Depending on the platform, one of the following
-commands can be used to do so.</p>
+<p>때에 따라, 추가 파일을 소스 배포에 포함해야 합니다; 이 작업은 <code class="file docutils literal notranslate"><span class="pre">MANIFEST.in</span></code> 파일을 통해 수행됩니다; 자세한 내용은 <a class="reference internal" href="../distutils/sourcedist.html#manifest"><span class="std std-ref">Specifying the files to distribute</span></a>를 참조하십시오.</p>
+<p>소스 배포가 성공적으로 빌드되면, 관리자는 바이너리 배포도 만들 수 있습니다. 플랫폼에 따라, 이를 위해 다음 명령 중 하나를 사용할 수 있습니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">bdist_wininst</span>
 <span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">bdist_rpm</span>
 <span class="n">python</span> <span class="n">setup</span><span class="p">.</span><span class="n">py</span> <span class="n">bdist_dumb</span>
@@ -249,9 +205,9 @@ commands can be used to do so.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">Table of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">4. Building C and C++ Extensions</a><ul>
-<li><a class="reference internal" href="#building-c-and-c-extensions-with-distutils">4.1. Building C and C++ Extensions with distutils</a></li>
-<li><a class="reference internal" href="#distributing-your-extension-modules">4.2. Distributing your extension modules</a></li>
+<li><a class="reference internal" href="#">4. C와 C++ 확장 빌드하기</a><ul>
+<li><a class="reference internal" href="#building-c-and-c-extensions-with-distutils">4.1. distutils로 C와 C ++ 확장 빌드하기</a></li>
+<li><a class="reference internal" href="#distributing-your-extension-modules">4.2. 확장 모듈 배포하기</a></li>
 </ul>
 </li>
 </ul>
