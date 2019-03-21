@@ -1958,38 +1958,29 @@
 </div>
 <div class="section" id="client-side-operation">
 <h3>클라이언트 측 연산<a class="headerlink" href="#client-side-operation" title="제목 주소">¶</a></h3>
-<p>This example creates a SSL context with the recommended security settings
-for client sockets, including automatic certificate verification:</p>
+<p>이 예제는 자동 인증서 확인을 포함하여 클라이언트 소켓에 대해 권장되는 보안 설정을 사용하여 SSL 컨텍스트를 만듭니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">create_default_context</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>If you prefer to tune security settings yourself, you might create
-a context from scratch (but beware that you might not get the settings
-right):</p>
+<p>보안 설정을 직접 조정하려면, 처음부터 컨텍스트를 만들 수 있습니다 (그러나 올바른 설정을 얻지 못할 수도 있습니다):</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLContext</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context</span><span class="o">.</span><span class="n">verify_mode</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">CERT_REQUIRED</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context</span><span class="o">.</span><span class="n">check_hostname</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context</span><span class="o">.</span><span class="n">load_verify_locations</span><span class="p">(</span><span class="s2">&quot;/etc/ssl/certs/ca-bundle.crt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(this snippet assumes your operating system places a bundle of all CA
-certificates in <code class="docutils literal notranslate"><span class="pre">/etc/ssl/certs/ca-bundle.crt</span></code>; if not, you'll get an
-error and have to adjust the location)</p>
-<p>When you use the context to connect to a server, <a class="reference internal" href="#ssl.CERT_REQUIRED" title="ssl.CERT_REQUIRED"><code class="xref py py-const docutils literal notranslate"><span class="pre">CERT_REQUIRED</span></code></a>
-validates the server certificate: it ensures that the server certificate
-was signed with one of the CA certificates, and checks the signature for
-correctness:</p>
+<p>(이 코드 조각은 운영 체제가 모든 CA 인증서 번들을 <code class="docutils literal notranslate"><span class="pre">/etc/ssl/certs/ca-bundle.crt</span></code>에 배치한다고 가정합니다; 그렇지 않으면, 에러가 발생하고 위치를 조정해야합니다)</p>
+<p>컨텍스트를 사용하여 서버에 연결할 때, <a class="reference internal" href="#ssl.CERT_REQUIRED" title="ssl.CERT_REQUIRED"><code class="xref py py-const docutils literal notranslate"><span class="pre">CERT_REQUIRED</span></code></a>는 서버 인증서의 유효성을 검사합니다: 서버 인증서가 CA 인증서 중 하나를 사용하여 서명되었는지 확인하고 서명의 정확성을 검사합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">wrap_socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">),</span>
 <span class="gp">... </span>                           <span class="n">server_hostname</span><span class="o">=</span><span class="s2">&quot;www.python.org&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s2">&quot;www.python.org&quot;</span><span class="p">,</span> <span class="mi">443</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>You may then fetch the certificate:</p>
+<p>그런 다음 인증서를 가져올 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cert</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">getpeercert</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Visual inspection shows that the certificate does identify the desired service
-(that is, the HTTPS host <code class="docutils literal notranslate"><span class="pre">www.python.org</span></code>):</p>
+<p>시각적인 검사는 인증서가 원하는 서비스(즉, HTTPS 호스트 <code class="docutils literal notranslate"><span class="pre">www.python.org</span></code>)를 식별 함을 보여줍니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">cert</span><span class="p">)</span>
 <span class="go">{&#39;OCSP&#39;: (&#39;http://ocsp.digicert.com&#39;,),</span>
 <span class="go"> &#39;caIssuers&#39;: (&#39;http://cacerts.digicert.com/DigiCertSHA2ExtendedValidationServerCA.crt&#39;,),</span>
@@ -2031,8 +2022,7 @@ correctness:</p>
 <span class="go"> &#39;version&#39;: 3}</span>
 </pre></div>
 </div>
-<p>Now the SSL channel is established and the certificate verified, you can
-proceed to talk with the server:</p>
+<p>이제 SSL 채널이 설정되고 인증서가 확인되었습니다, 서버와 대화할 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;HEAD / HTTP/1.0</span><span class="se">\r\n</span><span class="s2">Host: linuxfr.org</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">))</span>
 <span class="go">[b&#39;HTTP/1.1 200 OK&#39;,</span>
@@ -2057,12 +2047,8 @@ proceed to talk with the server:</p>
 <p>아래의 <a class="reference internal" href="#ssl-security"><span class="std std-ref">보안 고려 사항</span></a>의 논의를 참조하십시오.</p>
 </div>
 <div class="section" id="server-side-operation">
-<h3>Server-side operation<a class="headerlink" href="#server-side-operation" title="제목 주소">¶</a></h3>
-<p>For server operation, typically you'll need to have a server certificate, and
-private key, each in a file.  You'll first create a context holding the key
-and the certificate, so that clients can check your authenticity.  Then
-you'll open a socket, bind it to a port, call <code class="xref py py-meth docutils literal notranslate"><span class="pre">listen()</span></code> on it, and start
-waiting for clients to connect:</p>
+<h3>서버 측 연산<a class="headerlink" href="#server-side-operation" title="제목 주소">¶</a></h3>
+<p>서버 연산의 경우, 일반적으로 서버 인증서와 개인 키가 각각 파일에 있어야합니다. 먼저 클라이언트가 여러분의 신원을 확인할 수 있도록 키와 인증서가있는 컨텍스트를 만듭니다. 그런 다음 소켓을 열고, 포트에 바인드하고, <code class="xref py py-meth docutils literal notranslate"><span class="pre">listen()</span></code>을 호출 한 다음 클라이언트가 연결하기를 기다립니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">socket</span><span class="o">,</span> <span class="nn">ssl</span>
 
 <span class="n">context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">create_default_context</span><span class="p">(</span><span class="n">ssl</span><span class="o">.</span><span class="n">Purpose</span><span class="o">.</span><span class="n">CLIENT_AUTH</span><span class="p">)</span>
@@ -2073,9 +2059,7 @@ waiting for clients to connect:</p>
 <span class="n">bindsocket</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>When a client connects, you'll call <code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code> on the socket to get the
-new socket from the other end, and use the context's <a class="reference internal" href="#ssl.SSLContext.wrap_socket" title="ssl.SSLContext.wrap_socket"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLContext.wrap_socket()</span></code></a>
-method to create a server-side SSL socket for the connection:</p>
+<p>클라이언트가 연결하면, 소켓에서 <code class="xref py py-meth docutils literal notranslate"><span class="pre">accept()</span></code>를 호출하여 다른 쪽 끝과 연결된 새 소켓을 얻고, 컨텍스트의 <a class="reference internal" href="#ssl.SSLContext.wrap_socket" title="ssl.SSLContext.wrap_socket"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLContext.wrap_socket()</span></code></a> 메서드를 사용하여 연결을 위한 서버 측 SSL 소켓을 만듭니다.:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
     <span class="n">newsocket</span><span class="p">,</span> <span class="n">fromaddr</span> <span class="o">=</span> <span class="n">bindsocket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
     <span class="n">connstream</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">wrap_socket</span><span class="p">(</span><span class="n">newsocket</span><span class="p">,</span> <span class="n">server_side</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2086,8 +2070,7 @@ method to create a server-side SSL socket for the connection:</p>
         <span class="n">connstream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Then you'll read data from the <code class="docutils literal notranslate"><span class="pre">connstream</span></code> and do something with it till you
-are finished with the client (or the client is finished with you):</p>
+<p>그런 다음 <code class="docutils literal notranslate"><span class="pre">connstream</span></code>에서 데이터를 읽고 클라이언트와 작업을 마칠 때까지 (또는 클라이언트가 마칠 때까지) 뭔가 합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">deal_with_client</span><span class="p">(</span><span class="n">connstream</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">connstream</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
     <span class="c1"># empty data means the client is finished with us</span>
@@ -2100,51 +2083,24 @@ are finished with the client (or the client is finished with you):</p>
     <span class="c1"># finished with client</span>
 </pre></div>
 </div>
-<p>And go back to listening for new client connections (of course, a real server
-would probably handle each client connection in a separate thread, or put
-the sockets in <a class="reference internal" href="#ssl-nonblocking"><span class="std std-ref">non-blocking mode</span></a> and use an event loop).</p>
+<p>그리고는 새로운 클라이언트 연결을 리스닝하는 것으로 돌아갑니다 (물론, 실제 서버는 별도의 스레드에서 각 클라이언트 연결을 처리하거나 소켓을 <a class="reference internal" href="#ssl-nonblocking"><span class="std std-ref">비 블로킹 모드</span></a>로 만들고 이벤트 루프를 사용합니다).</p>
 </div>
 </div>
 <div class="section" id="notes-on-non-blocking-sockets">
 <span id="ssl-nonblocking"></span><h2>비 블로킹 소켓에 대한 참고 사항<a class="headerlink" href="#notes-on-non-blocking-sockets" title="제목 주소">¶</a></h2>
-<p>SSL sockets behave slightly different than regular sockets in
-non-blocking mode. When working with non-blocking sockets, there are
-thus several things you need to be aware of:</p>
+<p>SSL 소켓은 비 블로킹 모드에서 일반 소켓과 약간 다르게 작동합니다. 비 블로킹 소켓으로 작업할 때 주의해야 할 몇 가지 사항이 있습니다:</p>
 <ul>
-<li><p class="first">Most <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> methods will raise either
-<a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a> or <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a> instead of
-<a class="reference internal" href="exceptions.html#BlockingIOError" title="BlockingIOError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BlockingIOError</span></code></a> if an I/O operation would
-block. <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a> will be raised if a read operation on
-the underlying socket is necessary, and <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a> for
-a write operation on the underlying socket. Note that attempts to
-<em>write</em> to an SSL socket may require <em>reading</em> from the underlying
-socket first, and attempts to <em>read</em> from the SSL socket may require
-a prior <em>write</em> to the underlying socket.</p>
+<li><p class="first">대부분 <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> 메서드는 I/O 연산이 블록하려고 할 때 <a class="reference internal" href="exceptions.html#BlockingIOError" title="BlockingIOError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BlockingIOError</span></code></a> 대신 <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a> 나 <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a>를 발생시킵니다. 하부 소켓에서의 읽기 연산이 필요하면 <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a>가 발생하고, 하부 소켓에서의 쓰기 연산이 필요하면 <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a>가 발생합니다. SSL 소켓에 대한 <em>쓰기</em> 시도는 우선 하부 소켓에서 <em>읽기</em>가 필요할 수 있으며, SSL 소켓에서 <em>읽기</em>를 시도하면 하부 소켓에서 선행 <em>쓰기</em>가 필요할 수 있습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.5으로 변경: </span>In earlier Python versions, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.send()</span></code> method
-returned zero instead of raising <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a> or
-<a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a>.</p>
+<p><span class="versionmodified">버전 3.5으로 변경: </span>이전 파이썬 버전에서는, <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.send()</span></code> 메서드가 <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a> 나 <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a>를 발생시키는 대신 0을 반환했습니다.</p>
 </div>
 </li>
-<li><p class="first">Calling <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a> tells you that the OS-level socket can be
-read from (or written to), but it does not imply that there is sufficient
-data at the upper SSL layer.  For example, only part of an SSL frame might
-have arrived.  Therefore, you must be ready to handle <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.recv()</span></code>
-and <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.send()</span></code> failures, and retry after another call to
-<a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a>.</p>
+<li><p class="first"><a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a>를 호출하면 OS-수준 소켓을 읽을 수 있음을 (또는 쓸 수 있음을) 알려줄 수 있습니다만, 이 것이 상위 SSL 계층에 충분한 데이터가 있음을 의미하지는 않습니다. 예를 들어, SSL 프레임의 일부만 도착했을 수 있습니다. 따라서, <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.recv()</span></code> 와 <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.send()</span></code> 실패를 처리 할 준비가되어 있어야하며, <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a>를 다시 호출 한 후 재시도해야합니다.</p>
 </li>
-<li><p class="first">Conversely, since the SSL layer has its own framing, a SSL socket may
-still have data available for reading without <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a>
-being aware of it.  Therefore, you should first call
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.recv()</span></code> to drain any potentially available data, and then
-only block on a <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a> call if still necessary.</p>
-<p>(of course, similar provisions apply when using other primitives such as
-<a class="reference internal" href="select.html#select.poll" title="select.poll"><code class="xref py py-func docutils literal notranslate"><span class="pre">poll()</span></code></a>, or those in the <a class="reference internal" href="selectors.html#module-selectors" title="selectors: High-level I/O multiplexing."><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectors</span></code></a> module)</p>
+<li><p class="first">반대로, SSL 계층에는 자체 프레임이 있으므로, SSL 소켓에는 <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a>가 인식하지 못하더라도 읽을 수 있는 데이터가 있을 수 있습니다. 따라서, 먼저 <code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.recv()</span></code>를 호출하여 잠재적으로 사용 가능한 모든 데이터를 꺼낸 다음, 여전히 필요할 때만 <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a> 호출에 블록해야합니다.</p>
+<p>(물론, <a class="reference internal" href="select.html#select.poll" title="select.poll"><code class="xref py py-func docutils literal notranslate"><span class="pre">poll()</span></code></a> 이나 <a class="reference internal" href="selectors.html#module-selectors" title="selectors: High-level I/O multiplexing."><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectors</span></code></a> 모듈에 있는 것과 같은 다른 프리미티브를 사용할 때도 비슷한 조항이 적용됩니다)</p>
 </li>
-<li><p class="first">The SSL handshake itself will be non-blocking: the
-<a class="reference internal" href="#ssl.SSLSocket.do_handshake" title="ssl.SSLSocket.do_handshake"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.do_handshake()</span></code></a> method has to be retried until it returns
-successfully.  Here is a synopsis using <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a> to wait for
-the socket's readiness:</p>
+<li><p class="first">SSL 핸드 셰이크 자체는 비 블로킹입니다: <a class="reference internal" href="#ssl.SSLSocket.do_handshake" title="ssl.SSLSocket.do_handshake"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLSocket.do_handshake()</span></code></a> 메서드는 성공적으로 반환될 때까지 재시도해야합니다. 다음은 <a class="reference internal" href="select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a>를 사용하여 소켓의 준비 상태를 기다리는 개요입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">sock</span><span class="o">.</span><span class="n">do_handshake</span><span class="p">()</span>
@@ -2159,54 +2115,28 @@ the socket's readiness:</p>
 </ul>
 <div class="admonition seealso">
 <p class="first admonition-title">더 보기</p>
-<p class="last">The <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> module supports <a class="reference internal" href="#ssl-nonblocking"><span class="std std-ref">non-blocking SSL sockets</span></a> and provides a
-higher level API. It polls for events using the <a class="reference internal" href="selectors.html#module-selectors" title="selectors: High-level I/O multiplexing."><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectors</span></code></a> module and
-handles <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a>, <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a> and
-<a class="reference internal" href="exceptions.html#BlockingIOError" title="BlockingIOError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BlockingIOError</span></code></a> exceptions. It runs the SSL handshake asynchronously
-as well.</p>
+<p class="last"><a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> 모듈은 <a class="reference internal" href="#ssl-nonblocking"><span class="std std-ref">비 블로킹 SSL 소켓</span></a>을 지원하며 더 고수준의 API를 제공합니다. <a class="reference internal" href="selectors.html#module-selectors" title="selectors: High-level I/O multiplexing."><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectors</span></code></a> 모듈을 사용하여 이벤트를 폴링하고 <a class="reference internal" href="#ssl.SSLWantWriteError" title="ssl.SSLWantWriteError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantWriteError</span></code></a>, <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a> 및 <a class="reference internal" href="exceptions.html#BlockingIOError" title="BlockingIOError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BlockingIOError</span></code></a> 예외를 처리합니다. SSL 핸드 셰이크도 비동기 적으로 실행됩니다.</p>
 </div>
 </div>
 <div class="section" id="memory-bio-support">
-<h2>Memory BIO Support<a class="headerlink" href="#memory-bio-support" title="제목 주소">¶</a></h2>
+<h2>메모리 BIO 지원<a class="headerlink" href="#memory-bio-support" title="제목 주소">¶</a></h2>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.5에 추가.</span></p>
 </div>
-<p>Ever since the SSL module was introduced in Python 2.6, the <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a>
-class has provided two related but distinct areas of functionality:</p>
+<p>SSL 모듈이 파이썬 2.6에서 소개 된 이래로, <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> 클래스는 관련성이 있지만 별개의 두 기능 영역을 제공했습니다:</p>
 <ul class="simple">
-<li>SSL protocol handling</li>
-<li>Network IO</li>
+<li>SSL 프로토콜 처리</li>
+<li>네트워크 IO</li>
 </ul>
-<p>The network IO API is identical to that provided by <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a>,
-from which <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> also inherits. This allows an SSL socket to be
-used as a drop-in replacement for a regular socket, making it very easy to add
-SSL support to an existing application.</p>
-<p>Combining SSL protocol handling and network IO usually works well, but there
-are some cases where it doesn't. An example is async IO frameworks that want to
-use a different IO multiplexing model than the &quot;select/poll on a file
-descriptor&quot; (readiness based) model that is assumed by <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a>
-and by the internal OpenSSL socket IO routines. This is mostly relevant for
-platforms like Windows where this model is not efficient. For this purpose, a
-reduced scope variant of <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> called <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> is
-provided.</p>
+<p>네트워크 IO API는 <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a>가 제공하는 것과 같으며, <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a>는 그 것을 상속합니다. 이렇게해서 SSL 소켓을 일반 소켓의 드롭 인 대체품으로 사용할 수 있으므로, 기존 응용 프로그램에 SSL 지원을 쉽게 추가 할 수 있습니다.</p>
+<p>SSL 프로토콜 처리와 네트워크 IO의 결합은 일반적으로 잘 작동하지만, 그렇지 않은 경우도 있습니다. <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a> 과 내부 OpenSSL 소켓 IO 루틴이 가정하는 &quot;파일 기술자에 대한 select/poll&quot; (준비 상태 기반) 모델과 다른 IO 멀티플렉싱 모델을 사용하려는 비동기 IO 프레임워크가 그 예입니다. 이것은 주로 이 모델이 효율적이지 않은 윈도우와 같은 플랫폼과 관련이 있습니다. 이를 위해, <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a>라는 <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a>의 축소된 범위 변형이 제공됩니다.</p>
 <dl class="class">
 <dt id="ssl.SSLObject">
 <em class="property">class </em><code class="descclassname">ssl.</code><code class="descname">SSLObject</code><a class="headerlink" href="#ssl.SSLObject" title="정의 주소">¶</a></dt>
-<dd><p>A reduced-scope variant of <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> representing an SSL protocol
-instance that does not contain any network IO methods. This class is
-typically used by framework authors that want to implement asynchronous IO
-for SSL through memory buffers.</p>
-<p>This class implements an interface on top of a low-level SSL object as
-implemented by OpenSSL. This object captures the state of an SSL connection
-but does not provide any network IO itself. IO needs to be performed through
-separate &quot;BIO&quot; objects which are OpenSSL's IO abstraction layer.</p>
-<p>This class has no public constructor.  An <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> instance
-must be created using the <a class="reference internal" href="#ssl.SSLContext.wrap_bio" title="ssl.SSLContext.wrap_bio"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wrap_bio()</span></code></a> method. This
-method will create the <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> instance and bind it to a
-pair of BIOs. The <em>incoming</em> BIO is used to pass data from Python to the
-SSL protocol instance, while the <em>outgoing</em> BIO is used to pass data the
-other way around.</p>
-<p>The following methods are available:</p>
+<dd><p>네트워크 IO 메서드를 포함하지 않는 SSL 프로토콜 인스턴스를 나타내는 <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a>의 축소 범위 변형입니다. 이 클래스는 일반적으로 메모리 버퍼를 통해 SSL 용 비동기 IO를 구현하려는 프레임워크 작성자가 사용합니다.</p>
+<p>이 클래스는 OpenSSL에 의해 구현된 저수준 SSL 객체 위에 인터페이스를 구현합니다. 이 객체는 SSL 연결의 상태를 캡처하지만 네트워크 IO 자체를 제공하지는 않습니다. IO는 OpenSSL의 IO 추상화 계층인 별도의 &quot;BIO&quot; 객체를 통해 수행되어야합니다.</p>
+<p>이 클래스에는 공개된 생성자가 없습니다. <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> 인스턴스은 <a class="reference internal" href="#ssl.SSLContext.wrap_bio" title="ssl.SSLContext.wrap_bio"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wrap_bio()</span></code></a> 메서드를 사용해서 만들어야합니다. 이 메서드는 <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> 인스턴스를 생성하고 BIO 쌍에 연결합니다. <em>incoming</em> BIO는 파이썬에서 SSL 프로토콜 인스턴스로 데이터를 전달하는 데 사용되는 반면, <em>outgoing</em> BIO는 반대 방향으로 데이터를 전달하는 데 사용됩니다.</p>
+<p>다음 메서드를 사용할 수 있습니다:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#ssl.SSLSocket.context" title="ssl.SSLSocket.context"><code class="xref py py-attr docutils literal notranslate"><span class="pre">context</span></code></a></li>
 <li><a class="reference internal" href="#ssl.SSLSocket.server_side" title="ssl.SSLSocket.server_side"><code class="xref py py-attr docutils literal notranslate"><span class="pre">server_side</span></code></a></li>
@@ -2225,97 +2155,72 @@ other way around.</p>
 <li><a class="reference internal" href="#ssl.SSLSocket.unwrap" title="ssl.SSLSocket.unwrap"><code class="xref py py-meth docutils literal notranslate"><span class="pre">unwrap()</span></code></a></li>
 <li><a class="reference internal" href="#ssl.SSLSocket.get_channel_binding" title="ssl.SSLSocket.get_channel_binding"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_channel_binding()</span></code></a></li>
 </ul>
-<p>When compared to <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a>, this object lacks the following
-features:</p>
+<p><a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a>와 비교할 때, 이 객체에는 다음과 같은 기능이 없습니다:</p>
 <ul class="simple">
-<li>Any form of network IO; <code class="docutils literal notranslate"><span class="pre">recv()</span></code> and <code class="docutils literal notranslate"><span class="pre">send()</span></code> read and write only to
-the underlying <a class="reference internal" href="#ssl.MemoryBIO" title="ssl.MemoryBIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryBIO</span></code></a> buffers.</li>
-<li>There is no <em>do_handshake_on_connect</em> machinery. You must always manually
-call <a class="reference internal" href="#ssl.SSLSocket.do_handshake" title="ssl.SSLSocket.do_handshake"><code class="xref py py-meth docutils literal notranslate"><span class="pre">do_handshake()</span></code></a> to start the handshake.</li>
-<li>There is no handling of <em>suppress_ragged_eofs</em>. All end-of-file conditions
-that are in violation of the protocol are reported via the
-<a class="reference internal" href="#ssl.SSLEOFError" title="ssl.SSLEOFError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLEOFError</span></code></a> exception.</li>
-<li>The method <a class="reference internal" href="#ssl.SSLSocket.unwrap" title="ssl.SSLSocket.unwrap"><code class="xref py py-meth docutils literal notranslate"><span class="pre">unwrap()</span></code></a> call does not return anything,
-unlike for an SSL socket where it returns the underlying socket.</li>
-<li>The <em>server_name_callback</em> callback passed to
-<a class="reference internal" href="#ssl.SSLContext.set_servername_callback" title="ssl.SSLContext.set_servername_callback"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLContext.set_servername_callback()</span></code></a> will get an <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a>
-instance instead of a <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> instance as its first parameter.</li>
+<li>모든 형태의 네트워크 IO; <code class="docutils literal notranslate"><span class="pre">recv()</span></code> 와 <code class="docutils literal notranslate"><span class="pre">send()</span></code>는 하부 <a class="reference internal" href="#ssl.MemoryBIO" title="ssl.MemoryBIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryBIO</span></code></a> 버퍼만 읽고 씁니다.</li>
+<li><em>do_handshake_on_connect</em> 기작이 없습니다. 핸드 셰이크를 시작하려면 항상 <a class="reference internal" href="#ssl.SSLSocket.do_handshake" title="ssl.SSLSocket.do_handshake"><code class="xref py py-meth docutils literal notranslate"><span class="pre">do_handshake()</span></code></a>를 수동으로 호출해야합니다.</li>
+<li><em>suppress_ragged_eofs</em>는 처리되지 않습니다. 프로토콜을 위반하는 모든 파일 끝(end-of-file) 조건은 <a class="reference internal" href="#ssl.SSLEOFError" title="ssl.SSLEOFError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLEOFError</span></code></a> 예외를 통해 보고됩니다.</li>
+<li>메서드 <a class="reference internal" href="#ssl.SSLSocket.unwrap" title="ssl.SSLSocket.unwrap"><code class="xref py py-meth docutils literal notranslate"><span class="pre">unwrap()</span></code></a> 호출은 하부 소켓을 반환하는 SSL 소켓과 달리 아무 것도 반환하지 않습니다.</li>
+<li><a class="reference internal" href="#ssl.SSLContext.set_servername_callback" title="ssl.SSLContext.set_servername_callback"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SSLContext.set_servername_callback()</span></code></a>에 전달된 <em>server_name_callback</em> 콜백은 첫 번째 매개 변수로 <a class="reference internal" href="#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLSocket</span></code></a> 인스턴스 대신 <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> 인스턴스를 받습니다.</li>
 </ul>
-<p>Some notes related to the use of <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a>:</p>
+<p><a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> 사용과 관련된 몇 가지 참고 사항:</p>
 <ul class="simple">
-<li>All IO on an <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> is <a class="reference internal" href="#ssl-nonblocking"><span class="std std-ref">non-blocking</span></a>.
-This means that for example <a class="reference internal" href="#ssl.SSLSocket.read" title="ssl.SSLSocket.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> will raise an
-<a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a> if it needs more data than the incoming BIO has
-available.</li>
-<li>There is no module-level <code class="docutils literal notranslate"><span class="pre">wrap_bio()</span></code> call like there is for
-<a class="reference internal" href="#ssl.SSLContext.wrap_socket" title="ssl.SSLContext.wrap_socket"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wrap_socket()</span></code></a>. An <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> is always created
-via an <a class="reference internal" href="#ssl.SSLContext" title="ssl.SSLContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLContext</span></code></a>.</li>
+<li><a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a>의 모든 IO는 <a class="reference internal" href="#ssl-nonblocking"><span class="std std-ref">비 블로킹</span></a>입니다. 이 것은 예를 들어 <a class="reference internal" href="#ssl.SSLSocket.read" title="ssl.SSLSocket.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a>는 incoming BIO에 있는 것보다 많은 데이터가 필요하면 <a class="reference internal" href="#ssl.SSLWantReadError" title="ssl.SSLWantReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SSLWantReadError</span></code></a>를 발생시킨다는 것을 의미합니다.</li>
+<li><a class="reference internal" href="#ssl.SSLContext.wrap_socket" title="ssl.SSLContext.wrap_socket"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wrap_socket()</span></code></a> 에 있는 것과 같은 모듈 수준의 <code class="docutils literal notranslate"><span class="pre">wrap_bio()</span></code> 호출이 없습니다. <a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a>는 항상 <a class="reference internal" href="#ssl.SSLContext" title="ssl.SSLContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLContext</span></code></a>를 통해 만들어집니다.</li>
 </ul>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7으로 변경: </span><a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> instances must to created with
-<a class="reference internal" href="#ssl.SSLContext.wrap_bio" title="ssl.SSLContext.wrap_bio"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wrap_bio()</span></code></a>. In earlier versions, it was possible to
-create instances directly. This was never documented or officially
-supported.</p>
+<p><span class="versionmodified">버전 3.7으로 변경: </span><a class="reference internal" href="#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLObject</span></code></a> 인스턴스는 <a class="reference internal" href="#ssl.SSLContext.wrap_bio" title="ssl.SSLContext.wrap_bio"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wrap_bio()</span></code></a>로 만들어야합니다. 이전 버전에서는, 직접 인스턴스를 만들 수 있었습니다. 이것은 문서로 만들어지거나 공식적으로 지원된 적이 없습니다.</p>
 </div>
 </dd></dl>
 
-<p>An SSLObject communicates with the outside world using memory buffers. The
-class <a class="reference internal" href="#ssl.MemoryBIO" title="ssl.MemoryBIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryBIO</span></code></a> provides a memory buffer that can be used for this
-purpose.  It wraps an OpenSSL memory BIO (Basic IO) object:</p>
+<p>SSLObject는 메모리 버퍼를 사용하여 바깥 세상과 통신합니다. <a class="reference internal" href="#ssl.MemoryBIO" title="ssl.MemoryBIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryBIO</span></code></a> 클래스는이 목적으로 사용할 수 있는 메모리 버퍼를 제공합니다. OpenSSL 메모리 BIO (Basic IO) 객체를 감쌉니다:</p>
 <dl class="class">
 <dt id="ssl.MemoryBIO">
 <em class="property">class </em><code class="descclassname">ssl.</code><code class="descname">MemoryBIO</code><a class="headerlink" href="#ssl.MemoryBIO" title="정의 주소">¶</a></dt>
-<dd><p>A memory buffer that can be used to pass data between Python and an SSL
-protocol instance.</p>
+<dd><p>파이썬과 SSL 프로토콜 인스턴스간에 데이터를 전달하는 데 사용할 수 있는 메모리 버퍼.</p>
 <dl class="attribute">
 <dt id="ssl.MemoryBIO.pending">
 <code class="descname">pending</code><a class="headerlink" href="#ssl.MemoryBIO.pending" title="정의 주소">¶</a></dt>
-<dd><p>Return the number of bytes currently in the memory buffer.</p>
+<dd><p>현재 메모리 버퍼에 있는 바이트의 수를 반환합니다.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ssl.MemoryBIO.eof">
 <code class="descname">eof</code><a class="headerlink" href="#ssl.MemoryBIO.eof" title="정의 주소">¶</a></dt>
-<dd><p>A boolean indicating whether the memory BIO is current at the end-of-file
-position.</p>
+<dd><p>메모리 BIO가 현재 EOF(end-of-file) 위치에 있는지를 나타내는 논릿값입니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ssl.MemoryBIO.read">
 <code class="descname">read</code><span class="sig-paren">(</span><em>n=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#ssl.MemoryBIO.read" title="정의 주소">¶</a></dt>
-<dd><p>Read up to <em>n</em> bytes from the memory buffer. If <em>n</em> is not specified or
-negative, all bytes are returned.</p>
+<dd><p>메모리 버퍼에서 최대 <em>n</em> 바이트를 읽습니다. <em>n</em>이 지정되지 않았거나 음수면, 모든 바이트가 반환됩니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ssl.MemoryBIO.write">
 <code class="descname">write</code><span class="sig-paren">(</span><em>buf</em><span class="sig-paren">)</span><a class="headerlink" href="#ssl.MemoryBIO.write" title="정의 주소">¶</a></dt>
-<dd><p>Write the bytes from <em>buf</em> to the memory BIO. The <em>buf</em> argument must be an
-object supporting the buffer protocol.</p>
-<p>The return value is the number of bytes written, which is always equal to
-the length of <em>buf</em>.</p>
+<dd><p><em>buf</em>의 바이트를 메모리 BIO에 씁니다. <em>buf</em> 인자는 버퍼 프로토콜을 지원하는 객체여야합니다.</p>
+<p>반환 값은 기록된 바이트 수인데, 항상 <em>buf</em>의 길이와 같습니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ssl.MemoryBIO.write_eof">
 <code class="descname">write_eof</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ssl.MemoryBIO.write_eof" title="정의 주소">¶</a></dt>
-<dd><p>Write an EOF marker to the memory BIO. After this method has been called, it
-is illegal to call <a class="reference internal" href="#ssl.MemoryBIO.write" title="ssl.MemoryBIO.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>. The attribute <a class="reference internal" href="#ssl.MemoryBIO.eof" title="ssl.MemoryBIO.eof"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eof</span></code></a> will
-become true after all data currently in the buffer has been read.</p>
+<dd><p>EOF 마커를 메모리 BIO에 씁니다. 이 메서드가 호출 된 후, <a class="reference internal" href="#ssl.MemoryBIO.write" title="ssl.MemoryBIO.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>를 호출하는 것은 불법입니다. <a class="reference internal" href="#ssl.MemoryBIO.eof" title="ssl.MemoryBIO.eof"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eof</span></code></a> 어트리뷰트는 현재 버퍼에 있는 모든 데이터를 읽은 후에 참이됩니다.</p>
 </dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="ssl-session">
-<h2>SSL session<a class="headerlink" href="#ssl-session" title="제목 주소">¶</a></h2>
+<h2>SSL 세션<a class="headerlink" href="#ssl-session" title="제목 주소">¶</a></h2>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.6에 추가.</span></p>
 </div>
 <dl class="class">
 <dt id="ssl.SSLSession">
 <em class="property">class </em><code class="descclassname">ssl.</code><code class="descname">SSLSession</code><a class="headerlink" href="#ssl.SSLSession" title="정의 주소">¶</a></dt>
-<dd><p>Session object used by <a class="reference internal" href="#ssl.SSLSocket.session" title="ssl.SSLSocket.session"><code class="xref py py-attr docutils literal notranslate"><span class="pre">session</span></code></a>.</p>
+<dd><p><a class="reference internal" href="#ssl.SSLSocket.session" title="ssl.SSLSocket.session"><code class="xref py py-attr docutils literal notranslate"><span class="pre">session</span></code></a>에서 사용되는 세션 객체.</p>
 <dl class="attribute">
 <dt id="ssl.SSLSession.id">
 <code class="descname">id</code><a class="headerlink" href="#ssl.SSLSession.id" title="정의 주소">¶</a></dt>
@@ -2347,7 +2252,7 @@ become true after all data currently in the buffer has been read.</p>
 <div class="section" id="security-considerations">
 <span id="ssl-security"></span><h2>보안 고려 사항<a class="headerlink" href="#security-considerations" title="제목 주소">¶</a></h2>
 <div class="section" id="best-defaults">
-<h3>Best defaults<a class="headerlink" href="#best-defaults" title="제목 주소">¶</a></h3>
+<h3>가장 좋은 기본값<a class="headerlink" href="#best-defaults" title="제목 주소">¶</a></h3>
 <p>For <strong>client use</strong>, if you don't have any special requirements for your
 security policy, it is highly recommended that you use the
 <a class="reference internal" href="#ssl.create_default_context" title="ssl.create_default_context"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_default_context()</span></code></a> function to create your SSL context.
@@ -2530,14 +2435,14 @@ with LibreSSL.</p>
 <li><a class="reference internal" href="#examples">예제</a><ul>
 <li><a class="reference internal" href="#testing-for-ssl-support">SSL 지원 검사하기</a></li>
 <li><a class="reference internal" href="#client-side-operation">클라이언트 측 연산</a></li>
-<li><a class="reference internal" href="#server-side-operation">Server-side operation</a></li>
+<li><a class="reference internal" href="#server-side-operation">서버 측 연산</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#notes-on-non-blocking-sockets">비 블로킹 소켓에 대한 참고 사항</a></li>
-<li><a class="reference internal" href="#memory-bio-support">Memory BIO Support</a></li>
-<li><a class="reference internal" href="#ssl-session">SSL session</a></li>
+<li><a class="reference internal" href="#memory-bio-support">메모리 BIO 지원</a></li>
+<li><a class="reference internal" href="#ssl-session">SSL 세션</a></li>
 <li><a class="reference internal" href="#security-considerations">보안 고려 사항</a><ul>
-<li><a class="reference internal" href="#best-defaults">Best defaults</a></li>
+<li><a class="reference internal" href="#best-defaults">가장 좋은 기본값</a></li>
 <li><a class="reference internal" href="#manual-settings">Manual settings</a><ul>
 <li><a class="reference internal" href="#verifying-certificates">Verifying certificates</a></li>
 <li><a class="reference internal" href="#protocol-versions">Protocol versions</a></li>
