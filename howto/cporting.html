@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Porting Extension Modules to Python 3 &#8212; 파이썬 설명서 주석판</title>
+    <title>확장 모듈을 파이썬 3에 이식하기 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -103,57 +103,40 @@
           <div class="body" role="main">
             
   <div class="section" id="porting-extension-modules-to-python-3">
-<span id="cporting-howto"></span><h1>Porting Extension Modules to Python 3<a class="headerlink" href="#porting-extension-modules-to-python-3" title="제목 주소">¶</a></h1>
+<span id="cporting-howto"></span><h1>확장 모듈을 파이썬 3에 이식하기<a class="headerlink" href="#porting-extension-modules-to-python-3" title="제목 주소">¶</a></h1>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Benjamin Peterson</td>
+<tr class="field-odd field"><th class="field-name">저자:</th><td class="field-body">Benjamin Peterson</td>
 </tr>
 </tbody>
 </table>
 <div class="topic">
-<p class="topic-title first">Abstract</p>
-<p>Although changing the C-API was not one of Python 3's objectives,
-the many Python-level changes made leaving Python 2's API intact
-impossible.  In fact, some changes such as <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a> and
-<code class="xref py py-func docutils literal notranslate"><span class="pre">long()</span></code> unification are more obvious on the C level.  This
-document endeavors to document incompatibilities and how they can
-be worked around.</p>
+<p class="topic-title first">요약</p>
+<p>C-API를 변경하는 것이 파이썬 3의 목표 중 하나는 아니었지만, 파이썬 수준의 많은 변경으로 인해 파이썬 2의 API를 그대로 남겨두는 것은 불가능했습니다. 사실, <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a>와 <code class="xref py py-func docutils literal notranslate"><span class="pre">long()</span></code> 통합과 같은 일부 변경 사항은 C 수준에서 더 분명합니다. 이 문서는 비 호환성을 기록으로 남기고 그 문제를 해결하는 방법을 설명합니다.</p>
 </div>
 <div class="section" id="conditional-compilation">
-<h2>Conditional compilation<a class="headerlink" href="#conditional-compilation" title="제목 주소">¶</a></h2>
-<p>The easiest way to compile only some code for Python 3 is to check
-if <code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_MAJOR_VERSION</span></code> is greater than or equal to 3.</p>
+<h2>조건부 컴파일<a class="headerlink" href="#conditional-compilation" title="제목 주소">¶</a></h2>
+<p>어떤 코드를 파이썬 3에서만 컴파일하는 가장 쉬운 방법은 <code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_MAJOR_VERSION</span></code>이 3 이상인지 확인하는 것입니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#if PY_MAJOR_VERSION &gt;= 3</span>
 <span class="cp">#define IS_PY3K</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p>API functions that are not present can be aliased to their equivalents within
-conditional blocks.</p>
+<p>존재하지 않는 API 함수는 조건 블록 내에서 동등한 것으로 별칭을 만들 수 있습니다.</p>
 </div>
 <div class="section" id="changes-to-object-apis">
-<h2>Changes to Object APIs<a class="headerlink" href="#changes-to-object-apis" title="제목 주소">¶</a></h2>
-<p>Python 3 merged together some types with similar functions while cleanly
-separating others.</p>
+<h2>객체 API의 변경 사항<a class="headerlink" href="#changes-to-object-apis" title="제목 주소">¶</a></h2>
+<p>파이썬 3은 비슷한 기능을 가진 일부 형을 병합하면서 다른 것들은 깨끗하게 분리합니다.</p>
 <div class="section" id="str-unicode-unification">
-<h3>str/unicode Unification<a class="headerlink" href="#str-unicode-unification" title="제목 주소">¶</a></h3>
-<p>Python 3's <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a> type is equivalent to Python 2's <code class="xref py py-func docutils literal notranslate"><span class="pre">unicode()</span></code>; the C
-functions are called <code class="docutils literal notranslate"><span class="pre">PyUnicode_*</span></code> for both.  The old 8-bit string type has become
-<a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-func docutils literal notranslate"><span class="pre">bytes()</span></code></a>, with C functions called <code class="docutils literal notranslate"><span class="pre">PyBytes_*</span></code>.  Python 2.6 and later provide a compatibility header,
-<code class="file docutils literal notranslate"><span class="pre">bytesobject.h</span></code>, mapping <code class="docutils literal notranslate"><span class="pre">PyBytes</span></code> names to <code class="docutils literal notranslate"><span class="pre">PyString</span></code> ones.  For best
-compatibility with Python 3, <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code> should be used for textual data and
-<code class="xref c c-type docutils literal notranslate"><span class="pre">PyBytes</span></code> for binary data.  It's also important to remember that
-<code class="xref c c-type docutils literal notranslate"><span class="pre">PyBytes</span></code> and <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code> in Python 3 are not interchangeable like
-<code class="xref c c-type docutils literal notranslate"><span class="pre">PyString</span></code> and <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code> are in Python 2.  The following example
-shows best practices with regards to <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code>, <code class="xref c c-type docutils literal notranslate"><span class="pre">PyString</span></code>,
-and <code class="xref c c-type docutils literal notranslate"><span class="pre">PyBytes</span></code>.</p>
+<h3>str/unicode 통합<a class="headerlink" href="#str-unicode-unification" title="제목 주소">¶</a></h3>
+<p>파이썬 3의 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a> 형은 파이썬 2의 <code class="xref py py-func docutils literal notranslate"><span class="pre">unicode()</span></code>와 동등합니다; C 함수는 모두 <code class="docutils literal notranslate"><span class="pre">PyUnicode_*</span></code>입니다. 이전의 8비트 문자열형은 <a class="reference internal" href="../library/stdtypes.html#bytes" title="bytes"><code class="xref py py-func docutils literal notranslate"><span class="pre">bytes()</span></code></a>가 되었고, C 함수는 <code class="docutils literal notranslate"><span class="pre">PyBytes_*</span></code>가 되었습니다. 파이썬 2.6 이상은 호환성 헤더 <code class="file docutils literal notranslate"><span class="pre">bytesobject.h</span></code>를 제공하며, <code class="docutils literal notranslate"><span class="pre">PyBytes</span></code> 이름을 <code class="docutils literal notranslate"><span class="pre">PyString</span></code> 으로 매핑합니다. 파이썬 3과의 최상의 호환성을 위해, 텍스트 데이터에는 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code>를, 바이너리 데이터에는 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyBytes</span></code>를 사용해야 합니다. 파이썬 3의 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyBytes</span></code>와 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code>가 파이썬 2의 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyString</span></code>과 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code>처럼 교환할 수 없다는 것을 기억하는 것도 중요합니다. 다음 예는 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyUnicode</span></code>, <code class="xref c c-type docutils literal notranslate"><span class="pre">PyString</span></code> 및 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyBytes</span></code>에 대한 모범 사례를 보여줍니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;stdlib.h&quot;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&quot;Python.h&quot;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&quot;bytesobject.h&quot;</span><span class="cp"></span>
 
-<span class="cm">/* text example */</span>
+<span class="cm">/* 텍스트 예제 */</span>
 <span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">say_hello</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">PyObject</span> <span class="o">*</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">result</span><span class="p">;</span>
@@ -165,10 +148,10 @@ and <code class="xref c c-type docutils literal notranslate"><span class="pre">P
     <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cm">/* just a forward */</span>
+<span class="cm">/* 단지 전방 선언입니다 */</span>
 <span class="k">static</span> <span class="kt">char</span> <span class="o">*</span> <span class="nf">do_encode</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
 
-<span class="cm">/* bytes example */</span>
+<span class="cm">/* 바이트열 예제 */</span>
 <span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">encode_object</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
     <span class="kt">char</span> <span class="o">*</span><span class="n">encoded</span><span class="p">;</span>
@@ -188,20 +171,13 @@ and <code class="xref c c-type docutils literal notranslate"><span class="pre">P
 </div>
 </div>
 <div class="section" id="long-int-unification">
-<h3>long/int Unification<a class="headerlink" href="#long-int-unification" title="제목 주소">¶</a></h3>
-<p>Python 3 has only one integer type, <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a>.  But it actually
-corresponds to Python 2's <code class="xref py py-func docutils literal notranslate"><span class="pre">long()</span></code> type—the <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a> type
-used in Python 2 was removed.  In the C-API, <code class="docutils literal notranslate"><span class="pre">PyInt_*</span></code> functions
-are replaced by their <code class="docutils literal notranslate"><span class="pre">PyLong_*</span></code> equivalents.</p>
+<h3>long/int 통합<a class="headerlink" href="#long-int-unification" title="제목 주소">¶</a></h3>
+<p>파이썬 3은 오직 하나의 정수형 <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a>만을 가집니다. 그러나 이것은 실제로 파이썬 2의 <code class="xref py py-func docutils literal notranslate"><span class="pre">long()</span></code> 형에 해당합니다 - 파이썬 2에서 사용된 <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a> 형은 제거되었습니다. C-API에서, <code class="docutils literal notranslate"><span class="pre">PyInt_*</span></code> 함수는 동등한 <code class="docutils literal notranslate"><span class="pre">PyLong_*</span></code> 함수로 대체됩니다.</p>
 </div>
 </div>
 <div class="section" id="module-initialization-and-state">
-<h2>Module initialization and state<a class="headerlink" href="#module-initialization-and-state" title="제목 주소">¶</a></h2>
-<p>Python 3 has a revamped extension module initialization system.  (See
-<span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3121"><strong>PEP 3121</strong></a>.)  Instead of storing module state in globals, they should
-be stored in an interpreter specific structure.  Creating modules that
-act correctly in both Python 2 and Python 3 is tricky.  The following
-simple example demonstrates how.</p>
+<h2>모듈 초기화와 상태<a class="headerlink" href="#module-initialization-and-state" title="제목 주소">¶</a></h2>
+<p>파이썬 3에는 개선된 확장 모듈 초기화 시스템이 있습니다. (<span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3121"><strong>PEP 3121</strong></a>를 참조하십시오.) 모듈 상태를 전역에 저장하는 대신, 인터프리터별 구조체에 저장해야 합니다. 파이썬 2와 파이썬 3 모두에서 올바르게 동작하는 모듈을 만드는 것은 까다 롭습니다. 다음의 간단한 예제는 방법을 보여줍니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;Python.h&quot;</span><span class="cp"></span>
 
 <span class="k">struct</span> <span class="n">module_state</span> <span class="p">{</span>
@@ -288,50 +264,20 @@ simple example demonstrates how.</p>
 </div>
 </div>
 <div class="section" id="cobject-replaced-with-capsule">
-<h2>CObject replaced with Capsule<a class="headerlink" href="#cobject-replaced-with-capsule" title="제목 주소">¶</a></h2>
-<p>The <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> object was introduced in Python 3.1 and 2.7 to replace
-<code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code>.  CObjects were useful,
-but the <code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code> API was problematic: it didn't permit distinguishing
-between valid CObjects, which allowed mismatched CObjects to crash the
-interpreter, and some of its APIs relied on undefined behavior in C.
-(For further reading on the rationale behind Capsules, please see <a class="reference external" href="https://bugs.python.org/issue5630">bpo-5630</a>.)</p>
-<p>If you're currently using CObjects, and you want to migrate to 3.1 or newer,
-you'll need to switch to Capsules.
-<code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code> was deprecated in 3.1 and 2.7 and completely removed in
-Python 3.2.  If you only support 2.7, or 3.1 and above, you
-can simply switch to <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code>.  If you need to support Python 3.0,
-or versions of Python earlier than 2.7,
-you'll have to support both CObjects and Capsules.
-(Note that Python 3.0 is no longer supported, and it is not recommended
-for production use.)</p>
-<p>The following example header file <code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code> may
-solve the problem for you.  Simply write your code against the
-<code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> API and include this header file after
-<code class="file docutils literal notranslate"><span class="pre">Python.h</span></code>.  Your code will automatically use Capsules
-in versions of Python with Capsules, and switch to CObjects
-when Capsules are unavailable.</p>
-<p><code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code> simulates Capsules using CObjects.  However,
-<code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code> provides no place to store the capsule's &quot;name&quot;.  As a
-result the simulated <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> objects created by <code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>
-behave slightly differently from real Capsules.  Specifically:</p>
+<h2>캡슐로 대체된 CObject<a class="headerlink" href="#cobject-replaced-with-capsule" title="제목 주소">¶</a></h2>
+<p><code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> 객체는 <code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code>를 대체하기 위해 파이썬 3.1과 2.7에 도입되었습니다. CObject는 유용했지만, <code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code> API는 문제가 있었습니다: 유효한 CObject를 구분할 수 없어서 불일치한 CObject가 인터프리터에 충돌을 일으킬 수 있도록 했고, 일부 API는 C의 정의되지 않은 동작에 의존했습니다. (캡슐을 뒷받침하는 이유에 대한 자세한 내용은 <a class="reference external" href="https://bugs.python.org/issue5630">bpo-5630</a>를 참조하십시오.)</p>
+<p>현재 CObject를 사용하고 있고, 3.1 이상으로 이전하려고 한다면, 캡슐로 전환해야 합니다. <code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code>는 3.1과 2.7에서 폐지되었고, 파이썬 3.2에서 완전히 제거되었습니다. 2.7이나 3.1 이상만 지원한다면, 단순히 <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code>로 전환할 수 있습니다. 파이썬 3.0이나 2.7 이전의 파이썬 버전을 지원해야 한다면, CObject와 캡슐을 모두 지원해야 합니다. (파이썬 3.0은 더는 지원되지 않으며 프로덕션 용도로 권장되지 않음에 유의하십시오.)</p>
+<p>다음 예제 헤더 파일 <code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>는 문제를 해결할 수 있습니다. <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> API로 코드를 작성하고, <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> 다음에 이 헤더 파일을 포함하십시오. 여러분의 코드는 자동으로 캡슐이 있는 파이썬 버전에서 캡슐을 사용하고, 캡슐을 사용할 수 없을 때 CObject로 전환합니다.</p>
+<p><code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>는 CObject를 사용하여 캡슐을 시뮬레이션합니다. 그러나, <code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code>는 캡슐의 &quot;이름(name)&quot;을 저장할 장소를 제공하지 않습니다. 결과적으로 <code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>가 만든 시뮬레이트 된 <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> 객체는 실제 캡슐과 약간 다르게 동작합니다. 구체적으로:</p>
 <blockquote>
 <div><ul class="simple">
-<li>The name parameter passed in to <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_New" title="PyCapsule_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_New()</span></code></a> is ignored.</li>
-<li>The name parameter passed in to <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_IsValid" title="PyCapsule_IsValid"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_IsValid()</span></code></a> and
-<a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetPointer" title="PyCapsule_GetPointer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetPointer()</span></code></a> is ignored, and no error checking
-of the name is performed.</li>
-<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetName" title="PyCapsule_GetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetName()</span></code></a> always returns NULL.</li>
-<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a> always raises an exception and
-returns failure.  (Since there's no way to store a name
-in a CObject, noisy failure of <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>
-was deemed preferable to silent failure here.  If this is
-inconvenient, feel free to modify your local
-copy as you see fit.)</li>
+<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_New" title="PyCapsule_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_New()</span></code></a>에 전달된 name 매개 변수는 무시됩니다.</li>
+<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_IsValid" title="PyCapsule_IsValid"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_IsValid()</span></code></a> 와 <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetPointer" title="PyCapsule_GetPointer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetPointer()</span></code></a>에 전달된 name 매개 변수는 무시되며, name에 대한 에러 검사는 수행되지 않습니다.</li>
+<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetName" title="PyCapsule_GetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetName()</span></code></a>은 항상 NULL을 반환합니다.</li>
+<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>은 항상 예외를 발생시키고 실패를 반환합니다. (CObject에 이름을 저장할 수 있는 방법이 없으므로, 여기서 조용한 실패보다 요란한 <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>의 실패를 선호합니다. 이것이 불편하다면, 적절하다고 생각하는 대로 로컬 복사본을 자유롭게 수정하십시오.)</li>
 </ul>
 </div></blockquote>
-<p>You can find <code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code> in the Python source distribution
-as <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Doc/includes/capsulethunk.h">Doc/includes/capsulethunk.h</a>.  We also include it here for
-your convenience:</p>
+<p><code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>는 파이썬 소스 배포판의 <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Doc/includes/capsulethunk.h">Doc/includes/capsulethunk.h</a>에서 찾을 수 있습니다. 여러분의 편의를 위해 여기에도 포함합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef __CAPSULETHUNK_H</span>
 <span class="cp">#define __CAPSULETHUNK_H</span>
 
@@ -470,9 +416,8 @@ your convenience:</p>
 </div>
 </div>
 <div class="section" id="other-options">
-<h2>Other options<a class="headerlink" href="#other-options" title="제목 주소">¶</a></h2>
-<p>If you are writing a new extension module, you might consider <a class="reference external" href="http://cython.org/">Cython</a>.  It translates a Python-like language to C.  The
-extension modules it creates are compatible with Python 3 and Python 2.</p>
+<h2>다른 옵션<a class="headerlink" href="#other-options" title="제목 주소">¶</a></h2>
+<p>새 확장 모듈을 작성하고 있다면, <a class="reference external" href="http://cython.org/">Cython</a>을 고려하십시오. 파이썬과 비슷한 언어를 C로 변환합니다. 만들어진 확장 모듈은 파이썬 3과 파이썬 2 모두와 호환됩니다.</p>
 </div>
 </div>
 
@@ -484,16 +429,16 @@ extension modules it creates are compatible with Python 3 and Python 2.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">Table of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Porting Extension Modules to Python 3</a><ul>
-<li><a class="reference internal" href="#conditional-compilation">Conditional compilation</a></li>
-<li><a class="reference internal" href="#changes-to-object-apis">Changes to Object APIs</a><ul>
-<li><a class="reference internal" href="#str-unicode-unification">str/unicode Unification</a></li>
-<li><a class="reference internal" href="#long-int-unification">long/int Unification</a></li>
+<li><a class="reference internal" href="#">확장 모듈을 파이썬 3에 이식하기</a><ul>
+<li><a class="reference internal" href="#conditional-compilation">조건부 컴파일</a></li>
+<li><a class="reference internal" href="#changes-to-object-apis">객체 API의 변경 사항</a><ul>
+<li><a class="reference internal" href="#str-unicode-unification">str/unicode 통합</a></li>
+<li><a class="reference internal" href="#long-int-unification">long/int 통합</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-initialization-and-state">Module initialization and state</a></li>
-<li><a class="reference internal" href="#cobject-replaced-with-capsule">CObject replaced with Capsule</a></li>
-<li><a class="reference internal" href="#other-options">Other options</a></li>
+<li><a class="reference internal" href="#module-initialization-and-state">모듈 초기화와 상태</a></li>
+<li><a class="reference internal" href="#cobject-replaced-with-capsule">캡슐로 대체된 CObject</a></li>
+<li><a class="reference internal" href="#other-options">다른 옵션</a></li>
 </ul>
 </li>
 </ul>
