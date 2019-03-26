@@ -127,8 +127,9 @@ or on combining URL components into a URL string.</p>
 <dl class="function">
 <dt id="urllib.parse.urlparse">
 <code class="descclassname">urllib.parse.</code><code class="descname">urlparse</code><span class="sig-paren">(</span><em>urlstring</em>, <em>scheme=''</em>, <em>allow_fragments=True</em><span class="sig-paren">)</span><a class="headerlink" href="#urllib.parse.urlparse" title="정의 주소">¶</a></dt>
-<dd><p>Parse a URL into six components, returning a 6-tuple.  This corresponds to the
-general structure of a URL: <code class="docutils literal notranslate"><span class="pre">scheme://netloc/path;parameters?query#fragment</span></code>.
+<dd><p>Parse a URL into six components, returning a 6-item <a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">named tuple</span></a>.  This
+corresponds to the general structure of a URL:
+<code class="docutils literal notranslate"><span class="pre">scheme://netloc/path;parameters?query#fragment</span></code>.
 Each tuple item is a string, possibly empty. The components are not broken up in
 smaller parts (for example, the network location is a single string), and %
 escapes are not expanded. The delimiters as shown above are not part of the
@@ -171,8 +172,8 @@ always allowed, and is automatically converted to <code class="docutils literal 
 recognized.  Instead, they are parsed as part of the path, parameters
 or query component, and <code class="xref py py-attr docutils literal notranslate"><span class="pre">fragment</span></code> is set to the empty string in
 the return value.</p>
-<p>The return value is actually an instance of a subclass of <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>.  This
-class has the following additional read-only convenience attributes:</p>
+<p>The return value is a <a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">named tuple</span></a>, which means that its items can
+be accessed by index or as named attributes, which are:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="25%" />
@@ -247,6 +248,24 @@ an invalid port is specified in the URL.  See section
 <a class="reference internal" href="#urlparse-result-object"><span class="std std-ref">Structured Parse Results</span></a> for more information on the result object.</p>
 <p>Unmatched square brackets in the <code class="xref py py-attr docutils literal notranslate"><span class="pre">netloc</span></code> attribute will raise a
 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+<p>Characters in the <code class="xref py py-attr docutils literal notranslate"><span class="pre">netloc</span></code> attribute that decompose under NFKC
+normalization (as used by the IDNA encoding) into any of <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">?</span></code>,
+<code class="docutils literal notranslate"><span class="pre">#</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, or <code class="docutils literal notranslate"><span class="pre">:</span></code> will raise a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>. If the URL is
+decomposed before parsing, no error will be raised.</p>
+<p>As is the case with all named tuples, the subclass has a few additional methods
+and attributes that are particularly useful. One such method is <code class="xref py py-meth docutils literal notranslate"><span class="pre">_replace()</span></code>.
+The <code class="xref py py-meth docutils literal notranslate"><span class="pre">_replace()</span></code> method will return a new ParseResult object replacing specified
+fields with new values.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="go"> &gt;&gt;&gt; from urllib.parse import urlparse</span>
+<span class="go"> &gt;&gt;&gt; u = urlparse(&#39;//www.cwi.nl:80/%7Eguido/Python.html&#39;)</span>
+<span class="go"> &gt;&gt;&gt; u</span>
+<span class="go"> ParseResult(scheme=&#39;&#39;, netloc=&#39;www.cwi.nl:80&#39;, path=&#39;/%7Eguido/Python.html&#39;,</span>
+<span class="go">             params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+<span class="go"> &gt;&gt;&gt; u._replace(scheme=&#39;http&#39;)</span>
+<span class="go"> ParseResult(scheme=&#39;http&#39;, netloc=&#39;www.cwi.nl:80&#39;, path=&#39;/%7Eguido/Python.html&#39;,</span>
+<span class="go">             params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+</pre></div>
+</div>
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.2으로 변경: </span>Added IPv6 URL parsing capabilities.</p>
 </div>
@@ -258,6 +277,10 @@ schemes that support fragments existed.</p>
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.6으로 변경: </span>Out-of-range port numbers now raise <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>, instead of
 returning <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.7.3으로 변경: </span>Characters that affect netloc parsing under NFKC normalization will
+now raise <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
 </div>
 </dd></dl>
 
@@ -340,10 +363,13 @@ states that these are equivalent).</p>
 This should generally be used instead of <a class="reference internal" href="#urllib.parse.urlparse" title="urllib.parse.urlparse"><code class="xref py py-func docutils literal notranslate"><span class="pre">urlparse()</span></code></a> if the more recent URL
 syntax allowing parameters to be applied to each segment of the <em>path</em> portion
 of the URL (see <span class="target" id="index-3"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2396.html"><strong>RFC 2396</strong></a>) is wanted.  A separate function is needed to
-separate the path segments and parameters.  This function returns a 5-tuple:
-(addressing scheme, network location, path, query, fragment identifier).</p>
-<p>The return value is actually an instance of a subclass of <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>.  This
-class has the following additional read-only convenience attributes:</p>
+separate the path segments and parameters.  This function returns a 5-item
+<a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">named tuple</span></a>:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">addressing</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">network</span> <span class="n">location</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">fragment</span> <span class="n">identifier</span><span class="p">)</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>The return value is a <a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">named tuple</span></a>, its items can be accessed by index
+or as named attributes:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="25%" />
@@ -412,9 +438,17 @@ an invalid port is specified in the URL.  See section
 <a class="reference internal" href="#urlparse-result-object"><span class="std std-ref">Structured Parse Results</span></a> for more information on the result object.</p>
 <p>Unmatched square brackets in the <code class="xref py py-attr docutils literal notranslate"><span class="pre">netloc</span></code> attribute will raise a
 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+<p>Characters in the <code class="xref py py-attr docutils literal notranslate"><span class="pre">netloc</span></code> attribute that decompose under NFKC
+normalization (as used by the IDNA encoding) into any of <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">?</span></code>,
+<code class="docutils literal notranslate"><span class="pre">#</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, or <code class="docutils literal notranslate"><span class="pre">:</span></code> will raise a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>. If the URL is
+decomposed before parsing, no error will be raised.</p>
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.6으로 변경: </span>Out-of-range port numbers now raise <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>, instead of
 returning <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.7.3으로 변경: </span>Characters that affect netloc parsing under NFKC normalization will
+now raise <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
 </div>
 </dd></dl>
 
@@ -466,8 +500,8 @@ the <em>url</em>'s host name and/or scheme will be present in the result.  For e
 with no fragment identifier, and the fragment identifier as a separate
 string.  If there is no fragment identifier in <em>url</em>, return <em>url</em> unmodified
 and an empty string.</p>
-<p>The return value is actually an instance of a subclass of <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>.  This
-class has the following additional read-only convenience attributes:</p>
+<p>The return value is a <a class="reference internal" href="../glossary.html#term-named-tuple"><span class="xref std std-term">named tuple</span></a>, its items can be accessed by index
+or as named attributes:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="25%" />

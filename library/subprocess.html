@@ -141,7 +141,7 @@ this function are passed through to that interface. (<em>timeout</em>,  <em>inpu
 <p>If <em>capture_output</em> is true, stdout and stderr will be captured.
 When used, the internal <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> object is automatically created with
 <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code>. The <em>stdout</em> and <em>stderr</em> arguments may
-not be used as well.</p>
+not be supplied at the same time as <em>capture_output</em>.</p>
 <p>The <em>timeout</em> argument is passed to <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Popen.communicate()</span></code></a>. If the timeout
 expires, the child process will be killed and waited for.  The
 <a class="reference internal" href="#subprocess.TimeoutExpired" title="subprocess.TimeoutExpired"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TimeoutExpired</span></code></a> exception will be re-raised after the child process
@@ -658,9 +658,7 @@ process is still running.</p>
 <div class="section" id="exceptions">
 <h3>Exceptions<a class="headerlink" href="#exceptions" title="제목 주소">¶</a></h3>
 <p>Exceptions raised in the child process, before the new program has started to
-execute, will be re-raised in the parent.  Additionally, the exception object
-will have one extra attribute called <code class="xref py py-attr docutils literal notranslate"><span class="pre">child_traceback</span></code>, which is a string
-containing traceback information from the child's point of view.</p>
+execute, will be re-raised in the parent.</p>
 <p>The most common exception raised is <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>.  This occurs, for example,
 when trying to execute a non-existent file.  Applications should prepare for
 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a> exceptions.</p>
@@ -1091,7 +1089,7 @@ to hardware or that perform brief tasks that should have limited interruptions.<
 <dt id="subprocess.CREATE_NO_WINDOW">
 <code class="descclassname">subprocess.</code><code class="descname">CREATE_NO_WINDOW</code><a class="headerlink" href="#subprocess.CREATE_NO_WINDOW" title="정의 주소">¶</a></dt>
 <dd><p>A <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> <code class="docutils literal notranslate"><span class="pre">creationflags</span></code> parameter to specify that a new process
-will not create a window</p>
+will not create a window.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.7에 추가.</span></p>
 </div>
@@ -1143,13 +1141,12 @@ calls these functions.</p>
 <code class="descclassname">subprocess.</code><code class="descname">call</code><span class="sig-paren">(</span><em>args</em>, <em>*</em>, <em>stdin=None</em>, <em>stdout=None</em>, <em>stderr=None</em>, <em>shell=False</em>, <em>cwd=None</em>, <em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#subprocess.call" title="정의 주소">¶</a></dt>
 <dd><p>Run the command described by <em>args</em>.  Wait for command to complete, then
 return the <a class="reference internal" href="#subprocess.Popen.returncode" title="subprocess.Popen.returncode"><code class="xref py py-attr docutils literal notranslate"><span class="pre">returncode</span></code></a> attribute.</p>
-<p>This is equivalent to:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">run</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">returncode</span>
-</pre></div>
-</div>
-<p>(except that the <em>input</em> and <em>check</em> parameters are not supported)</p>
-<p>The arguments shown above are merely the most
-common ones. The full function signature is largely the
+<p>Code needing to capture stdout or stderr should use <a class="reference internal" href="#subprocess.run" title="subprocess.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a> instead:</p>
+<blockquote>
+<div>run(...).returncode</div></blockquote>
+<p>To suppress stdout or stderr, supply a value of <a class="reference internal" href="#subprocess.DEVNULL" title="subprocess.DEVNULL"><code class="xref py py-data docutils literal notranslate"><span class="pre">DEVNULL</span></code></a>.</p>
+<p>The arguments shown above are merely some common ones.
+The full function signature is the
 same as that of the <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> constructor - this function passes all
 supplied arguments other than <em>timeout</em> directly through to that interface.</p>
 <div class="admonition note">
@@ -1171,13 +1168,12 @@ not being read from.</p>
 code was zero then return, otherwise raise <a class="reference internal" href="#subprocess.CalledProcessError" title="subprocess.CalledProcessError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">CalledProcessError</span></code></a>. The
 <a class="reference internal" href="#subprocess.CalledProcessError" title="subprocess.CalledProcessError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">CalledProcessError</span></code></a> object will have the return code in the
 <a class="reference internal" href="#subprocess.CalledProcessError.returncode" title="subprocess.CalledProcessError.returncode"><code class="xref py py-attr docutils literal notranslate"><span class="pre">returncode</span></code></a> attribute.</p>
-<p>This is equivalent to:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">run</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>(except that the <em>input</em> parameter is not supported)</p>
-<p>The arguments shown above are merely the most
-common ones. The full function signature is largely the
+<p>Code needing to capture stdout or stderr should use <a class="reference internal" href="#subprocess.run" title="subprocess.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a> instead:</p>
+<blockquote>
+<div>run(..., check=True)</div></blockquote>
+<p>To suppress stdout or stderr, supply a value of <a class="reference internal" href="#subprocess.DEVNULL" title="subprocess.DEVNULL"><code class="xref py py-data docutils literal notranslate"><span class="pre">DEVNULL</span></code></a>.</p>
+<p>The arguments shown above are merely some common ones.
+The full function signature is the
 same as that of the <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> constructor - this function passes all
 supplied arguments other than <em>timeout</em> directly through to that interface.</p>
 <div class="admonition note">
@@ -1204,7 +1200,7 @@ not being read from.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">run</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
 </pre></div>
 </div>
-<p>The arguments shown above are merely the most common ones.
+<p>The arguments shown above are merely some common ones.
 The full function signature is largely the same as that of <a class="reference internal" href="#subprocess.run" title="subprocess.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a> -
 most arguments are passed directly through to that interface.
 However, explicitly passing <code class="docutils literal notranslate"><span class="pre">input=None</span></code> to inherit the parent's
@@ -1212,8 +1208,9 @@ standard input file handle is not supported.</p>
 <p>By default, this function will return the data as encoded bytes. The actual
 encoding of the output data may depend on the command being invoked, so the
 decoding to text will often need to be handled at the application level.</p>
-<p>This behaviour may be overridden by setting <em>universal_newlines</em> to
-<code class="docutils literal notranslate"><span class="pre">True</span></code> as described above in <a class="reference internal" href="#frequently-used-arguments"><span class="std std-ref">Frequently Used Arguments</span></a>.</p>
+<p>This behaviour may be overridden by setting <em>text</em>, <em>encoding</em>, <em>errors</em>,
+or <em>universal_newlines</em> to <code class="docutils literal notranslate"><span class="pre">True</span></code> as described in
+<a class="reference internal" href="#frequently-used-arguments"><span class="std std-ref">Frequently Used Arguments</span></a> and <a class="reference internal" href="#subprocess.run" title="subprocess.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a>.</p>
 <p>To also capture standard error in the result, use
 <code class="docutils literal notranslate"><span class="pre">stderr=subprocess.STDOUT</span></code>:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span>
@@ -1407,7 +1404,7 @@ through /bin/sh.  If it is a list, the command is directly executed.</p>
 <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">subprocess.Popen</span></code></a>, except that:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> raises an exception if the execution fails.</li>
-<li>the <em>capturestderr</em> argument is replaced with the <em>stderr</em> argument.</li>
+<li>The <em>capturestderr</em> argument is replaced with the <em>stderr</em> argument.</li>
 <li><code class="docutils literal notranslate"><span class="pre">stdin=PIPE</span></code> and <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code> must be specified.</li>
 <li>popen2 closes all file descriptors by default, but you have to specify
 <code class="docutils literal notranslate"><span class="pre">close_fds=True</span></code> with <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> to guarantee this behavior on

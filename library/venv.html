@@ -143,7 +143,7 @@
 </div>
 <p>명령에 <code class="docutils literal notranslate"><span class="pre">-h</span></code>를 사용하면 사용 가능한 옵션이 표시됩니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>usage: venv [-h] [--system-site-packages] [--symlinks | --copies] [--clear]
-            [--upgrade] [--without-pip]
+            [--upgrade] [--without-pip] [--prompt PROMPT]
             ENV_DIR [ENV_DIR ...]
 
 하나 이상의 대상 디렉터리에 가상 파이썬 환경을 만듭니다.
@@ -164,6 +164,7 @@ optional arguments:
                         버전의 파이썬을 사용하도록 업그레이드합니다.
   --without-pip         가상 환경에 pip을 설치하거나 업그레이드하는 것을 건너뜁니다 (pip은
                         기본적으로 부트스트랩 됩니다)
+  --prompt PROMPT       이 환경에 대한 대체 프롬프트 접두어를 제공합니다.
 
 일단 환경이 만들어지면, 활성화할 수 있습니다. 예를 들어, bin 디렉터리의 activate 스크립트를
 source 합니다.
@@ -174,6 +175,12 @@ source 합니다.
 </div>
 <div class="versionchanged">
 <p><span class="versionmodified">버전 3.4으로 변경: </span>이전 버전에서는, <code class="docutils literal notranslate"><span class="pre">--clear</span></code> 나 <code class="docutils literal notranslate"><span class="pre">--upgrade</span></code> 옵션이 제공되지 않았을 때, 대상 디렉터리가 이미 존재하면 에러가 발생했습니다.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">주석</p>
+<p class="last">While symlinks are supported on Windows, they are not recommended. Of
+particular note is that double-clicking <code class="docutils literal notranslate"><span class="pre">python.exe</span></code> in File Explorer
+will resolve the symlink eagerly and ignore the virtual environment.</p>
 </div>
 <p>만들어진 <code class="docutils literal notranslate"><span class="pre">pyvenv.cfg</span></code> 파일에는 <code class="docutils literal notranslate"><span class="pre">include-system-site-packages</span></code> 키도 포함되어 있으며, <code class="docutils literal notranslate"><span class="pre">venv</span></code>가 <code class="docutils literal notranslate"><span class="pre">--system-site-packages</span></code> 옵션으로 실행되면 <code class="docutils literal notranslate"><span class="pre">true</span></code>로 설정되고, 그렇지 않으면 <code class="docutils literal notranslate"><span class="pre">false</span></code>로 설정됩니다.</p>
 <p><code class="docutils literal notranslate"><span class="pre">--without-pip</span></code> 옵션을 주지 않는 한, 가상 환경으로 <code class="docutils literal notranslate"><span class="pre">pip</span></code>을 부트스트랩 하기 위해 <a class="reference internal" href="ensurepip.html#module-ensurepip" title="ensurepip: Bootstrapping the &quot;pip&quot; installer into an existing Python installation or virtual environment."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ensurepip</span></code></a>가 호출됩니다.</p>
@@ -239,7 +246,8 @@ source 합니다.
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">system_site_packages</span></code> -- 시스템 파이썬 site-packages가 환경에서 사용 가능해야 함을 나타내는 논릿값입니다 (기본값은 <code class="docutils literal notranslate"><span class="pre">False</span></code>).</li>
 <li><code class="docutils literal notranslate"><span class="pre">clear</span></code> -- 참이면, 환경을 만들기 전에, 대상 디렉터리에 존재하는 내용을 지우도록 하는 논릿값.</li>
-<li><code class="docutils literal notranslate"><span class="pre">symlinks</span></code> -- 파이썬 바이너리(및 필요한 DLL이나 다른 바이너리, 예를 들어 <code class="docutils literal notranslate"><span class="pre">pythonw.exe</span></code>)를 복사하는 대신 심볼릭 링크하려고 시도할지를 나타내는 논릿값입니다.</li>
+<li><code class="docutils literal notranslate"><span class="pre">symlinks</span></code> -- a Boolean value indicating whether to attempt to symlink the
+Python binary rather than copying.</li>
 <li><code class="docutils literal notranslate"><span class="pre">upgrade</span></code> -- 참이면 실행 중인 파이썬으로 기존 환경을 업그레이드하도록 하는 논릿값 - 파이썬이 그 자리에서 업그레이드되었을 때 사용됩니다 (기본값은 <code class="docutils literal notranslate"><span class="pre">False</span></code>).</li>
 <li><code class="docutils literal notranslate"><span class="pre">with_pip</span></code> -- 참이면 가상 환경에 pip이 설치되도록 하는 논릿값입니다. <code class="docutils literal notranslate"><span class="pre">--default-pip</span></code> 옵션과 함께 <a class="reference internal" href="ensurepip.html#module-ensurepip" title="ensurepip: Bootstrapping the &quot;pip&quot; installer into an existing Python installation or virtual environment."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ensurepip</span></code></a>를 사용합니다.</li>
 <li><code class="docutils literal notranslate"><span class="pre">prompt</span></code> -- 가상 환경이 활성화된 후 사용할 문자열입니다 (기본값은 환경의 디렉터리 이름이 사용됨을 뜻하는 <code class="docutils literal notranslate"><span class="pre">None</span></code>입니다).</li>
@@ -288,7 +296,14 @@ source 합니다.
 <dl class="method">
 <dt id="venv.EnvBuilder.setup_python">
 <code class="descname">setup_python</code><span class="sig-paren">(</span><em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#venv.EnvBuilder.setup_python" title="정의 주소">¶</a></dt>
-<dd><p>POSIX 시스템에서 환경에 파이썬 실행 파일의 복사본을 만듭니다. 특정 실행 파일 <code class="docutils literal notranslate"><span class="pre">python3.x</span></code>가 사용되면, 해당 이름의 파일이 이미 존재하지 않는 한 <code class="docutils literal notranslate"><span class="pre">python</span></code> 과 <code class="docutils literal notranslate"><span class="pre">python3</span></code> 심볼릭 링크가 해당 실행 파일을 가리키도록 만들어집니다.</p>
+<dd><p>Creates a copy or symlink to the Python executable in the environment.
+On POSIX systems, if a specific executable <code class="docutils literal notranslate"><span class="pre">python3.x</span></code> was used,
+symlinks to <code class="docutils literal notranslate"><span class="pre">python</span></code> and <code class="docutils literal notranslate"><span class="pre">python3</span></code> will be created pointing to that
+executable, unless files with those names already exist.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last">pip 는 이 메서드가 호출된 직후에 설치됩니다.</p>
+</div>
 <div class="admonition-flowdas admonition">
 <p class="first admonition-title">flowdas</p>
 <p class="last">pip 는 이 메서드가 호출된 직후에 설치됩니다.</p>
@@ -298,7 +313,12 @@ source 합니다.
 <dl class="method">
 <dt id="venv.EnvBuilder.setup_scripts">
 <code class="descname">setup_scripts</code><span class="sig-paren">(</span><em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#venv.EnvBuilder.setup_scripts" title="정의 주소">¶</a></dt>
-<dd><p>플랫폼에 적합한 활성화 스크립트를 가상 환경에 설치합니다. 윈도우에서는, <code class="docutils literal notranslate"><span class="pre">python[w].exe</span></code> 스크립트도 설치합니다.</p>
+<dd><p>Installs activation scripts appropriate to the platform into the virtual
+environment.</p>
+<div class="admonition-flowdas admonition">
+<p class="first admonition-title">flowdas</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">upgrade</span></code> 가 지정되면 호출되지 않습니다.</p>
+</div>
 <div class="admonition-flowdas admonition">
 <p class="first admonition-title">flowdas</p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">upgrade</span></code> 가 지정되면 호출되지 않습니다.</p>
@@ -316,7 +336,14 @@ source 합니다.
 </dd></dl>
 
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.7.2으로 변경: </span>윈도우는 이제 실제 바이너리를 복사하는 대신 <code class="docutils literal notranslate"><span class="pre">python[w].exe</span></code>를 위한 리디렉터 스크립트를 사용하므로, 소스 트리의 빌드에서 실행하지 않는 한 <a class="reference internal" href="#venv.EnvBuilder.setup_python" title="venv.EnvBuilder.setup_python"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup_python()</span></code></a>아무 작업도 수행하지 않습니다.</p>
+<p><span class="versionmodified">버전 3.7.2으로 변경: </span>Windows now uses redirector scripts for <code class="docutils literal notranslate"><span class="pre">python[w].exe</span></code> instead of
+copying the actual binaries. In 3.7.2 only <a class="reference internal" href="#venv.EnvBuilder.setup_python" title="venv.EnvBuilder.setup_python"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup_python()</span></code></a> does
+nothing unless running from a build in the source tree.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified">버전 3.7.3으로 변경: </span>Windows copies the redirector scripts as part of <a class="reference internal" href="#venv.EnvBuilder.setup_python" title="venv.EnvBuilder.setup_python"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup_python()</span></code></a>
+instead of <a class="reference internal" href="#venv.EnvBuilder.setup_scripts" title="venv.EnvBuilder.setup_scripts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup_scripts()</span></code></a>. This was not the case in 3.7.2.
+When using symlinks, the original executables will be linked.</p>
 </div>
 <p>또한, <a class="reference internal" href="#venv.EnvBuilder" title="venv.EnvBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnvBuilder</span></code></a>는 가상 환경에 사용자 정의 스크립트를 설치하는 데 도움이 되는 유틸리티 메서드를 제공하는데, 서브 클래스의 <a class="reference internal" href="#venv.EnvBuilder.setup_scripts" title="venv.EnvBuilder.setup_scripts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup_scripts()</span></code></a> 나 <a class="reference internal" href="#venv.EnvBuilder.post_setup" title="venv.EnvBuilder.post_setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">post_setup()</span></code></a>에서 호출할 수 있습니다.</p>
 <dl class="method">

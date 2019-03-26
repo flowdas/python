@@ -268,6 +268,13 @@
 <p class="first admonition-title">flowdas</p>
 <p class="last">라이브러리 제작자는  <a class="reference internal" href="#multiprocessing.set_start_method" title="multiprocessing.set_start_method"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_start_method()</span></code></a> 를 사용하지 말라는 뜻입니다.</p>
 </div>
+<div class="admonition warning">
+<p class="first admonition-title">경고</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">'spawn'</span></code> and <code class="docutils literal notranslate"><span class="pre">'forkserver'</span></code> start methods cannot currently
+be used with &quot;frozen&quot; executables (i.e., binaries produced by
+packages like <strong>PyInstaller</strong> and <strong>cx_Freeze</strong>) on Unix.
+The <code class="docutils literal notranslate"><span class="pre">'fork'</span></code> start method does work.</p>
+</div>
 </div>
 <div class="section" id="exchanging-objects-between-processes">
 <h3>프로세스 간 객체 교환<a class="headerlink" href="#exchanging-objects-between-processes" title="제목 주소">¶</a></h3>
@@ -1409,7 +1416,7 @@ HELLO WORLD
 <code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#multiprocessing.managers.BaseManager.connect" title="정의 주소">¶</a></dt>
 <dd><p>지역 관리자 객체를 원격 관리자 프로세스에 연결합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">multiprocessing.managers</span> <span class="k">import</span> <span class="n">BaseManager</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">BaseManager</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">5000</span><span class="p">),</span> <span class="n">authkey</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;abc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">BaseManager</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">50000</span><span class="p">),</span> <span class="n">authkey</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;abc&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1824,6 +1831,9 @@ HELLO WORLD
 <code class="descname">map</code><span class="sig-paren">(</span><em>func</em>, <em>iterable</em><span class="optional">[</span>, <em>chunksize</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#multiprocessing.pool.Pool.map" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="functions.html#map" title="map"><code class="xref py py-func docutils literal notranslate"><span class="pre">map()</span></code></a> 내장 함수의 병렬 버전입니다 (하지만 하나의 <em>iterable</em> 인자만 지원합니다). 결과가 준비될 때까지 블록 됩니다.</p>
 <p>이 메서드는 iterable을 여러 묶음으로 잘라서 별도의 작업으로 프로세스 풀에 제출합니다. 이러한 묶음의 (대략적인) 크기는 <em>chunksize</em> 를 양의 정수로 설정하여 지정할 수 있습니다.</p>
+<p>Note that it may cause high memory usage for very long iterables. Consider
+using <a class="reference internal" href="#multiprocessing.pool.Pool.imap" title="multiprocessing.pool.Pool.imap"><code class="xref py py-meth docutils literal notranslate"><span class="pre">imap()</span></code></a> or <a class="reference internal" href="#multiprocessing.pool.Pool.imap_unordered" title="multiprocessing.pool.Pool.imap_unordered"><code class="xref py py-meth docutils literal notranslate"><span class="pre">imap_unordered()</span></code></a> with explicit <em>chunksize</em>
+option for better efficiency.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1838,7 +1848,7 @@ HELLO WORLD
 <dl class="method">
 <dt id="multiprocessing.pool.Pool.imap">
 <code class="descname">imap</code><span class="sig-paren">(</span><em>func</em>, <em>iterable</em><span class="optional">[</span>, <em>chunksize</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#multiprocessing.pool.Pool.imap" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference internal" href="functions.html#map" title="map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a> 의 느긋한 버전.</p>
+<dd><p>A lazier version of <a class="reference internal" href="#multiprocessing.pool.Pool.map" title="multiprocessing.pool.Pool.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a>.</p>
 <p><em>chunksize</em> 인자는 <a class="reference internal" href="#multiprocessing.pool.Pool.map" title="multiprocessing.pool.Pool.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a> 메서드에서 사용된 인자와 같습니다. 매우 긴 iterable의 경우 <em>chunksize</em> 에 큰 값을 사용하면 기본값 <code class="docutils literal notranslate"><span class="pre">1</span></code> 을 사용하는 것보다 작업을 <strong>많이</strong> 빠르게 완료 할 수 있습니다.</p>
 <p>또한 <em>chunksize</em> 가 <code class="docutils literal notranslate"><span class="pre">1</span></code> 이면 <a class="reference internal" href="#multiprocessing.pool.Pool.imap" title="multiprocessing.pool.Pool.imap"><code class="xref py py-meth docutils literal notranslate"><span class="pre">imap()</span></code></a> 메서드에 의해 반환된 이터레이터의 <code class="xref py py-meth docutils literal notranslate"><span class="pre">next()</span></code> 메서드는 선택적 <em>timeout</em> 매개 변수를 가집니다: <code class="docutils literal notranslate"><span class="pre">next(timeout)</span></code> 은 결과가 <em>timeout</em> 초 내에 반환될 수 없는 경우 <a class="reference internal" href="#multiprocessing.TimeoutError" title="multiprocessing.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">multiprocessing.TimeoutError</span></code></a> 를 발생시킵니다.</p>
 </dd></dl>

@@ -252,6 +252,12 @@ to specify both <em>weights</em> and <em>cum_weights</em>.</p>
 <p>The <em>weights</em> or <em>cum_weights</em> can use any numeric type that interoperates
 with the <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> values returned by <a class="reference internal" href="#module-random" title="random: Generate pseudo-random numbers with various common distributions."><code class="xref py py-func docutils literal notranslate"><span class="pre">random()</span></code></a> (that includes
 integers, floats, and fractions but excludes decimals).</p>
+<p>For a given seed, the <a class="reference internal" href="#random.choices" title="random.choices"><code class="xref py py-func docutils literal notranslate"><span class="pre">choices()</span></code></a> function with equal weighting
+typically produces a different sequence than repeated calls to
+<a class="reference internal" href="#random.choice" title="random.choice"><code class="xref py py-func docutils literal notranslate"><span class="pre">choice()</span></code></a>.  The algorithm used by <a class="reference internal" href="#random.choices" title="random.choices"><code class="xref py py-func docutils literal notranslate"><span class="pre">choices()</span></code></a> uses floating
+point arithmetic for internal consistency and speed.  The algorithm used
+by <a class="reference internal" href="#random.choice" title="random.choice"><code class="xref py py-func docutils literal notranslate"><span class="pre">choice()</span></code></a> defaults to integer arithmetic with repeated selections
+to avoid small biases from round-off error.</p>
 <div class="versionadded">
 <p><span class="versionmodified">버전 3.6에 추가.</span></p>
 </div>
@@ -471,12 +477,16 @@ sequence when the compatible seeder is given the same seed.</li>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Estimate the probability of getting 5 or more heads from 7 spins</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># of a biased coin that settles on heads 60% of the time.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">trial</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">choices</span><span class="p">(</span><span class="s1">&#39;HT&#39;</span><span class="p">,</span> <span class="n">cum_weights</span><span class="o">=</span><span class="p">(</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">trial</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">choices</span><span class="p">(</span><span class="s1">&#39;HT&#39;</span><span class="p">,</span> <span class="n">cum_weights</span><span class="o">=</span><span class="p">(</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">5</span>
+<span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">(</span><span class="n">trial</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10000</span>
 <span class="go">0.4169</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Probability of the median of 5 samples being in middle two quartiles</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">trial</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="mi">2500</span> <span class="o">&lt;=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">choices</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">))[</span><span class="mi">2</span><span class="p">]</span>  <span class="o">&lt;</span> <span class="mi">7500</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">trial</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="mi">2500</span> <span class="o">&lt;=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">choices</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">))[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">7500</span>
+<span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">(</span><span class="n">trial</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10000</span>
 <span class="go">0.7958</span>
 </pre></div>
