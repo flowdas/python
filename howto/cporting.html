@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>확장 모듈을 파이썬 3에 이식하기 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,8 +12,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     
@@ -85,7 +83,7 @@
     <div class="inline-search" style="display: none" role="search">
         <form class="inline-search" action="../search.html" method="get">
           <input placeholder="빠른 검색" type="text" name="q" />
-          <input type="submit" value="바로 가기" />
+          <input type="submit" value="이동" />
           <input type="hidden" name="check_keywords" value="yes" />
           <input type="hidden" name="area" value="default" />
         </form>
@@ -104,14 +102,11 @@
             
   <div class="section" id="porting-extension-modules-to-python-3">
 <span id="cporting-howto"></span><h1>확장 모듈을 파이썬 3에 이식하기<a class="headerlink" href="#porting-extension-modules-to-python-3" title="제목 주소">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">저자:</th><td class="field-body">Benjamin Peterson</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">저자</dt>
+<dd class="field-odd"><p>Benjamin Peterson</p>
+</dd>
+</dl>
 <div class="topic">
 <p class="topic-title first">요약</p>
 <p>C-API를 변경하는 것이 파이썬 3의 목표 중 하나는 아니었지만, 파이썬 수준의 많은 변경으로 인해 파이썬 2의 API를 그대로 남겨두는 것은 불가능했습니다. 사실, <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a>와 <code class="xref py py-func docutils literal notranslate"><span class="pre">long()</span></code> 통합과 같은 일부 변경 사항은 C 수준에서 더 분명합니다. 이 문서는 비 호환성을 기록으로 남기고 그 문제를 해결하는 방법을 설명합니다.</p>
@@ -271,10 +266,10 @@
 <p><code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>는 CObject를 사용하여 캡슐을 시뮬레이션합니다. 그러나, <code class="xref c c-type docutils literal notranslate"><span class="pre">CObject</span></code>는 캡슐의 &quot;이름(name)&quot;을 저장할 장소를 제공하지 않습니다. 결과적으로 <code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>가 만든 시뮬레이트 된 <code class="xref c c-type docutils literal notranslate"><span class="pre">Capsule</span></code> 객체는 실제 캡슐과 약간 다르게 동작합니다. 구체적으로:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_New" title="PyCapsule_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_New()</span></code></a>에 전달된 name 매개 변수는 무시됩니다.</li>
-<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_IsValid" title="PyCapsule_IsValid"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_IsValid()</span></code></a> 와 <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetPointer" title="PyCapsule_GetPointer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetPointer()</span></code></a>에 전달된 name 매개 변수는 무시되며, name에 대한 에러 검사는 수행되지 않습니다.</li>
-<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetName" title="PyCapsule_GetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetName()</span></code></a>은 항상 NULL을 반환합니다.</li>
-<li><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>은 항상 예외를 발생시키고 실패를 반환합니다. (CObject에 이름을 저장할 수 있는 방법이 없으므로, 여기서 조용한 실패보다 요란한 <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>의 실패를 선호합니다. 이것이 불편하다면, 적절하다고 생각하는 대로 로컬 복사본을 자유롭게 수정하십시오.)</li>
+<li><p><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_New" title="PyCapsule_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_New()</span></code></a>에 전달된 name 매개 변수는 무시됩니다.</p></li>
+<li><p><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_IsValid" title="PyCapsule_IsValid"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_IsValid()</span></code></a> 와 <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetPointer" title="PyCapsule_GetPointer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetPointer()</span></code></a>에 전달된 name 매개 변수는 무시되며, name에 대한 에러 검사는 수행되지 않습니다.</p></li>
+<li><p><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_GetName" title="PyCapsule_GetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_GetName()</span></code></a>은 항상 NULL을 반환합니다.</p></li>
+<li><p><a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>은 항상 예외를 발생시키고 실패를 반환합니다. (CObject에 이름을 저장할 수 있는 방법이 없으므로, 여기서 조용한 실패보다 요란한 <a class="reference internal" href="../c-api/capsule.html#c.PyCapsule_SetName" title="PyCapsule_SetName"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_SetName()</span></code></a>의 실패를 선호합니다. 이것이 불편하다면, 적절하다고 생각하는 대로 로컬 복사본을 자유롭게 수정하십시오.)</p></li>
 </ul>
 </div></blockquote>
 <p><code class="file docutils literal notranslate"><span class="pre">capsulethunk.h</span></code>는 파이썬 소스 배포판의 <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Doc/includes/capsulethunk.h">Doc/includes/capsulethunk.h</a>에서 찾을 수 있습니다. 여러분의 편의를 위해 여기에도 포함합니다:</p>
@@ -427,7 +422,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="../contents.html">Table of Contents</a></h3>
+  <h3><a href="../contents.html">목차</a></h3>
   <ul>
 <li><a class="reference internal" href="#">확장 모듈을 파이썬 3에 이식하기</a><ul>
 <li><a class="reference internal" href="#conditional-compilation">조건부 컴파일</a></li>
@@ -482,7 +477,7 @@
     <div class="inline-search" style="display: none" role="search">
         <form class="inline-search" action="../search.html" method="get">
           <input placeholder="빠른 검색" type="text" name="q" />
-          <input type="submit" value="바로 가기" />
+          <input type="submit" value="이동" />
           <input type="hidden" name="check_keywords" value="yes" />
           <input type="hidden" name="area" value="default" />
         </form>
@@ -498,7 +493,7 @@
     <br />
     한국어 번역 저작권 &copy; 2017-2019, Flowdas &amp; 역자. All rights reserved.
     <br />
-    <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.8.1 를 사용해서 만들었습니다.
+    <a href="http://sphinx.pocoo.org/">Sphinx</a> 2.0.1 를 사용해서 만들었습니다.
     </div>
 
   </body>
