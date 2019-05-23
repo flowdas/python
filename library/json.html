@@ -257,6 +257,16 @@
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>JSON의 키/값 쌍에 있는 키는 항상 <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> 형입니다. 딕셔너리를 JSON으로 변환하면, 딕셔너리의 모든 키가 문자열로 강제 변환됩니다. 이것의 결과로, 딕셔너리를 JSON으로 변환 한 다음 다시 딕셔너리로 변환하면, 딕셔너리가 원래의 것과 같지 않을 수 있습니다. 즉, x에 비 문자열 키가있으면 <code class="docutils literal notranslate"><span class="pre">loads(dumps(x))</span> <span class="pre">!=</span> <span class="pre">x</span></code>입니다.</p>
+<div class="admonition-flowdas admonition">
+<p class="admonition-title">flowdas</p>
+<p><a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>로 변환할 수 있는 모든 키가 허용되는 것은 아닙니다. <a class="reference internal" href="#json.dump" title="json.dump"><code class="xref py py-func docutils literal notranslate"><span class="pre">dump()</span></code></a>가 허용하는 딕셔너리의 키는
+<a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="functions.html#int" title="int"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference internal" href="functions.html#bool" title="bool"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a> 뿐입니다.
+<a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>, <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference internal" href="decimal.html#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal notranslate"><span class="pre">decimal.Decimal</span></code></a> 등은 <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>를 일으킵니다.
+이 과정은 값을 처리하는 과정과는 달리, <em>default</em> 인자를 사용하지 않습니다. 따라서 이 동작을 바꾸려면
+<a class="reference internal" href="#json.JSONEncoder.iterencode" title="json.JSONEncoder.iterencode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">JSONEncoder.iterencode()</span></code></a>를 재정의해야 합니다.</p>
+<p><a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>가 키로 사용되면 <em>allow_nan</em> 인자의 영향을 받습니다.</p>
+<p>이 변환에 의존하는 것은 별로 현명한 선택이 아닙니다. 키를 직접 문자열로 사전에 변환하는 것이 좋습니다.</p>
+</div>
 </div>
 </dd></dl>
 
@@ -264,68 +274,56 @@
 <dt id="json.load">
 <code class="descclassname">json.</code><code class="descname">load</code><span class="sig-paren">(</span><em>fp</em>, <em>*</em>, <em>cls=None</em>, <em>object_hook=None</em>, <em>parse_float=None</em>, <em>parse_int=None</em>, <em>parse_constant=None</em>, <em>object_pairs_hook=None</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#json.load" title="정의 주소">¶</a></dt>
 <dd><p>이 <a class="reference internal" href="#json-to-py-table"><span class="std std-ref">변환 표</span></a>를 사용하여 <em>fp</em>(JSON 문서를 포함하는 <code class="docutils literal notranslate"><span class="pre">.read()</span></code>를 지원하는 <a class="reference internal" href="../glossary.html#term-text-file"><span class="xref std std-term">텍스트 파일</span></a>이나 <a class="reference internal" href="../glossary.html#term-binary-file"><span class="xref std std-term">바이너리 파일</span></a>)를 파이썬 객체로 역 직렬화합니다.</p>
-<p><em>object_hook</em>은 디코딩 된 모든 오브젝트 리터럴의 결과(<a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>)로 호출되는 선택적 함수입니다. <em>object_hook</em>의 반환 값이 <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> 대신에 사용됩니다. 이 기능은 사용자 정의 디코더를 구현하는 데 사용할 수 있습니다 (예를 들어, <a class="reference external" href="http://www.jsonrpc.org">JSON-RPC</a> 클래스 힌팅(hinting).</p>
-<p><em>object_pairs_hook</em> is an optional function that will be called with the
-result of any object literal decoded with an ordered list of pairs.  The
-return value of <em>object_pairs_hook</em> will be used instead of the
-<a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>.  This feature can be used to implement custom decoders.
-If <em>object_hook</em> is also defined, the <em>object_pairs_hook</em> takes priority.</p>
-<div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.1에서 변경: </span>Added support for <em>object_pairs_hook</em>.</p>
+<p><em>object_hook</em>은 모든 오브젝트 리터럴의 디코딩된 결과(<a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>)로 호출되는 선택적 함수입니다. <em>object_hook</em>의 반환 값이 <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> 대신에 사용됩니다. 이 기능은 사용자 정의 디코더를 구현하는 데 사용할 수 있습니다 (예를 들어, <a class="reference external" href="http://www.jsonrpc.org">JSON-RPC</a> 클래스 힌팅(class hinting)).</p>
+<div class="admonition-flowdas admonition">
+<p class="admonition-title">flowdas</p>
+<p>JSON-RPC 1.0에 포함된 클래스 힌팅은 확장형을 지원하기 위한 규격으로 JSON-RPC 2.0에서는 제거되었습니다.
+JSON 오브젝트를 다음과 같은 형식으로 전달합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;__jsonclass__&quot;</span><span class="p">:[</span><span class="s2">&quot;constructor&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">param1</span><span class="p">,</span><span class="o">...</span><span class="p">]],</span> <span class="s2">&quot;prop1&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">}</span>
+</pre></div>
 </div>
-<p><em>parse_float</em>, if specified, will be called with the string of every JSON
-float to be decoded.  By default, this is equivalent to <code class="docutils literal notranslate"><span class="pre">float(num_str)</span></code>.
-This can be used to use another datatype or parser for JSON floats
-(e.g. <a class="reference internal" href="decimal.html#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal notranslate"><span class="pre">decimal.Decimal</span></code></a>).</p>
-<p><em>parse_int</em>, if specified, will be called with the string of every JSON int
-to be decoded.  By default, this is equivalent to <code class="docutils literal notranslate"><span class="pre">int(num_str)</span></code>.  This can
-be used to use another datatype or parser for JSON integers
-(e.g. <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>).</p>
-<p><em>parse_constant</em>, if specified, will be called with one of the following
-strings: <code class="docutils literal notranslate"><span class="pre">'-Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'NaN'</span></code>.
-This can be used to raise an exception if invalid JSON numbers
-are encountered.</p>
-<div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.1에서 변경: </span><em>parse_constant</em> doesn't get called on 'null', 'true', 'false' anymore.</p>
+<p><em>object_hook</em>은 이런 형태의 딕셔너리를 <em>constructor</em>가 가리키는 클래스의 인스턴스로
+변환할 수 있습니다.</p>
 </div>
-<p>To use a custom <a class="reference internal" href="#json.JSONDecoder" title="json.JSONDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></a> subclass, specify it with the <code class="docutils literal notranslate"><span class="pre">cls</span></code>
-kwarg; otherwise <a class="reference internal" href="#json.JSONDecoder" title="json.JSONDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></a> is used.  Additional keyword arguments
-will be passed to the constructor of the class.</p>
-<p>If the data being deserialized is not a valid JSON document, a
-<a class="reference internal" href="#json.JSONDecodeError" title="json.JSONDecodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">JSONDecodeError</span></code></a> will be raised.</p>
+<p><em>object_pairs_hook</em>은 모든 오브젝트 리터럴의 쌍의 순서있는 목록으로 디코딩된 결과로 호출되는 선택적 함수입니다. <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> 대신 <em>object_pairs_hook</em>의 반환값이 사용됩니다. 이 기능은 사용자 정의 디코더를 구현하는 데 사용할 수 있습니다. <em>object_hook</em>도 정의되어 있으면, <em>object_pairs_hook</em>가 우선 순위를 갖습니다.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.1에서 변경: </span><em>object_pairs_hook</em>에 대한 지원이 추가되었습니다.</p>
+</div>
+<p><em>parse_float</em>가 지정되면, 디코딩 될 모든 JSON float의 문자열로 호출됩니다. 기본적으로, 이것은 <code class="docutils literal notranslate"><span class="pre">float(num_str)</span></code>와 동등합니다. JSON float에 대해 다른 데이터형이나 구문 분석기를 사용하고자할 때 사용될 수 있습니다 (예를 들어, <a class="reference internal" href="decimal.html#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal notranslate"><span class="pre">decimal.Decimal</span></code></a>).</p>
+<p><em>parse_int</em>가 지정되면, 디코딩 될 모든 JSON int의 문자열로 호출됩니다. 기본적으로 이것은 <code class="docutils literal notranslate"><span class="pre">int(num_str)</span></code>와 동등합니다. JSON 정수에 대해 다른 데이터형이나 구문 분석기를 사용하고자할 때 사용될 수 있습니다 (예를 들어 <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>).</p>
+<p><em>parse_constant</em>가 지정되면, 다음과 같은 문자열 중 하나로 호출됩니다: <code class="docutils literal notranslate"><span class="pre">'-Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'NaN'</span></code>. 잘못된 JSON 숫자를 만날 때 예외를 발생시키는 데 사용할 수 있습니다.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.1에서 변경: </span><em>parse_constant</em>는 더는 'null', 'true', 'false'에 대해 호출되지 않습니다.</p>
+</div>
+<p>사용자 정의 <a class="reference internal" href="#json.JSONDecoder" title="json.JSONDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></a> 서브 클래스를 사용하려면, <code class="docutils literal notranslate"><span class="pre">cls</span></code> 키워드 인자로 지정하십시오; 그렇지 않으면 <a class="reference internal" href="#json.JSONDecoder" title="json.JSONDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></a>가 사용됩니다. 추가 키워드 인자는 클래스 생성자에 전달됩니다.</p>
+<p>역 직렬화되는 데이터가 유효한 JSON 문서가 아니면, <a class="reference internal" href="#json.JSONDecodeError" title="json.JSONDecodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">JSONDecodeError</span></code></a>가 발생합니다.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.6에서 변경: </span>모든 선택적 매개 변수는 이제 <a class="reference internal" href="../glossary.html#keyword-only-parameter"><span class="std std-ref">키워드-전용</span></a>입니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.6에서 변경: </span><em>fp</em> can now be a <a class="reference internal" href="../glossary.html#term-binary-file"><span class="xref std std-term">binary file</span></a>. The input encoding should be
-UTF-8, UTF-16 or UTF-32.</p>
+<p><span class="versionmodified changed">버전 3.6에서 변경: </span><em>fp</em>는 이제 <a class="reference internal" href="../glossary.html#term-binary-file"><span class="xref std std-term">바이너리 파일</span></a>이 될 수 있습니다. 입력 인코딩은 UTF-8, UTF-16 또는 UTF-32 여야합니다.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="json.loads">
 <code class="descclassname">json.</code><code class="descname">loads</code><span class="sig-paren">(</span><em>s</em>, <em>*</em>, <em>encoding=None</em>, <em>cls=None</em>, <em>object_hook=None</em>, <em>parse_float=None</em>, <em>parse_int=None</em>, <em>parse_constant=None</em>, <em>object_pairs_hook=None</em>, <em>**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#json.loads" title="정의 주소">¶</a></dt>
-<dd><p>Deserialize <em>s</em> (a <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> or <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>
-instance containing a JSON document) to a Python object using this
-<a class="reference internal" href="#json-to-py-table"><span class="std std-ref">conversion table</span></a>.</p>
-<p>The other arguments have the same meaning as in <a class="reference internal" href="#json.load" title="json.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code></a>, except
-<em>encoding</em> which is ignored and deprecated.</p>
-<p>If the data being deserialized is not a valid JSON document, a
-<a class="reference internal" href="#json.JSONDecodeError" title="json.JSONDecodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">JSONDecodeError</span></code></a> will be raised.</p>
+<dd><p>이 <a class="reference internal" href="#json-to-py-table"><span class="std std-ref">변환 표</span></a>를 사용하여 <em>s</em>(JSON 문서를 포함하는 <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 또는 <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a> 인스턴스)를 파이썬 객체로 역 직렬화합니다.</p>
+<p>무시되고 폐지된 <em>encoding</em>를 제외하고는, 다른 인자는 <a class="reference internal" href="#json.load" title="json.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code></a>와 같은 의미를가집니다.</p>
+<p>역 직렬화되는 데이터가 유효한 JSON 문서가 아니면, <a class="reference internal" href="#json.JSONDecodeError" title="json.JSONDecodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">JSONDecodeError</span></code></a>가 발생합니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.6에서 변경: </span><em>s</em> can now be of type <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> or <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>. The
-input encoding should be UTF-8, UTF-16 or UTF-32.</p>
+<p><span class="versionmodified changed">버전 3.6에서 변경: </span><em>s</em>는 이제 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>나 <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a> 형일 수 있습니다. 입력 인코딩은 UTF-8, UTF-16 또는 UTF-32 여야합니다.</p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="encoders-and-decoders">
-<h2>Encoders and Decoders<a class="headerlink" href="#encoders-and-decoders" title="제목 주소">¶</a></h2>
+<h2>인코더와 디코더<a class="headerlink" href="#encoders-and-decoders" title="제목 주소">¶</a></h2>
 <dl class="class">
 <dt id="json.JSONDecoder">
 <em class="property">class </em><code class="descclassname">json.</code><code class="descname">JSONDecoder</code><span class="sig-paren">(</span><em>*</em>, <em>object_hook=None</em>, <em>parse_float=None</em>, <em>parse_int=None</em>, <em>parse_constant=None</em>, <em>strict=True</em>, <em>object_pairs_hook=None</em><span class="sig-paren">)</span><a class="headerlink" href="#json.JSONDecoder" title="정의 주소">¶</a></dt>
-<dd><p>Simple JSON decoder.</p>
-<p>Performs the following translations in decoding by default:</p>
+<dd><p>간단한 JSON 디코더.</p>
+<p>기본적으로 디코딩할 때 다음과 같은 변환을 수행합니다:</p>
 <table class="docutils align-center" id="json-to-py-table">
 <colgroup>
 <col style="width: 44%" />
@@ -375,26 +373,16 @@ JSON object decoded with an ordered list of pairs.  The return value of
 feature can be used to implement custom decoders.  If <em>object_hook</em> is also
 defined, the <em>object_pairs_hook</em> takes priority.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.1에서 변경: </span>Added support for <em>object_pairs_hook</em>.</p>
+<p><span class="versionmodified changed">버전 3.1에서 변경: </span><em>object_pairs_hook</em>에 대한 지원이 추가되었습니다.</p>
 </div>
-<p><em>parse_float</em>, if specified, will be called with the string of every JSON
-float to be decoded.  By default, this is equivalent to <code class="docutils literal notranslate"><span class="pre">float(num_str)</span></code>.
-This can be used to use another datatype or parser for JSON floats
-(e.g. <a class="reference internal" href="decimal.html#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal notranslate"><span class="pre">decimal.Decimal</span></code></a>).</p>
-<p><em>parse_int</em>, if specified, will be called with the string of every JSON int
-to be decoded.  By default, this is equivalent to <code class="docutils literal notranslate"><span class="pre">int(num_str)</span></code>.  This can
-be used to use another datatype or parser for JSON integers
-(e.g. <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>).</p>
-<p><em>parse_constant</em>, if specified, will be called with one of the following
-strings: <code class="docutils literal notranslate"><span class="pre">'-Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'NaN'</span></code>.
-This can be used to raise an exception if invalid JSON numbers
-are encountered.</p>
+<p><em>parse_float</em>가 지정되면, 디코딩 될 모든 JSON float의 문자열로 호출됩니다. 기본적으로, 이것은 <code class="docutils literal notranslate"><span class="pre">float(num_str)</span></code>와 동등합니다. JSON float에 대해 다른 데이터형이나 구문 분석기를 사용하고자할 때 사용될 수 있습니다 (예를 들어, <a class="reference internal" href="decimal.html#decimal.Decimal" title="decimal.Decimal"><code class="xref py py-class docutils literal notranslate"><span class="pre">decimal.Decimal</span></code></a>).</p>
+<p><em>parse_int</em>가 지정되면, 디코딩 될 모든 JSON int의 문자열로 호출됩니다. 기본적으로 이것은 <code class="docutils literal notranslate"><span class="pre">int(num_str)</span></code>와 동등합니다. JSON 정수에 대해 다른 데이터형이나 구문 분석기를 사용하고자할 때 사용될 수 있습니다 (예를 들어 <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>).</p>
+<p><em>parse_constant</em>가 지정되면, 다음과 같은 문자열 중 하나로 호출됩니다: <code class="docutils literal notranslate"><span class="pre">'-Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Infinity'</span></code>, <code class="docutils literal notranslate"><span class="pre">'NaN'</span></code>. 잘못된 JSON 숫자를 만날 때 예외를 발생시키는 데 사용할 수 있습니다.</p>
 <p>If <em>strict</em> is false (<code class="docutils literal notranslate"><span class="pre">True</span></code> is the default), then control characters
 will be allowed inside strings.  Control characters in this context are
 those with character codes in the 0--31 range, including <code class="docutils literal notranslate"><span class="pre">'\t'</span></code> (tab),
 <code class="docutils literal notranslate"><span class="pre">'\n'</span></code>, <code class="docutils literal notranslate"><span class="pre">'\r'</span></code> and <code class="docutils literal notranslate"><span class="pre">'\0'</span></code>.</p>
-<p>If the data being deserialized is not a valid JSON document, a
-<a class="reference internal" href="#json.JSONDecodeError" title="json.JSONDecodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">JSONDecodeError</span></code></a> will be raised.</p>
+<p>역 직렬화되는 데이터가 유효한 JSON 문서가 아니면, <a class="reference internal" href="#json.JSONDecodeError" title="json.JSONDecodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">JSONDecodeError</span></code></a>가 발생합니다.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.6에서 변경: </span>All parameters are now <a class="reference internal" href="../glossary.html#keyword-only-parameter"><span class="std std-ref">keyword-only</span></a>.</p>
 </div>
@@ -771,7 +759,7 @@ to <a class="reference internal" href="sys.html#sys.stdout" title="sys.stdout"><
   <ul>
 <li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">json</span></code> --- JSON 인코더와 디코더</a><ul>
 <li><a class="reference internal" href="#basic-usage">기본 사용법</a></li>
-<li><a class="reference internal" href="#encoders-and-decoders">Encoders and Decoders</a></li>
+<li><a class="reference internal" href="#encoders-and-decoders">인코더와 디코더</a></li>
 <li><a class="reference internal" href="#exceptions">Exceptions</a></li>
 <li><a class="reference internal" href="#standard-compliance-and-interoperability">Standard Compliance and Interoperability</a><ul>
 <li><a class="reference internal" href="#character-encodings">Character Encodings</a></li>
