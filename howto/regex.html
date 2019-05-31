@@ -114,124 +114,51 @@
 <div class="section" id="introduction">
 <h2>소개<a class="headerlink" href="#introduction" title="제목 주소">¶</a></h2>
 <p>정규식(RE, regexes 또는 regex 패턴이라고 불립니다)은 본질적으로 파이썬에 내장된 매우 작고 고도로 특수화된 프로그래밍 언어이며, <a class="reference internal" href="../library/re.html#module-re" title="re: Regular expression operations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">re</span></code></a> 모듈을 통해 사용할 수 있습니다. 이 작은 언어를 사용하여, 일치시키려는 가능한 문자열 집합에 대한 규칙을 지정합니다; 이 집합은 영어 문장, 전자 메일 주소, TeX 명령 또는 원하는 어떤 것이건 포함 할 수 있습니다. 그런 다음 &quot;이 문자열이 패턴과 일치합니까?&quot;, 또는 &quot;이 문자열의 어느 부분에 패턴과 일치하는 것이 있습니까?&quot;와 같은 질문을 할 수 있습니다. 또한 RE를 사용하여 문자열을 수정하거나 여러 방법으로 분할할 수 있습니다.</p>
-<p>Regular expression patterns are compiled into a series of bytecodes which are
-then executed by a matching engine written in C.  For advanced use, it may be
-necessary to pay careful attention to how the engine will execute a given RE,
-and write the RE in a certain way in order to produce bytecode that runs faster.
-Optimization isn't covered in this document, because it requires that you have a
-good understanding of the matching engine's internals.</p>
-<p>The regular expression language is relatively small and restricted, so not all
-possible string processing tasks can be done using regular expressions.  There
-are also tasks that <em>can</em> be done with regular expressions, but the expressions
-turn out to be very complicated.  In these cases, you may be better off writing
-Python code to do the processing; while Python code will be slower than an
-elaborate regular expression, it will also probably be more understandable.</p>
+<p>정규식 패턴은 일련의 바이트 코드로 컴파일 된 다음 C로 작성된 일치 엔진에 의해 실행됩니다. 고급 사용을 위해서는, 엔진이 지정된 RE를 실행하는 방법에 주의를 기울이고, 더 빠르게 실행되는 바이트 코드를 생성하기 위해 특정한 방법으로 RE를 작성하는 것이 필요할 수 있습니다. 최적화는 일치 엔진의 내부를 잘 이해하고 있어야하기 때문에 이 설명서에서 다루지 않습니다.</p>
+<p>정규식 언어는 비교적 작고 제한적이므로, 정규식을 사용하여 가능한 모든 문자열 처리 작업을 수행 할 수있는 것은 아닙니다. 정규식으로 수행할 <em>수</em>는 있지만 표현이 아주 복잡해지는 작업도 있습니다. 이럴 때, 처리하기 위한 파이썬 코드를 작성하는 것이 더 나을 수 있습니다; 파이썬 코드는 정교한 정규식보다 느리겠지만, 아마도 더 이해하기 쉬울겁니다.</p>
 </div>
 <div class="section" id="simple-patterns">
-<h2>Simple Patterns<a class="headerlink" href="#simple-patterns" title="제목 주소">¶</a></h2>
-<p>We'll start by learning about the simplest possible regular expressions.  Since
-regular expressions are used to operate on strings, we'll begin with the most
-common task: matching characters.</p>
-<p>For a detailed explanation of the computer science underlying regular
-expressions (deterministic and non-deterministic finite automata), you can refer
-to almost any textbook on writing compilers.</p>
+<h2>단순한 패턴<a class="headerlink" href="#simple-patterns" title="제목 주소">¶</a></h2>
+<p>우리는 가능한 가장 단순한 정규식에 대해 배우는 것으로 시작합니다. 정규식은 문자열에 대한 연산에 사용되므로, 가장 일반적인 작업으로 시작하겠습니다: 문자 일치.</p>
+<p>정규식의 기초가되는 컴퓨터 과학(결정적인 혹은 비 결정적인 유한 오토마타)에 대한 자세한 설명은, 컴파일러 작성에 관한 거의 모든 교과서를 참조 할 수 있습니다.</p>
 <div class="section" id="matching-characters">
-<h3>Matching Characters<a class="headerlink" href="#matching-characters" title="제목 주소">¶</a></h3>
-<p>Most letters and characters will simply match themselves.  For example, the
-regular expression <code class="docutils literal notranslate"><span class="pre">test</span></code> will match the string <code class="docutils literal notranslate"><span class="pre">test</span></code> exactly.  (You can
-enable a case-insensitive mode that would let this RE match <code class="docutils literal notranslate"><span class="pre">Test</span></code> or <code class="docutils literal notranslate"><span class="pre">TEST</span></code>
-as well; more about this later.)</p>
-<p>There are exceptions to this rule; some characters are special
-<em class="dfn">metacharacters</em>, and don't match themselves.  Instead, they signal that
-some out-of-the-ordinary thing should be matched, or they affect other portions
-of the RE by repeating them or changing their meaning.  Much of this document is
-devoted to discussing various metacharacters and what they do.</p>
-<p>Here's a complete list of the metacharacters; their meanings will be discussed
-in the rest of this HOWTO.</p>
+<h3>문자 일치<a class="headerlink" href="#matching-characters" title="제목 주소">¶</a></h3>
+<p>대부분 글자와 문자는 단순히 자신과 일치합니다. 예를 들어, 정규식 <code class="docutils literal notranslate"><span class="pre">test</span></code>는 문자열 <code class="docutils literal notranslate"><span class="pre">test</span></code>와 정확히 일치합니다. (이 RE가 <code class="docutils literal notranslate"><span class="pre">Test</span></code>나 <code class="docutils literal notranslate"><span class="pre">TEST</span></code>와 일치하도록 대/소문자를 구분하지 않는 모드를 활성화할 수 있습니다; 나중에 자세히 설명합니다.)</p>
+<p>이 규칙에는 예외가 있습니다; 일부 문자는 특수한 <em class="dfn">메타 문자 (metacharacters)</em>이며, 자신과 일치하지 않습니다. 그 대신, 그들은 일반적이지 않은 것을 일치시켜야 한다는 신호를 보냅니다. 또는 반복하거나 의미를 바꾸어 RE의 다른 부분에 영향을줍니다. 이 설명서의 많은 부분은 다양한 메타 문자와 그 기능에 대해 논의하는데 할애하고 있습니다.</p>
+<p>다음은 메타 문자의 전체 목록입니다; 이것들의 의미는 이 HOWTO의 나머지 부분에서 논의 될 것입니다.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>. ^ $ * + ? { } [ ] \ | ( )
 </pre></div>
 </div>
-<p>The first metacharacters we'll look at are <code class="docutils literal notranslate"><span class="pre">[</span></code> and <code class="docutils literal notranslate"><span class="pre">]</span></code>. They're used for
-specifying a character class, which is a set of characters that you wish to
-match.  Characters can be listed individually, or a range of characters can be
-indicated by giving two characters and separating them by a <code class="docutils literal notranslate"><span class="pre">'-'</span></code>.  For
-example, <code class="docutils literal notranslate"><span class="pre">[abc]</span></code> will match any of the characters <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span></code>, or <code class="docutils literal notranslate"><span class="pre">c</span></code>; this
-is the same as <code class="docutils literal notranslate"><span class="pre">[a-c]</span></code>, which uses a range to express the same set of
-characters.  If you wanted to match only lowercase letters, your RE would be
-<code class="docutils literal notranslate"><span class="pre">[a-z]</span></code>.</p>
-<p>Metacharacters are not active inside classes.  For example, <code class="docutils literal notranslate"><span class="pre">[akm$]</span></code> will
-match any of the characters <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, <code class="docutils literal notranslate"><span class="pre">'k'</span></code>, <code class="docutils literal notranslate"><span class="pre">'m'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'$'</span></code>; <code class="docutils literal notranslate"><span class="pre">'$'</span></code> is
-usually a metacharacter, but inside a character class it's stripped of its
-special nature.</p>
-<p>You can match the characters not listed within the class by <em class="dfn">complementing</em>
-the set.  This is indicated by including a <code class="docutils literal notranslate"><span class="pre">'^'</span></code> as the first character of the
-class. For example, <code class="docutils literal notranslate"><span class="pre">[^5]</span></code> will match any character except <code class="docutils literal notranslate"><span class="pre">'5'</span></code>.  If the
-caret appears elsewhere in a character class, it does not have special meaning.
-For example: <code class="docutils literal notranslate"><span class="pre">[5^]</span></code> will match either a <code class="docutils literal notranslate"><span class="pre">'5'</span></code> or a <code class="docutils literal notranslate"><span class="pre">'^'</span></code>.</p>
-<p>Perhaps the most important metacharacter is the backslash, <code class="docutils literal notranslate"><span class="pre">\</span></code>.   As in Python
-string literals, the backslash can be followed by various characters to signal
-various special sequences.  It's also used to escape all the metacharacters so
-you can still match them in patterns; for example, if you need to match a <code class="docutils literal notranslate"><span class="pre">[</span></code>
-or  <code class="docutils literal notranslate"><span class="pre">\</span></code>, you can precede them with a backslash to remove their special
-meaning: <code class="docutils literal notranslate"><span class="pre">\[</span></code> or <code class="docutils literal notranslate"><span class="pre">\\</span></code>.</p>
-<p>Some of the special sequences beginning with <code class="docutils literal notranslate"><span class="pre">'\'</span></code> represent
-predefined sets of characters that are often useful, such as the set
-of digits, the set of letters, or the set of anything that isn't
-whitespace.</p>
-<p>Let's take an example: <code class="docutils literal notranslate"><span class="pre">\w</span></code> matches any alphanumeric character.  If
-the regex pattern is expressed in bytes, this is equivalent to the
-class <code class="docutils literal notranslate"><span class="pre">[a-zA-Z0-9_]</span></code>.  If the regex pattern is a string, <code class="docutils literal notranslate"><span class="pre">\w</span></code> will
-match all the characters marked as letters in the Unicode database
-provided by the <a class="reference internal" href="../library/unicodedata.html#module-unicodedata" title="unicodedata: Access the Unicode Database."><code class="xref py py-mod docutils literal notranslate"><span class="pre">unicodedata</span></code></a> module.  You can use the more
-restricted definition of <code class="docutils literal notranslate"><span class="pre">\w</span></code> in a string pattern by supplying the
-<a class="reference internal" href="../library/re.html#re.ASCII" title="re.ASCII"><code class="xref py py-const docutils literal notranslate"><span class="pre">re.ASCII</span></code></a> flag when compiling the regular expression.</p>
-<p>The following list of special sequences isn't complete. For a complete
-list of sequences and expanded class definitions for Unicode string
-patterns, see the last part of <a class="reference internal" href="../library/re.html#re-syntax"><span class="std std-ref">Regular Expression Syntax</span></a> in the Standard Library reference.  In general, the
-Unicode versions match any character that's in the appropriate
-category in the Unicode database.</p>
+<p>우리가 살펴볼 첫 번째 메타 문자는 <code class="docutils literal notranslate"><span class="pre">[</span></code>와 <code class="docutils literal notranslate"><span class="pre">]</span></code>입니다. 일치시키려는 문자 집합인 문자 클래스를 지정하는 데 사용됩니다. 문자는 개별적으로 나열되거나, 두 문자를 주고 <code class="docutils literal notranslate"><span class="pre">'-'</span></code>로 구분하여 문자의 범위를 나타낼 수 있습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">[abc]</span></code>는 <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">c</span></code> 문자와 일치합니다; 이것은 <code class="docutils literal notranslate"><span class="pre">[a-c]</span></code>와 같은데, 같은 문자 집합을 표현하기위해 범위를 사용합니다. 소문자들 만 일치 시키려면, RE가 <code class="docutils literal notranslate"><span class="pre">[a-z]</span></code>가 됩니다.</p>
+<p>메타 문자는 클래스 내부에서는 활성화되지 않습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">[akm$]</span></code>는 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, <code class="docutils literal notranslate"><span class="pre">'k'</span></code>, <code class="docutils literal notranslate"><span class="pre">'m'</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">'$'</span></code> 문자와 일치합니다; <code class="docutils literal notranslate"><span class="pre">'$'</span></code>는 대개 메타 문자이지만, 문자 클래스 안에서는 특수한 특성이 없어집니다.</p>
+<p><em class="dfn">여집합 (complement set)</em>을 사용해서 클래스에 나열되지 않은 문자를 일치시킬 수 있습니다. 이것은 클래스의 첫 번째 문자로 <code class="docutils literal notranslate"><span class="pre">'^'</span></code>를 포함하는 것으로 나타냅니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">[^5]</span></code>는 <code class="docutils literal notranslate"><span class="pre">'5'</span></code>를 제외한 모든 문자와 일치합니다. 캐럿이 문자 클래스의 다른 곳에 나타나면, 특별한 의미가 없습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">[5^]</span></code>는 <code class="docutils literal notranslate"><span class="pre">'5'</span></code>나 <code class="docutils literal notranslate"><span class="pre">'^'</span></code>와 일치합니다.</p>
+<p>아마도 가장 중요한 메타 문자는 백 슬래시(<code class="docutils literal notranslate"><span class="pre">\</span></code>)입니다. 파이썬 문자열 리터럴에서와 같이, 백 슬래시 다음에 다양한 특수 시퀀스를 알리는 다양한 문자가 따라올 수 있습니다. 또한, 모든 메타 문자를 이스케이프 처리하여 패턴으로 일치시킬 수 있도록 합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">[</span></code>나 <code class="docutils literal notranslate"><span class="pre">\</span></code>와 일치시켜야 할 때, 특별한 의미를 제거하기 위해 앞에 백 슬래시를 붙일 수 있습니다: <code class="docutils literal notranslate"><span class="pre">\[</span></code>나 <code class="docutils literal notranslate"><span class="pre">\\</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">'\'</span></code>로 시작하는 특수 시퀀스 중 일부는 숫자(digit) 집합, 글자(letter) 집합 또는 공백이 아닌 모든 것의 집합과 같이 종종 유용한 미리 정의된 문자 집합을 나타냅니다.</p>
+<p>예를 들어 보겠습니다: <code class="docutils literal notranslate"><span class="pre">\w</span></code>는 모든 영숫자(alphanumeric character)와 일치합니다. 정규식 패턴을 바이트열로 표현하면, 이것은 <code class="docutils literal notranslate"><span class="pre">[a-zA-Z0-9_]</span></code> 클래스와 동등합니다. 정규식 패턴이 문자열이면, <code class="docutils literal notranslate"><span class="pre">\w</span></code>는 <a class="reference internal" href="../library/unicodedata.html#module-unicodedata" title="unicodedata: Access the Unicode Database."><code class="xref py py-mod docutils literal notranslate"><span class="pre">unicodedata</span></code></a> 모듈이 제공하는 유니코드 데이터베이스에서 글자(letter)로 표시된 모든 문자를 일치시킵니다. 정규식을 컴파일할 때 <a class="reference internal" href="../library/re.html#re.ASCII" title="re.ASCII"><code class="xref py py-const docutils literal notranslate"><span class="pre">re.ASCII</span></code></a> 플래그를 제공하여 문자열 패턴에서 <code class="docutils literal notranslate"><span class="pre">\w</span></code>의 더 제한된 정의를 사용할 수 있습니다.</p>
+<p>다음 특수 시퀀스 목록은 완전하지 않습니다. 유니코드 문자열 패턴에 대한 시퀀스와 확장 클래스 정의의 전체 목록은, 표준 라이브러리 레퍼런스에서 <a class="reference internal" href="../library/re.html#re-syntax"><span class="std std-ref">정규식 문법</span></a>의 마지막 부분을 참조하십시오. 일반적으로, 유니코드 버전은 유니코드 데이터베이스의 적절한 범주에있는 모든 문자와 일치합니다.</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">\d</span></code></dt><dd><p>Matches any decimal digit; this is equivalent to the class <code class="docutils literal notranslate"><span class="pre">[0-9]</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">\d</span></code></dt><dd><p>모든 십진숫자와 일치합니다; 이것은 클래스 <code class="docutils literal notranslate"><span class="pre">[0-9]</span></code>와 동등합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">\D</span></code></dt><dd><p>Matches any non-digit character; this is equivalent to the class <code class="docutils literal notranslate"><span class="pre">[^0-9]</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">\D</span></code></dt><dd><p>모든 비 숫자 문자와 일치합니다; 이것은 클래스 <code class="docutils literal notranslate"><span class="pre">[^0-9]</span></code>와 동등합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">\s</span></code></dt><dd><p>Matches any whitespace character; this is equivalent to the class <code class="docutils literal notranslate"><span class="pre">[</span>
-<span class="pre">\t\n\r\f\v]</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">\s</span></code></dt><dd><p>모든 공백 문자와 일치합니다; 이것은 클래스 <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">\t\n\r\f\v]</span></code>와 동등합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">\S</span></code></dt><dd><p>Matches any non-whitespace character; this is equivalent to the class <code class="docutils literal notranslate"><span class="pre">[^</span>
-<span class="pre">\t\n\r\f\v]</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">\S</span></code></dt><dd><p>모든 비 공백 문자와 일치합니다; 이것은 클래스 <code class="docutils literal notranslate"><span class="pre">[^</span> <span class="pre">\t\n\r\f\v]</span></code>와 동등합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">\w</span></code></dt><dd><p>Matches any alphanumeric character; this is equivalent to the class
-<code class="docutils literal notranslate"><span class="pre">[a-zA-Z0-9_]</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">\w</span></code></dt><dd><p>모든 영숫자(alphanumeric character)와 일치합니다; 이것은 클래스 <code class="docutils literal notranslate"><span class="pre">[a-zA-Z0-9_]</span></code>와 동등합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">\W</span></code></dt><dd><p>Matches any non-alphanumeric character; this is equivalent to the class
-<code class="docutils literal notranslate"><span class="pre">[^a-zA-Z0-9_]</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">\W</span></code></dt><dd><p>모든 비 영숫자와 일치합니다; 이것은 클래스 <code class="docutils literal notranslate"><span class="pre">[^a-zA-Z0-9_]</span></code>와 동등합니다.</p>
 </dd>
 </dl>
-<p>These sequences can be included inside a character class.  For example,
-<code class="docutils literal notranslate"><span class="pre">[\s,.]</span></code> is a character class that will match any whitespace character, or
-<code class="docutils literal notranslate"><span class="pre">','</span></code> or <code class="docutils literal notranslate"><span class="pre">'.'</span></code>.</p>
-<p>The final metacharacter in this section is <code class="docutils literal notranslate"><span class="pre">.</span></code>.  It matches anything except a
-newline character, and there's an alternate mode (<a class="reference internal" href="../library/re.html#re.DOTALL" title="re.DOTALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">re.DOTALL</span></code></a>) where it will
-match even a newline.  <code class="docutils literal notranslate"><span class="pre">.</span></code> is often used where you want to match &quot;any
-character&quot;.</p>
+<p>이 시퀀스들은 문자 클래스 내에 포함될 수 있습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">[\s,.]</span></code>는 모든 공백 문자, <code class="docutils literal notranslate"><span class="pre">','</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">'.'</span></code>와 일치하는 문자 클래스입니다.</p>
+<p>이 절의 마지막 메타 문자는 <code class="docutils literal notranslate"><span class="pre">.</span></code>입니다. 개행 문자를 제외한 모든 문자와 일치하며, 개행 문자와도 일치하는 대체 모드(<a class="reference internal" href="../library/re.html#re.DOTALL" title="re.DOTALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">re.DOTALL</span></code></a>)가 있습니다. <code class="docutils literal notranslate"><span class="pre">.</span></code>는 &quot;모든 문자&quot;와 일치시키려고 할 때 자주 사용됩니다.</p>
 </div>
 <div class="section" id="repeating-things">
-<h3>Repeating Things<a class="headerlink" href="#repeating-things" title="제목 주소">¶</a></h3>
-<p>Being able to match varying sets of characters is the first thing regular
-expressions can do that isn't already possible with the methods available on
-strings.  However, if that was the only additional capability of regexes, they
-wouldn't be much of an advance. Another capability is that you can specify that
-portions of the RE must be repeated a certain number of times.</p>
-<p>The first metacharacter for repeating things that we'll look at is <code class="docutils literal notranslate"><span class="pre">*</span></code>.  <code class="docutils literal notranslate"><span class="pre">*</span></code>
-doesn't match the literal character <code class="docutils literal notranslate"><span class="pre">'*'</span></code>; instead, it specifies that the
-previous character can be matched zero or more times, instead of exactly once.</p>
-<p>For example, <code class="docutils literal notranslate"><span class="pre">ca*t</span></code> will match <code class="docutils literal notranslate"><span class="pre">'ct'</span></code> (0 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> characters), <code class="docutils literal notranslate"><span class="pre">'cat'</span></code> (1 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>),
-<code class="docutils literal notranslate"><span class="pre">'caaat'</span></code> (3 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> characters), and so forth.</p>
-<p>Repetitions such as <code class="docutils literal notranslate"><span class="pre">*</span></code> are <em class="dfn">greedy</em>; when repeating a RE, the matching
-engine will try to repeat it as many times as possible. If later portions of the
-pattern don't match, the matching engine will then back up and try again with
-fewer repetitions.</p>
+<h3>반복하기<a class="headerlink" href="#repeating-things" title="제목 주소">¶</a></h3>
+<p>다양한 문자 집합을 일치시킬 수 있다는 것이 문자열에서 사용할 수있는 메서드로 이미 가능하지않은 것을 정규식이 수행 할 수있는 첫 번째 것입니다. 그러나, 이것이 정규식의 유일한 추가 기능이라면, 그다지 진보했다고 할 수 없습니다. 또 다른 기능은 RE의 일부가 특정 횟수만큼 반복되어야한다고 지정할 수 있다는 것입니다.</p>
+<p>우리가 살펴볼 반복을 위한 첫 번째 메타 문자는 <code class="docutils literal notranslate"><span class="pre">*</span></code>입니다. <code class="docutils literal notranslate"><span class="pre">*</span></code>는 리터럴 문자 <code class="docutils literal notranslate"><span class="pre">'*'</span></code>와 일치하지 않습니다; 대신 이전 문자를 정확히 한 번이 아닌 0번 이상 일치시킬 수 있도록 지정합니다.</p>
+<p>예를 들어, <code class="docutils literal notranslate"><span class="pre">ca*t</span></code>는 <code class="docutils literal notranslate"><span class="pre">'ct'</span></code> (0개의 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> 문자), <code class="docutils literal notranslate"><span class="pre">'cat'</span></code> (1개의 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>), <code class="docutils literal notranslate"><span class="pre">'caaat'</span></code> (3개의 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> 문자) 등과 일치합니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">*</span></code>와 같은 반복은 <em class="dfn">탐욕스럽습니다 (greedy)</em>; RE를 반복 할 때, 일치 엔진은 가능한 한 여러 번 반복하려고 시도합니다. 패턴의 뒷 부분이 일치하지 않으면, 일치 엔진은 되돌아 가서 더 작은 반복으로 다시 시도합니다.</p>
 <p>A step-by-step example will make this more obvious.  Let's consider the
 expression <code class="docutils literal notranslate"><span class="pre">a[bcd]*b</span></code>.  This matches the letter <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, zero or more letters
 from the class <code class="docutils literal notranslate"><span class="pre">[bcd]</span></code>, and finally ends with a <code class="docutils literal notranslate"><span class="pre">'b'</span></code>.  Now imagine matching
@@ -1447,9 +1374,9 @@ it out from your library.</p>
   <ul>
 <li><a class="reference internal" href="#">정규식 HOWTO</a><ul>
 <li><a class="reference internal" href="#introduction">소개</a></li>
-<li><a class="reference internal" href="#simple-patterns">Simple Patterns</a><ul>
-<li><a class="reference internal" href="#matching-characters">Matching Characters</a></li>
-<li><a class="reference internal" href="#repeating-things">Repeating Things</a></li>
+<li><a class="reference internal" href="#simple-patterns">단순한 패턴</a><ul>
+<li><a class="reference internal" href="#matching-characters">문자 일치</a></li>
+<li><a class="reference internal" href="#repeating-things">반복하기</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#using-regular-expressions">Using Regular Expressions</a><ul>
