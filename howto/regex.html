@@ -159,10 +159,7 @@
 <p>우리가 살펴볼 반복을 위한 첫 번째 메타 문자는 <code class="docutils literal notranslate"><span class="pre">*</span></code>입니다. <code class="docutils literal notranslate"><span class="pre">*</span></code>는 리터럴 문자 <code class="docutils literal notranslate"><span class="pre">'*'</span></code>와 일치하지 않습니다; 대신 이전 문자를 정확히 한 번이 아닌 0번 이상 일치시킬 수 있도록 지정합니다.</p>
 <p>예를 들어, <code class="docutils literal notranslate"><span class="pre">ca*t</span></code>는 <code class="docutils literal notranslate"><span class="pre">'ct'</span></code> (0개의 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> 문자), <code class="docutils literal notranslate"><span class="pre">'cat'</span></code> (1개의 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>), <code class="docutils literal notranslate"><span class="pre">'caaat'</span></code> (3개의 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> 문자) 등과 일치합니다.</p>
 <p><code class="docutils literal notranslate"><span class="pre">*</span></code>와 같은 반복은 <em class="dfn">탐욕스럽습니다 (greedy)</em>; RE를 반복 할 때, 일치 엔진은 가능한 한 여러 번 반복하려고 시도합니다. 패턴의 뒷 부분이 일치하지 않으면, 일치 엔진은 되돌아 가서 더 작은 반복으로 다시 시도합니다.</p>
-<p>A step-by-step example will make this more obvious.  Let's consider the
-expression <code class="docutils literal notranslate"><span class="pre">a[bcd]*b</span></code>.  This matches the letter <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, zero or more letters
-from the class <code class="docutils literal notranslate"><span class="pre">[bcd]</span></code>, and finally ends with a <code class="docutils literal notranslate"><span class="pre">'b'</span></code>.  Now imagine matching
-this RE against the string <code class="docutils literal notranslate"><span class="pre">'abcbd'</span></code>.</p>
+<p>단계별 예제를 통해 더 명확하게 알 수 있습니다. 정규식 <code class="docutils literal notranslate"><span class="pre">a[bcd]*b</span></code>를 생각해 봅시다. 이 문자는 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> 문자와 일치하고, 0개 이상의 <code class="docutils literal notranslate"><span class="pre">[bcd]</span></code> 클래스 문자가 뒤따르고, 마지막에 <code class="docutils literal notranslate"><span class="pre">'b'</span></code>로 끝납니다. 이제 이 RE를 문자열 <code class="docutils literal notranslate"><span class="pre">'abcbd'</span></code>와 일치시킨다고 상상해보십시오.</p>
 <table class="docutils align-center">
 <colgroup>
 <col style="width: 12%" />
@@ -170,176 +167,106 @@ this RE against the string <code class="docutils literal notranslate"><span clas
 <col style="width: 66%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Step</p></th>
-<th class="head"><p>Matched</p></th>
-<th class="head"><p>Explanation</p></th>
+<tr class="row-odd"><th class="head"><p>단계</p></th>
+<th class="head"><p>일치된 것</p></th>
+<th class="head"><p>설명</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">a</span></code></p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">a</span></code> in the RE matches.</p></td>
+<td><p>RE의 <code class="docutils literal notranslate"><span class="pre">a</span></code>가 일치합니다.</p></td>
 </tr>
 <tr class="row-odd"><td><p>2</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">abcbd</span></code></p></td>
-<td><p>The engine matches <code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>,
-going as far as it can, which
-is to the end of the string.</p></td>
+<td><p>엔진은 가능한 한 길게 <code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>와 일치시키려고 문자열의 끝 까지 갑니다.</p></td>
 </tr>
 <tr class="row-even"><td><p>3</p></td>
-<td><p><em>Failure</em></p></td>
-<td><p>The engine tries to match
-<code class="docutils literal notranslate"><span class="pre">b</span></code>, but the current position
-is at the end of the string, so
-it fails.</p></td>
+<td><p><em>실패</em></p></td>
+<td><p>엔진은 <code class="docutils literal notranslate"><span class="pre">b</span></code>를 일치하려고 시도하지만, 현재 위치가 문자열의 끝이므로 실패합니다.</p></td>
 </tr>
 <tr class="row-odd"><td><p>4</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">abcb</span></code></p></td>
-<td><p>Back up, so that  <code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>
-matches one less character.</p></td>
+<td><p>물러서서, <code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>가 하나 적은 문자와 일치합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p>5</p></td>
-<td><p><em>Failure</em></p></td>
-<td><p>Try <code class="docutils literal notranslate"><span class="pre">b</span></code> again, but the
-current position is at the last
-character, which is a <code class="docutils literal notranslate"><span class="pre">'d'</span></code>.</p></td>
+<td><p><em>실패</em></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">b</span></code>를 다시 시도하지만, 현재 위치는 <code class="docutils literal notranslate"><span class="pre">'d'</span></code> 인 마지막 문자에 있습니다.</p></td>
 </tr>
 <tr class="row-odd"><td><p>6</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">abc</span></code></p></td>
-<td><p>Back up again, so that
-<code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code> is only matching
-<code class="docutils literal notranslate"><span class="pre">bc</span></code>.</p></td>
+<td><p>다시 물러서서, <code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>가 <code class="docutils literal notranslate"><span class="pre">bc</span></code>하고 만 일치합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p>6</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">abcb</span></code></p></td>
-<td><p>Try <code class="docutils literal notranslate"><span class="pre">b</span></code> again.  This time
-the character at the
-current position is <code class="docutils literal notranslate"><span class="pre">'b'</span></code>, so
-it succeeds.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">b</span></code>를 다시 시도합니다. 이번에는 현재 위치의 문자가 <code class="docutils literal notranslate"><span class="pre">'b'</span></code>이므로 성공합니다.</p></td>
 </tr>
 </tbody>
 </table>
-<p>The end of the RE has now been reached, and it has matched <code class="docutils literal notranslate"><span class="pre">'abcb'</span></code>.  This
-demonstrates how the matching engine goes as far as it can at first, and if no
-match is found it will then progressively back up and retry the rest of the RE
-again and again.  It will back up until it has tried zero matches for
-<code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>, and if that subsequently fails, the engine will conclude that the
-string doesn't match the RE at all.</p>
-<p>Another repeating metacharacter is <code class="docutils literal notranslate"><span class="pre">+</span></code>, which matches one or more times.  Pay
-careful attention to the difference between <code class="docutils literal notranslate"><span class="pre">*</span></code> and <code class="docutils literal notranslate"><span class="pre">+</span></code>; <code class="docutils literal notranslate"><span class="pre">*</span></code> matches
-<em>zero</em> or more times, so whatever's being repeated may not be present at all,
-while <code class="docutils literal notranslate"><span class="pre">+</span></code> requires at least <em>one</em> occurrence.  To use a similar example,
-<code class="docutils literal notranslate"><span class="pre">ca+t</span></code> will match <code class="docutils literal notranslate"><span class="pre">'cat'</span></code> (1 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>), <code class="docutils literal notranslate"><span class="pre">'caaat'</span></code> (3 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>s), but won't
-match <code class="docutils literal notranslate"><span class="pre">'ct'</span></code>.</p>
-<p>There are two more repeating qualifiers.  The question mark character, <code class="docutils literal notranslate"><span class="pre">?</span></code>,
-matches either once or zero times; you can think of it as marking something as
-being optional.  For example, <code class="docutils literal notranslate"><span class="pre">home-?brew</span></code> matches either <code class="docutils literal notranslate"><span class="pre">'homebrew'</span></code> or
-<code class="docutils literal notranslate"><span class="pre">'home-brew'</span></code>.</p>
-<p>The most complicated repeated qualifier is <code class="docutils literal notranslate"><span class="pre">{m,n}</span></code>, where <em>m</em> and <em>n</em> are
-decimal integers.  This qualifier means there must be at least <em>m</em> repetitions,
-and at most <em>n</em>.  For example, <code class="docutils literal notranslate"><span class="pre">a/{1,3}b</span></code> will match <code class="docutils literal notranslate"><span class="pre">'a/b'</span></code>, <code class="docutils literal notranslate"><span class="pre">'a//b'</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">'a///b'</span></code>.  It won't match <code class="docutils literal notranslate"><span class="pre">'ab'</span></code>, which has no slashes, or <code class="docutils literal notranslate"><span class="pre">'a////b'</span></code>, which
-has four.</p>
-<p>You can omit either <em>m</em> or <em>n</em>; in that case, a reasonable value is assumed for
-the missing value.  Omitting <em>m</em> is interpreted as a lower limit of 0, while
-omitting <em>n</em> results in an upper bound of infinity.</p>
-<p>Readers of a reductionist bent may notice that the three other qualifiers can
-all be expressed using this notation.  <code class="docutils literal notranslate"><span class="pre">{0,}</span></code> is the same as <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">{1,}</span></code>
-is equivalent to <code class="docutils literal notranslate"><span class="pre">+</span></code>, and <code class="docutils literal notranslate"><span class="pre">{0,1}</span></code> is the same as <code class="docutils literal notranslate"><span class="pre">?</span></code>.  It's better to use
-<code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code>, or <code class="docutils literal notranslate"><span class="pre">?</span></code> when you can, simply because they're shorter and easier
-to read.</p>
+<p>RE의 끝에 도달했으며, <code class="docutils literal notranslate"><span class="pre">'abcb'</span></code>와 일치했습니다. 이것은 일치 엔진이 처음에는 갈수있는 데까지 가본다음, 일치하는 것이 발견되지 않으면 점진적으로 물러서고, 나머지 RE의 나머지 부분을 반복해서 다시 시도하는 것을 보여줍니다. <code class="docutils literal notranslate"><span class="pre">[bcd]*</span></code>에 대한 일치 항목의 길이가 0이 될 때까지 물러서고, 그 것 마저도 실패하면, 엔진은 문자열이 RE와 전혀 일치하지 않는다고 결론을 내립니다.</p>
+<p>또 다른 반복 메타 문자는 <code class="docutils literal notranslate"><span class="pre">+</span></code>인데, 하나 이상과 일치합니다. <code class="docutils literal notranslate"><span class="pre">*</span></code>와 <code class="docutils literal notranslate"><span class="pre">+</span></code>의 차이점에 주의하십시오; <code class="docutils literal notranslate"><span class="pre">*</span></code>는 <em>0</em> 이상과 일치하므로, 반복되는 내용이 전혀 표시되지 않을 수 있습니다. 반면 <code class="docutils literal notranslate"><span class="pre">+</span></code>는 적어도 <em>1</em> 번 이상 나타날 것을 요구합니다. 비슷한 예제를 사용하면, <code class="docutils literal notranslate"><span class="pre">ca+t</span></code>는 <code class="docutils literal notranslate"><span class="pre">'cat'</span></code> (1 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>), <code class="docutils literal notranslate"><span class="pre">'caaat'</span></code> (3 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>)와 일치하지만 <code class="docutils literal notranslate"><span class="pre">'ct'</span></code>와 일치하지는 않습니다.</p>
+<p>반복 한정자(qualifier)가 두 개 더 있습니다. 물음표 문자 <code class="docutils literal notranslate"><span class="pre">?</span></code>는 한 번이나 0 번 일치합니다; 무언가를 선택적이라고 표시한다고 생각해도 좋습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">home-?brew</span></code>는 <code class="docutils literal notranslate"><span class="pre">'homebrew'</span></code>나 <code class="docutils literal notranslate"><span class="pre">'home-brew'</span></code>와 일치합니다.</p>
+<p>가장 복잡한 반복 한정자는 <code class="docutils literal notranslate"><span class="pre">{m,n}</span></code>입니다. 여기서 <em>m</em>과 <em>n</em>은 10 진수입니다. 이 한정자는 적어도 <em>m</em> 반복, 최대 <em>n</em> 반복이 있어야 함을 의미합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">a/{1,3}b</span></code>는 <code class="docutils literal notranslate"><span class="pre">'a/b'</span></code>, <code class="docutils literal notranslate"><span class="pre">'a//b'</span></code> 및 <code class="docutils literal notranslate"><span class="pre">'a///b'</span></code>와 일치합니다. <code class="docutils literal notranslate"><span class="pre">'ab'</span></code>에는 슬래시가 없어서 일치하지 않고, <code class="docutils literal notranslate"><span class="pre">'a////b'</span></code>에는 4개 있어서 일치하지 않습니다.</p>
+<p><em>m</em>이나 <em>n</em>을 생략 할 수 있습니다; 이 때, 빠진 값에 대해 합리적인 값이 가정됩니다. <em>m</em>을 생략하면 0 하한으로 해석하는 반면, <em>m</em>을 생략하면 무한대의 상한을 뜻합니다.</p>
+<p>환원 주의로 기울어진 독자는 다른 세 한정자들을 이 표기법을 사용하여 표현할 수 있음을 알아챌 수 있을겁니다. <code class="docutils literal notranslate"><span class="pre">{0,}</span></code>은 <code class="docutils literal notranslate"><span class="pre">*</span></code>와 같고, <code class="docutils literal notranslate"><span class="pre">{1,}</span></code>은 <code class="docutils literal notranslate"><span class="pre">+</span></code>와 같으며, <code class="docutils literal notranslate"><span class="pre">{0,1}</span></code>은 <code class="docutils literal notranslate"><span class="pre">?</span></code>와 같습니다. 그럴 수 있다면 <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">?</span></code>를 사용하는 것이 좋은데, 더 짧고 읽기 쉽기 때문입니다.</p>
 </div>
 </div>
 <div class="section" id="using-regular-expressions">
-<h2>Using Regular Expressions<a class="headerlink" href="#using-regular-expressions" title="제목 주소">¶</a></h2>
-<p>Now that we've looked at some simple regular expressions, how do we actually use
-them in Python?  The <a class="reference internal" href="../library/re.html#module-re" title="re: Regular expression operations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">re</span></code></a> module provides an interface to the regular
-expression engine, allowing you to compile REs into objects and then perform
-matches with them.</p>
+<h2>정규식 사용하기<a class="headerlink" href="#using-regular-expressions" title="제목 주소">¶</a></h2>
+<p>이제 간단한 정규식을 살펴 보았습니다. 실제로 파이썬에서 어떻게 사용해야할까요? <a class="reference internal" href="../library/re.html#module-re" title="re: Regular expression operations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">re</span></code></a> 모듈은 정규식 엔진에 대한 인터페이스를 제공해서, RE를 객체로 컴파일 한 다음 일치를 수행 할 수 있도록합니다.</p>
 <div class="section" id="compiling-regular-expressions">
-<h3>Compiling Regular Expressions<a class="headerlink" href="#compiling-regular-expressions" title="제목 주소">¶</a></h3>
-<p>Regular expressions are compiled into pattern objects, which have
-methods for various operations such as searching for pattern matches or
-performing string substitutions.</p>
+<h3>정규식 컴파일하기<a class="headerlink" href="#compiling-regular-expressions" title="제목 주소">¶</a></h3>
+<p>정규식은 패턴 객체로 컴파일되는데, 패턴 일치를 검색하거나 문자열 치환을 수행하는 등의 다양한 작업을 위한 메서드를 갖고있습니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">re</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;ab*&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span>
 <span class="go">re.compile(&#39;ab*&#39;)</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a> also accepts an optional <em>flags</em> argument, used to enable
-various special features and syntax variations.  We'll go over the available
-settings later, but for now a single example will do:</p>
+<p><a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a>은 다양한 특수 기능과 문법 변형을 가능하게 하는 선택적 <em>flags</em> 인자도 받아들입니다. 나중에 사용할 수 있는 설정을 살펴 보도록하겠지만, 지금은 한 가지 예 만 보겠습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;ab*&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The RE is passed to <a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a> as a string.  REs are handled as strings
-because regular expressions aren't part of the core Python language, and no
-special syntax was created for expressing them.  (There are applications that
-don't need REs at all, so there's no need to bloat the language specification by
-including them.) Instead, the <a class="reference internal" href="../library/re.html#module-re" title="re: Regular expression operations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">re</span></code></a> module is simply a C extension module
-included with Python, just like the <a class="reference internal" href="../library/socket.html#module-socket" title="socket: Low-level networking interface."><code class="xref py py-mod docutils literal notranslate"><span class="pre">socket</span></code></a> or <a class="reference internal" href="../library/zlib.html#module-zlib" title="zlib: Low-level interface to compression and decompression routines compatible with gzip."><code class="xref py py-mod docutils literal notranslate"><span class="pre">zlib</span></code></a> modules.</p>
-<p>Putting REs in strings keeps the Python language simpler, but has one
-disadvantage which is the topic of the next section.</p>
+<p>RE는 문자열로 <a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a>에 전달됩니다. 정규식이 핵심 파이썬 언어의 일부가 아니고, 정규식을 표현하기위한 특수 문법이 만들어지지 않았기 때문에 RE는 문자열로 다뤄집니다. (RE를 전혀 필요로하지 않는 응용 프로그램이 있으므로, 이를 포함해서 언어 사양을 부풀릴 필요가 없습니다.) 대신, <a class="reference internal" href="../library/re.html#module-re" title="re: Regular expression operations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">re</span></code></a> 모듈은 <a class="reference internal" href="../library/socket.html#module-socket" title="socket: Low-level networking interface."><code class="xref py py-mod docutils literal notranslate"><span class="pre">socket</span></code></a>이나 <a class="reference internal" href="../library/zlib.html#module-zlib" title="zlib: Low-level interface to compression and decompression routines compatible with gzip."><code class="xref py py-mod docutils literal notranslate"><span class="pre">zlib</span></code></a> 모듈과 마찬가지로 파이썬에 포함 된 C 확장 모듈 일뿐입니다.</p>
+<p>RE를 문자열에 넣는 것은 파이썬 언어가 더 간단하게 유지되도록 하지만, 다음 절의 주제 인 한가지 단점이 있습니다.</p>
 </div>
 <div class="section" id="the-backslash-plague">
-<span id="id1"></span><h3>The Backslash Plague<a class="headerlink" href="#the-backslash-plague" title="제목 주소">¶</a></h3>
-<p>As stated earlier, regular expressions use the backslash character (<code class="docutils literal notranslate"><span class="pre">'\'</span></code>) to
-indicate special forms or to allow special characters to be used without
-invoking their special meaning. This conflicts with Python's usage of the same
-character for the same purpose in string literals.</p>
-<p>Let's say you want to write a RE that matches the string <code class="docutils literal notranslate"><span class="pre">\section</span></code>, which
-might be found in a LaTeX file.  To figure out what to write in the program
-code, start with the desired string to be matched.  Next, you must escape any
-backslashes and other metacharacters by preceding them with a backslash,
-resulting in the string <code class="docutils literal notranslate"><span class="pre">\\section</span></code>.  The resulting string that must be passed
-to <a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a> must be <code class="docutils literal notranslate"><span class="pre">\\section</span></code>.  However, to express this as a
-Python string literal, both backslashes must be escaped <em>again</em>.</p>
+<span id="id1"></span><h3>백 슬래시 전염병<a class="headerlink" href="#the-backslash-plague" title="제목 주소">¶</a></h3>
+<p>앞에서 언급한 것처럼, 정규식은 백 슬래시 문자(<code class="docutils literal notranslate"><span class="pre">'\'</span></code>)를 사용하여 특수 형식을 나타내거나 특수 문자 특별한 의미를 갖지 않고 사용되로록 합니다. 이것은 파이썬이 문자열 리터럴에서 같은 목적으로 같은 문자를 사용하는 것과 충돌합니다.</p>
+<p>LaTeX 파일에서 발견되는 문자열 <code class="docutils literal notranslate"><span class="pre">\section</span></code>과 일치하는 RE를 작성한다고 가정 해 봅시다. 프로그램 코드에 무엇을 쓸지 알아내기 위해, 일치시키고자 하는 문자열로 시작하십시오. 그런 다음, 백 슬래시와 다른 메타 문자 앞에 백 슬래시를 붙여 이스케이프 처리하면, 문자열 <code class="docutils literal notranslate"><span class="pre">\\section</span></code>을 얻게됩니다. <a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a>에 전달되어야하는 결과 문자열은 <code class="docutils literal notranslate"><span class="pre">\\section</span></code>이어야 합니다. 그러나, 이를 파이썬 문자열 리터럴로 표현하려면, 두 개의 백 슬래시를 모두 <em>다시</em> 이스케이프 처리해야합니다.</p>
 <table class="docutils align-center">
 <colgroup>
 <col style="width: 31%" />
 <col style="width: 69%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Characters</p></th>
-<th class="head"><p>Stage</p></th>
+<tr class="row-odd"><th class="head"><p>문자</p></th>
+<th class="head"><p>단계</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">\section</span></code></p></td>
-<td><p>Text string to be matched</p></td>
+<td><p>일치시킬 텍스트 문자열</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">\\section</span></code></p></td>
-<td><p>Escaped backslash for <a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a></p></td>
+<td><p><a class="reference internal" href="../library/re.html#re.compile" title="re.compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.compile()</span></code></a>을 위해 이스케이프 처리된 백 슬래시</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;\\\\section&quot;</span></code></p></td>
-<td><p>Escaped backslashes for a string literal</p></td>
+<td><p>문자열 리터럴을 위해 이스케이프 처리된 백 슬래시</p></td>
 </tr>
 </tbody>
 </table>
-<p>In short, to match a literal backslash, one has to write <code class="docutils literal notranslate"><span class="pre">'\\\\'</span></code> as the RE
-string, because the regular expression must be <code class="docutils literal notranslate"><span class="pre">\\</span></code>, and each backslash must
-be expressed as <code class="docutils literal notranslate"><span class="pre">\\</span></code> inside a regular Python string literal.  In REs that
-feature backslashes repeatedly, this leads to lots of repeated backslashes and
-makes the resulting strings difficult to understand.</p>
-<p>The solution is to use Python's raw string notation for regular expressions;
-backslashes are not handled in any special way in a string literal prefixed with
-<code class="docutils literal notranslate"><span class="pre">'r'</span></code>, so <code class="docutils literal notranslate"><span class="pre">r&quot;\n&quot;</span></code> is a two-character string containing <code class="docutils literal notranslate"><span class="pre">'\'</span></code> and <code class="docutils literal notranslate"><span class="pre">'n'</span></code>,
-while <code class="docutils literal notranslate"><span class="pre">&quot;\n&quot;</span></code> is a one-character string containing a newline. Regular
-expressions will often be written in Python code using this raw string notation.</p>
-<p>In addition, special escape sequences that are valid in regular expressions,
-but not valid as Python string literals, now result in a
-<a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal notranslate"><span class="pre">DeprecationWarning</span></code></a> and will eventually become a <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>,
-which means the sequences will be invalid if raw string notation or escaping
-the backslashes isn't used.</p>
+<p>즉, 리터럴 백 슬래시와 일치 시키려면, RE 문자열로 <code class="docutils literal notranslate"><span class="pre">'\\\\'</span></code>을 작성해야 하는데, 정규식은 <code class="docutils literal notranslate"><span class="pre">\\</span></code>이어야하고, 일반 파이썬 문자열 리터럴안에서 각 백 슬래시를 <code class="docutils literal notranslate"><span class="pre">\\</span></code>로 표현해야하기 때문입니다. 백 슬래시를 반복적으로 사용하는 RE에서는, 수없이 반복되는 백 슬래시로 이어져, 결과 문자열을 이해하기 어렵게 만듭니다.</p>
+<p>해결책은 정규식에 파이썬의 날 문자열 표기법을 사용하는 것입니다; 백 슬래시는 <code class="docutils literal notranslate"><span class="pre">'r'</span></code> 접두사가 붙은 문자열 리터럴에서 특별한 방법으로 처리되지 않으므로, <code class="docutils literal notranslate"><span class="pre">r&quot;\n&quot;</span></code>는 <code class="docutils literal notranslate"><span class="pre">'\'</span></code>과 <code class="docutils literal notranslate"><span class="pre">'n'</span></code>을 포함하는 두 문자 문자열인 반면, <code class="docutils literal notranslate"><span class="pre">&quot;\n&quot;</span></code>는 줄 넘김을 포함하는 한 문자 문자열입니다. 정규식은 종종 이 날 문자열 표기법을 사용하여 파이썬 코드로 작성됩니다.</p>
+<p>또한, 정규식에서는 유효하지만 파이썬 문자열 리터럴에서는 유효하지 않은 특수 이스케이프 시퀀스는 이제 <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal notranslate"><span class="pre">DeprecationWarning</span></code></a>을 발생시키고 결국에는 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>가 될 것입니다. 이는 날 문자열 표기법이나 백 슬래시 이스케이핑이 사용되지 않으면 시퀀스가 유효하지 않게됨을 뜻합니다.</p>
 <table class="docutils align-center">
 <colgroup>
 <col style="width: 51%" />
 <col style="width: 49%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Regular String</p></th>
-<th class="head"><p>Raw string</p></th>
+<tr class="row-odd"><th class="head"><p>일반 문자열</p></th>
+<th class="head"><p>날 문자열</p></th>
 </tr>
 </thead>
 <tbody>
@@ -503,7 +430,7 @@ case.</p>
 example because escape sequences in a normal &quot;cooked&quot; string literal that are
 not recognized by Python, as opposed to regular expressions, now result in a
 <a class="reference internal" href="../library/exceptions.html#DeprecationWarning" title="DeprecationWarning"><code class="xref py py-exc docutils literal notranslate"><span class="pre">DeprecationWarning</span></code></a> and will eventually become a <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>.  See
-<a class="reference internal" href="#the-backslash-plague"><span class="std std-ref">The Backslash Plague</span></a>.</p>
+<a class="reference internal" href="#the-backslash-plague"><span class="std std-ref">백 슬래시 전염병</span></a>.</p>
 <p><a class="reference internal" href="../library/re.html#re.Pattern.findall" title="re.Pattern.findall"><code class="xref py py-meth docutils literal notranslate"><span class="pre">findall()</span></code></a> has to create the entire list before it can be returned as the
 result.  The <a class="reference internal" href="../library/re.html#re.Pattern.finditer" title="re.Pattern.finditer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finditer()</span></code></a> method returns a sequence of
 <a class="reference internal" href="../library/re.html#match-objects"><span class="std std-ref">match object</span></a> instances as an <a class="reference internal" href="../glossary.html#term-iterator"><span class="xref std std-term">iterator</span></a>:</p>
@@ -1379,9 +1306,9 @@ it out from your library.</p>
 <li><a class="reference internal" href="#repeating-things">반복하기</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#using-regular-expressions">Using Regular Expressions</a><ul>
-<li><a class="reference internal" href="#compiling-regular-expressions">Compiling Regular Expressions</a></li>
-<li><a class="reference internal" href="#the-backslash-plague">The Backslash Plague</a></li>
+<li><a class="reference internal" href="#using-regular-expressions">정규식 사용하기</a><ul>
+<li><a class="reference internal" href="#compiling-regular-expressions">정규식 컴파일하기</a></li>
+<li><a class="reference internal" href="#the-backslash-plague">백 슬래시 전염병</a></li>
 <li><a class="reference internal" href="#performing-matches">Performing Matches</a></li>
 <li><a class="reference internal" href="#module-level-functions">Module-Level Functions</a></li>
 <li><a class="reference internal" href="#compilation-flags">Compilation Flags</a></li>
