@@ -27,7 +27,6 @@
     <link rel="next" title="3. Defining Extension Types: Assorted Topics" href="newtypes.html" />
     <link rel="prev" title="1. Extending Python with C or C++" href="extending.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
     <link rel="canonical" href="https://python.flowdas.com/extending/newtypes_tutorial.html" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112027364-1"></script>
@@ -38,11 +37,20 @@
 
       gtag('config', 'UA-112027364-1');
     </script>
+    <style>
+      div.admonition-flowdas {
+        border-radius: 3px;
+        background-color: #ffc;
+        border: 1px solid #ff6;
+      }
+    </style>
+
     
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <script type="text/javascript" src="../_static/switchers.js"></script>
+      
+      <script type="text/javascript" src="../_static/switchers.js"></script>
+      
     
-    
+
     
     <style>
       @media only screen {
@@ -51,9 +59,16 @@
         }
       }
     </style>
- 
 
-  </head><body>  
+    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
+    
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+     
+
+
+  </head><body>
+  
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>탐색</h3>
       <ul>
@@ -69,12 +84,15 @@
         <li class="right" >
           <a href="extending.html" title="1. Extending Python with C or C++"
              accesskey="P">이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">파이썬 인터프리터 확장 및 내장</a> &#187;</li>
     <li class="right">
@@ -129,7 +147,8 @@ extension types.  It should be adequate for most uses.  The C API also
 allows defining heap-allocated extension types using the
 <a class="reference internal" href="../c-api/type.html#c.PyType_FromSpec" title="PyType_FromSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpec()</span></code></a> function, which isn't covered in this tutorial.</p>
 </div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
     <span class="n">PyObject_HEAD</span>
@@ -214,6 +233,7 @@ standard Python floats:</p>
     <span class="p">.</span><span class="n">tp_doc</span> <span class="o">=</span> <span class="s">&quot;Custom objects&quot;</span><span class="p">,</span>
     <span class="p">.</span><span class="n">tp_basicsize</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">CustomObject</span><span class="p">),</span>
     <span class="p">.</span><span class="n">tp_itemsize</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">.</span><span class="n">tp_flags</span> <span class="o">=</span> <span class="n">Py_TPFLAGS_DEFAULT</span><span class="p">,</span>
     <span class="p">.</span><span class="n">tp_new</span> <span class="o">=</span> <span class="n">PyType_GenericNew</span><span class="p">,</span>
 <span class="p">};</span>
 </pre></div>
@@ -336,7 +356,8 @@ the <a class="reference external" href="https://packaging.python.org/tutorials/d
 <p>Let's extend the basic example to add some data and methods.  Let's also make
 the type usable as a base class. We'll create a new module, <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom2</span></code> that
 adds these capabilities:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&quot;structmember.h&quot;</span><span class="cp"></span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -687,7 +708,7 @@ members can be set to <em>NULL</em> if the attributes are deleted.</p>
 <p>We define a single method, <code class="xref py py-meth docutils literal notranslate"><span class="pre">Custom.name()</span></code>, that outputs the objects name as the
 concatenation of the first and last names.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
-<span class="nf">Custom_name</span><span class="p">(</span><span class="n">CustomObject</span> <span class="o">*</span><span class="n">self</span><span class="p">)</span>
+<span class="nf">Custom_name</span><span class="p">(</span><span class="n">CustomObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">Py_UNUSED</span><span class="p">(</span><span class="n">ignored</span><span class="p">))</span>
 <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">first</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">PyErr_SetString</span><span class="p">(</span><span class="n">PyExc_AttributeError</span><span class="p">,</span> <span class="s">&quot;first&quot;</span><span class="p">);</span>
@@ -759,7 +780,8 @@ name in the <a class="reference internal" href="../c-api/type.html#c.PyTypeObjec
 version of our module, the instance variables <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code>
 could be set to non-string values or even deleted. We want to make sure that
 these attributes always contain strings.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&quot;structmember.h&quot;</span><span class="cp"></span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -1076,7 +1098,8 @@ those two reasons, <code class="xref py py-class docutils literal notranslate"><
 <p>To allow a <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> instance participating in a reference cycle to
 be properly detected and collected by the cyclic GC, our <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> type
 needs to fill two additional slots and to enable a flag that enables these slots:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&quot;structmember.h&quot;</span><span class="cp"></span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -1391,7 +1414,8 @@ increases an internal counter:</p>
 <span class="go">2</span>
 </pre></div>
 </div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
     <span class="n">PyListObject</span> <span class="n">list</span><span class="p">;</span>
@@ -1585,12 +1609,15 @@ reference cycles.</p>
         <li class="right" >
           <a href="extending.html" title="1. Extending Python with C or C++"
              >이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬 인터프리터 확장 및 내장</a> &#187;</li>
     <li class="right">
@@ -1614,8 +1641,6 @@ reference cycles.</p>
     &copy; <a href="../copyright.html">저작권</a> 2001-2019, Python Software Foundation.
     <br />
     한국어 번역 저작권 &copy; 2017-2019, Flowdas &amp; 역자. All rights reserved.
-    <br />
-    <a href="http://sphinx.pocoo.org/">Sphinx</a> 2.0.1 를 사용해서 만들었습니다.
     </div>
 
   </body>

@@ -27,7 +27,6 @@
     <link rel="next" title="Number Protocol" href="number.html" />
     <link rel="prev" title="추상 객체 계층" href="abstract.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
     <link rel="canonical" href="https://python.flowdas.com/c-api/object.html" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112027364-1"></script>
@@ -38,11 +37,20 @@
 
       gtag('config', 'UA-112027364-1');
     </script>
+    <style>
+      div.admonition-flowdas {
+        border-radius: 3px;
+        background-color: #ffc;
+        border: 1px solid #ff6;
+      }
+    </style>
+
     
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <script type="text/javascript" src="../_static/switchers.js"></script>
+      
+      <script type="text/javascript" src="../_static/switchers.js"></script>
+      
     
-    
+
     
     <style>
       @media only screen {
@@ -51,9 +59,16 @@
         }
       }
     </style>
- 
 
-  </head><body>  
+    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
+    
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+     
+
+
+  </head><body>
+  
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>탐색</h3>
       <ul>
@@ -69,12 +84,15 @@
         <li class="right" >
           <a href="abstract.html" title="추상 객체 계층"
              accesskey="P">이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬/C API 레퍼런스 설명서</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="abstract.html" accesskey="U">추상 객체 계층</a> &#187;</li>
@@ -436,6 +454,86 @@ of parameters followed by <em>NULL</em>. Returns the result of the call on succe
 </dd></dl>
 
 <dl class="function">
+<dt id="c._PyObject_Vectorcall">
+<a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="descname">_PyObject_Vectorcall</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a> *const<em> *args</em>, size_t<em> nargsf</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *kwnames</em><span class="sig-paren">)</span><a class="headerlink" href="#c._PyObject_Vectorcall" title="정의 주소">¶</a></dt>
+<dd><p>Call a callable Python object <em>callable</em>, using
+<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_vectorcall_offset" title="PyTypeObject.tp_vectorcall_offset"><code class="xref c c-data docutils literal notranslate"><span class="pre">vectorcall</span></code></a> if possible.</p>
+<p><em>args</em> is a C array with the positional arguments.</p>
+<p><em>nargsf</em> is the number of positional arguments plus optionally the flag
+<code class="xref py py-const docutils literal notranslate"><span class="pre">PY_VECTORCALL_ARGUMENTS_OFFSET</span></code> (see below).
+To get actual number of arguments, use
+<a class="reference internal" href="#c.PyVectorcall_NARGS" title="PyVectorcall_NARGS"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyVectorcall_NARGS(nargsf)</span></code></a>.</p>
+<p><em>kwnames</em> can be either NULL (no keyword arguments) or a tuple of keyword
+names. In the latter case, the values of the keyword arguments are stored
+in <em>args</em> after the positional arguments.
+The number of keyword arguments does not influence <em>nargsf</em>.</p>
+<p><em>kwnames</em> must contain only objects of type <code class="docutils literal notranslate"><span class="pre">str</span></code> (not a subclass),
+and all keys must be unique.</p>
+<p>Return the result of the call on success, or <em>NULL</em> on failure.</p>
+<p>This uses the vectorcall protocol if the callable supports it;
+otherwise, the arguments are converted to use
+<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>This function is provisional and expected to become public in Python 3.9,
+with a different name and, possibly, changed semantics.
+If you use the function, plan for updating your code for Python 3.9.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="var">
+<dt id="c.PY_VECTORCALL_ARGUMENTS_OFFSET">
+<code class="descname">PY_VECTORCALL_ARGUMENTS_OFFSET</code><a class="headerlink" href="#c.PY_VECTORCALL_ARGUMENTS_OFFSET" title="정의 주소">¶</a></dt>
+<dd><p>If set in a vectorcall <em>nargsf</em> argument, the callee is allowed to
+temporarily change <code class="docutils literal notranslate"><span class="pre">args[-1]</span></code>. In other words, <em>args</em> points to
+argument 1 (not 0) in the allocated vector.
+The callee must restore the value of <code class="docutils literal notranslate"><span class="pre">args[-1]</span></code> before returning.</p>
+<p>Whenever they can do so cheaply (without additional allocation), callers
+are encouraged to use <code class="xref py py-const docutils literal notranslate"><span class="pre">PY_VECTORCALL_ARGUMENTS_OFFSET</span></code>.
+Doing so will allow callables such as bound methods to make their onward
+calls (which include a prepended <em>self</em> argument) cheaply.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="c.PyVectorcall_NARGS">
+Py_ssize_t <code class="descname">PyVectorcall_NARGS</code><span class="sig-paren">(</span>size_t<em> nargsf</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyVectorcall_NARGS" title="정의 주소">¶</a></dt>
+<dd><p>Given a vectorcall <em>nargsf</em> argument, return the actual number of
+arguments.
+Currently equivalent to <code class="docutils literal notranslate"><span class="pre">nargsf</span> <span class="pre">&amp;</span> <span class="pre">~PY_VECTORCALL_ARGUMENTS_OFFSET</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="c._PyObject_FastCallDict">
+<a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="descname">_PyObject_FastCallDict</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a> *const<em> *args</em>, size_t<em> nargsf</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *kwdict</em><span class="sig-paren">)</span><a class="headerlink" href="#c._PyObject_FastCallDict" title="정의 주소">¶</a></dt>
+<dd><p>Same as <a class="reference internal" href="#c._PyObject_Vectorcall" title="_PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">_PyObject_Vectorcall()</span></code></a> except that the keyword arguments
+are passed as a dictionary in <em>kwdict</em>. This may be <em>NULL</em> if there
+are no keyword arguments.</p>
+<p>For callables supporting <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_vectorcall_offset" title="PyTypeObject.tp_vectorcall_offset"><code class="xref c c-data docutils literal notranslate"><span class="pre">vectorcall</span></code></a>,
+the arguments are internally converted to the vectorcall convention.
+Therefore, this function adds some overhead compared to
+<a class="reference internal" href="#c._PyObject_Vectorcall" title="_PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">_PyObject_Vectorcall()</span></code></a>.
+It should only be used if the caller already has a dictionary ready to use.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>This function is provisional and expected to become public in Python 3.9,
+with a different name and, possibly, changed semantics.
+If you use the function, plan for updating your code for Python 3.9.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="c.PyObject_Hash">
 Py_hash_t <code class="descname">PyObject_Hash</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *o</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_Hash" title="정의 주소">¶</a></dt>
 <dd><p id="index-6">Compute and return the hash value of an object <em>o</em>.  On failure, return <code class="docutils literal notranslate"><span class="pre">-1</span></code>.
@@ -586,12 +684,15 @@ iterated.</p>
         <li class="right" >
           <a href="abstract.html" title="추상 객체 계층"
              >이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬/C API 레퍼런스 설명서</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="abstract.html" >추상 객체 계층</a> &#187;</li>
@@ -616,8 +717,6 @@ iterated.</p>
     &copy; <a href="../copyright.html">저작권</a> 2001-2019, Python Software Foundation.
     <br />
     한국어 번역 저작권 &copy; 2017-2019, Flowdas &amp; 역자. All rights reserved.
-    <br />
-    <a href="http://sphinx.pocoo.org/">Sphinx</a> 2.0.1 를 사용해서 만들었습니다.
     </div>
 
   </body>

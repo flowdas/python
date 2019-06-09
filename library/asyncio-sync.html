@@ -27,7 +27,6 @@
     <link rel="next" title="서브 프로세스" href="asyncio-subprocess.html" />
     <link rel="prev" title="스트림" href="asyncio-stream.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
     <link rel="canonical" href="https://python.flowdas.com/library/asyncio-sync.html" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112027364-1"></script>
@@ -38,11 +37,20 @@
 
       gtag('config', 'UA-112027364-1');
     </script>
+    <style>
+      div.admonition-flowdas {
+        border-radius: 3px;
+        background-color: #ffc;
+        border: 1px solid #ff6;
+      }
+    </style>
+
     
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <script type="text/javascript" src="../_static/switchers.js"></script>
+      
+      <script type="text/javascript" src="../_static/switchers.js"></script>
+      
     
-    
+
     
     <style>
       @media only screen {
@@ -51,9 +59,16 @@
         }
       }
     </style>
- 
 
-  </head><body>  
+    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
+    
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+     
+
+
+  </head><body>
+  
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>탐색</h3>
       <ul>
@@ -69,12 +84,15 @@
         <li class="right" >
           <a href="asyncio-stream.html" title="스트림"
              accesskey="P">이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬 표준 라이브러리</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="ipc.html" >네트워킹과 프로세스 간 통신</a> &#187;</li>
@@ -109,7 +127,7 @@
 <li><p>asyncio 프리미티브는 스레드 안전하지 않으므로, OS 스레드 동기화(이를 위해서는 <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a>을 사용하십시오)에 사용하면 안 됩니다.</p></li>
 <li><p>이러한 동기화 프리미티브의 메서드는 <em>timeout</em> 인자를 받아들이지 않습니다; <a class="reference internal" href="asyncio-task.html#asyncio.wait_for" title="asyncio.wait_for"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.wait_for()</span></code></a> 함수를 사용하여 시간제한이 있는 연산을 수행하십시오.</p></li>
 </ul>
-<p>asyncio에는 다음과 같은 기본 동기화 프리미티브가 있습니다:</p>
+<p>asyncio has the following basic synchronization primitives:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#asyncio.Lock" title="asyncio.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lock</span></code></a></p></li>
 <li><p><a class="reference internal" href="#asyncio.Event" title="asyncio.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a></p></li>
@@ -149,6 +167,11 @@
 <em class="property">coroutine </em><code class="descname">acquire</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Lock.acquire" title="정의 주소">¶</a></dt>
 <dd><p>록을 얻습니다.</p>
 <p>이 메서드는 록이 <em>풀림(unlocked)</em>이 될 때까지 기다리고, <em>잠김(locked)</em>으로 설정한 다음 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
+<p>When more than one coroutine is blocked in <a class="reference internal" href="#asyncio.Lock.acquire" title="asyncio.Lock.acquire"><code class="xref py py-meth docutils literal notranslate"><span class="pre">acquire()</span></code></a>
+waiting for the lock to be unlocked, only one coroutine
+eventually proceeds.</p>
+<p>Acquiring a lock is <em>fair</em>: the coroutine that proceeds will be
+the first coroutine that started waiting on the lock.</p>
 </dd></dl>
 
 <dl class="method">
@@ -250,11 +273,11 @@
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">cond</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Condition</span><span class="p">()</span>
 
 <span class="c1"># ... 뒤에서</span>
-<span class="k">await</span> <span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">cond</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">cond</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
 <span class="k">finally</span><span class="p">:</span>
-    <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+    <span class="n">cond</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="method">
@@ -419,12 +442,15 @@
         <li class="right" >
           <a href="asyncio-stream.html" title="스트림"
              >이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬 표준 라이브러리</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="ipc.html" >네트워킹과 프로세스 간 통신</a> &#187;</li>
@@ -450,8 +476,6 @@
     &copy; <a href="../copyright.html">저작권</a> 2001-2019, Python Software Foundation.
     <br />
     한국어 번역 저작권 &copy; 2017-2019, Flowdas &amp; 역자. All rights reserved.
-    <br />
-    <a href="http://sphinx.pocoo.org/">Sphinx</a> 2.0.1 를 사용해서 만들었습니다.
     </div>
 
   </body>

@@ -27,7 +27,6 @@
     <link rel="next" title="subprocess --- Subprocess management" href="subprocess.html" />
     <link rel="prev" title="concurrent 패키지" href="concurrent.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
     <link rel="canonical" href="https://python.flowdas.com/library/concurrent.futures.html" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112027364-1"></script>
@@ -38,11 +37,20 @@
 
       gtag('config', 'UA-112027364-1');
     </script>
+    <style>
+      div.admonition-flowdas {
+        border-radius: 3px;
+        background-color: #ffc;
+        border: 1px solid #ff6;
+      }
+    </style>
+
     
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <script type="text/javascript" src="../_static/switchers.js"></script>
+      
+      <script type="text/javascript" src="../_static/switchers.js"></script>
+      
     
-    
+
     
     <style>
       @media only screen {
@@ -51,9 +59,16 @@
         }
       }
     </style>
- 
 
-  </head><body>  
+    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
+    
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+     
+
+
+  </head><body>
+  
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>탐색</h3>
       <ul>
@@ -69,12 +84,15 @@
         <li class="right" >
           <a href="concurrent.html" title="concurrent 패키지"
              accesskey="P">이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬 표준 라이브러리</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="concurrency.html" accesskey="U">동시 실행</a> &#187;</li>
@@ -106,7 +124,7 @@
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.2에 추가.</span></p>
 </div>
-<p><strong>소스 코드:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Lib/concurrent/futures/thread.py">Lib/concurrent/futures/thread.py</a>와 <a class="reference external" href="https://github.com/python/cpython/tree/3.7/Lib/concurrent/futures/process.py">Lib/concurrent/futures/process.py</a></p>
+<p><strong>소스 코드:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Lib/concurrent/futures/thread.py">Lib/concurrent/futures/thread.py</a>와 <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Lib/concurrent/futures/process.py">Lib/concurrent/futures/process.py</a></p>
 <hr class="docutils" />
 <p><a class="reference internal" href="#module-concurrent.futures" title="concurrent.futures: Execute computations concurrently using threads or processes."><code class="xref py py-mod docutils literal notranslate"><span class="pre">concurrent.futures</span></code></a> 모듈은 비동기적으로 콜러블을 실행하는 고수준 인터페이스를 제공합니다.</p>
 <p>비동기 실행은 (<a class="reference internal" href="#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>를 사용해서) 스레드나 (<a class="reference internal" href="#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessPoolExecutor</span></code></a>를 사용해서) 별도의 프로세스로 수행 할 수 있습니다. 둘 다 추상 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Executor</span></code></a> 클래스로 정의된 것과 같은 인터페이스를 구현합니다.</p>
@@ -226,6 +244,14 @@
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>initializer</em> 및 <em>initargs</em> 인자가 추가되었습니다.</p>
 </div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Default value of <em>max_workers</em> is changed to <code class="docutils literal notranslate"><span class="pre">min(32,</span> <span class="pre">os.cpu_count()</span> <span class="pre">+</span> <span class="pre">4)</span></code>.
+This default value preserves at least 5 workers for I/O bound tasks.
+It utilizes at most 32 CPU cores for CPU bound tasks which release the GIL.
+And it avoids using very large resources implicitly on many-core machines.</p>
+<p>ThreadPoolExecutor now reuses idle worker threads before starting
+<em>max_workers</em> worker threads too.</p>
+</div>
 </dd></dl>
 
 <div class="section" id="threadpoolexecutor-example">
@@ -269,7 +295,18 @@
 <dl class="class">
 <dt id="concurrent.futures.ProcessPoolExecutor">
 <em class="property">class </em><code class="descclassname">concurrent.futures.</code><code class="descname">ProcessPoolExecutor</code><span class="sig-paren">(</span><em>max_workers=None</em>, <em>mp_context=None</em>, <em>initializer=None</em>, <em>initargs=()</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.ProcessPoolExecutor" title="정의 주소">¶</a></dt>
-<dd><p>최대 <em>max_workers</em> 프로세스의 풀을 사용하여 호출을 비동기적으로 실행하는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Executor</span></code></a> 서브 클래스. <em>max_workers</em> 가 <code class="docutils literal notranslate"><span class="pre">None</span></code> 이거나 주어지지 않았다면, 기계의 프로세서 수를 기본값으로 사용합니다. <em>max_workers</em> 가 <code class="docutils literal notranslate"><span class="pre">0</span></code> 보다 작거나 같으면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> 가 발생합니다. <em>mp_context</em> 는 multiprocessing 컨텍스트이거나 None일 수 있습니다. 작업자들을 만드는데 사용될 것입니다. <em>mp_context</em> 가 <code class="docutils literal notranslate"><span class="pre">None</span></code> 이거나 주어지지 않으면 기본 multiprocessing 컨텍스트가 사용됩니다.</p>
+<dd><p>An <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Executor</span></code></a> subclass that executes calls asynchronously using a pool
+of at most <em>max_workers</em> processes.  If <em>max_workers</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code> or not
+given, it will default to the number of processors on the machine.
+If <em>max_workers</em> is lower or equal to <code class="docutils literal notranslate"><span class="pre">0</span></code>, then a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>
+will be raised.
+On Windows, <em>max_workers</em> must be equal or lower than <code class="docutils literal notranslate"><span class="pre">61</span></code>. If it is not
+then <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> will be raised. If <em>max_workers</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, then
+the default chosen will be at most <code class="docutils literal notranslate"><span class="pre">61</span></code>, even if more processors are
+available.
+<em>mp_context</em> can be a multiprocessing context or None. It will be used to
+launch the workers. If <em>mp_context</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code> or not given, the default
+multiprocessing context is used.</p>
 <p><em>initializer</em> 는 각 작업자 프로세스의 시작 부분에서 호출되는 선택적 콜러블입니다; <em>initargs</em> 는 initializer에 전달되는 인자들의 튜플입니다. <em>initializer</em> 가 예외를 발생시키는 경우, 현재 계류 중인 모든 작업과 풀에 추가로 작업을 제출하려는 시도는 <a class="reference internal" href="#concurrent.futures.process.BrokenProcessPool" title="concurrent.futures.process.BrokenProcessPool"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BrokenProcessPool</span></code></a> 을 발생시킵니다.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.3에서 변경: </span>작업자 프로세스 중 하나가 갑자기 종료되면, <code class="xref py py-exc docutils literal notranslate"><span class="pre">BrokenProcessPool</span></code> 오류가 발생합니다. 이전에는, 동작이 정의되지 않았지만, 실행기나 그 퓨처에 대한 연산이 종종 멈추거나 교착 상태에 빠졌습니다.</p>
@@ -294,6 +331,10 @@
     <span class="mi">1099726899285419</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
@@ -387,6 +428,11 @@
 <code class="descname">set_result</code><span class="sig-paren">(</span><em>result</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.set_result" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>와 관련된 작업 결과를 <em>result</em> 로 설정합니다.</p>
 <p>이 메서드는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Executor</span></code></a> 구현과 단위 테스트에서만 사용해야 합니다.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>This method raises
+<a class="reference internal" href="#concurrent.futures.InvalidStateError" title="concurrent.futures.InvalidStateError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">concurrent.futures.InvalidStateError</span></code></a> if the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> is
+already done.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -394,6 +440,11 @@
 <code class="descname">set_exception</code><span class="sig-paren">(</span><em>exception</em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.futures.Future.set_exception" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>와 관련된 작업 결과를 <a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a> <em>exception</em> 으로 설정합니다.</p>
 <p>이 메서드는 <a class="reference internal" href="#concurrent.futures.Executor" title="concurrent.futures.Executor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Executor</span></code></a> 구현과 단위 테스트에서만 사용해야 합니다.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>This method raises
+<a class="reference internal" href="#concurrent.futures.InvalidStateError" title="concurrent.futures.InvalidStateError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">concurrent.futures.InvalidStateError</span></code></a> if the <a class="reference internal" href="#concurrent.futures.Future" title="concurrent.futures.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> is
+already done.</p>
+</div>
 </dd></dl>
 
 </div></blockquote>
@@ -470,6 +521,16 @@
 </dd></dl>
 
 <dl class="exception">
+<dt id="concurrent.futures.InvalidStateError">
+<em class="property">exception </em><code class="descclassname">concurrent.futures.</code><code class="descname">InvalidStateError</code><a class="headerlink" href="#concurrent.futures.InvalidStateError" title="정의 주소">¶</a></dt>
+<dd><p>Raised when an operation is performed on a future that is not allowed
+in the current state.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="exception">
 <dt id="concurrent.futures.thread.BrokenThreadPool">
 <em class="property">exception </em><code class="descclassname">concurrent.futures.thread.</code><code class="descname">BrokenThreadPool</code><a class="headerlink" href="#concurrent.futures.thread.BrokenThreadPool" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="#concurrent.futures.BrokenExecutor" title="concurrent.futures.BrokenExecutor"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BrokenExecutor</span></code></a> 에서 파생됩니다, 이 예외 클래스는 <code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code> 의 작업자 중 하나가 초기화에 실패했을 때 발생합니다.</p>
@@ -540,12 +601,15 @@
         <li class="right" >
           <a href="concurrent.html" title="concurrent 패키지"
              >이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬 표준 라이브러리</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="concurrency.html" >동시 실행</a> &#187;</li>
@@ -570,8 +634,6 @@
     &copy; <a href="../copyright.html">저작권</a> 2001-2019, Python Software Foundation.
     <br />
     한국어 번역 저작권 &copy; 2017-2019, Flowdas &amp; 역자. All rights reserved.
-    <br />
-    <a href="http://sphinx.pocoo.org/">Sphinx</a> 2.0.1 를 사용해서 만들었습니다.
     </div>
 
   </body>

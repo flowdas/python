@@ -27,7 +27,6 @@
     <link rel="next" title="2. Defining Extension Types: Tutorial" href="newtypes_tutorial.html" />
     <link rel="prev" title="파이썬 인터프리터 확장 및 내장" href="index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
     <link rel="canonical" href="https://python.flowdas.com/extending/extending.html" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-112027364-1"></script>
@@ -38,11 +37,20 @@
 
       gtag('config', 'UA-112027364-1');
     </script>
+    <style>
+      div.admonition-flowdas {
+        border-radius: 3px;
+        background-color: #ffc;
+        border: 1px solid #ff6;
+      }
+    </style>
+
     
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <script type="text/javascript" src="../_static/switchers.js"></script>
+      
+      <script type="text/javascript" src="../_static/switchers.js"></script>
+      
     
-    
+
     
     <style>
       @media only screen {
@@ -51,9 +59,16 @@
         }
       }
     </style>
- 
 
-  </head><body>  
+    <link rel="shortcut icon" type="image/png" href="../_static/py.png" />
+    
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+     
+
+
+  </head><body>
+  
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>탐색</h3>
       <ul>
@@ -69,12 +84,15 @@
         <li class="right" >
           <a href="index.html" title="파이썬 인터프리터 확장 및 내장"
              accesskey="P">이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">파이썬 인터프리터 확장 및 내장</a> &#187;</li>
     <li class="right">
@@ -139,8 +157,9 @@ be callable from Python as follows:</p>
 called <code class="docutils literal notranslate"><span class="pre">spam</span></code>, the C file containing its implementation is called
 <code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code>; if the module name is very long, like <code class="docutils literal notranslate"><span class="pre">spammify</span></code>, the
 module name can be just <code class="file docutils literal notranslate"><span class="pre">spammify.c</span></code>.)</p>
-<p>The first line of our file can be:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
+<p>The first two lines of our file can be:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 </pre></div>
 </div>
 <p>which pulls in the Python API (you can add a comment describing the purpose of
@@ -150,6 +169,8 @@ the module and a copyright notice if you like).</p>
 <p>Since Python may define some pre-processor definitions which affect the standard
 headers on some systems, you <em>must</em> include <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> before any standard
 headers are included.</p>
+<p>It is recommended to always define <code class="docutils literal notranslate"><span class="pre">PY_SSIZE_T_CLEAN</span></code> before including
+<code class="docutils literal notranslate"><span class="pre">Python.h</span></code>.  See <a class="reference internal" href="#parsetuple"><span class="std std-ref">Extracting Parameters in Extension Functions</span></a> for a description of this macro.</p>
 </div>
 <p>All user-visible symbols defined by <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> have a prefix of <code class="docutils literal notranslate"><span class="pre">Py</span></code> or
 <code class="docutils literal notranslate"><span class="pre">PY</span></code>, except those defined in standard header files. For convenience, and
@@ -729,7 +750,8 @@ be raised.</p>
 </div>
 <p id="index-4">Here is an example module which uses keywords, based on an example by Geoff
 Philbrick (<a class="reference external" href="mailto:philbrick&#37;&#52;&#48;hks&#46;com">philbrick<span>&#64;</span>hks<span>&#46;</span>com</a>):</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;Python.h&quot;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN  </span><span class="cm">/* Make &quot;s#&quot; use Py_ssize_t rather than int. */</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 
 <span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">keywdarg_parrot</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">keywds</span><span class="p">)</span>
@@ -757,7 +779,7 @@ Philbrick (<a class="reference external" href="mailto:philbrick&#37;&#52;&#48;hk
 <span class="cm">     * only take two PyObject* parameters, and keywdarg_parrot() takes</span>
 <span class="cm">     * three.</span>
 <span class="cm">     */</span>
-    <span class="p">{</span><span class="s">&quot;parrot&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">PyCFunction</span><span class="p">)</span><span class="n">keywdarg_parrot</span><span class="p">,</span> <span class="n">METH_VARARGS</span> <span class="o">|</span> <span class="n">METH_KEYWORDS</span><span class="p">,</span>
+    <span class="p">{</span><span class="s">&quot;parrot&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">PyCFunction</span><span class="p">)(</span><span class="kt">void</span><span class="p">(</span><span class="o">*</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="n">keywdarg_parrot</span><span class="p">,</span> <span class="n">METH_VARARGS</span> <span class="o">|</span> <span class="n">METH_KEYWORDS</span><span class="p">,</span>
      <span class="s">&quot;Print a lovely skit to standard output.&quot;</span><span class="p">},</span>
     <span class="p">{</span><span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">}</span>   <span class="cm">/* sentinel */</span>
 <span class="p">};</span>
@@ -1152,7 +1174,7 @@ reality (such as adding &quot;spam&quot; to every command). This function
 </pre></div>
 </div>
 <p>In the beginning of the module, right after the line</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;Python.h&quot;</span><span class="cp"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 </pre></div>
 </div>
 <p>two more lines must be added:</p>
@@ -1345,12 +1367,15 @@ this is still found in much existing code.</p>
         <li class="right" >
           <a href="index.html" title="파이썬 인터프리터 확장 및 내장"
              >이전</a> |</li>
-        <li><img src="../_static/py.png" alt=""
-                 style="vertical-align: middle; margin-top: -1px"/></li>
-        <li><a href="https://www.python.org/">Python</a> &#187;</li>
-        <li>
-          <a href="../index.html">설명서 </a> &#187;
-        </li>
+
+    <li><img src="../_static/py.png" alt=""
+             style="vertical-align: middle; margin-top: -1px"/></li>
+    <li><a href="https://www.python.org/">Python</a> &#187;</li>
+    
+
+    <li>
+      <a href="../index.html">설명서 </a> &#187;
+    </li>
 
           <li class="nav-item nav-item-1"><a href="index.html" >파이썬 인터프리터 확장 및 내장</a> &#187;</li>
     <li class="right">
@@ -1374,8 +1399,6 @@ this is still found in much existing code.</p>
     &copy; <a href="../copyright.html">저작권</a> 2001-2019, Python Software Foundation.
     <br />
     한국어 번역 저작권 &copy; 2017-2019, Flowdas &amp; 역자. All rights reserved.
-    <br />
-    <a href="http://sphinx.pocoo.org/">Sphinx</a> 2.0.1 를 사용해서 만들었습니다.
     </div>
 
   </body>
