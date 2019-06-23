@@ -2038,21 +2038,14 @@ Actually logged at CRITICAL
 <p>물론 여기서 설명한 방법을 일반화 할 수 있습니다. 예를 들어 로깅 필터를 임시로 첨부 할 수 있습니다. 위의 코드는 파이썬 2와 파이썬 3에서 모두 작동합니다.</p>
 </div>
 <div class="section" id="a-cli-application-starter-template">
-<span id="starter-template"></span><h2>A CLI application starter template<a class="headerlink" href="#a-cli-application-starter-template" title="제목 주소">¶</a></h2>
-<p>Here's an example which shows how you can:</p>
+<span id="starter-template"></span><h2>CLI 응용 프로그램 시작 템플릿<a class="headerlink" href="#a-cli-application-starter-template" title="제목 주소">¶</a></h2>
+<p>다음과 같은 것들을 하는 방법을 보여주는 예입니다:</p>
 <ul class="simple">
-<li><p>Use a logging level based on command-line arguments</p></li>
-<li><p>Dispatch to multiple subcommands in separate files, all logging at the same
-level in a consistent way</p></li>
-<li><p>Make use of simple, minimal configuration</p></li>
+<li><p>명령 줄 인자에 기반한 로깅 수준 사용하기</p></li>
+<li><p>별도의 파일에 있는 여러 부속 명령으로 분기하고, 모두 일관된 방식으로 같은 수준에서 로깅 하기</p></li>
+<li><p>간단하고 최소의 구성을 사용하기</p></li>
 </ul>
-<p>Suppose we have a command-line application whose job is to stop, start or
-restart some services. This could be organised for the purposes of illustration
-as a file <code class="docutils literal notranslate"><span class="pre">app.py</span></code> that is the main script for the application, with individual
-commands implemented in <code class="docutils literal notranslate"><span class="pre">start.py</span></code>, <code class="docutils literal notranslate"><span class="pre">stop.py</span></code> and <code class="docutils literal notranslate"><span class="pre">restart.py</span></code>. Suppose
-further that we want to control the verbosity of the application via a
-command-line argument, defaulting to <code class="docutils literal notranslate"><span class="pre">logging.INFO</span></code>. Here's one way that
-<code class="docutils literal notranslate"><span class="pre">app.py</span></code> could be written:</p>
+<p>어떤 서비스를 중지, 시작 또는 다시 시작하는 작업을 위한 명령 줄 응용 프로그램이 있다고 가정합니다. 이것은 예시의 목적을 위해 <code class="docutils literal notranslate"><span class="pre">start.py</span></code>, <code class="docutils literal notranslate"><span class="pre">stop.py</span></code> 및 <code class="docutils literal notranslate"><span class="pre">restart.py</span></code>에 개별 명령이 구현되고, 응용 프로그램의 메인 스크립트는 <code class="docutils literal notranslate"><span class="pre">app.py</span></code> 파일이 되도록 구성할 수 있습니다. 명령 줄 인자를 통해 응용 프로그램의 상세도를 제어하려고 하고, <code class="docutils literal notranslate"><span class="pre">logging.INFO</span></code>를 기본값으로 한다고 더 가정해 봅시다. <code class="docutils literal notranslate"><span class="pre">app.py</span></code>를 작성할 수 있는 한 가지 방법은 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -2078,15 +2071,15 @@ command-line argument, defaulting to <code class="docutils literal notranslate">
     <span class="n">restart_cmd</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
                              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of service to restart&#39;</span><span class="p">)</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-    <span class="c1"># the code to dispatch commands could all be in this file. For the purposes</span>
-    <span class="c1"># of illustration only, we implement each command in a separate module.</span>
+    <span class="c1"># 명령을 분기하는 코드는 모두 이 파일에 있을 수 있습니다. 단지 예시의 목적으로, 각 명령을 별도의</span>
+    <span class="c1"># 모듈로 구현합니다.</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">mod</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;command&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unable to find the code for command </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">options</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">1</span>
-    <span class="c1"># Could get fancy here and load configuration from file or dictionary</span>
+    <span class="c1"># 여기를 좀 다듬고 구성을 파일이나 딕셔너리에서 로드 할 수 있습니다</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">log_level</span><span class="p">,</span>
                         <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(levelname)s</span><span class="s1"> </span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">cmd</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
@@ -2095,8 +2088,7 @@ command-line argument, defaulting to <code class="docutils literal notranslate">
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>And the <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code> and <code class="docutils literal notranslate"><span class="pre">restart</span></code> commands can be implemented in
-separate modules, like so for starting:</p>
+<p>그리고 <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code> 및 <code class="docutils literal notranslate"><span class="pre">restart</span></code> 명령은 별도의 모듈로 구현할 수 있습니다, 가령 시작하려면:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># start.py</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
@@ -2104,11 +2096,11 @@ separate modules, like so for starting:</p>
 
 <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;About to start </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="c1"># actually do the command processing here ...</span>
+    <span class="c1"># 실제로는 여기에서 명령을 처리합니다 ...</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Started the </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1"> service.&#39;</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>and thus for stopping:</p>
+<p>그리고 멈추려면:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># stop.py</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
@@ -2125,11 +2117,11 @@ separate modules, like so for starting:</p>
         <span class="n">i</span> <span class="o">=</span> <span class="n">services</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span>
         <span class="n">services</span> <span class="o">=</span> <span class="n">services</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; and &#39;</span> <span class="o">+</span> <span class="n">services</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;About to stop </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">services</span><span class="p">)</span>
-    <span class="c1"># actually do the command processing here ...</span>
+    <span class="c1"># 실제로는 여기에서 명령을 처리합니다 ...</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Stopped the </span><span class="si">%s</span><span class="s1"> service</span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">services</span><span class="p">,</span> <span class="n">plural</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>and similarly for restarting:</p>
+<p>비슷하게, 다시 시작하려면:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># restart.py</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
@@ -2146,11 +2138,11 @@ separate modules, like so for starting:</p>
         <span class="n">i</span> <span class="o">=</span> <span class="n">services</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span>
         <span class="n">services</span> <span class="o">=</span> <span class="n">services</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; and &#39;</span> <span class="o">+</span> <span class="n">services</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:]</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;About to restart </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">services</span><span class="p">)</span>
-    <span class="c1"># actually do the command processing here ...</span>
+    <span class="c1"># 실제로는 여기에서 명령을 처리합니다 ...</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Restarted the </span><span class="si">%s</span><span class="s1"> service</span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">services</span><span class="p">,</span> <span class="n">plural</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If we run this application with the default log level, we get output like this:</p>
+<p>이 응용 프로그램을 기본 로그 수준으로 실행하면, 이런 출력을 얻습니다:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> python app.py start foo
 <span class="go">INFO start Started the &#39;foo&#39; service.</span>
 
@@ -2161,10 +2153,8 @@ separate modules, like so for starting:</p>
 <span class="go">INFO restart Restarted the &#39;foo&#39;, &#39;bar&#39; and &#39;baz&#39; services.</span>
 </pre></div>
 </div>
-<p>The first word is the logging level, and the second word is the module or
-package name of the place where the event was logged.</p>
-<p>If we change the logging level, then we can change the information sent to the
-log. For example, if we want more information:</p>
+<p>첫 번째 단어는 로깅 수준이고, 두 번째 단어는 이벤트가 로그 된 장소의 모듈이나 패키지 이름입니다.</p>
+<p>로깅 수준을 변경하면, 로그로 전송되는 정보를 변경할 수 있습니다. 예를 들어, 우리가 더 많은 정보를 원한다면:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> python app.py --log-level DEBUG start foo
 <span class="go">DEBUG start About to start foo</span>
 <span class="go">INFO start Started the &#39;foo&#39; service.</span>
@@ -2178,14 +2168,13 @@ log. For example, if we want more information:</p>
 <span class="go">INFO restart Restarted the &#39;foo&#39;, &#39;bar&#39; and &#39;baz&#39; services.</span>
 </pre></div>
 </div>
-<p>And if we want less:</p>
+<p>그리고 덜 원한다면:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> python app.py --log-level WARNING start foo
 <span class="gp">$</span> python app.py --log-level WARNING stop foo bar
 <span class="gp">$</span> python app.py --log-level WARNING restart foo bar baz
 </pre></div>
 </div>
-<p>In this case, the commands don't print anything to the console, since nothing
-at <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> level or above is logged by them.</p>
+<p>이 경우, <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> 수준 이상으로 아무것도 로그 하지 않았으므로, 명령은 콘솔에 아무것도 인쇄하지 않습니다.</p>
 </div>
 </div>
 
@@ -2236,7 +2225,7 @@ at <code class="docutils literal notranslate"><span class="pre">WARNING</span></
 <li><a class="reference internal" href="#buffering-logging-messages-and-outputting-them-conditionally">로깅 메시지를 버퍼링하고 조건부 출력하기</a></li>
 <li><a class="reference internal" href="#formatting-times-using-utc-gmt-via-configuration">구성을 통해 UTC(GMT)로 시간을 포맷하기</a></li>
 <li><a class="reference internal" href="#using-a-context-manager-for-selective-logging">선택적 로깅을 위해 컨텍스트 관리자 사용하기</a></li>
-<li><a class="reference internal" href="#a-cli-application-starter-template">A CLI application starter template</a></li>
+<li><a class="reference internal" href="#a-cli-application-starter-template">CLI 응용 프로그램 시작 템플릿</a></li>
 </ul>
 </li>
 </ul>
