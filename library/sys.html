@@ -130,6 +130,10 @@ always available.</p>
 <code class="descclassname">sys.</code><code class="descname">abiflags</code><a class="headerlink" href="#sys.abiflags" title="정의 주소">¶</a></dt>
 <dd><p>On POSIX systems where Python was built with the standard <code class="docutils literal notranslate"><span class="pre">configure</span></code>
 script, this contains the ABI flags as specified by <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3149"><strong>PEP 3149</strong></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Default flags became an empty string (<code class="docutils literal notranslate"><span class="pre">m</span></code> flag for pymalloc has been
+removed).</p>
+</div>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.2에 추가.</span></p>
 </div>
@@ -191,6 +195,8 @@ quickly as possible.</p>
 <a class="reference internal" href="../c-api/sys.html#c.PySys_AddAuditHook" title="PySys_AddAuditHook"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_AddAuditHook()</span></code></a> functions.</p>
 <p>The native equivalent of this function is <a class="reference internal" href="../c-api/sys.html#c.PySys_Audit" title="PySys_Audit"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_Audit()</span></code></a>. Using the
 native function is preferred when possible.</p>
+<p>See the <a class="reference internal" href="audit_events.html#audit-events"><span class="std std-ref">audit events table</span></a> for all events raised by
+<code class="docutils literal notranslate"><span class="pre">CPython</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
@@ -1133,6 +1139,10 @@ represent a digit</p></td>
 arguments) when the interpreter is launched in <a class="reference internal" href="../tutorial/interpreter.html#tut-interactive"><span class="std std-ref">interactive mode</span></a>.  This is done after the <span class="target" id="index-15"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONSTARTUP"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONSTARTUP</span></code></a> file is
 read, so that you can set this hook there.  The <a class="reference internal" href="site.html#module-site" title="site: Module responsible for site-specific configuration."><code class="xref py py-mod docutils literal notranslate"><span class="pre">site</span></code></a> module
 <a class="reference internal" href="site.html#rlcompleter-config"><span class="std std-ref">sets this</span></a>.</p>
+<p class="audit-hook"><p>Raises an <a class="reference internal" href="#auditing"><span class="std std-ref">auditing event</span></a>
+<code class="docutils literal notranslate"><span class="pre">cpython.run_interactivehook</span></code> with the hook object as the argument when
+the hook is called on startup.</p>
+</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.4에 추가.</span></p>
 </div>
@@ -1771,11 +1781,17 @@ garbage collection (<a class="reference internal" href="gc.html#gc.collect" titl
 <li><p><em>err_msg</em>: Error message, can be <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 <li><p><em>object</em>: Object causing the exception, can be <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
-<p><a class="reference internal" href="#sys.unraisablehook" title="sys.unraisablehook"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.unraisablehook()</span></code></a> can be overridden to control how unraisable
-exceptions are handled.</p>
 <p>The default hook formats <em>err_msg</em> and <em>object</em> as:
 <code class="docutils literal notranslate"><span class="pre">f'{err_msg}:</span> <span class="pre">{object!r}'</span></code>; use &quot;Exception ignored in&quot; error message
 if <em>err_msg</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p><a class="reference internal" href="#sys.unraisablehook" title="sys.unraisablehook"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.unraisablehook()</span></code></a> can be overridden to control how unraisable
+exceptions are handled.</p>
+<p>Storing <em>exc_value</em> using a custom hook can create a reference cycle. It
+should be cleared explicitly to break the reference cycle when the
+exception is no longer needed.</p>
+<p>Storing <em>object</em> using a custom hook can resurrect it if it is set to an
+object which is being finalized. Avoid storing <em>object</em> after the custom
+hook completes to avoid resurrecting objects.</p>
 <p>See also <a class="reference internal" href="#sys.excepthook" title="sys.excepthook"><code class="xref py py-func docutils literal notranslate"><span class="pre">excepthook()</span></code></a> which handles uncaught exceptions.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>

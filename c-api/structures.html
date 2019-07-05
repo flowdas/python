@@ -243,10 +243,22 @@ reference.</p>
 <dl class="type">
 <dt id="c.PyCFunctionWithKeywords">
 <code class="descname">PyCFunctionWithKeywords</code><a class="headerlink" href="#c.PyCFunctionWithKeywords" title="정의 주소">¶</a></dt>
-<dd><p>Type of the functions used to implement Python callables in C that take
-keyword arguments: they take three <a class="reference internal" href="#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a> parameters and return
-one such value.  See <a class="reference internal" href="#c.PyCFunction" title="PyCFunction"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCFunction</span></code></a> above for the meaning of the return
-value.</p>
+<dd><p>Type of the functions used to implement Python callables in C
+with signature <code class="xref py py-const docutils literal notranslate"><span class="pre">METH_VARARGS</span> <span class="pre">|</span> <span class="pre">METH_KEYWORDS</span></code>.</p>
+</dd></dl>
+
+<dl class="type">
+<dt id="c._PyCFunctionFast">
+<code class="descname">_PyCFunctionFast</code><a class="headerlink" href="#c._PyCFunctionFast" title="정의 주소">¶</a></dt>
+<dd><p>Type of the functions used to implement Python callables in C
+with signature <a class="reference internal" href="#METH_FASTCALL" title="METH_FASTCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_FASTCALL</span></code></a>.</p>
+</dd></dl>
+
+<dl class="type">
+<dt id="c._PyCFunctionFastWithKeywords">
+<code class="descname">_PyCFunctionFastWithKeywords</code><a class="headerlink" href="#c._PyCFunctionFastWithKeywords" title="정의 주소">¶</a></dt>
+<dd><p>Type of the functions used to implement Python callables in C
+with signature <code class="xref py py-const docutils literal notranslate"><span class="pre">METH_FASTCALL</span> <span class="pre">|</span> <span class="pre">METH_KEYWORDS</span></code>.</p>
 </dd></dl>
 
 <dl class="type">
@@ -298,9 +310,10 @@ Even though <a class="reference internal" href="#c.PyCFunction" title="PyCFuncti
 specific C type of the <em>self</em> object.</p>
 <p>The <code class="xref py py-attr docutils literal notranslate"><span class="pre">ml_flags</span></code> field is a bitfield which can include the following flags.
 The individual flags indicate either a calling convention or a binding
-convention.  Of the calling convention flags, only <a class="reference internal" href="#METH_VARARGS" title="METH_VARARGS"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_VARARGS</span></code></a> and
-<a class="reference internal" href="#METH_KEYWORDS" title="METH_KEYWORDS"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_KEYWORDS</span></code></a> can be combined. Any of the calling convention flags
-can be combined with a binding flag.</p>
+convention.</p>
+<p>There are four basic calling conventions for positional arguments
+and two of them can be combined with <code class="xref py py-const docutils literal notranslate"><span class="pre">METH_KEYWORDS</span></code> to support
+also keyword arguments.  So there are a total of 6 calling conventions:</p>
 <dl class="data">
 <dt id="METH_VARARGS">
 <code class="descname">METH_VARARGS</code><a class="headerlink" href="#METH_VARARGS" title="정의 주소">¶</a></dt>
@@ -313,13 +326,43 @@ using <a class="reference internal" href="arg.html#c.PyArg_ParseTuple" title="Py
 </dd></dl>
 
 <dl class="data">
-<dt id="METH_KEYWORDS">
-<code class="descname">METH_KEYWORDS</code><a class="headerlink" href="#METH_KEYWORDS" title="정의 주소">¶</a></dt>
+<dt>
+<code class="descname">METH_VARARGS | METH_KEYWORDS</code></dt>
 <dd><p>Methods with these flags must be of type <a class="reference internal" href="#c.PyCFunctionWithKeywords" title="PyCFunctionWithKeywords"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCFunctionWithKeywords</span></code></a>.
-The function expects three parameters: <em>self</em>, <em>args</em>, and a dictionary of
-all the keyword arguments.  The flag must be combined with
-<a class="reference internal" href="#METH_VARARGS" title="METH_VARARGS"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_VARARGS</span></code></a>, and the parameters are typically processed using
-<a class="reference internal" href="arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a>.</p>
+The function expects three parameters: <em>self</em>, <em>args</em>, <em>kwargs</em> where
+<em>kwargs</em> is a dictionary of all the keyword arguments or possibly <em>NULL</em>
+if there are no keyword arguments.  The parameters are typically processed
+using <a class="reference internal" href="arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="METH_FASTCALL">
+<code class="descname">METH_FASTCALL</code><a class="headerlink" href="#METH_FASTCALL" title="정의 주소">¶</a></dt>
+<dd><p>Fast calling convention supporting only positional arguments.
+The methods have the type <a class="reference internal" href="#c._PyCFunctionFast" title="_PyCFunctionFast"><code class="xref c c-type docutils literal notranslate"><span class="pre">_PyCFunctionFast</span></code></a>.
+The first parameter is <em>self</em>, the second parameter is a C array
+of <a class="reference internal" href="#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a> values indicating the arguments and the third
+parameter is the number of arguments (the length of the array).</p>
+<p>This is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.7에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descname">METH_FASTCALL | METH_KEYWORDS</code></dt>
+<dd><p>Extension of <a class="reference internal" href="#METH_FASTCALL" title="METH_FASTCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_FASTCALL</span></code></a> supporting also keyword arguments,
+with methods of type <a class="reference internal" href="#c._PyCFunctionFastWithKeywords" title="_PyCFunctionFastWithKeywords"><code class="xref c c-type docutils literal notranslate"><span class="pre">_PyCFunctionFastWithKeywords</span></code></a>.
+Keyword arguments are passed the same way as in the vectorcall protocol:
+there is an additional fourth <a class="reference internal" href="#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a> parameter
+which is a tuple representing the names of the keyword arguments
+or possibly <em>NULL</em> if there are no keywords.  The values of the keyword
+arguments are stored in the <em>args</em> array, after the positional arguments.</p>
+<p>This is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.7에 추가.</span></p>
+</div>
 </dd></dl>
 
 <dl class="data">

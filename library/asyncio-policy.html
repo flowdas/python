@@ -218,10 +218,14 @@
 
 </div>
 <div class="section" id="process-watchers">
-<h2>프로세스 감시자<a class="headerlink" href="#process-watchers" title="제목 주소">¶</a></h2>
+<span id="asyncio-watchers"></span><h2>프로세스 감시자<a class="headerlink" href="#process-watchers" title="제목 주소">¶</a></h2>
 <p>프로세스 감시자는 이벤트 루프가 유닉스에서 자식 프로세스를 관찰하는 방법을 사용자 정의할 수 있도록 합니다. 특히, 이벤트 루프는 자식 프로세스가 언제 종료했는지 알 필요가 있습니다.</p>
 <p>asyncio에서, 자식 프로세스는 <a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_exec" title="asyncio.create_subprocess_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_subprocess_exec()</span></code></a> 와 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a> 함수로 만들어집니다.</p>
-<p>asyncio는 자식 관찰자가 구현해야 하는 <a class="reference internal" href="#asyncio.AbstractChildWatcher" title="asyncio.AbstractChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractChildWatcher</span></code></a> 추상 베이스 클래스를 정의하며, <a class="reference internal" href="#asyncio.SafeChildWatcher" title="asyncio.SafeChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeChildWatcher</span></code></a>(기본적으로 사용하도록 구성됩니다)와 <a class="reference internal" href="#asyncio.FastChildWatcher" title="asyncio.FastChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastChildWatcher</span></code></a>의 두 가지 구현이 있습니다.</p>
+<p>asyncio defines the <a class="reference internal" href="#asyncio.AbstractChildWatcher" title="asyncio.AbstractChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractChildWatcher</span></code></a> abstract base class, which child
+watchers should implement, and has four different implementations:
+<a class="reference internal" href="#asyncio.ThreadedChildWatcher" title="asyncio.ThreadedChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThreadedChildWatcher</span></code></a> (configured to be used by default),
+<a class="reference internal" href="#asyncio.MultiLoopChildWatcher" title="asyncio.MultiLoopChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiLoopChildWatcher</span></code></a>, <a class="reference internal" href="#asyncio.SafeChildWatcher" title="asyncio.SafeChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeChildWatcher</span></code></a>, and
+<a class="reference internal" href="#asyncio.FastChildWatcher" title="asyncio.FastChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastChildWatcher</span></code></a>.</p>
 <p><a class="reference internal" href="asyncio-subprocess.html#asyncio-subprocess-threads"><span class="std std-ref">서브 프로세스와 스레드</span></a> 절도 참조하십시오.</p>
 <p>다음 두 함수를 사용하여 asyncio 이벤트 루프에서 사용되는 자식 프로세스 감시자 구현을 사용자 정의할 수 있습니다:</p>
 <dl class="function">
@@ -267,6 +271,17 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="asyncio.AbstractChildWatcher.is_active">
+<code class="descname">is_active</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.AbstractChildWatcher.is_active" title="정의 주소">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">True</span></code> if the watcher is ready to use.</p>
+<p>Spawning a subprocess with <em>inactive</em> current child watcher raises
+<a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="asyncio.AbstractChildWatcher.close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.AbstractChildWatcher.close" title="정의 주소">¶</a></dt>
 <dd><p>감시자를 닫습니다.</p>
@@ -276,11 +291,46 @@
 </dd></dl>
 
 <dl class="class">
+<dt id="asyncio.ThreadedChildWatcher">
+<em class="property">class </em><code class="descclassname">asyncio.</code><code class="descname">ThreadedChildWatcher</code><a class="headerlink" href="#asyncio.ThreadedChildWatcher" title="정의 주소">¶</a></dt>
+<dd><p>This implementation starts a new waiting thread for every subprocess spawn.</p>
+<p>It works reliably even when the asyncio event loop is run in a non-main OS thread.</p>
+<p>There is no noticeable overhead when handling a big number of children (<em>O(1)</em> each
+time a child terminates), but stating a thread per process requires extra memory.</p>
+<p>This watcher is used by default.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="asyncio.MultiLoopChildWatcher">
+<em class="property">class </em><code class="descclassname">asyncio.</code><code class="descname">MultiLoopChildWatcher</code><a class="headerlink" href="#asyncio.MultiLoopChildWatcher" title="정의 주소">¶</a></dt>
+<dd><p>This implementation registers a <code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code> signal handler on
+instantiation. That can break third-party code that installs a custom handler for
+<cite>SIGCHLD</cite>.  signal).</p>
+<p>The watcher avoids disrupting other code spawning processes
+by polling every process explicitly on a <code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code> signal.</p>
+<p>There is no limitation for running subprocesses from different threads once the
+watcher is installed.</p>
+<p>The solution is safe but it has a significant overhead when
+handling a big number of processes (<em>O(n)</em> each time a
+<code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code> is received).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+</dd></dl>
+
+<dl class="class">
 <dt id="asyncio.SafeChildWatcher">
 <em class="property">class </em><code class="descclassname">asyncio.</code><code class="descname">SafeChildWatcher</code><a class="headerlink" href="#asyncio.SafeChildWatcher" title="정의 주소">¶</a></dt>
-<dd><p>이 구현은 <code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code> 시그널에 대해 명시적으로 모든 프로세스를 폴링하여 프로세스를 스포닝하는 다른 코드를 방해하지 않습니다.</p>
-<p>이것은 안전한 해법이지만 많은 수의 프로세스를 처리할 때 상당한 오버헤드가 있습니다 (<code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code>가 수신될 때마다 <em>O(n)</em>).</p>
-<p>asyncio는 기본적으로 이 안전한 구현을 사용합니다.</p>
+<dd><p>This implementation uses active event loop from the main thread to handle
+<code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code> signal. If the main thread has no running event loop another
+thread cannot spawn a subprocess (<a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> is raised).</p>
+<p>The watcher avoids disrupting other code spawning processes
+by polling every process explicitly on a <code class="xref py py-data docutils literal notranslate"><span class="pre">SIGCHLD</span></code> signal.</p>
+<p>This solution is as safe as <a class="reference internal" href="#asyncio.MultiLoopChildWatcher" title="asyncio.MultiLoopChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiLoopChildWatcher</span></code></a> and has the same <em>O(N)</em>
+complexity but requires a running event loop in the main thread to work.</p>
 </dd></dl>
 
 <dl class="class">
@@ -288,6 +338,8 @@
 <em class="property">class </em><code class="descclassname">asyncio.</code><code class="descname">FastChildWatcher</code><a class="headerlink" href="#asyncio.FastChildWatcher" title="정의 주소">¶</a></dt>
 <dd><p>이 구현은 <code class="docutils literal notranslate"><span class="pre">os.waitpid(-1)</span></code>를 직접 호출하여 종료된 모든 프로세스를 거둡니다. 프로세스를 스포닝하는 다른 코드를 망가뜨리고 그들의 종료를 기다릴 수 있습니다.</p>
 <p>많은 수의 자식을 처리할 때 눈에 띄는 오버헤드가 없습니다 (자식이 종료될 때마다 <em>O(1)</em>).</p>
+<p>This solution requires a running event loop in the main thread to work, as
+<a class="reference internal" href="#asyncio.SafeChildWatcher" title="asyncio.SafeChildWatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeChildWatcher</span></code></a>.</p>
 </dd></dl>
 
 </div>
