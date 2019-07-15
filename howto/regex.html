@@ -701,12 +701,7 @@ To: editor@example.com
 </pre></div>
 </div>
 <p>그룹 9를 꺼내는 것을 기억하는 대신, <code class="docutils literal notranslate"><span class="pre">m.group('zonem')</span></code>을 꺼내는 것이 훨씬 쉽습니다.</p>
-<p>The syntax for backreferences in an expression such as <code class="docutils literal notranslate"><span class="pre">(...)\1</span></code> refers to the
-number of the group.  There's naturally a variant that uses the group name
-instead of the number. This is another Python extension: <code class="docutils literal notranslate"><span class="pre">(?P=name)</span></code> indicates
-that the contents of the group called <em>name</em> should again be matched at the
-current point.  The regular expression for finding doubled words,
-<code class="docutils literal notranslate"><span class="pre">\b(\w+)\s+\1\b</span></code> can also be written as <code class="docutils literal notranslate"><span class="pre">\b(?P&lt;word&gt;\w+)\s+(?P=word)\b</span></code>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">(...)\1</span></code>와 같은 정규식에서 역 참조 문법은 그룹 번호를 나타냅니다. 자연스럽게 번호 대신 그룹 이름을 사용하는 변형이 있습니다. 이것은 다른 파이썬 확장입니다: <code class="docutils literal notranslate"><span class="pre">(?P=name)</span></code>은 <em>name</em>이라는 그룹의 내용이 현재 위치에서 다시 일치해야 함을 나타냅니다. 중복된 단어를 찾는 정규식인 <code class="docutils literal notranslate"><span class="pre">\b(\w+)\s+\1\b</span></code>는 <code class="docutils literal notranslate"><span class="pre">\b(?P&lt;word&gt;\w+)\s+(?P=word)\b</span></code>로 표현할 수도 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b(?P&lt;word&gt;\w+)\s+(?P=word)\b&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Paris in the the spring&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
 <span class="go">&#39;the the&#39;</span>
@@ -715,71 +710,33 @@ current point.  The regular expression for finding doubled words,
 </div>
 <div class="section" id="lookahead-assertions">
 <h3>미리보기 어서션<a class="headerlink" href="#lookahead-assertions" title="제목 주소">¶</a></h3>
-<p>Another zero-width assertion is the lookahead assertion.  Lookahead assertions
-are available in both positive and negative form, and  look like this:</p>
+<p>또 다른 폭이 없는 어서션은 미리보기 어서션(lookahead assertion)입니다. 미리보기 어서션은 긍정과 부정 형식 모두 제공되며, 다음과 같이 표시됩니다:</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">(?=...)</span></code></dt><dd><p>Positive lookahead assertion.  This succeeds if the contained regular
-expression, represented here by <code class="docutils literal notranslate"><span class="pre">...</span></code>, successfully matches at the current
-location, and fails otherwise. But, once the contained expression has been
-tried, the matching engine doesn't advance at all; the rest of the pattern is
-tried right where the assertion started.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">(?=...)</span></code></dt><dd><p>긍정적인 미리보기 어서션. 포함된 정규식(여기에서는 <code class="docutils literal notranslate"><span class="pre">...</span></code>로 표시되었습니다)이 현재 위치에서 성공적으로 일치하면 성공하고, 그렇지 않으면 실패합니다. 그러나, 일단 포함된 정규식이 시도되면, 일치 엔진은 전혀 앞으로 나아가지 않습니다; 어서선이 시작한 곳에서 나머지 패턴을 시도합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">(?!...)</span></code></dt><dd><p>Negative lookahead assertion.  This is the opposite of the positive assertion;
-it succeeds if the contained expression <em>doesn't</em> match at the current position
-in the string.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">(?!...)</span></code></dt><dd><p>부정적인 미리보기 어서션. 이것은 긍정적인 어서션의 반대입니다; 포함된 정규식이 문자열의 현재 위치에서 일치하지 <em>않으면</em> 성공합니다.</p>
 </dd>
 </dl>
-<p>To make this concrete, let's look at a case where a lookahead is useful.
-Consider a simple pattern to match a filename and split it apart into a base
-name and an extension, separated by a <code class="docutils literal notranslate"><span class="pre">.</span></code>.  For example, in <code class="docutils literal notranslate"><span class="pre">news.rc</span></code>,
-<code class="docutils literal notranslate"><span class="pre">news</span></code> is the base name, and <code class="docutils literal notranslate"><span class="pre">rc</span></code> is the filename's extension.</p>
-<p>The pattern to match this is quite simple:</p>
+<p>이를 구체적으로 설명하기 위해, 미리보기가 유용한 경우를 살펴 보겠습니다. 파일 이름을 일치시키고 <code class="docutils literal notranslate"><span class="pre">.</span></code>로 구분된 기본 이름과 확장자로 분리하는 간단한 패턴을 생각해봅시다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">news.rc</span></code>에서, <code class="docutils literal notranslate"><span class="pre">news</span></code>는 기본 이름이고 <code class="docutils literal notranslate"><span class="pre">rc</span></code>는 파일명의 확장자입니다.</p>
+<p>이것과 일치하는 패턴은 매우 간단합니다:</p>
 <p><code class="docutils literal notranslate"><span class="pre">.*[.].*$</span></code></p>
-<p>Notice that the <code class="docutils literal notranslate"><span class="pre">.</span></code> needs to be treated specially because it's a
-metacharacter, so it's inside a character class to only match that
-specific character.  Also notice the trailing <code class="docutils literal notranslate"><span class="pre">$</span></code>; this is added to
-ensure that all the rest of the string must be included in the
-extension.  This regular expression matches <code class="docutils literal notranslate"><span class="pre">foo.bar</span></code> and
-<code class="docutils literal notranslate"><span class="pre">autoexec.bat</span></code> and <code class="docutils literal notranslate"><span class="pre">sendmail.cf</span></code> and <code class="docutils literal notranslate"><span class="pre">printers.conf</span></code>.</p>
-<p>Now, consider complicating the problem a bit; what if you want to match
-filenames where the extension is not <code class="docutils literal notranslate"><span class="pre">bat</span></code>? Some incorrect attempts:</p>
-<p><code class="docutils literal notranslate"><span class="pre">.*[.][^b].*$</span></code>  The first attempt above tries to exclude <code class="docutils literal notranslate"><span class="pre">bat</span></code> by requiring
-that the first character of the extension is not a <code class="docutils literal notranslate"><span class="pre">b</span></code>.  This is wrong,
-because the pattern also doesn't match <code class="docutils literal notranslate"><span class="pre">foo.bar</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">.</span></code>는 메타 문자이므로 특수하게 처리해야하므로, 해당 문자에만 일치하기 위해 문자 클래스 내에 있습니다. 또한 후행 <code class="docutils literal notranslate"><span class="pre">$</span></code>도 유의하십시오; 나머지 문자열이 확장에 포함되어야 함을 보장하기 위해 추가됩니다. 이 정규식은 <code class="docutils literal notranslate"><span class="pre">foo.bar</span></code>와 <code class="docutils literal notranslate"><span class="pre">autoexec.bat</span></code>와 <code class="docutils literal notranslate"><span class="pre">sendmail.cf</span></code>와 <code class="docutils literal notranslate"><span class="pre">printers.conf</span></code>와 일치합니다.</p>
+<p>자, 문제를 조금 복잡하게 생각해보십시오; 확장자가 <code class="docutils literal notranslate"><span class="pre">bat</span></code>이 아닌 파일명을 일치 시키려면 어떻게해야합니까? 몇 가지 잘못된 시도:</p>
+<p><code class="docutils literal notranslate"><span class="pre">.*[.][^b].*$</span></code> 위의 첫 번째 시도는 확장자의 첫 번째 문자가 <code class="docutils literal notranslate"><span class="pre">b</span></code>가 아니도록 요구하여 <code class="docutils literal notranslate"><span class="pre">bat</span></code>를 제외하려고 시도합니다. 패턴이 <code class="docutils literal notranslate"><span class="pre">foo.bar</span></code>와도 일치하지 않기 때문에, 이것은 잘못된 것입니다.</p>
 <p><code class="docutils literal notranslate"><span class="pre">.*[.]([^b]..|.[^a].|..[^t])$</span></code></p>
-<p>The expression gets messier when you try to patch up the first solution by
-requiring one of the following cases to match: the first character of the
-extension isn't <code class="docutils literal notranslate"><span class="pre">b</span></code>; the second character isn't <code class="docutils literal notranslate"><span class="pre">a</span></code>; or the third character
-isn't <code class="docutils literal notranslate"><span class="pre">t</span></code>.  This accepts <code class="docutils literal notranslate"><span class="pre">foo.bar</span></code> and rejects <code class="docutils literal notranslate"><span class="pre">autoexec.bat</span></code>, but it
-requires a three-letter extension and won't accept a filename with a two-letter
-extension such as <code class="docutils literal notranslate"><span class="pre">sendmail.cf</span></code>.  We'll complicate the pattern again in an
-effort to fix it.</p>
+<p>다음의 경우 중 하나를 요구하여 첫 번째 해결 방법을 패치할 때 정규식이 더 복잡해집니다: 확장자의 첫 번째 문자가 <code class="docutils literal notranslate"><span class="pre">b</span></code>가 아닙니다; 두 번째 문자가 <code class="docutils literal notranslate"><span class="pre">a</span></code>가 아닙니다; 또는 세 번째 문자가 <code class="docutils literal notranslate"><span class="pre">t</span></code>가 아닙니다. 이것은 <code class="docutils literal notranslate"><span class="pre">foo.bar</span></code>를 받아들이고 <code class="docutils literal notranslate"><span class="pre">autoexec.bat</span></code>를 거부하지만, 세 문자 확장자를 요구하고 <code class="docutils literal notranslate"><span class="pre">sendmail.cf</span></code>와 같은 두 문자로 된 확장자를 가진 파일명을 허용하지 않습니다. 문제를 해결하기 위해 패턴을 다시 복잡하게 만들 것입니다.</p>
 <p><code class="docutils literal notranslate"><span class="pre">.*[.]([^b].?.?|.[^a]?.?|..?[^t]?)$</span></code></p>
-<p>In the third attempt, the second and third letters are all made optional in
-order to allow matching extensions shorter than three characters, such as
-<code class="docutils literal notranslate"><span class="pre">sendmail.cf</span></code>.</p>
-<p>The pattern's getting really complicated now, which makes it hard to read and
-understand.  Worse, if the problem changes and you want to exclude both <code class="docutils literal notranslate"><span class="pre">bat</span></code>
-and <code class="docutils literal notranslate"><span class="pre">exe</span></code> as extensions, the pattern would get even more complicated and
-confusing.</p>
-<p>A negative lookahead cuts through all this confusion:</p>
-<p><code class="docutils literal notranslate"><span class="pre">.*[.](?!bat$)[^.]*$</span></code>  The negative lookahead means: if the expression <code class="docutils literal notranslate"><span class="pre">bat</span></code>
-doesn't match at this point, try the rest of the pattern; if <code class="docutils literal notranslate"><span class="pre">bat$</span></code> does
-match, the whole pattern will fail.  The trailing <code class="docutils literal notranslate"><span class="pre">$</span></code> is required to ensure
-that something like <code class="docutils literal notranslate"><span class="pre">sample.batch</span></code>, where the extension only starts with
-<code class="docutils literal notranslate"><span class="pre">bat</span></code>, will be allowed.  The <code class="docutils literal notranslate"><span class="pre">[^.]*</span></code> makes sure that the pattern works
-when there are multiple dots in the filename.</p>
-<p>Excluding another filename extension is now easy; simply add it as an
-alternative inside the assertion.  The following pattern excludes filenames that
-end in either <code class="docutils literal notranslate"><span class="pre">bat</span></code> or <code class="docutils literal notranslate"><span class="pre">exe</span></code>:</p>
+<p>세 번째 시도에서, <code class="docutils literal notranslate"><span class="pre">sendmail.cf</span></code>와 같이 세 문자보다 짧은 확장자를 허용하기 위해 두 번째와 세 번째 문자는 모두 선택적입니다.</p>
+<p>이제 패턴이 정말 복잡 해져서, 읽고 이해하기 어렵습니다. 더욱이, 문제가 변경되어 확장자 <code class="docutils literal notranslate"><span class="pre">bat</span></code>와 <code class="docutils literal notranslate"><span class="pre">exe</span></code>를 모두 제외하려면, 패턴이 훨씬 복잡하고 혼란스러워집니다.</p>
+<p>부정적인 미리보기는 이 모든 혼란을 제거합니다:</p>
+<p><code class="docutils literal notranslate"><span class="pre">.*[.](?!bat$)[^.]*$</span></code> 부정적인 미리보기는 다음과 같은 의미입니다: <code class="docutils literal notranslate"><span class="pre">bat</span></code> 정규식이 이 지점에서 일치하지 않으면, 나머지 패턴을 시도합니다; <code class="docutils literal notranslate"><span class="pre">bat$</span></code>가 일치하면, 전체 패턴이 실패합니다. 후행 <code class="docutils literal notranslate"><span class="pre">$</span></code>는 <code class="docutils literal notranslate"><span class="pre">sample.batch</span></code>와 같이 <code class="docutils literal notranslate"><span class="pre">bat</span></code>로 시작하기만하는 확장자를 허용하기위해 필요합니다. <code class="docutils literal notranslate"><span class="pre">[^.]*</span></code>는 파일명에 여러 점이있을 때 패턴이 작동하도록 합니다.</p>
+<p>다른 파일명 확장자를 제외하는 것이 이제는 쉽습니다; 단순히 어서션 안에 대안으로 추가하십시오. 다음 패턴은 <code class="docutils literal notranslate"><span class="pre">bat</span></code>나 <code class="docutils literal notranslate"><span class="pre">exe</span></code>로 끝나는 파일명을 제외합니다:</p>
 <p><code class="docutils literal notranslate"><span class="pre">.*[.](?!bat$|exe$)[^.]*$</span></code></p>
 </div>
 </div>
 <div class="section" id="modifying-strings">
-<h2>Modifying Strings<a class="headerlink" href="#modifying-strings" title="제목 주소">¶</a></h2>
-<p>Up to this point, we've simply performed searches against a static string.
-Regular expressions are also commonly used to modify strings in various ways,
-using the following pattern methods:</p>
+<h2>문자열 수정하기<a class="headerlink" href="#modifying-strings" title="제목 주소">¶</a></h2>
+<p>지금까지는, 정적 문자열에 대한 검색만 수행했습니다. 정규식은 다음과 같은 패턴 메서드를 사용하여 다양한 방법으로 문자열을 수정하는 데 흔히 사용됩니다:</p>
 <table class="docutils align-center">
 <colgroup>
 <col style="width: 28%" />
@@ -792,41 +749,26 @@ using the following pattern methods:</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">split()</span></code></p></td>
-<td><p>Split the string into a list, splitting it
-wherever the RE matches</p></td>
+<td><p>RE가 일치하는 모든 곳에서 분할하여, 문자열을 리스트로 분할합니다</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sub()</span></code></p></td>
-<td><p>Find all substrings where the RE matches, and
-replace them with a different string</p></td>
+<td><p>RE가 일치하는 모든 부분 문자열을 찾고, 다른 문자열로 대체합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subn()</span></code></p></td>
-<td><p>Does the same thing as <code class="xref py py-meth docutils literal notranslate"><span class="pre">sub()</span></code>,  but
-returns the new string and the number of
-replacements</p></td>
+<td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">sub()</span></code>와 같은 일을 하지만, 새로운 문자열과 치환 횟수를 반환합니다</p></td>
 </tr>
 </tbody>
 </table>
 <div class="section" id="splitting-strings">
-<h3>Splitting Strings<a class="headerlink" href="#splitting-strings" title="제목 주소">¶</a></h3>
-<p>The <a class="reference internal" href="../library/re.html#re.Pattern.split" title="re.Pattern.split"><code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code></a> method of a pattern splits a string apart
-wherever the RE matches, returning a list of the pieces. It's similar to the
-<a class="reference internal" href="../library/stdtypes.html#str.split" title="str.split"><code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code></a> method of strings but provides much more generality in the
-delimiters that you can split by; string <code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code> only supports splitting by
-whitespace or by a fixed string.  As you'd expect, there's a module-level
-<a class="reference internal" href="../library/re.html#re.split" title="re.split"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.split()</span></code></a> function, too.</p>
+<h3>문자열 분할하기<a class="headerlink" href="#splitting-strings" title="제목 주소">¶</a></h3>
+<p>패턴의 <a class="reference internal" href="../library/re.html#re.Pattern.split" title="re.Pattern.split"><code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code></a> 메서드는 RE가 일치하는 모든 곳에서 문자열을 분할하여, 조각의 리스트를 반환합니다. 이것은 <a class="reference internal" href="../library/stdtypes.html#str.split" title="str.split"><code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code></a> 문자열 메서드와 비슷하지만 분리하는 데 사용되는 구분자에 훨씬 더 일반성을 제공합니다; 문자열 <code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code>는 공백이나 고정 문자열로의 분할 만 지원합니다. 예상대로, 모듈 수준의 <a class="reference internal" href="../library/re.html#re.split" title="re.split"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.split()</span></code></a> 함수도 있습니다.</p>
 <dl class="method">
 <dt>
 <code class="descclassname">.</code><code class="descname">split</code><span class="sig-paren">(</span><em>string</em><span class="optional">[</span>, <em>maxsplit=0</em><span class="optional">]</span><span class="sig-paren">)</span></dt>
-<dd><p>Split <em>string</em> by the matches of the regular expression.  If capturing
-parentheses are used in the RE, then their contents will also be returned as
-part of the resulting list.  If <em>maxsplit</em> is nonzero, at most <em>maxsplit</em> splits
-are performed.</p>
+<dd><p>정규식과 일치하는 것으로 <em>string</em>을 분할합니다. RE에서 포착ㅘ는 괄호가 사용되면, 해당 내용도 결과 리스트의 일부로 반환됩니다. <em>maxsplit</em>가 0이 아니면, 최대 <em>maxsplit</em> 번 분할만 수행됩니다.</p>
 </dd></dl>
 
-<p>You can limit the number of splits made, by passing a value for <em>maxsplit</em>.
-When <em>maxsplit</em> is nonzero, at most <em>maxsplit</em> splits will be made, and the
-remainder of the string is returned as the final element of the list.  In the
-following example, the delimiter is any sequence of non-alphanumeric characters.</p>
+<p><em>maxsplit</em> 값을 전달하여, 분할 수를 제한 할 수 있습니다. <em>maxsplit</em>가 0이 아니면, 최대 <em>maxsplit</em> 번 분할만 이루어지고, 나머지 문자열은 리스트의 마지막 요소로 반환됩니다. 다음 예제에서, 구분자는 영숫자가 아닌 문자 시퀀스입니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\W+&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;This is a test, short and sweet, of split().&#39;</span><span class="p">)</span>
 <span class="go">[&#39;This&#39;, &#39;is&#39;, &#39;a&#39;, &#39;test&#39;, &#39;short&#39;, &#39;and&#39;, &#39;sweet&#39;, &#39;of&#39;, &#39;split&#39;, &#39;&#39;]</span>
@@ -834,10 +776,7 @@ following example, the delimiter is any sequence of non-alphanumeric characters.
 <span class="go">[&#39;This&#39;, &#39;is&#39;, &#39;a&#39;, &#39;test, short and sweet, of split().&#39;]</span>
 </pre></div>
 </div>
-<p>Sometimes you're not only interested in what the text between delimiters is, but
-also need to know what the delimiter was.  If capturing parentheses are used in
-the RE, then their values are also returned as part of the list.  Compare the
-following calls:</p>
+<p>때로는 구분자 사이의 텍스트가 무엇인지에 관심이있을뿐만 아니라, 구분자가 무엇 인지도 알아야할 필요가 있습니다. RE에서 포착하는 괄호가 사용되면, 해당 값도 리스트의 일부로 반환됩니다. 다음 호출을 비교하십시오:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\W+&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\W+)&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;This... is a test.&#39;</span><span class="p">)</span>
@@ -846,8 +785,7 @@ following calls:</p>
 <span class="go">[&#39;This&#39;, &#39;... &#39;, &#39;is&#39;, &#39; &#39;, &#39;a&#39;, &#39; &#39;, &#39;test&#39;, &#39;.&#39;, &#39;&#39;]</span>
 </pre></div>
 </div>
-<p>The module-level function <a class="reference internal" href="../library/re.html#re.split" title="re.split"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.split()</span></code></a> adds the RE to be used as the first
-argument, but is otherwise the same.</p>
+<p>모듈 수준 함수 <a class="reference internal" href="../library/re.html#re.split" title="re.split"><code class="xref py py-func docutils literal notranslate"><span class="pre">re.split()</span></code></a>는 첫 번째 인자로 사용할 RE를 추가하지만, 이를 제외하고는 같습니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[\W]+&#39;</span><span class="p">,</span> <span class="s1">&#39;Words, words, words.&#39;</span><span class="p">)</span>
 <span class="go">[&#39;Words&#39;, &#39;words&#39;, &#39;words&#39;, &#39;&#39;]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([\W]+)&#39;</span><span class="p">,</span> <span class="s1">&#39;Words, words, words.&#39;</span><span class="p">)</span>
@@ -858,23 +796,16 @@ argument, but is otherwise the same.</p>
 </div>
 </div>
 <div class="section" id="search-and-replace">
-<h3>Search and Replace<a class="headerlink" href="#search-and-replace" title="제목 주소">¶</a></h3>
-<p>Another common task is to find all the matches for a pattern, and replace them
-with a different string.  The <a class="reference internal" href="../library/re.html#re.Pattern.sub" title="re.Pattern.sub"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sub()</span></code></a> method takes a replacement value,
-which can be either a string or a function, and the string to be processed.</p>
+<h3>검색과 치환<a class="headerlink" href="#search-and-replace" title="제목 주소">¶</a></h3>
+<p>또 다른 흔한 작업은 패턴에 대한 모든 일치를 찾아 다른 문자열로 치환하는 것입니다. <a class="reference internal" href="../library/re.html#re.Pattern.sub" title="re.Pattern.sub"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sub()</span></code></a> 메서드는 치환값(문자열이나 함수일 수 있습니다)과 처리 할 문자열을 취합니다.</p>
 <dl class="method">
 <dt>
 <code class="descclassname">.</code><code class="descname">sub</code><span class="sig-paren">(</span><em>replacement</em>, <em>string</em><span class="optional">[</span>, <em>count=0</em><span class="optional">]</span><span class="sig-paren">)</span></dt>
-<dd><p>Returns the string obtained by replacing the leftmost non-overlapping
-occurrences of the RE in <em>string</em> by the replacement <em>replacement</em>.  If the
-pattern isn't found, <em>string</em> is returned unchanged.</p>
-<p>The optional argument <em>count</em> is the maximum number of pattern occurrences to be
-replaced; <em>count</em> must be a non-negative integer.  The default value of 0 means
-to replace all occurrences.</p>
+<dd><p><em>string</em>에서 가장 왼쪽에 나타나는 겹쳐지지 않은 RE의 일치를 <em>replacement</em>로 치환한 문자열을 반환합니다. 패턴이 없으면, <em>string</em>이 변경 없이 반환됩니다.</p>
+<p>선택적 인자 <em>count</em>는 치환 될 패턴 일치의 최대 수입니다; <em>count</em>는 음수가 아닌 정수여야 합니다. 기본값 0은 모든 일치를 치환하는 것을 의미합니다.</p>
 </dd></dl>
 
-<p>Here's a simple example of using the <a class="reference internal" href="../library/re.html#re.Pattern.sub" title="re.Pattern.sub"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sub()</span></code></a> method.  It replaces colour
-names with the word <code class="docutils literal notranslate"><span class="pre">colour</span></code>:</p>
+<p>다음은 <a class="reference internal" href="../library/re.html#re.Pattern.sub" title="re.Pattern.sub"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sub()</span></code></a> 메서드를 사용하는 간단한 예제입니다. 색상 이름을 <code class="docutils literal notranslate"><span class="pre">colour</span></code>라는 단어로 바꿉니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(blue|white|red)&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;colour&#39;</span><span class="p">,</span> <span class="s1">&#39;blue socks and red shoes&#39;</span><span class="p">)</span>
 <span class="go">&#39;colour socks and colour shoes&#39;</span>
@@ -882,8 +813,7 @@ names with the word <code class="docutils literal notranslate"><span class="pre"
 <span class="go">&#39;colour socks and red shoes&#39;</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="../library/re.html#re.Pattern.subn" title="re.Pattern.subn"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subn()</span></code></a> method does the same work, but returns a 2-tuple containing the
-new string value and the number of replacements  that were performed:</p>
+<p><a class="reference internal" href="../library/re.html#re.Pattern.subn" title="re.Pattern.subn"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subn()</span></code></a> 메서드는 같은 작업을 수행하지만, 새 문자열 값과 수행 된 치환 수가 포함 된 2-튜플을 반환합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(blue|white|red)&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">subn</span><span class="p">(</span><span class="s1">&#39;colour&#39;</span><span class="p">,</span> <span class="s1">&#39;blue socks and red shoes&#39;</span><span class="p">)</span>
 <span class="go">(&#39;colour socks and colour shoes&#39;, 2)</span>
@@ -891,7 +821,7 @@ new string value and the number of replacements  that were performed:</p>
 <span class="go">(&#39;no colours at all&#39;, 0)</span>
 </pre></div>
 </div>
-<p>Empty matches are replaced only when they're not adjacent to a previous empty match.</p>
+<p>빈 일치는 이전의 빈 일치와 인접하지 않은 경우에만 치환됩니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;x*&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;abxd&#39;</span><span class="p">)</span>
 <span class="go">&#39;-a-b--d-&#39;</span>
@@ -1129,9 +1059,9 @@ it out from your library.</p>
 <li><a class="reference internal" href="#lookahead-assertions">미리보기 어서션</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#modifying-strings">Modifying Strings</a><ul>
-<li><a class="reference internal" href="#splitting-strings">Splitting Strings</a></li>
-<li><a class="reference internal" href="#search-and-replace">Search and Replace</a></li>
+<li><a class="reference internal" href="#modifying-strings">문자열 수정하기</a><ul>
+<li><a class="reference internal" href="#splitting-strings">문자열 분할하기</a></li>
+<li><a class="reference internal" href="#search-and-replace">검색과 치환</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#common-problems">Common Problems</a><ul>
