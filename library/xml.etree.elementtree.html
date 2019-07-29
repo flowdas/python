@@ -771,10 +771,8 @@ arguments.  Returns an element instance.</p>
 </dd></dl>
 
 <dl class="function">
-<dt>
-<code class="descname">tostring(element, encoding=&quot;us-ascii&quot;, method=&quot;xml&quot;, *,                     xml_declaration=None, default_namespace=None,</code></dt>
-<dt>
-<code class="descname">short_empty_elements=True)</code></dt>
+<dt id="xml.etree.ElementTree.tostring">
+<code class="descclassname">xml.etree.ElementTree.</code><code class="descname">tostring</code><span class="sig-paren">(</span><em>element</em>, <em>encoding=&quot;us-ascii&quot;</em>, <em>method=&quot;xml&quot;</em>, <em>*</em>, <em>xml_declaration=None</em>, <em>default_namespace=None</em>, <em>short_empty_elements=True</em><span class="sig-paren">)</span><a class="headerlink" href="#xml.etree.ElementTree.tostring" title="정의 주소">¶</a></dt>
 <dd><p>Generates a string representation of an XML element, including all
 subelements.  <em>element</em> is an <a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> instance.  <em>encoding</em> <a class="footnote-reference brackets" href="#id6" id="id1">1</a> is
 the output encoding (default is US-ASCII).  Use <code class="docutils literal notranslate"><span class="pre">encoding=&quot;unicode&quot;</span></code> to
@@ -789,13 +787,15 @@ containing the XML data.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가: </span>The <em>xml_declaration</em> and <em>default_namespace</em> parameters.</p>
 </div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>The <a class="reference internal" href="#xml.etree.ElementTree.tostring" title="xml.etree.ElementTree.tostring"><code class="xref py py-func docutils literal notranslate"><span class="pre">tostring()</span></code></a> function now preserves the attribute order
+specified by the user.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
-<dt>
-<code class="descname">tostringlist(element, encoding=&quot;us-ascii&quot;, method=&quot;xml&quot;, *,                         xml_declaration=None, default_namespace=None,</code></dt>
-<dt>
-<code class="descname">short_empty_elements=True)</code></dt>
+<dt id="xml.etree.ElementTree.tostringlist">
+<code class="descclassname">xml.etree.ElementTree.</code><code class="descname">tostringlist</code><span class="sig-paren">(</span><em>element</em>, <em>encoding=&quot;us-ascii&quot;</em>, <em>method=&quot;xml&quot;</em>, <em>*</em>, <em>xml_declaration=None</em>, <em>default_namespace=None</em>, <em>short_empty_elements=True</em><span class="sig-paren">)</span><a class="headerlink" href="#xml.etree.ElementTree.tostringlist" title="정의 주소">¶</a></dt>
 <dd><p>Generates a string representation of an XML element, including all
 subelements.  <em>element</em> is an <a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> instance.  <em>encoding</em> <a class="footnote-reference brackets" href="#id6" id="id2">1</a> is
 the output encoding (default is US-ASCII).  Use <code class="docutils literal notranslate"><span class="pre">encoding=&quot;unicode&quot;</span></code> to
@@ -813,6 +813,10 @@ except that <code class="docutils literal notranslate"><span class="pre">b&quot;
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가: </span>The <em>xml_declaration</em> and <em>default_namespace</em> parameters.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>The <a class="reference internal" href="#xml.etree.ElementTree.tostringlist" title="xml.etree.ElementTree.tostringlist"><code class="xref py py-func docutils literal notranslate"><span class="pre">tostringlist()</span></code></a> function now preserves the attribute order
+specified by the user.</p>
 </div>
 </dd></dl>
 
@@ -1061,6 +1065,33 @@ will change in future versions.  Use specific <code class="docutils literal notr
 
 <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;element not found&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Prior to Python 3.8, the serialisation order of the XML attributes of
+elements was artificially made predictable by sorting the attributes by
+their name. Based on the now guaranteed ordering of dicts, this arbitrary
+reordering was removed in Python 3.8 to preserve the order in which
+attributes were originally parsed or created by user code.</p>
+<p>In general, user code should try not to depend on a specific ordering of
+attributes, given that the <a class="reference external" href="https://www.w3.org/TR/xml-infoset/">XML Information Set</a> explicitly excludes the attribute
+order from conveying information. Code should be prepared to deal with
+any ordering on input. In cases where deterministic XML output is required,
+e.g. for cryptographic signing or test data sets, canonical serialisation
+is available with the <a class="reference internal" href="#xml.etree.ElementTree.canonicalize" title="xml.etree.ElementTree.canonicalize"><code class="xref py py-func docutils literal notranslate"><span class="pre">canonicalize()</span></code></a> function.</p>
+<p>In cases where canonical output is not applicable but a specific attribute
+order is still desirable on output, code should aim for creating the
+attributes directly in the desired order, to avoid perceptual mismatches
+for readers of the code. In cases where this is difficult to achieve, a
+recipe like the following can be applied prior to serialisation to enforce
+an order independently from the Element creation:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">reorder_attributes</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+        <span class="n">attrib</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">attrib</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># adjust attribute order, e.g. by sorting</span>
+            <span class="n">attribs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">attrib</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">attrib</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">attribs</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
