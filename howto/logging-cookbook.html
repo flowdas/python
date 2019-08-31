@@ -2207,9 +2207,9 @@ Actually logged at CRITICAL
 <div class="section" id="a-qt-gui-for-logging">
 <span id="qt-gui"></span><h2>로깅을 위한 Qt GUI<a class="headerlink" href="#a-qt-gui-for-logging" title="제목 주소">¶</a></h2>
 <p>때때로 나오는 질문은 GUI 응용 프로그램에 로그 하는 방법입니다. <a class="reference external" href="https://www.qt.io/">Qt</a> 프레임워크는 <a class="reference external" href="https://pypi.org/project/PySide2/">PySide2</a>나 <a class="reference external" href="https://pypi.org/project/PyQt5/">PyQt5</a> 라이브러리를 사용하는 파이썬 바인딩이 있는 인기 있는 교차 플랫폼 UI 프레임워크입니다.</p>
-<p>다음 예는 Qt GUI에 로그 하는 방법을 보여줍니다. 이것은 콜러블을 취하는 간단한 <code class="docutils literal notranslate"><span class="pre">QtHandler</span></code> 클래스를 소개합니다. 이 클래스는 GUI 업데이트를 하는 메인 스레드의 슬롯이어야 합니다. 또한 UI 자체 (수동 로깅을 위한 버튼을 통해) 뿐만 아니라 백그라운드에서 작업하는 작업자 스레드(여기서는, 단지 임의의 짧은 지연)에서 GUI에 로그 하는 방법을 보여주기 위해 작업자 스레드도 만듭니다.</p>
+<p>다음 예는 Qt GUI에 로그 하는 방법을 보여줍니다. 이것은 콜러블을 취하는 간단한 <code class="docutils literal notranslate"><span class="pre">QtHandler</span></code> 클래스를 소개합니다. 이 클래스는 GUI 업데이트를 하는 메인 스레드의 슬롯이어야 합니다. 또한 UI 자체 (수동 로깅을 위한 버튼을 통해) 뿐만 아니라 백그라운드에서 작업하는 작업자 스레드에서 GUI에 로그 하는 방법을 보여주기 위해 작업자 스레드도 만듭니다 (여기서는, 단지 임의의 짧은 지연을 주고 임의의 수준으로 메시지를 로깅 합니다).</p>
 <p>작업자 스레드는 <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈 대신 Qt의 <code class="docutils literal notranslate"><span class="pre">QThread</span></code> 클래스를 사용하여 구현되는데, 다른 <code class="docutils literal notranslate"><span class="pre">Qt</span></code> 구성 요소와 더 잘 통합되는 <code class="docutils literal notranslate"><span class="pre">QThread</span></code>를 사용해야 하는 상황이 있기 때문입니다.</p>
-<p>이 코드는 <code class="docutils literal notranslate"><span class="pre">PySide2</span></code>나 <code class="docutils literal notranslate"><span class="pre">PyQt5</span></code> 최신 배포에서 작동해야 합니다. 여러분은 이 접근법을 이전 버전의 Qt에 적용할 수 있을 겁니다. 자세한 내용은 코드의 주석을 참조하십시오.</p>
+<p>이 코드는 <code class="docutils literal notranslate"><span class="pre">PySide2</span></code>나 <code class="docutils literal notranslate"><span class="pre">PyQt5</span></code> 최신 배포에서 작동해야 합니다. 여러분은 이 접근법을 이전 버전의 Qt에 적용할 수 있을 겁니다. 자세한 내용은 코드 조각의 주석을 참조하십시오.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">random</span>
@@ -2226,19 +2226,21 @@ Actually logged at CRITICAL
     <span class="n">Signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span>
     <span class="n">Slot</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSlot</span>
 
+
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <span class="c1">#</span>
 <span class="c1"># 시그널은 올바르게 초기화되기 위해서 QObject나 서브 클래스에 포함될 필요가 있습니다.</span>
 <span class="c1">#</span>
 <span class="k">class</span> <span class="nc">Signaller</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
-    <span class="n">signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">)</span>
 
 <span class="c1">#</span>
 <span class="c1"># Qt GUI로의 출력은 메인 스레드에서만 발생해야 합니다. 따라서, 이 처리기는 메인 스레드에서 실행되도록</span>
-<span class="c1"># 설정된 슬롯 함수를 받아들이도록 설계되었습니다. 이 예제에서, 함수는 포맷된 로그 메시지를 단일 인자로</span>
-<span class="c1"># 받아들입니다. 여러분이 원하는 데로 LogRecord를 포맷하는 포매터 인스턴스를 연결하거나, LogRecord에서</span>
-<span class="c1"># 파생된 다른 값을 취하도록 슬롯 함수를 변경할 수 있습니다.</span>
+<span class="c1"># 설정된 슬롯 함수를 받아들이도록 설계되었습니다. 이 예제에서, 함수는 포맷된 로그 메시지인 문자열 인자와</span>
+<span class="c1"># 이를 생성한 로그 레코드를 받아들입니다. 포맷된 문자열은 단지 편의를 위한 것입니다 - 슬롯 함수 자체에서</span>
+<span class="c1"># 원하는 방식으로 문자열을 포맷하여 출력할 수 있습니다.</span>
 <span class="c1">#</span>
 <span class="c1"># 슬롯 함수가 원하는 GUI 업데이트를 수행하도록 지정합니다. 처리기는 구체적인 UI 요소를 모르거나 신경 쓰지</span>
 <span class="c1"># 않습니다.</span>
@@ -2251,7 +2253,7 @@ Actually logged at CRITICAL
 
     <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">signaller</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signaller</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
 
 <span class="c1">#</span>
 <span class="c1"># 이 예제는 QThread를 사용하는데, 파이썬 수준의 스레드는 &quot;Dummy-1&quot; 과 같은 이름이 붙는다는 뜻입니다.</span>
@@ -2259,6 +2261,13 @@ Actually logged at CRITICAL
 <span class="c1">#</span>
 <span class="k">def</span> <span class="nf">ctname</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QThread</span><span class="o">.</span><span class="n">currentThread</span><span class="p">()</span><span class="o">.</span><span class="n">objectName</span><span class="p">()</span>
+
+
+<span class="c1">#</span>
+<span class="c1"># Used to generate random levels for logging.</span>
+<span class="c1">#</span>
+<span class="n">LEVELS</span> <span class="o">=</span> <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+          <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">)</span>
 
 <span class="c1">#</span>
 <span class="c1"># 이 작업자 클래스는 메인 스레드와 분리된 스레드에서 수행되는 작업을 나타냅니다. 작업을 수행하기 위해</span>
@@ -2280,7 +2289,8 @@ Actually logged at CRITICAL
         <span class="k">while</span> <span class="ow">not</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QThread</span><span class="o">.</span><span class="n">currentThread</span><span class="p">()</span><span class="o">.</span><span class="n">isInterruptionRequested</span><span class="p">():</span>
             <span class="n">delay</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Message after delay of </span><span class="si">%3.1f</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">LEVELS</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="s1">&#39;Message after delay of </span><span class="si">%3.1f</span><span class="s1">: </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
 <span class="c1">#</span>
@@ -2293,10 +2303,18 @@ Actually logged at CRITICAL
 <span class="c1">#</span>
 <span class="k">class</span> <span class="nc">Window</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
 
+    <span class="n">COLORS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">:</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">:</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Window</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">textedit</span> <span class="o">=</span> <span class="n">te</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QTextEdit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textedit</span> <span class="o">=</span> <span class="n">te</span> <span class="o">=</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QPlainTextEdit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="c1"># 플랫폼의 기본 고정 폭 글꼴을 설정합니다</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFont</span><span class="p">(</span><span class="s1">&#39;nosuchfont&#39;</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">setStyleHint</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">Monospace</span><span class="p">)</span>
@@ -2309,7 +2327,7 @@ Actually logged at CRITICAL
         <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="n">h</span> <span class="o">=</span> <span class="n">QtHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_status</span><span class="p">)</span>
         <span class="c1"># 포맷 문자열에서 threadName 대신 qThreadName을 사용하는 것을 기억하세요.</span>
         <span class="n">fs</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(qThreadName)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
-        <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
         <span class="n">h</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
         <span class="c1"># 종료할 때 QThread를 종료하도록 설정합니다</span>
@@ -2359,20 +2377,24 @@ Actually logged at CRITICAL
     <span class="c1"># 아래 함수는 UI를 업데이트하고 슬롯이 설정된 메인 스레드에서 실행됩니다</span>
 
     <span class="nd">@Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">update_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">textedit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">update_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">COLORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelno</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;&lt;pre&gt;&lt;font color=&quot;</span><span class="si">%s</span><span class="s1">&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/font&gt;&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textedit</span><span class="o">.</span><span class="n">appendHtml</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
     <span class="nd">@Slot</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">manual_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">levels</span> <span class="o">=</span> <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
-                  <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">)</span>
-        <span class="n">level</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+        <span class="c1"># This function uses the formatted message passed in, but also uses</span>
+        <span class="c1"># information from the record to format the message in an appropriate</span>
+        <span class="c1"># color according to its severity (level).</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">LEVELS</span><span class="p">)</span>
         <span class="n">extra</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;qThreadName&#39;</span><span class="p">:</span> <span class="n">ctname</span><span class="p">()</span> <span class="p">}</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="s1">&#39;Manually logged!&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
 
     <span class="nd">@Slot</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">clear_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">textedit</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">QtCore</span><span class="o">.</span><span class="n">QThread</span><span class="o">.</span><span class="n">currentThread</span><span class="p">()</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s1">&#39;MainThread&#39;</span><span class="p">)</span>
