@@ -273,58 +273,14 @@ to tell Python which namespace to use.</p>
 </div>
 <div class="section" id="why-can-t-i-use-an-assignment-in-an-expression">
 <h2><a class="toc-backref" href="#id7">Why can't I use an assignment in an expression?</a><a class="headerlink" href="#why-can-t-i-use-an-assignment-in-an-expression" title="제목 주소">¶</a></h2>
-<p>Many people used to C or Perl complain that they want to use this C idiom:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="p">(</span><span class="n">line</span> <span class="o">=</span> <span class="n">readline</span><span class="p">(</span><span class="n">f</span><span class="p">))</span> <span class="p">{</span>
-    <span class="c1">// do something with line</span>
-<span class="p">}</span>
+<p>Starting in Python 3.8, you can!</p>
+<p>Assignment expressions using the walrus operator <cite>:=</cite> assign a variable in an
+expression:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">chunk</span> <span class="p">:</span><span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">200</span><span class="p">):</span>
+   <span class="nb">print</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where in Python you're forced to write this:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-    <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
-        <span class="k">break</span>
-    <span class="o">...</span>  <span class="c1"># do something with line</span>
-</pre></div>
-</div>
-<p>The reason for not allowing assignment in Python expressions is a common,
-hard-to-find bug in those other languages, caused by this construct:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// error handling</span>
-<span class="p">}</span>
-<span class="k">else</span> <span class="p">{</span>
-    <span class="c1">// code that only works for nonzero x</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The error is a simple typo: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">0</span></code>, which assigns 0 to the variable <code class="docutils literal notranslate"><span class="pre">x</span></code>,
-was written while the comparison <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">0</span></code> is certainly what was intended.</p>
-<p>Many alternatives have been proposed.  Most are hacks that save some typing but
-use arbitrary or cryptic syntax or keywords, and fail the simple criterion for
-language change proposals: it should intuitively suggest the proper meaning to a
-human reader who has not yet been introduced to the construct.</p>
-<p>An interesting phenomenon is that most experienced Python programmers recognize
-the <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">True</span></code> idiom and don't seem to be missing the assignment in
-expression construct much; it's only newcomers who express a strong desire to
-add this to the language.</p>
-<p>There's an alternative way of spelling this that seems attractive but is
-generally less robust than the &quot;while True&quot; solution:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
-<span class="k">while</span> <span class="n">line</span><span class="p">:</span>
-    <span class="o">...</span>  <span class="c1"># do something with line...</span>
-    <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>The problem with this is that if you change your mind about exactly how you get
-the next line (e.g. you want to change it into <code class="docutils literal notranslate"><span class="pre">sys.stdin.readline()</span></code>) you
-have to remember to change two places in your program -- the second occurrence
-is hidden at the bottom of the loop.</p>
-<p>The best approach is to use iterators, making it possible to loop through
-objects using the <code class="docutils literal notranslate"><span class="pre">for</span></code> statement.  For example, <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">file objects</span></a> support the iterator protocol, so you can write simply:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
-    <span class="o">...</span>  <span class="c1"># do something with line...</span>
-</pre></div>
-</div>
+<p>See <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0572"><strong>PEP 572</strong></a> for more information.</p>
 </div>
 <div class="section" id="why-does-python-use-methods-for-some-functionality-e-g-list-index-but-functions-for-other-e-g-len-list">
 <h2><a class="toc-backref" href="#id8">Why does Python use methods for some functionality (e.g. list.index()) but functions for other (e.g. len(list))?</a><a class="headerlink" href="#why-does-python-use-methods-for-some-functionality-e-g-list-index-but-functions-for-other-e-g-len-list" title="제목 주소">¶</a></h2>
@@ -410,7 +366,7 @@ is evaluated in all cases.</p>
 <h2><a class="toc-backref" href="#id11">Why isn't there a switch or case statement in Python?</a><a class="headerlink" href="#why-isn-t-there-a-switch-or-case-statement-in-python" title="제목 주소">¶</a></h2>
 <p>You can do this easily enough with a sequence of <code class="docutils literal notranslate"><span class="pre">if...</span> <span class="pre">elif...</span> <span class="pre">elif...</span> <span class="pre">else</span></code>.
 There have been some proposals for switch statement syntax, but there is no
-consensus (yet) on whether and how to do range tests.  See <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0275"><strong>PEP 275</strong></a> for
+consensus (yet) on whether and how to do range tests.  See <span class="target" id="index-1"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0275"><strong>PEP 275</strong></a> for
 complete details and the current status.</p>
 <p>For cases where you need to choose from a very large number of possibilities,
 you can create a dictionary mapping case values to functions to call.  For

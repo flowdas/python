@@ -134,7 +134,7 @@ function pointers, each of which implements a small part of the type's
 functionality.  The fields of the type object are examined in detail in this
 section.  The fields will be described in the order in which they occur in the
 structure.</p>
-<p>In addition to the following quick reference, the <a class="reference internal" href="#examples"><span class="std std-ref">Examples</span></a>
+<p>In addition to the following quick reference, the <a class="reference internal" href="#typedef-examples"><span class="std std-ref">Examples</span></a>
 section provides at-a-glance insight into the meaning and use of
 <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>.</p>
 <div class="section" id="quick-reference">
@@ -1309,15 +1309,27 @@ the case for the singletons <code class="docutils literal notranslate"><span cla
 the instance is still in existence, but there are no references to it.  The
 destructor function should free all references which the instance owns, free all
 memory buffers owned by the instance (using the freeing function corresponding
-to the allocation function used to allocate the buffer), and finally (as its
-last action) call the type's <a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> function.  If the type is not
-subtypable (doesn't have the <a class="reference internal" href="#Py_TPFLAGS_BASETYPE" title="Py_TPFLAGS_BASETYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_BASETYPE</span></code></a> flag bit set), it is
+to the allocation function used to allocate the buffer), and call the type's
+<a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> function.  If the type is not subtypable
+(doesn't have the <a class="reference internal" href="#Py_TPFLAGS_BASETYPE" title="Py_TPFLAGS_BASETYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_BASETYPE</span></code></a> flag bit set), it is
 permissible to call the object deallocator directly instead of via
 <a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a>.  The object deallocator should be the one used to allocate the
 instance; this is normally <a class="reference internal" href="allocation.html#c.PyObject_Del" title="PyObject_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Del()</span></code></a> if the instance was allocated
 using <a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_New()</span></code></a> or <code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VarNew()</span></code>, or
 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> if the instance was allocated using
 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_New()</span></code></a> or <a class="reference internal" href="gcsupport.html#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_NewVar()</span></code></a>.</p>
+<p>Finally, if the type is heap allocated (<a class="reference internal" href="#Py_TPFLAGS_HEAPTYPE" title="Py_TPFLAGS_HEAPTYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HEAPTYPE</span></code></a>), the
+deallocator should decrement the reference count for its type object after
+calling the type deallocator. In order to avoid dangling pointers, the
+recommended way to achieve this is:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">foo_dealloc</span><span class="p">(</span><span class="n">foo_object</span> <span class="o">*</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">PyTypeObject</span> <span class="o">*</span><span class="n">tp</span> <span class="o">=</span> <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
+    <span class="c1">// free references and buffers here</span>
+    <span class="n">tp</span><span class="o">-&gt;</span><span class="n">tp_free</span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
+    <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">tp</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p><strong>Inheritance:</strong></p>
 <p>This field is inherited by subtypes.</p>
 </dd></dl>
@@ -1625,7 +1637,8 @@ checks whether <code class="docutils literal notranslate"><span class="pre">tp-&
 <dl class="data">
 <dt id="Py_TPFLAGS_HEAPTYPE">
 <code class="descname">Py_TPFLAGS_HEAPTYPE</code><a class="headerlink" href="#Py_TPFLAGS_HEAPTYPE" title="정의 주소">¶</a></dt>
-<dd><p>This bit is set when the type object itself is allocated on the heap.  In this
+<dd><p>This bit is set when the type object itself is allocated on the heap, for
+example, types created dynamically using <a class="reference internal" href="type.html#c.PyType_FromSpec" title="PyType_FromSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpec()</span></code></a>.  In this
 case, the <code class="xref py py-attr docutils literal notranslate"><span class="pre">ob_type</span></code> field of its instances is considered a reference to
 the type, and the type object is INCREF'ed when a new instance is created, and
 DECREF'ed when an instance is destroyed (this does not apply to instances of
@@ -1923,12 +1936,6 @@ that is defined by <a class="reference internal" href="type.html#c.PyTypeObject"
 or <code class="docutils literal notranslate"><span class="pre">Py_False</span></code>).  If the comparison is undefined, it must return
 <code class="docutils literal notranslate"><span class="pre">Py_NotImplemented</span></code>, if another error occurred it must return <em>NULL</em> and
 set an exception condition.</p>
-<div class="admonition note">
-<p class="admonition-title">참고</p>
-<p>If you want to implement a type for which only a limited set of
-comparisons makes sense (e.g. <code class="docutils literal notranslate"><span class="pre">==</span></code> and <code class="docutils literal notranslate"><span class="pre">!=</span></code>, but not <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and
-friends), directly raise <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a> in the rich comparison function.</p>
-</div>
 <p>The following constants are defined to be used as the third argument for
 <a class="reference internal" href="#c.PyTypeObject.tp_richcompare" title="PyTypeObject.tp_richcompare"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_richcompare</span></code></a> and for <a class="reference internal" href="object.html#c.PyObject_RichCompare" title="PyObject_RichCompare"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_RichCompare()</span></code></a>:</p>
 <table class="docutils align-center">
@@ -3199,7 +3206,7 @@ int <code class="descname">(*objobjargproc)</code><span class="sig-paren">(</spa
 
 </div>
 <div class="section" id="examples">
-<span id="id6"></span><h1>Examples<a class="headerlink" href="#examples" title="제목 주소">¶</a></h1>
+<span id="typedef-examples"></span><h1>Examples<a class="headerlink" href="#examples" title="제목 주소">¶</a></h1>
 <p>The following are simple examples of Python type definitions.  They
 include common usage you may encounter.  Some demonstrate tricky corner
 cases.  For more examples, practical info, and a tutorial, see

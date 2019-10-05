@@ -1322,6 +1322,94 @@
 </dd></dl>
 
 <dl class="class">
+<dt id="unittest.IsolatedAsyncioTestCase">
+<em class="property">class </em><code class="descclassname">unittest.</code><code class="descname">IsolatedAsyncioTestCase</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#unittest.IsolatedAsyncioTestCase" title="정의 주소">¶</a></dt>
+<dd><p>This class provides an API similar to <a class="reference internal" href="#unittest.TestCase" title="unittest.TestCase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></a> and also accepts
+coroutines as test functions.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.8에 추가.</span></p>
+</div>
+<dl class="method">
+<dt id="unittest.IsolatedAsyncioTestCase.asyncSetUp">
+<em class="property">coroutine </em><code class="descname">asyncSetUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#unittest.IsolatedAsyncioTestCase.asyncSetUp" title="정의 주소">¶</a></dt>
+<dd><p>Method called to prepare the test fixture. This is called after <code class="xref py py-meth docutils literal notranslate"><span class="pre">setUp()</span></code>.
+This is called immediately before calling the test method; other than
+<a class="reference internal" href="exceptions.html#AssertionError" title="AssertionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">AssertionError</span></code></a> or <a class="reference internal" href="#unittest.SkipTest" title="unittest.SkipTest"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SkipTest</span></code></a>, any exception raised by this method
+will be considered an error rather than a test failure. The default implementation
+does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="unittest.IsolatedAsyncioTestCase.asyncTearDown">
+<em class="property">coroutine </em><code class="descname">asyncTearDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#unittest.IsolatedAsyncioTestCase.asyncTearDown" title="정의 주소">¶</a></dt>
+<dd><p>Method called immediately after the test method has been called and the
+result recorded.  This is called before <code class="xref py py-meth docutils literal notranslate"><span class="pre">tearDown()</span></code>. This is called even if
+the test method raised an exception, so the implementation in subclasses may need
+to be particularly careful about checking internal state.  Any exception, other than
+<a class="reference internal" href="exceptions.html#AssertionError" title="AssertionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">AssertionError</span></code></a> or <a class="reference internal" href="#unittest.SkipTest" title="unittest.SkipTest"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SkipTest</span></code></a>, raised by this method will be
+considered an additional error rather than a test failure (thus increasing
+the total number of reported errors). This method will only be called if
+the <a class="reference internal" href="#unittest.IsolatedAsyncioTestCase.asyncSetUp" title="unittest.IsolatedAsyncioTestCase.asyncSetUp"><code class="xref py py-meth docutils literal notranslate"><span class="pre">asyncSetUp()</span></code></a> succeeds, regardless of the outcome of the test method.
+The default implementation does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="unittest.IsolatedAsyncioTestCase.addAsyncCleanup">
+<code class="descname">addAsyncCleanup</code><span class="sig-paren">(</span><em>function</em>, <em>/</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#unittest.IsolatedAsyncioTestCase.addAsyncCleanup" title="정의 주소">¶</a></dt>
+<dd><p>This method accepts a coroutine that can be used as a cleanup function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="unittest.IsolatedAsyncioTestCase.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>result=None</em><span class="sig-paren">)</span><a class="headerlink" href="#unittest.IsolatedAsyncioTestCase.run" title="정의 주소">¶</a></dt>
+<dd><p>Sets up a new event loop to run the test, collecting the result into
+the <a class="reference internal" href="#unittest.TestResult" title="unittest.TestResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestResult</span></code></a> object passed as <em>result</em>.  If <em>result</em> is
+omitted or <code class="docutils literal notranslate"><span class="pre">None</span></code>, a temporary result object is created (by calling
+the <code class="xref py py-meth docutils literal notranslate"><span class="pre">defaultTestResult()</span></code> method) and used. The result object is
+returned to <a class="reference internal" href="#unittest.IsolatedAsyncioTestCase.run" title="unittest.IsolatedAsyncioTestCase.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a>'s caller. At the end of the test all the tasks
+in the event loop are cancelled.</p>
+</dd></dl>
+
+<p>An example illustrating the order:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">IsolatedAsyncioTestCase</span>
+
+<span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="k">class</span> <span class="nc">Test</span><span class="p">(</span><span class="n">IsolatedAsyncioTestCase</span><span class="p">):</span>
+
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;setUp&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">asyncSetUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_connection</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncConnection</span><span class="p">()</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;asyncSetUp&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">test_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;test_response&quot;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_connection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addAsyncCleanup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_cleanup</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;tearDown&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">asyncTearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;asyncTearDown&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;cleanup&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After running the test <code class="docutils literal notranslate"><span class="pre">events</span></code> would contain <code class="docutils literal notranslate"><span class="pre">[&quot;setUp&quot;,</span> <span class="pre">&quot;asyncSetUp&quot;,</span> <span class="pre">&quot;test_response&quot;,</span> <span class="pre">&quot;asyncTearDown&quot;,</span> <span class="pre">&quot;tearDown&quot;,</span> <span class="pre">&quot;cleanup&quot;]</span></code></p>
+</dd></dl>
+
+<dl class="class">
 <dt id="unittest.FunctionTestCase">
 <em class="property">class </em><code class="descclassname">unittest.</code><code class="descname">FunctionTestCase</code><span class="sig-paren">(</span><em>testFunc</em>, <em>setUp=None</em>, <em>tearDown=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="headerlink" href="#unittest.FunctionTestCase" title="정의 주소">¶</a></dt>
 <dd><p>이 클래스는 테스트 실행자가 테스트를 수행할 수 있게 <a class="reference internal" href="#unittest.TestCase" title="unittest.TestCase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></a> 인터페이스 일부를 구현합니다, 하지만 테스트 코드가 검사하거나 에러를 보고하는 데 사용하는 메서드를 제공하지는 않습니다. 이것은 레거시 테스트 코드를 사용하여 테스트 케이스를 생성할 때 사용할 수 있습니다, 이것은 레거시 테스트 코드가 <a class="reference internal" href="#module-unittest" title="unittest: Unit testing framework for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">unittest</span></code></a>-기반 테스트 프레임워크에 통합될 수 있게 해줍니다.</p>

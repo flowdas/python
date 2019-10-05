@@ -359,6 +359,45 @@ function returns is what the call returns:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="mocking-asynchronous-iterators">
+<h3>Mocking asynchronous iterators<a class="headerlink" href="#mocking-asynchronous-iterators" title="제목 주소">¶</a></h3>
+<p>Since Python 3.8, <code class="docutils literal notranslate"><span class="pre">AsyncMock</span></code> and <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> have support to mock
+<a class="reference internal" href="../reference/datamodel.html#async-iterators"><span class="std std-ref">비동기 이터레이터(Asynchronous Iterators)</span></a> through <code class="docutils literal notranslate"><span class="pre">__aiter__</span></code>. The <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.return_value" title="unittest.mock.Mock.return_value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">return_value</span></code></a>
+attribute of <code class="docutils literal notranslate"><span class="pre">__aiter__</span></code> can be used to set the return values to be used for
+iteration.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>  <span class="c1"># AsyncMock also works here</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__aiter__</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">async</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mock</span><span class="p">]</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<span class="go">[1, 2, 3]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mocking-asynchronous-context-manager">
+<h3>Mocking asynchronous context manager<a class="headerlink" href="#mocking-asynchronous-context-manager" title="제목 주소">¶</a></h3>
+<p>Since Python 3.8, <code class="docutils literal notranslate"><span class="pre">AsyncMock</span></code> and <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> have support to mock
+<a class="reference internal" href="../reference/datamodel.html#async-context-managers"><span class="std std-ref">비동기 컨텍스트 관리자</span></a> through <code class="docutils literal notranslate"><span class="pre">__aenter__</span></code> and <code class="docutils literal notranslate"><span class="pre">__aexit__</span></code>.
+By default, <code class="docutils literal notranslate"><span class="pre">__aenter__</span></code> and <code class="docutils literal notranslate"><span class="pre">__aexit__</span></code> are <code class="docutils literal notranslate"><span class="pre">AsyncMock</span></code> instances that
+return an async function.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">AsyncContextManager</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">__aenter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span>
+<span class="gp">... </span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">__aexit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock_instance</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">AsyncContextManager</span><span class="p">())</span>  <span class="c1"># AsyncMock also works here</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">async</span> <span class="k">with</span> <span class="n">mock_instance</span> <span class="k">as</span> <span class="n">result</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock_instance</span><span class="o">.</span><span class="fm">__aenter__</span><span class="o">.</span><span class="n">assert_awaited_once</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock_instance</span><span class="o">.</span><span class="fm">__aexit__</span><span class="o">.</span><span class="n">assert_awaited_once</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="creating-a-mock-from-an-existing-object">
 <h3>Creating a Mock from an Existing Object<a class="headerlink" href="#creating-a-mock-from-an-existing-object" title="제목 주소">¶</a></h3>
 <p>One problem with over use of mocking is that it couples your tests to the
@@ -1319,6 +1358,8 @@ that may be useful here, in the form of its equality matcher
 <li><a class="reference internal" href="#setting-return-values-and-attributes">Setting Return Values and Attributes</a></li>
 <li><a class="reference internal" href="#raising-exceptions-with-mocks">Raising exceptions with mocks</a></li>
 <li><a class="reference internal" href="#side-effect-functions-and-iterables">Side effect functions and iterables</a></li>
+<li><a class="reference internal" href="#mocking-asynchronous-iterators">Mocking asynchronous iterators</a></li>
+<li><a class="reference internal" href="#mocking-asynchronous-context-manager">Mocking asynchronous context manager</a></li>
 <li><a class="reference internal" href="#creating-a-mock-from-an-existing-object">Creating a Mock from an Existing Object</a></li>
 </ul>
 </li>

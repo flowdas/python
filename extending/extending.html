@@ -289,7 +289,7 @@ usually declare a static object variable at the beginning of your file:</p>
 </pre></div>
 </div>
 <p>and initialize it in your module's initialization function (<code class="xref c c-func docutils literal notranslate"><span class="pre">PyInit_spam()</span></code>)
-with an exception object (leaving out the error checking for now):</p>
+with an exception object:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
 <span class="nf">PyInit_spam</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
@@ -300,8 +300,14 @@ with an exception object (leaving out the error checking for now):</p>
         <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
 
     <span class="n">SpamError</span> <span class="o">=</span> <span class="n">PyErr_NewException</span><span class="p">(</span><span class="s">&quot;spam.error&quot;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
-    <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">SpamError</span><span class="p">);</span>
-    <span class="n">PyModule_AddObject</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&quot;error&quot;</span><span class="p">,</span> <span class="n">SpamError</span><span class="p">);</span>
+    <span class="n">Py_XINCREF</span><span class="p">(</span><span class="n">SpamError</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">PyModule_AddObject</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&quot;error&quot;</span><span class="p">,</span> <span class="n">SpamError</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">SpamError</span><span class="p">);</span>
+        <span class="n">Py_CLEAR</span><span class="p">(</span><span class="n">SpamError</span><span class="p">);</span>
+        <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">m</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="p">}</span>
+
     <span class="k">return</span> <span class="n">m</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -1202,8 +1208,12 @@ function must take care of initializing the C API pointer array:</p>
     <span class="cm">/* Create a Capsule containing the API pointer array&#39;s address */</span>
     <span class="n">c_api_object</span> <span class="o">=</span> <span class="n">PyCapsule_New</span><span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">PySpam_API</span><span class="p">,</span> <span class="s">&quot;spam._C_API&quot;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">c_api_object</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-        <span class="n">PyModule_AddObject</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&quot;_C_API&quot;</span><span class="p">,</span> <span class="n">c_api_object</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">PyModule_AddObject</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&quot;_C_API&quot;</span><span class="p">,</span> <span class="n">c_api_object</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">c_api_object</span><span class="p">);</span>
+        <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">m</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="p">}</span>
+
     <span class="k">return</span> <span class="n">m</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>

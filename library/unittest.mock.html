@@ -970,7 +970,7 @@ call is an awaitable.</p>
 </pre></div>
 </div>
 <p>The result of <code class="docutils literal notranslate"><span class="pre">mock()</span></code> is an async function which will have the outcome
-of <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> or <code class="docutils literal notranslate"><span class="pre">return_value</span></code>:</p>
+of <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> or <code class="docutils literal notranslate"><span class="pre">return_value</span></code> after it has been awaited:</p>
 <ul class="simple">
 <li><p>if <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> is a function, the async function will return the
 result of that function,</p></li>
@@ -994,21 +994,48 @@ will result in a coroutine object being returned after calling.</p>
 <span class="go">&lt;coroutine object AsyncMockMixin._mock_call at ...&gt;</span>
 </pre></div>
 </div>
+<p>Setting the <em>spec</em> of a <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>, <a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a>, or <a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a>
+to a class with asynchronous and synchronous functions will automatically
+detect the synchronous functions and set them as <a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a> (if the
+parent mock is <a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a> or <a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a>) or <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> (if
+the parent mock is <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>). All asynchronous functions will be
+<a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">ExampleClass</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">sync_foo</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">... </span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">async_foo</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a_mock</span> <span class="o">=</span> <span class="n">AsyncMock</span><span class="p">(</span><span class="n">ExampleClass</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a_mock</span><span class="o">.</span><span class="n">sync_foo</span>
+<span class="go">&lt;MagicMock name=&#39;mock.sync_foo&#39; id=&#39;...&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a_mock</span><span class="o">.</span><span class="n">async_foo</span>
+<span class="go">&lt;AsyncMock name=&#39;mock.async_foo&#39; id=&#39;...&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">ExampleClass</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">sync_foo</span>
+<span class="go">&lt;Mock name=&#39;mock.sync_foo&#39; id=&#39;...&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">async_foo</span>
+<span class="go">&lt;AsyncMock name=&#39;mock.async_foo&#39; id=&#39;...&#39;&gt;</span>
+</pre></div>
+</div>
 <dl class="method">
 <dt id="unittest.mock.AsyncMock.assert_awaited">
 <code class="descname">assert_awaited</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#unittest.mock.AsyncMock.assert_awaited" title="정의 주소">¶</a></dt>
-<dd><p>Assert that the mock was awaited at least once.</p>
+<dd><p>Assert that the mock was awaited at least once. Note that this is separate
+from the object having been called, the <code class="docutils literal notranslate"><span class="pre">await</span></code> keyword must be used:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">AsyncMock</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-<span class="gp">... </span>    <span class="k">await</span> <span class="n">mock</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">coroutine_mock</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">await</span> <span class="n">coroutine_mock</span>
 <span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coroutine_mock</span> <span class="o">=</span> <span class="n">mock</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">called</span>
+<span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_awaited</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mock_2</span> <span class="o">=</span> <span class="n">AsyncMock</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mock_2</span><span class="o">.</span><span class="n">assert_awaited</span><span class="p">()</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="c">...</span>
 <span class="gr">AssertionError</span>: <span class="n">Expected mock to have been awaited.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">(</span><span class="n">coroutine_mock</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_awaited</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1106,14 +1133,15 @@ they must all appear in <a class="reference internal" href="#unittest.mock.Async
 <span class="gp">... </span>    <span class="k">await</span> <span class="n">mock</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">calls</span> <span class="o">=</span> <span class="p">[</span><span class="n">call</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">),</span> <span class="n">call</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_has_calls</span><span class="p">(</span><span class="n">calls</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_has_awaits</span><span class="p">(</span><span class="n">calls</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="c">...</span>
-<span class="gr">AssertionError</span>: <span class="n">Calls not found.</span>
+<span class="gr">AssertionError</span>: <span class="n">Awaits not found.</span>
 <span class="go">Expected: [call(&#39;foo&#39;), call(&#39;bar&#39;)]</span>
+<span class="go">Actual: []</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">(</span><span class="s1">&#39;bar&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_has_calls</span><span class="p">(</span><span class="n">calls</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_has_awaits</span><span class="p">(</span><span class="n">calls</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1419,7 +1447,7 @@ statements or as class decorators.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p><a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> is straightforward to use. The key is to do the patching in the
-right namespace. See the section <a class="reference internal" href="#id5">where to patch</a>.</p>
+right namespace. See the section <a class="reference internal" href="#id6">where to patch</a>.</p>
 </div>
 <dl class="function">
 <dt id="unittest.mock.patch">
@@ -1428,8 +1456,10 @@ right namespace. See the section <a class="reference internal" href="#id5">where
 manager. Inside the body of the function or with statement, the <em>target</em>
 is patched with a <em>new</em> object. When the function/with statement exits
 the patch is undone.</p>
-<p>If <em>new</em> is omitted, then the target is replaced with a
-<a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a>. If <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> is used as a decorator and <em>new</em> is
+<p>If <em>new</em> is omitted, then the target is replaced with an
+<a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a> if the patched object is an async function or
+a <a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a> otherwise.
+If <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> is used as a decorator and <em>new</em> is
 omitted, the created mock is passed in as an extra argument to the
 decorated function. If <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> is used as a context manager the created
 mock is returned by the context manager.</p>
@@ -1443,8 +1473,8 @@ if patch is creating one for you.</p>
 <p>In addition you can pass <code class="docutils literal notranslate"><span class="pre">spec=True</span></code> or <code class="docutils literal notranslate"><span class="pre">spec_set=True</span></code>, which causes
 patch to pass in the object being mocked as the spec/spec_set object.</p>
 <p><em>new_callable</em> allows you to specify a different class, or callable object,
-that will be called to create the <em>new</em> object. By default <a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a> is
-used.</p>
+that will be called to create the <em>new</em> object. By default <a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a>
+is used for async functions and <a class="reference internal" href="#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a> for the rest.</p>
 <p>A more powerful form of <em>spec</em> is <em>autospec</em>. If you set <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code>
 then the mock will be created with a spec from the object being replaced.
 All attributes of the mock will also have the spec of the corresponding
@@ -1601,6 +1631,9 @@ work as expected:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
 </pre></div>
 </div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span><a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> now returns an <a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a> if the target is an async function.</p>
+</div>
 </div>
 <div class="section" id="patch-object">
 <h3>patch.object<a class="headerlink" href="#patch-object" title="제목 주소">¶</a></h3>
@@ -1653,15 +1686,36 @@ can also be an iterable of <code class="docutils literal notranslate"><span clas
 values are set.</p>
 <p><a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> can also be called with arbitrary keyword arguments to set
 values in the dictionary.</p>
-<p><a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> can be used as a context manager, decorator or class
-decorator. When used as a class decorator <a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> honours
-<code class="docutils literal notranslate"><span class="pre">patch.TEST_PREFIX</span></code> for choosing which methods to wrap.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.8에서 변경: </span><a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> now returns the patched dictionary when used as a context
 manager.</p>
 </div>
 </dd></dl>
 
+<p><a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> can be used as a context manager, decorator or class
+decorator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@patch</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;newkey&#39;</span><span class="p">:</span> <span class="s1">&#39;newvalue&#39;</span><span class="p">})</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">foo</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;newkey&#39;</span><span class="p">:</span> <span class="s1">&#39;newvalue&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">foo</span> <span class="o">==</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>When used as a class decorator <a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> honours
+<code class="docutils literal notranslate"><span class="pre">patch.TEST_PREFIX</span></code> (default to <code class="docutils literal notranslate"><span class="pre">'test'</span></code>) for choosing which methods to wrap:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="k">import</span> <span class="n">patch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@patch</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="s1">&#39;os.environ&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;newkey&#39;</span><span class="p">:</span> <span class="s1">&#39;newvalue&#39;</span><span class="p">})</span>
+<span class="gp">... </span><span class="k">class</span> <span class="nc">TestSample</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">test_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;newkey&#39;</span><span class="p">],</span> <span class="s1">&#39;newvalue&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to use a different prefix for your test, you can inform the
+patchers of the different prefix by setting <code class="docutils literal notranslate"><span class="pre">patch.TEST_PREFIX</span></code>. For
+more details about how to change the value of see <a class="reference internal" href="#test-prefix"><span class="std std-ref">TEST_PREFIX</span></a>.</p>
 <p><a class="reference internal" href="#unittest.mock.patch.dict" title="unittest.mock.patch.dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.dict()</span></code></a> can be used to add members to a dictionary, or simply let a test
 change a dictionary, and ensure the dictionary is restored when the test
 ends.</p>
@@ -1868,7 +1922,7 @@ builtin <a class="reference internal" href="functions.html#ord" title="ord"><cod
 </div>
 </div>
 <div class="section" id="test-prefix">
-<h3>TEST_PREFIX<a class="headerlink" href="#test-prefix" title="제목 주소">¶</a></h3>
+<span id="id5"></span><h3>TEST_PREFIX<a class="headerlink" href="#test-prefix" title="제목 주소">¶</a></h3>
 <p>All of the patchers can be used as class decorators. When used in this way
 they wrap every test method on the class. The patchers recognise methods that
 start with <code class="docutils literal notranslate"><span class="pre">'test'</span></code> as being test methods. This is the same way that the
@@ -1919,7 +1973,7 @@ standard way that Python applies decorators. The order of the created mocks
 passed into your test function matches this order.</p>
 </div>
 <div class="section" id="where-to-patch">
-<span id="id5"></span><h3>Where to patch<a class="headerlink" href="#where-to-patch" title="제목 주소">¶</a></h3>
+<span id="id6"></span><h3>Where to patch<a class="headerlink" href="#where-to-patch" title="제목 주소">¶</a></h3>
 <p><a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> works by (temporarily) changing the object that a <em>name</em> points to with
 another one. There can be many names pointing to any individual object, so
 for patching to work you must ensure that you patch the name used by the system
@@ -1971,13 +2025,13 @@ that proxy attribute access, like the <a class="reference external" href="http:/
 <p><a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> supports mocking the Python protocol methods, also known as
 &quot;magic methods&quot;. This allows mock objects to replace containers or other
 objects that implement Python protocols.</p>
-<p>Because magic methods are looked up differently from normal methods <a class="footnote-reference brackets" href="#id8" id="id6">2</a>, this
+<p>Because magic methods are looked up differently from normal methods <a class="footnote-reference brackets" href="#id9" id="id7">2</a>, this
 support has been specially implemented. This means that only specific magic
 methods are supported. The supported list includes <em>almost</em> all of them. If
 there are any missing that you need please let us know.</p>
 <p>You mock magic methods by setting the method you are interested in to a function
 or a mock instance. If you are using a function then it <em>must</em> take <code class="docutils literal notranslate"><span class="pre">self</span></code> as
-the first argument <a class="footnote-reference brackets" href="#id9" id="id7">3</a>.</p>
+the first argument <a class="footnote-reference brackets" href="#id10" id="id8">3</a>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="s1">&#39;fooble&#39;</span>
 <span class="gp">...</span>
@@ -2173,13 +2227,13 @@ of the obscure and obsolete ones. You can still set these up if you want.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">__getformat__</span></code> and <code class="docutils literal notranslate"><span class="pre">__setformat__</span></code></p></li>
 </ul>
 <dl class="footnote brackets">
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id6">2</a></span></dt>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id7">2</a></span></dt>
 <dd><p>Magic methods <em>should</em> be looked up on the class rather than the
 instance. Different versions of Python are inconsistent about applying this
 rule. The supported protocol methods should work with all supported versions
 of Python.</p>
 </dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id7">3</a></span></dt>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id8">3</a></span></dt>
 <dd><p>The function is basically hooked up to the class, but each <code class="docutils literal notranslate"><span class="pre">Mock</span></code>
 instance is kept isolated from the others.</p>
 </dd>
@@ -2340,6 +2394,10 @@ the constructor of the created mock.</p>
 
 <p>See <a class="reference internal" href="#auto-speccing"><span class="std std-ref">Autospeccing</span></a> for examples of how to use auto-speccing with
 <a class="reference internal" href="#unittest.mock.create_autospec" title="unittest.mock.create_autospec"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_autospec()</span></code></a> and the <em>autospec</em> argument to <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span><a class="reference internal" href="#unittest.mock.create_autospec" title="unittest.mock.create_autospec"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_autospec()</span></code></a> now returns an <a class="reference internal" href="#unittest.mock.AsyncMock" title="unittest.mock.AsyncMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">AsyncMock</span></code></a> if the target is
+an async function.</p>
+</div>
 </div>
 <div class="section" id="any">
 <h3>ANY<a class="headerlink" href="#any" title="제목 주소">¶</a></h3>
@@ -2623,7 +2681,7 @@ traverse attributes on the mock a corresponding traversal of the original
 object is happening under the hood. If any of your specced objects have
 properties or descriptors that can trigger code execution then you may not be
 able to use autospec. On the other hand it is much better to design your
-objects so that introspection is safe <a class="footnote-reference brackets" href="#id11" id="id10">4</a>.</p>
+objects so that introspection is safe <a class="footnote-reference brackets" href="#id12" id="id11">4</a>.</p>
 <p>A more serious problem is that it is common for instance attributes to be
 created in the <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method and not to exist on the class at all.
 <em>autospec</em> can't know about any dynamically created attributes and restricts
@@ -2709,7 +2767,7 @@ alternative object as the <em>autospec</em> argument:</p>
 </pre></div>
 </div>
 <dl class="footnote brackets">
-<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id10">4</a></span></dt>
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id11">4</a></span></dt>
 <dd><p>This only applies to classes or already instantiated objects. Calling
 a mocked class to create a mock instance <em>does not</em> create a real instance.
 It is only attribute lookups - along with calls to <a class="reference internal" href="functions.html#dir" title="dir"><code class="xref py py-func docutils literal notranslate"><span class="pre">dir()</span></code></a> - that are done.</p>

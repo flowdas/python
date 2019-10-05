@@ -668,9 +668,8 @@
 
 
 <span class="k">class</span> <span class="nc">EchoClientProtocol</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Protocol</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">,</span> <span class="n">loop</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span> <span class="o">=</span> <span class="n">loop</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">on_con_lost</span>
 
     <span class="k">def</span> <span class="nf">connection_made</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport</span><span class="p">):</span>
@@ -693,7 +692,7 @@
     <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Hello World!&#39;</span>
 
     <span class="n">transport</span><span class="p">,</span> <span class="n">protocol</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span>
-        <span class="k">lambda</span><span class="p">:</span> <span class="n">EchoClientProtocol</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">,</span> <span class="n">loop</span><span class="p">),</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">EchoClientProtocol</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">),</span>
         <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">8888</span><span class="p">)</span>
 
     <span class="c1"># 프로토콜이 연결이 끊어졌음을 알릴 때까지 기다리고 트랜스포트를 닫습니다.</span>
@@ -708,7 +707,7 @@
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><a class="reference internal" href="asyncio-stream.html#asyncio-tcp-echo-client-streams"><span class="std std-ref">스트림을 사용하는 TCP 메아리 클라이언트</span></a> 예제는 고수준 <a class="reference internal" href="asyncio-stream.html#asyncio.connect" title="asyncio.connect"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.connect()</span></code></a> 함수를 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-stream.html#asyncio-tcp-echo-client-streams"><span class="std std-ref">스트림을 사용하는 TCP 메아리 클라이언트</span></a> 예제는 고수준 <a class="reference internal" href="asyncio-stream.html#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.open_connection()</span></code></a> 함수를 사용합니다.</p>
 </div>
 </div>
 <div class="section" id="udp-echo-server">
@@ -756,11 +755,10 @@
 
 
 <span class="k">class</span> <span class="nc">EchoClientProtocol</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">loop</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span> <span class="o">=</span> <span class="n">loop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">on_con_lost</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transport</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_future</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">connection_made</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transport</span> <span class="o">=</span> <span class="n">transport</span>
@@ -785,13 +783,15 @@
     <span class="c1"># 저수준 API를 사용할 계획이므로 이벤트 루프에 대한 참조를 얻습니다.</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
 
+    <span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_future</span><span class="p">()</span>
     <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Hello World!&quot;</span>
+
     <span class="n">transport</span><span class="p">,</span> <span class="n">protocol</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_datagram_endpoint</span><span class="p">(</span>
-        <span class="k">lambda</span><span class="p">:</span> <span class="n">EchoClientProtocol</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">loop</span><span class="p">),</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">EchoClientProtocol</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">),</span>
         <span class="n">remote_addr</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">9999</span><span class="p">))</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">protocol</span><span class="o">.</span><span class="n">on_con_lost</span>
+        <span class="k">await</span> <span class="n">on_con_lost</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">transport</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
@@ -809,9 +809,9 @@
 
 <span class="k">class</span> <span class="nc">MyProtocol</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Protocol</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loop</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on_con_lost</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transport</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_future</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">on_con_lost</span>
 
     <span class="k">def</span> <span class="nf">connection_made</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transport</span> <span class="o">=</span> <span class="n">transport</span>
@@ -831,13 +831,14 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="c1"># 저수준 API를 사용할 계획이므로 이벤트 루프에 대한 참조를 얻습니다.</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+    <span class="n">on_con_lost</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_future</span><span class="p">()</span>
 
     <span class="c1"># 연결된 소켓 쌍을 만듭니다</span>
     <span class="n">rsock</span><span class="p">,</span> <span class="n">wsock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socketpair</span><span class="p">()</span>
 
     <span class="c1"># 데이터를 기다릴 소켓을 등록합니다.</span>
     <span class="n">transport</span><span class="p">,</span> <span class="n">protocol</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span>
-        <span class="k">lambda</span><span class="p">:</span> <span class="n">MyProtocol</span><span class="p">(</span><span class="n">loop</span><span class="p">),</span> <span class="n">sock</span><span class="o">=</span><span class="n">rsock</span><span class="p">)</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">MyProtocol</span><span class="p">(</span><span class="n">on_con_lost</span><span class="p">),</span> <span class="n">sock</span><span class="o">=</span><span class="n">rsock</span><span class="p">)</span>
 
     <span class="c1"># 네트워크로부터의 데이터 수신을 흉내 냅니다.</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">call_soon</span><span class="p">(</span><span class="n">wsock</span><span class="o">.</span><span class="n">send</span><span class="p">,</span> <span class="s1">&#39;abc&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
@@ -854,7 +855,7 @@
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <p><a class="reference internal" href="asyncio-eventloop.html#asyncio-example-watch-fd"><span class="std std-ref">파일 기술자에서 읽기 이벤트를 관찰하기</span></a> 예제는 저수준의 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.add_reader" title="asyncio.loop.add_reader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.add_reader()</span></code></a> 메서드를 사용하여 FD를 등록합니다.</p>
-<p><a class="reference internal" href="asyncio-stream.html#asyncio-example-create-connection-streams"><span class="std std-ref">스트림을 사용하여 데이터를 기다리는 열린 소켓 등록</span></a> 예제는 코루틴에서 <a class="reference internal" href="asyncio-stream.html#asyncio.connect" title="asyncio.connect"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.connect()</span></code></a> 함수에 의해 생성된 고수준 스트림을 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-stream.html#asyncio-example-create-connection-streams"><span class="std std-ref">스트림을 사용하여 데이터를 기다리는 열린 소켓 등록</span></a> 예제는 코루틴에서 <a class="reference internal" href="asyncio-stream.html#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a> 함수에 의해 생성된 고수준 스트림을 사용합니다.</p>
 </div>
 </div>
 <div class="section" id="loop-subprocess-exec-and-subprocessprotocol">

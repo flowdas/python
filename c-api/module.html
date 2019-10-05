@@ -559,7 +559,22 @@ state:</p>
 int <code class="descname">PyModule_AddObject</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *module</em>, const char<em> *name</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *value</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyModule_AddObject" title="정의 주소">¶</a></dt>
 <dd><p>Add an object to <em>module</em> as <em>name</em>.  This is a convenience function which can
 be used from the module's initialization function.  This steals a reference to
-<em>value</em>.  Return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error, <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</p>
+<em>value</em> on success.  Return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error, <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>Unlike other functions that steal references, <code class="docutils literal notranslate"><span class="pre">PyModule_AddObject()</span></code> only
+decrements the reference count of <em>value</em> <strong>on success</strong>.</p>
+<p>This means that its return value must be checked, and calling code must
+<a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> <em>value</em> manually on error. Example usage:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_INCREF</span><span class="p">(</span><span class="n">spam</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">PyModule_AddObject</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&quot;spam&quot;</span><span class="p">,</span> <span class="n">spam</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
+    <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">spam</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
 </dd></dl>
 
 <dl class="function">
