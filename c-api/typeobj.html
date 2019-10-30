@@ -123,7 +123,7 @@
 <span id="type-structs"></span><h1>형 객체<a class="headerlink" href="#type-objects" title="제목 주소">¶</a></h1>
 <p>아마도 파이썬 객체 시스템의 가장 중요한 구조체 중 하나는 새로운 형을 정의하는 구조체 일 것입니다: <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a> 구조체. <code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_*()</span></code>나 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_*()</span></code> 함수를 사용하여 형 객체를 처리할 수 있지만, 대부분 파이썬 응용 프로그램이 흥미를 가질 것은 많이 제공하지 않습니다. 이 객체는 객체의 동작 방식의 기초를 이루므로, 인터프리터 자체와 새로운 형을 구현하는 확장 모듈에 매우 중요합니다.</p>
 <p>형 객체는 대부분 표준 형에 비해 상당히 큽니다. 크기가 큰 이유는 각 형 객체가 많은 수의 값을 저장하기 때문인데, 주로 C 함수 포인터이고 각기 형의 기능 중 작은 부분을 구현합니다. 이 섹션에서는 형 객체의 필드를 자세히 살펴 봅니다. 필드는 구조체에서 나타나는 순서대로 설명됩니다.</p>
-<p>다음의 간략 참조 외에도, <a class="reference internal" href="#typedef-examples"><span class="std std-ref">Examples</span></a> 섹션은 <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>의 의미와 사용에 대한 통찰을 제공합니다.</p>
+<p>다음의 간략 참조 외에도, <a class="reference internal" href="#typedef-examples"><span class="std std-ref">예</span></a> 섹션은 <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>의 의미와 사용에 대한 통찰을 제공합니다.</p>
 <div class="section" id="quick-reference">
 <h2>간략 참조<a class="headerlink" href="#quick-reference" title="제목 주소">¶</a></h2>
 <div class="section" id="tp-slots">
@@ -1037,7 +1037,7 @@ __delitem__</p></td>
 </tr>
 </tbody>
 </table>
-<p>자세한 내용은 아래 <a class="reference internal" href="#id5"><span class="std std-ref">Slot Type typedefs</span></a>를 참조하십시오.</p>
+<p>자세한 내용은 아래 <a class="reference internal" href="#id5"><span class="std std-ref">슬롯 형 typedef</span></a>를 참조하십시오.</p>
 </div>
 </div>
 <div class="section" id="pytypeobject-definition">
@@ -1204,33 +1204,15 @@ Py_ssize_t <code class="descname">PyTypeObject.tp_itemsize</code><a class="heade
 <dl class="member">
 <dt id="c.PyTypeObject.tp_dealloc">
 <a class="reference internal" href="#c.destructor" title="destructor">destructor</a> <code class="descname">PyTypeObject.tp_dealloc</code><a class="headerlink" href="#c.PyTypeObject.tp_dealloc" title="정의 주소">¶</a></dt>
-<dd><p>A pointer to the instance destructor function.  This function must be defined
-unless the type guarantees that its instances will never be deallocated (as is
-the case for the singletons <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">Ellipsis</span></code>).  The function signature is:</p>
+<dd><p>인스턴스 파괴자(destructor) 함수에 대한 포인터. (싱글톤 <code class="docutils literal notranslate"><span class="pre">None</span></code>과 <code class="docutils literal notranslate"><span class="pre">Ellipsis</span></code>의 경우 처럼) 형이 해당 인스턴스가 할당 해제되지 않도록 보장하지 않는 한, 이 함수를 정의해야합니다. 함수 서명은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">tp_dealloc</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The destructor function is called by the <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> and
-<a class="reference internal" href="refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a> macros when the new reference count is zero.  At this point,
-the instance is still in existence, but there are no references to it.  The
-destructor function should free all references which the instance owns, free all
-memory buffers owned by the instance (using the freeing function corresponding
-to the allocation function used to allocate the buffer), and call the type's
-<a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> function.  If the type is not subtypable
-(doesn't have the <a class="reference internal" href="#Py_TPFLAGS_BASETYPE" title="Py_TPFLAGS_BASETYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_BASETYPE</span></code></a> flag bit set), it is
-permissible to call the object deallocator directly instead of via
-<a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a>.  The object deallocator should be the one used to allocate the
-instance; this is normally <a class="reference internal" href="allocation.html#c.PyObject_Del" title="PyObject_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Del()</span></code></a> if the instance was allocated
-using <a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_New()</span></code></a> or <code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VarNew()</span></code>, or
-<a class="reference internal" href="gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> if the instance was allocated using
-<a class="reference internal" href="gcsupport.html#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_New()</span></code></a> or <a class="reference internal" href="gcsupport.html#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_NewVar()</span></code></a>.</p>
-<p>Finally, if the type is heap allocated (<a class="reference internal" href="#Py_TPFLAGS_HEAPTYPE" title="Py_TPFLAGS_HEAPTYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HEAPTYPE</span></code></a>), the
-deallocator should decrement the reference count for its type object after
-calling the type deallocator. In order to avoid dangling pointers, the
-recommended way to achieve this is:</p>
+<p>파괴자 함수는 새로운 참조 카운트가 0일 때 <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>와 <a class="reference internal" href="refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a> 매크로에 의해 호출됩니다. 이 시점에, 인스턴스는 여전히 존재하지만, 이에 대한 참조는 없습니다. 파괴자 함수는 인스턴스가 소유한 모든 참조를 해제하고, (버퍼 할당에 사용된 할당 함수에 해당하는 해제 함수를 사용하여) 인스턴스가 소유한 모든 메모리 버퍼를 해제한 다음, 형의 <a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> 함수를 호출해야 합니다. 형의 서브 형을 만들 수 없는 경우 (<a class="reference internal" href="#Py_TPFLAGS_BASETYPE" title="Py_TPFLAGS_BASETYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_BASETYPE</span></code></a> 플래그 비트가 설정되지 않은 경우) <a class="reference internal" href="#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a>를 거치는 대신 객체 할당 해제기(deallocator)를 직접 호출 할 수 있습니다. 객체 할당 해제기는 인스턴스를 할당하는 데 사용된 것이어야합니다; 인스턴스가 <a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_New()</span></code></a>나 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VarNew()</span></code>를 사용하여 할당되었으면 일반적으로 <a class="reference internal" href="allocation.html#c.PyObject_Del" title="PyObject_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Del()</span></code></a>이고, 인스턴스가 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_New()</span></code></a>나 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_NewVar()</span></code></a>를 사용하여 할당되었으면 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a>입니다.</p>
+<p>마지막으로, 형이 힙 할당(<a class="reference internal" href="#Py_TPFLAGS_HEAPTYPE" title="Py_TPFLAGS_HEAPTYPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HEAPTYPE</span></code></a>)이면, 할당 해제기는 형 할당 해제기를 호출한 후 해당 형 객체의 참조 횟수를 줄여야합니다. 매달린(dangling) 포인터를 피하기 위해, 이렇게 하는 권장 방법은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">foo_dealloc</span><span class="p">(</span><span class="n">foo_object</span> <span class="o">*</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">PyTypeObject</span> <span class="o">*</span><span class="n">tp</span> <span class="o">=</span> <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
-    <span class="c1">// free references and buffers here</span>
+    <span class="c1">// 참조와 버퍼를 여기서 해제합니다</span>
     <span class="n">tp</span><span class="o">-&gt;</span><span class="n">tp_free</span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
     <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">tp</span><span class="p">);</span>
 <span class="p">}</span>
@@ -1243,174 +1225,116 @@ recommended way to achieve this is:</p>
 <dl class="member">
 <dt id="c.PyTypeObject.tp_vectorcall_offset">
 Py_ssize_t <code class="descname">PyTypeObject.tp_vectorcall_offset</code><a class="headerlink" href="#c.PyTypeObject.tp_vectorcall_offset" title="정의 주소">¶</a></dt>
-<dd><p>An optional offset to a per-instance function that implements calling
-the object using the <em>vectorcall</em> protocol, a more efficient alternative
-of the simpler <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>.</p>
-<p>This field is only used if the flag <a class="reference internal" href="#_Py_TPFLAGS_HAVE_VECTORCALL" title="_Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code></a>
-is set. If so, this must be a positive integer containing the offset in the
-instance of a <a class="reference internal" href="#c.vectorcallfunc" title="vectorcallfunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">vectorcallfunc</span></code></a> pointer.
-The signature is the same as for <a class="reference internal" href="object.html#c._PyObject_Vectorcall" title="_PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">_PyObject_Vectorcall()</span></code></a>:</p>
+<dd><p>간단한 <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>의 더 효율적인 대안인 <em>벡터콜(vectorcall)</em> 프로토콜을 사용하여 객체를 호출하는 것을 구현하는 인스턴스 별 함수에 대한 선택적 오프셋입니다.</p>
+<p>이 필드는 플래그 <a class="reference internal" href="#_Py_TPFLAGS_HAVE_VECTORCALL" title="_Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code></a>가 설정되었을 때만 사용됩니다. 그럴 때, 이것은 <a class="reference internal" href="#c.vectorcallfunc" title="vectorcallfunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">vectorcallfunc</span></code></a> 포인터의 인스턴스에서의 오프셋을 포함하는 양의 정수여야 합니다. 서명은 <a class="reference internal" href="object.html#c._PyObject_Vectorcall" title="_PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">_PyObject_Vectorcall()</span></code></a>과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="n">vectorcallfunc</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">callable</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="k">const</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">nargsf</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">kwnames</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <em>vectorcallfunc</em> pointer may be zero, in which case the instance behaves
-as if <a class="reference internal" href="#_Py_TPFLAGS_HAVE_VECTORCALL" title="_Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> was not set: calling the instance
-falls back to <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>.</p>
-<p>Any class that sets <code class="docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code> must also set
-<a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> and make sure its behaviour is consistent
-with the <em>vectorcallfunc</em> function.
-This can be done by setting <em>tp_call</em> to <code class="docutils literal notranslate"><span class="pre">PyVectorcall_Call</span></code>:</p>
+<p><em>vectorcallfunc</em> 포인터는 0일 수 있으며, 이 때 인스턴스는 <a class="reference internal" href="#_Py_TPFLAGS_HAVE_VECTORCALL" title="_Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code></a>이 설정되지 않은 것처럼 작동합니다: 인스턴스를 호출하면 <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>로 폴백됩니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code>을 설정하는 모든 클래스는 <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>도 설정해야 하고, 해당 동작이 <em>vectorcallfunc</em> 함수와 일관되도록 만들어야 합니다. <em>tp_call</em>을 <code class="docutils literal notranslate"><span class="pre">PyVectorcall_Call</span></code>로 설정하면 됩니다:</p>
 <dl class="function">
 <dt id="c.PyVectorcall_Call">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a> *<code class="descname">PyVectorcall_Call</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *tuple</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *dict</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyVectorcall_Call" title="정의 주소">¶</a></dt>
-<dd><p>Call <em>callable</em>'s <em>vectorcallfunc</em> with positional and keyword
-arguments given in a tuple and dict, respectively.</p>
-<p>This function is intended to be used in the <code class="docutils literal notranslate"><span class="pre">tp_call</span></code> slot.
-It does not fall back to <code class="docutils literal notranslate"><span class="pre">tp_call</span></code> and it currently does not check the
-<code class="docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code> flag.
-To call an object, use one of the <a class="reference internal" href="object.html#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call</span></code></a>
-functions instead.</p>
+<dd><p>tuple과 dict에 각각 주어진 위치와 키워드 인자로 <em>callable</em>의 <em>vectorcallfunc</em>를 호출합니다.</p>
+<p>이 함수는 <code class="docutils literal notranslate"><span class="pre">tp_call</span></code> 슬롯에서 사용하기 위한 것입니다. <code class="docutils literal notranslate"><span class="pre">tp_call</span></code>로 폴백하지 않으며 현재 <code class="docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code> 플래그를 확인하지 않습니다. 객체를 호출하려면, <a class="reference internal" href="object.html#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call</span></code></a> 함수 중 하나를 대신 사용하십시오.</p>
 </dd></dl>
 
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>It is not recommended for <a class="reference internal" href="#heap-types"><span class="std std-ref">heap types</span></a> to implement
-the vectorcall protocol.
-When a user sets <code class="docutils literal notranslate"><span class="pre">__call__</span></code> in Python code, only <code class="docutils literal notranslate"><span class="pre">tp_call</span></code> is updated,
-possibly making it inconsistent with the vectorcall function.</p>
+<p><a class="reference internal" href="#heap-types"><span class="std std-ref">힙(heap) 형</span></a>에 벡터콜 프로토콜을 구현하는 것은 권장하지 않습니다. 사용자가 파이썬 코드에서 <code class="docutils literal notranslate"><span class="pre">__call__</span></code>을 설정하면, <code class="docutils literal notranslate"><span class="pre">tp_call</span></code> 만 갱신되어 벡터콜 함수와 일치하지 않을 수 있습니다.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The semantics of the <code class="docutils literal notranslate"><span class="pre">tp_vectorcall_offset</span></code> slot are provisional and
-expected to be finalized in Python 3.9.
-If you use vectorcall, plan for updating your code for Python 3.9.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tp_vectorcall_offset</span></code> 슬롯의 의미론은 잠정적이며 파이썬 3.9에서 완성될 것으로 예상됩니다. 벡터콜을 사용한다면, 파이썬 3.9에서 코드를 갱신할 준비를 하십시오.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.8에서 변경: </span>This slot was used for print formatting in Python 2.x.
-In Python 3.0 to 3.7, it was reserved and named <code class="docutils literal notranslate"><span class="pre">tp_print</span></code>.</p>
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>이 슬롯은 파이썬 2.x의 인쇄 포매팅에 사용되었습니다. 파이썬 3.0에서 3.7에서는, 예약되었고 <code class="docutils literal notranslate"><span class="pre">tp_print</span></code>로 명명되었습니다.</p>
 </div>
 <p><strong>계승:</strong></p>
-<p>This field is inherited by subtypes together with
-<a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>: a subtype inherits
-<a class="reference internal" href="#c.PyTypeObject.tp_vectorcall_offset" title="PyTypeObject.tp_vectorcall_offset"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_vectorcall_offset</span></code></a> from its base type when
-the subtype’s <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> is NULL.</p>
-<p>Note that <a class="reference internal" href="#id4">heap types</a> (including subclasses defined in Python) do not
-inherit the <a class="reference internal" href="#_Py_TPFLAGS_HAVE_VECTORCALL" title="_Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> flag.</p>
+<p>이 필드는 <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>과 함께 서브 형에 의해 상속됩니다: 서브 형의 <a class="reference internal" href="#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>이 NULL일 때 서브 형은 베이스 형에서 <a class="reference internal" href="#c.PyTypeObject.tp_vectorcall_offset" title="PyTypeObject.tp_vectorcall_offset"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_vectorcall_offset</span></code></a>를 상속합니다.</p>
+<p><a class="reference internal" href="#id4">힙 형</a>(파이썬에서 정의된 서브 클래스를 포함합니다)은 <a class="reference internal" href="#_Py_TPFLAGS_HAVE_VECTORCALL" title="_Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> 플래그를 상속하지 않음에 유의하십시오.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_getattr">
 <a class="reference internal" href="#c.getattrfunc" title="getattrfunc">getattrfunc</a> <code class="descname">PyTypeObject.tp_getattr</code><a class="headerlink" href="#c.PyTypeObject.tp_getattr" title="정의 주소">¶</a></dt>
-<dd><p>An optional pointer to the get-attribute-string function.</p>
-<p>This field is deprecated.  When it is defined, it should point to a function
-that acts the same as the <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a> function, but taking a C string
-instead of a Python string object to give the attribute name.</p>
+<dd><p>get-attribute-string 함수에 대한 선택적 포인터.</p>
+<p>이 필드는 폐지되었습니다. 정의될 때, <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a> 함수와 같게 작동하지만, 어트리뷰트 이름을 제공하기 위해 파이썬 문자열 객체 대신 C 문자열을 받아들이는 함수를 가리켜야 합니다.</p>
 <p><strong>계승:</strong></p>
-<p>Group: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattro</span></code></p>
-<p>This field is inherited by subtypes together with <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a>: a subtype
-inherits both <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a> from its base type when
-the subtype's <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a> are both <em>NULL</em>.</p>
+<p>그룹: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattro</span></code></p>
+<p>이 필드는 <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a>와 함께 서브 형에 의해 상속됩니다: 서브 형은 서브 형의 <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a>과 <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a>가 모두 <em>NULL</em>일 때 베이스 형에서 <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a>과 <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a>를 모두 상속합니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_setattr">
 <a class="reference internal" href="#c.setattrfunc" title="setattrfunc">setattrfunc</a> <code class="descname">PyTypeObject.tp_setattr</code><a class="headerlink" href="#c.PyTypeObject.tp_setattr" title="정의 주소">¶</a></dt>
-<dd><p>An optional pointer to the function for setting and deleting attributes.</p>
-<p>This field is deprecated.  When it is defined, it should point to a function
-that acts the same as the <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a> function, but taking a C string
-instead of a Python string object to give the attribute name.</p>
+<dd><p>어트리뷰트 설정과 삭제를 위한 함수에 대한 선택적 포인터.</p>
+<p>이 필드는 폐지되었습니다. 정의될 때, <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a> 함수와 같게 작동하지만, 어트리뷰트 이름을 제공하기 위해 파이썬 문자열 객체 대신 C 문자열을 받아들이는 함수를 가리켜야 합니다.</p>
 <p><strong>계승:</strong></p>
-<p>Group: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattro</span></code></p>
-<p>This field is inherited by subtypes together with <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a>: a subtype
-inherits both <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a> from its base type when
-the subtype's <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a> are both <em>NULL</em>.</p>
+<p>그룹: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattro</span></code></p>
+<p>이 필드는 <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a>와 함께 서브 형에 의해 상속됩니다. 서브 형은 서브 형의 <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a>과 <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a>가 모두 <em>NULL</em>일 때 베이스 형에서 <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a>과 <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a>를 모두 상속합니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_as_async">
 <a class="reference internal" href="#c.PyAsyncMethods" title="PyAsyncMethods">PyAsyncMethods</a>* <code class="descname">PyTypeObject.tp_as_async</code><a class="headerlink" href="#c.PyTypeObject.tp_as_async" title="정의 주소">¶</a></dt>
-<dd><p>Pointer to an additional structure that contains fields relevant only to
-objects which implement <a class="reference internal" href="../glossary.html#term-awaitable"><span class="xref std std-term">awaitable</span></a> and <a class="reference internal" href="../glossary.html#term-asynchronous-iterator"><span class="xref std std-term">asynchronous iterator</span></a>
-protocols at the C-level.  See <a class="reference internal" href="#async-structs"><span class="std std-ref">Async Object Structures</span></a> for details.</p>
+<dd><p>C 수준에서 <a class="reference internal" href="../glossary.html#term-awaitable"><span class="xref std std-term">어웨이터블</span></a>과 <a class="reference internal" href="../glossary.html#term-asynchronous-iterator"><span class="xref std std-term">비동기 이터레이터</span></a> 프로토콜을 구현하는 객체에만 관련된 필드를 포함하는 추가 구조체에 대한 포인터. 자세한 내용은 <a class="reference internal" href="#async-structs"><span class="std std-ref">비동기 객체 구조체</span></a>를 참조하십시오.</p>
 <div class="versionadded">
-<p><span class="versionmodified added">버전 3.5에 추가: </span>Formerly known as <code class="docutils literal notranslate"><span class="pre">tp_compare</span></code> and <code class="docutils literal notranslate"><span class="pre">tp_reserved</span></code>.</p>
+<p><span class="versionmodified added">버전 3.5에 추가: </span>이전에는 <code class="docutils literal notranslate"><span class="pre">tp_compare</span></code>와 <code class="docutils literal notranslate"><span class="pre">tp_reserved</span></code>라고 했습니다.</p>
 </div>
 <p><strong>계승:</strong></p>
-<p>The <a class="reference internal" href="#c.PyTypeObject.tp_as_async" title="PyTypeObject.tp_as_async"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_async</span></code></a> field is not inherited,
-but the contained fields are inherited individually.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_as_async" title="PyTypeObject.tp_as_async"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_async</span></code></a> 필드는 상속되지 않지만, 포함된 필드는 개별적으로 상속됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_repr">
 <a class="reference internal" href="#c.reprfunc" title="reprfunc">reprfunc</a> <code class="descname">PyTypeObject.tp_repr</code><a class="headerlink" href="#c.PyTypeObject.tp_repr" title="정의 주소">¶</a></dt>
-<dd><p id="index-1">An optional pointer to a function that implements the built-in function
-<a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">repr()</span></code></a>.</p>
-<p>The signature is the same as for <a class="reference internal" href="object.html#c.PyObject_Repr" title="PyObject_Repr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Repr()</span></code></a>:</p>
+<dd><p id="index-1">내장 함수 <a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">repr()</span></code></a>을 구현하는 함수에 대한 선택적 포인터.</p>
+<p>서명은 <a class="reference internal" href="object.html#c.PyObject_Repr" title="PyObject_Repr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Repr()</span></code></a>과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="nf">tp_repr</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The function must return a string or a Unicode object.  Ideally,
-this function should return a string that, when passed to
-<a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>, given a suitable environment, returns an object with the
-same value.  If this is not feasible, it should return a string starting with
-<code class="docutils literal notranslate"><span class="pre">'&lt;'</span></code> and ending with <code class="docutils literal notranslate"><span class="pre">'&gt;'</span></code> from which both the type and the value of the
-object can be deduced.</p>
+<p>함수는 문자열이나 유니코드 객체를 반환해야 합니다. 이상적으로, 이 함수는 <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>에 전달될 때 적합한 환경이 주어지면 같은 값을 가진 객체를 반환하는 문자열을 반환해야합니다. 이것이 가능하지 않으면, <code class="docutils literal notranslate"><span class="pre">'&lt;'</span></code>로 시작하고 <code class="docutils literal notranslate"><span class="pre">'&gt;'</span></code>로 끝나는 문자열을 반환해야 하는데, 이 문자열에서 객체의 형과 값을 모두 추론할 수 있어야 합니다.</p>
 <p><strong>계승:</strong></p>
 <p>이 필드는 서브 형으로 상속됩니다.</p>
 <p><strong>기본값:</strong></p>
-<p>When this field is not set, a string of the form <code class="docutils literal notranslate"><span class="pre">&lt;%s</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">%p&gt;</span></code> is
-returned, where <code class="docutils literal notranslate"><span class="pre">%s</span></code> is replaced by the type name, and <code class="docutils literal notranslate"><span class="pre">%p</span></code> by the object's
-memory address.</p>
+<p>이 필드를 설정하지 않으면, <code class="docutils literal notranslate"><span class="pre">&lt;%s</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">%p&gt;</span></code> 형식의 문자열이 반환됩니다. 여기서 <code class="docutils literal notranslate"><span class="pre">%s</span></code>는 형 이름으로, <code class="docutils literal notranslate"><span class="pre">%p</span></code>는 객체의 메모리 주소로 치환됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_as_number">
 <a class="reference internal" href="#c.PyNumberMethods" title="PyNumberMethods">PyNumberMethods</a>* <code class="descname">PyTypeObject.tp_as_number</code><a class="headerlink" href="#c.PyTypeObject.tp_as_number" title="정의 주소">¶</a></dt>
-<dd><p>Pointer to an additional structure that contains fields relevant only to
-objects which implement the number protocol.  These fields are documented in
-<a class="reference internal" href="#number-structs"><span class="std std-ref">Number Object Structures</span></a>.</p>
+<dd><p>숫자 프로토콜을 구현하는 객체에만 관련된 필드를 포함하는 추가 구조체에 대한 포인터. 이 필드는 <a class="reference internal" href="#number-structs"><span class="std std-ref">숫자 객체 구조체</span></a>에서 설명합니다.</p>
 <p><strong>계승:</strong></p>
-<p>The <a class="reference internal" href="#c.PyTypeObject.tp_as_number" title="PyTypeObject.tp_as_number"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_number</span></code></a> field is not inherited, but the contained fields are
-inherited individually.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_as_number" title="PyTypeObject.tp_as_number"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_number</span></code></a> 필드는 상속되지 않지만, 포함된 필드는 개별적으로 상속됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_as_sequence">
 <a class="reference internal" href="#c.PySequenceMethods" title="PySequenceMethods">PySequenceMethods</a>* <code class="descname">PyTypeObject.tp_as_sequence</code><a class="headerlink" href="#c.PyTypeObject.tp_as_sequence" title="정의 주소">¶</a></dt>
-<dd><p>Pointer to an additional structure that contains fields relevant only to
-objects which implement the sequence protocol.  These fields are documented
-in <a class="reference internal" href="#sequence-structs"><span class="std std-ref">Sequence Object Structures</span></a>.</p>
+<dd><p>시퀀스 프로토콜을 구현하는 객체에만 관련된 필드를 포함하는 추가 구조체에 대한 포인터. 이 필드는 <a class="reference internal" href="#sequence-structs"><span class="std std-ref">시퀀스 객체 구조체</span></a>에서 설명합니다.</p>
 <p><strong>계승:</strong></p>
-<p>The <a class="reference internal" href="#c.PyTypeObject.tp_as_sequence" title="PyTypeObject.tp_as_sequence"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_sequence</span></code></a> field is not inherited, but the contained fields
-are inherited individually.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_as_sequence" title="PyTypeObject.tp_as_sequence"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_sequence</span></code></a> 필드는 상속되지 않지만, 포함된 필드는 개별적으로 상속됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_as_mapping">
 <a class="reference internal" href="#c.PyMappingMethods" title="PyMappingMethods">PyMappingMethods</a>* <code class="descname">PyTypeObject.tp_as_mapping</code><a class="headerlink" href="#c.PyTypeObject.tp_as_mapping" title="정의 주소">¶</a></dt>
-<dd><p>Pointer to an additional structure that contains fields relevant only to
-objects which implement the mapping protocol.  These fields are documented in
-<a class="reference internal" href="#mapping-structs"><span class="std std-ref">Mapping Object Structures</span></a>.</p>
+<dd><p>매핑 프로토콜을 구현하는 객체에만 관련된 필드를 포함하는 추가 구조체에 대한 포인터. 이 필드는 <a class="reference internal" href="#mapping-structs"><span class="std std-ref">매핑 객체 구조체</span></a>에서 설명합니다.</p>
 <p><strong>계승:</strong></p>
-<p>The <a class="reference internal" href="#c.PyTypeObject.tp_as_mapping" title="PyTypeObject.tp_as_mapping"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_mapping</span></code></a> field is not inherited, but the contained fields
-are inherited individually.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_as_mapping" title="PyTypeObject.tp_as_mapping"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_mapping</span></code></a> 필드는 상속되지 않지만, 포함된 필드는 개별적으로 상속됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_hash">
 <a class="reference internal" href="#c.hashfunc" title="hashfunc">hashfunc</a> <code class="descname">PyTypeObject.tp_hash</code><a class="headerlink" href="#c.PyTypeObject.tp_hash" title="정의 주소">¶</a></dt>
-<dd><p id="index-2">An optional pointer to a function that implements the built-in function
-<a class="reference internal" href="../library/functions.html#hash" title="hash"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash()</span></code></a>.</p>
-<p>The signature is the same as for <a class="reference internal" href="object.html#c.PyObject_Hash" title="PyObject_Hash"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Hash()</span></code></a>:</p>
+<dd><p id="index-2">내장 함수 <a class="reference internal" href="../library/functions.html#hash" title="hash"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash()</span></code></a>를 구현하는 함수에 대한 선택적 포인터.</p>
+<p>서명은 <a class="reference internal" href="object.html#c.PyObject_Hash" title="PyObject_Hash"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Hash()</span></code></a>와 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_hash_t</span> <span class="nf">tp_hash</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The value <code class="docutils literal notranslate"><span class="pre">-1</span></code> should not be returned as a
-normal return value; when an error occurs during the computation of the hash
-value, the function should set an exception and return <code class="docutils literal notranslate"><span class="pre">-1</span></code>.</p>
-<p>When this field is not set (<em>and</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_richcompare</span></code> is not set),
-an attempt to take the hash of the object raises <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>.
-This is the same as setting it to <a class="reference internal" href="object.html#c.PyObject_HashNotImplemented" title="PyObject_HashNotImplemented"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_HashNotImplemented()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-1</span></code> 값은 정상적인 반환 값으로 반환되지 않아야합니다; 해시 값을 계산하는 동안 에러가 발생하면 함수는 예외를 설정하고 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환해야 합니다.</p>
+<p>이 필드가 설정되지 않으면 (<em>그리고</em> <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_richcompare</span></code>가 설정되지 않으면), 객체의 해시를 취하려는 시도는 <a class="reference internal" href="../library/exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>를 발생시킵니다. 이것은 <a class="reference internal" href="object.html#c.PyObject_HashNotImplemented" title="PyObject_HashNotImplemented"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_HashNotImplemented()</span></code></a>로 설정하는 것과 같습니다.</p>
 <p>This field can be set explicitly to <a class="reference internal" href="object.html#c.PyObject_HashNotImplemented" title="PyObject_HashNotImplemented"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_HashNotImplemented()</span></code></a> to
 block inheritance of the hash method from a parent type. This is interpreted
 as the equivalent of <code class="docutils literal notranslate"><span class="pre">__hash__</span> <span class="pre">=</span> <span class="pre">None</span></code> at the Python level, causing
@@ -1471,7 +1395,7 @@ representation.</p>
 <p>It is usually convenient to set this field to <a class="reference internal" href="object.html#c.PyObject_GenericGetAttr" title="PyObject_GenericGetAttr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GenericGetAttr()</span></code></a>,
 which implements the normal way of looking for object attributes.</p>
 <p><strong>계승:</strong></p>
-<p>Group: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattro</span></code></p>
+<p>그룹: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_getattro</span></code></p>
 <p>This field is inherited by subtypes together with <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a>: a subtype
 inherits both <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a> from its base type when
 the subtype's <a class="reference internal" href="#c.PyTypeObject.tp_getattr" title="PyTypeObject.tp_getattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_getattro" title="PyTypeObject.tp_getattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getattro</span></code></a> are both <em>NULL</em>.</p>
@@ -1482,7 +1406,7 @@ the subtype's <a class="reference internal" href="#c.PyTypeObject.tp_getattr" ti
 <dl class="member">
 <dt id="c.PyTypeObject.tp_setattro">
 <a class="reference internal" href="#c.setattrofunc" title="setattrofunc">setattrofunc</a> <code class="descname">PyTypeObject.tp_setattro</code><a class="headerlink" href="#c.PyTypeObject.tp_setattro" title="정의 주소">¶</a></dt>
-<dd><p>An optional pointer to the function for setting and deleting attributes.</p>
+<dd><p>어트리뷰트 설정과 삭제를 위한 함수에 대한 선택적 포인터.</p>
 <p>The signature is the same as for <a class="reference internal" href="object.html#c.PyObject_SetAttr" title="PyObject_SetAttr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_SetAttr()</span></code></a>:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="nf">tp_setattro</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">attr</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">value</span><span class="p">);</span>
 </pre></div>
@@ -1492,7 +1416,7 @@ supported.  It is usually convenient to set this field to
 <a class="reference internal" href="object.html#c.PyObject_GenericSetAttr" title="PyObject_GenericSetAttr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GenericSetAttr()</span></code></a>, which implements the normal
 way of setting object attributes.</p>
 <p><strong>계승:</strong></p>
-<p>Group: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattro</span></code></p>
+<p>그룹: <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattr</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_setattro</span></code></p>
 <p>This field is inherited by subtypes together with <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a>: a subtype
 inherits both <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a> from its base type when
 the subtype's <a class="reference internal" href="#c.PyTypeObject.tp_setattr" title="PyTypeObject.tp_setattr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattr</span></code></a> and <a class="reference internal" href="#c.PyTypeObject.tp_setattro" title="PyTypeObject.tp_setattro"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_setattro</span></code></a> are both <em>NULL</em>.</p>
@@ -1505,7 +1429,7 @@ the subtype's <a class="reference internal" href="#c.PyTypeObject.tp_setattr" ti
 <a class="reference internal" href="#c.PyBufferProcs" title="PyBufferProcs">PyBufferProcs</a>* <code class="descname">PyTypeObject.tp_as_buffer</code><a class="headerlink" href="#c.PyTypeObject.tp_as_buffer" title="정의 주소">¶</a></dt>
 <dd><p>Pointer to an additional structure that contains fields relevant only to objects
 which implement the buffer interface.  These fields are documented in
-<a class="reference internal" href="#buffer-structs"><span class="std std-ref">Buffer Object Structures</span></a>.</p>
+<a class="reference internal" href="#buffer-structs"><span class="std std-ref">버퍼 객체 구조체</span></a>.</p>
 <p><strong>계승:</strong></p>
 <p>The <a class="reference internal" href="#c.PyTypeObject.tp_as_buffer" title="PyTypeObject.tp_as_buffer"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_as_buffer</span></code></a> field is not inherited,
 but the contained fields are inherited individually.</p>
@@ -2398,7 +2322,7 @@ objects on the thread which called tp_dealloc will not violate any assumptions
 of the library.</p>
 </div>
 <div class="section" id="heap-types">
-<span id="id4"></span><h2>Heap Types<a class="headerlink" href="#heap-types" title="제목 주소">¶</a></h2>
+<span id="id4"></span><h2>힙 형<a class="headerlink" href="#heap-types" title="제목 주소">¶</a></h2>
 <p>Traditionally, types defined in C code are <em>static</em>, that is,
 a static <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a> structure is defined directly in code
 and initialized using <a class="reference internal" href="type.html#c.PyType_Ready" title="PyType_Ready"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Ready()</span></code></a>.</p>
@@ -2423,7 +2347,7 @@ for short, which correspond closely to classes created by Python's
 </div>
 </div>
 <div class="section" id="number-object-structures">
-<span id="number-structs"></span><h1>Number Object Structures<a class="headerlink" href="#number-object-structures" title="제목 주소">¶</a></h1>
+<span id="number-structs"></span><h1>숫자 객체 구조체<a class="headerlink" href="#number-object-structures" title="제목 주소">¶</a></h1>
 <dl class="type">
 <dt id="c.PyNumberMethods">
 <code class="descname">PyNumberMethods</code><a class="headerlink" href="#c.PyNumberMethods" title="정의 주소">¶</a></dt>
@@ -2674,7 +2598,7 @@ void *<code class="descname">PyNumberMethods.nb_reserved</code><a class="headerl
 
 </div>
 <div class="section" id="mapping-object-structures">
-<span id="mapping-structs"></span><h1>Mapping Object Structures<a class="headerlink" href="#mapping-object-structures" title="제목 주소">¶</a></h1>
+<span id="mapping-structs"></span><h1>매핑 객체 구조체<a class="headerlink" href="#mapping-object-structures" title="제목 주소">¶</a></h1>
 <dl class="type">
 <dt id="c.PyMappingMethods">
 <code class="descname">PyMappingMethods</code><a class="headerlink" href="#c.PyMappingMethods" title="정의 주소">¶</a></dt>
@@ -2713,7 +2637,7 @@ assignment and deletion.</p>
 
 </div>
 <div class="section" id="sequence-object-structures">
-<span id="sequence-structs"></span><h1>Sequence Object Structures<a class="headerlink" href="#sequence-object-structures" title="제목 주소">¶</a></h1>
+<span id="sequence-structs"></span><h1>시퀀스 객체 구조체<a class="headerlink" href="#sequence-object-structures" title="제목 주소">¶</a></h1>
 <dl class="type">
 <dt id="c.PySequenceMethods">
 <code class="descname">PySequenceMethods</code><a class="headerlink" href="#c.PySequenceMethods" title="정의 주소">¶</a></dt>
@@ -2804,7 +2728,7 @@ via the <a class="reference internal" href="#c.PyNumberMethods.nb_inplace_multip
 
 </div>
 <div class="section" id="buffer-object-structures">
-<span id="buffer-structs"></span><h1>Buffer Object Structures<a class="headerlink" href="#buffer-object-structures" title="제목 주소">¶</a></h1>
+<span id="buffer-structs"></span><h1>버퍼 객체 구조체<a class="headerlink" href="#buffer-object-structures" title="제목 주소">¶</a></h1>
 <dl class="type">
 <dt id="c.PyBufferProcs">
 <code class="descname">PyBufferProcs</code><a class="headerlink" href="#c.PyBufferProcs" title="정의 주소">¶</a></dt>
@@ -2884,7 +2808,7 @@ wraps this function.</p>
 
 </div>
 <div class="section" id="async-object-structures">
-<span id="async-structs"></span><h1>Async Object Structures<a class="headerlink" href="#async-object-structures" title="제목 주소">¶</a></h1>
+<span id="async-structs"></span><h1>비동기 객체 구조체<a class="headerlink" href="#async-object-structures" title="제목 주소">¶</a></h1>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.5에 추가.</span></p>
 </div>
@@ -2940,7 +2864,7 @@ This slot may be set to <em>NULL</em>.</p>
 
 </div>
 <div class="section" id="slot-type-typedefs">
-<span id="id5"></span><h1>Slot Type typedefs<a class="headerlink" href="#slot-type-typedefs" title="제목 주소">¶</a></h1>
+<span id="id5"></span><h1>슬롯 형 typedef<a class="headerlink" href="#slot-type-typedefs" title="제목 주소">¶</a></h1>
 <dl class="type">
 <dt id="c.allocfunc">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a> *<code class="descname">(*allocfunc)</code><span class="sig-paren">(</span><a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject">PyTypeObject</a><em> *cls</em>, Py_ssize_t<em> nitems</em><span class="sig-paren">)</span><a class="headerlink" href="#c.allocfunc" title="정의 주소">¶</a></dt>
@@ -3112,7 +3036,7 @@ int <code class="descname">(*objobjargproc)</code><span class="sig-paren">(</spa
 
 </div>
 <div class="section" id="examples">
-<span id="typedef-examples"></span><h1>Examples<a class="headerlink" href="#examples" title="제목 주소">¶</a></h1>
+<span id="typedef-examples"></span><h1>예<a class="headerlink" href="#examples" title="제목 주소">¶</a></h1>
 <p>The following are simple examples of Python type definitions.  They
 include common usage you may encounter.  Some demonstrate tricky corner
 cases.  For more examples, practical info, and a tutorial, see
@@ -3270,16 +3194,16 @@ to create instances (e.g. uses a separate factory func):</p>
 <li><a class="reference internal" href="#pyobject-slots">PyObject 슬롯</a></li>
 <li><a class="reference internal" href="#pyvarobject-slots">PyVarObject 슬롯</a></li>
 <li><a class="reference internal" href="#pytypeobject-slots">PyTypeObject 슬롯</a></li>
-<li><a class="reference internal" href="#heap-types">Heap Types</a></li>
+<li><a class="reference internal" href="#heap-types">힙 형</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#number-object-structures">Number Object Structures</a></li>
-<li><a class="reference internal" href="#mapping-object-structures">Mapping Object Structures</a></li>
-<li><a class="reference internal" href="#sequence-object-structures">Sequence Object Structures</a></li>
-<li><a class="reference internal" href="#buffer-object-structures">Buffer Object Structures</a></li>
-<li><a class="reference internal" href="#async-object-structures">Async Object Structures</a></li>
-<li><a class="reference internal" href="#slot-type-typedefs">Slot Type typedefs</a></li>
-<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#number-object-structures">숫자 객체 구조체</a></li>
+<li><a class="reference internal" href="#mapping-object-structures">매핑 객체 구조체</a></li>
+<li><a class="reference internal" href="#sequence-object-structures">시퀀스 객체 구조체</a></li>
+<li><a class="reference internal" href="#buffer-object-structures">버퍼 객체 구조체</a></li>
+<li><a class="reference internal" href="#async-object-structures">비동기 객체 구조체</a></li>
+<li><a class="reference internal" href="#slot-type-typedefs">슬롯 형 typedef</a></li>
+<li><a class="reference internal" href="#examples">예</a></li>
 </ul>
 
   <h4>이전 항목</h4>
