@@ -1565,18 +1565,12 @@ const char* <code class="descname">PyTypeObject.tp_doc</code><a class="headerlin
 <dl class="member">
 <dt id="c.PyTypeObject.tp_traverse">
 <a class="reference internal" href="gcsupport.html#c.traverseproc" title="traverseproc">traverseproc</a> <code class="descname">PyTypeObject.tp_traverse</code><a class="headerlink" href="#c.PyTypeObject.tp_traverse" title="정의 주소">¶</a></dt>
-<dd><p>An optional pointer to a traversal function for the garbage collector.  This is
-only used if the <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag bit is set.  The signature is:</p>
+<dd><p>가비지 수집기의 탐색 함수에 대한 선택적 포인터. <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그 비트가 설정된 경우에만 사용됩니다. 서명은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">tp_traverse</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">visitproc</span> <span class="n">visit</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>More information about Python's garbage collection scheme can be found
-in section <a class="reference internal" href="gcsupport.html#supporting-cycle-detection"><span class="std std-ref">순환 가비지 수집 지원</span></a>.</p>
-<p>The <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> pointer is used by the garbage collector to detect
-reference cycles. A typical implementation of a <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> function
-simply calls <a class="reference internal" href="gcsupport.html#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> on each of the instance's members that are Python
-objects.  For example, this is function <code class="xref c c-func docutils literal notranslate"><span class="pre">local_traverse()</span></code> from the
-<a class="reference internal" href="../library/_thread.html#module-_thread" title="_thread: Low-level threading API."><code class="xref py py-mod docutils literal notranslate"><span class="pre">_thread</span></code></a> extension module:</p>
+<p>파이썬의 가비지 수집 체계에 대한 자세한 정보는 섹션 <a class="reference internal" href="gcsupport.html#supporting-cycle-detection"><span class="std std-ref">순환 가비지 수집 지원</span></a>에서 찾을 수 있습니다.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 포인터는 가비지 수집기에서 참조 순환을 감지하는 데 사용됩니다. <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 함수의 일반적인 구현은 단순히 파이썬 객체인 각 인스턴스 멤버에 대해 <a class="reference internal" href="gcsupport.html#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a>를 호출합니다. 예를 들어, 다음은 <a class="reference internal" href="../library/_thread.html#module-_thread" title="_thread: Low-level threading API."><code class="xref py py-mod docutils literal notranslate"><span class="pre">_thread</span></code></a> 확장 모듈의 함수 <code class="xref c c-func docutils literal notranslate"><span class="pre">local_traverse()</span></code>입니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span>
 <span class="nf">local_traverse</span><span class="p">(</span><span class="n">localobject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">visitproc</span> <span class="n">visit</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
 <span class="p">{</span>
@@ -1587,43 +1581,23 @@ objects.  For example, this is function <code class="xref c c-func docutils lite
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Note that <a class="reference internal" href="gcsupport.html#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> is called only on those members that can participate
-in reference cycles.  Although there is also a <code class="docutils literal notranslate"><span class="pre">self-&gt;key</span></code> member, it can only
-be <em>NULL</em> or a Python string and therefore cannot be part of a reference cycle.</p>
-<p>On the other hand, even if you know a member can never be part of a cycle, as a
-debugging aid you may want to visit it anyway just so the <a class="reference internal" href="../library/gc.html#module-gc" title="gc: Interface to the cycle-detecting garbage collector."><code class="xref py py-mod docutils literal notranslate"><span class="pre">gc</span></code></a> module's
-<a class="reference internal" href="../library/gc.html#gc.get_referents" title="gc.get_referents"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_referents()</span></code></a> function will include it.</p>
-<p>Note that <a class="reference internal" href="gcsupport.html#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> requires the <em>visit</em> and <em>arg</em> parameters to
-<code class="xref c c-func docutils literal notranslate"><span class="pre">local_traverse()</span></code> to have these specific names; don't name them just
-anything.</p>
+<p><a class="reference internal" href="gcsupport.html#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a>는 참조 순환에 참여할 수 있는 멤버에 대해서만 호출됨에 유의하십시오. <code class="docutils literal notranslate"><span class="pre">self-&gt;key</span></code> 멤버도 있지만, <em>NULL</em>이나 파이썬 문자열만 가능해서 참조 순환의 일부가 될 수 없습니다.</p>
+<p>반면에, 멤버가 사이클의 일부가 될 수 없다는 것을 알고 있더라도, 디버깅 지원을 위해 <a class="reference internal" href="../library/gc.html#module-gc" title="gc: Interface to the cycle-detecting garbage collector."><code class="xref py py-mod docutils literal notranslate"><span class="pre">gc</span></code></a> 모듈의 <a class="reference internal" href="../library/gc.html#gc.get_referents" title="gc.get_referents"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_referents()</span></code></a> 함수가 포함시키도록 어쨌거나 방문하고 싶을 수 있습니다.</p>
+<p><a class="reference internal" href="gcsupport.html#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a>는 <code class="xref c c-func docutils literal notranslate"><span class="pre">local_traverse()</span></code>의 <em>visit</em>와 <em>arg</em> 매개 변수가 이 이름일 것을 요구합니다; 다른 이름을 붙이지 마십시오.</p>
 <p><strong>계승:</strong></p>
 <p>그룹: <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_traverse</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_clear</span></code></p>
-<p>This field is inherited by subtypes together with <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> and the
-<a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag bit: the flag bit, <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>, and
-<a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> are all inherited from the base type if they are all zero in
-the subtype.</p>
+<p>이 필드는 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>와 <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그 비트와 함께 서브 형에 의해 상속됩니다: 플래그 비트, <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 및 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>가 서브 형에서 모두 0이면 모두 베이스 형에서 상속됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_clear">
 <a class="reference internal" href="gcsupport.html#c.inquiry" title="inquiry">inquiry</a> <code class="descname">PyTypeObject.tp_clear</code><a class="headerlink" href="#c.PyTypeObject.tp_clear" title="정의 주소">¶</a></dt>
-<dd><p>An optional pointer to a clear function for the garbage collector. This is only
-used if the <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag bit is set.  The signature is:</p>
+<dd><p>가비지 수집기의 정리 함수(clear function)에 대한 선택적 포인터. <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그 비트가 설정된 경우에만 사용됩니다. 서명은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">tp_clear</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> member function is used to break reference cycles in cyclic
-garbage detected by the garbage collector.  Taken together, all <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>
-functions in the system must combine to break all reference cycles.  This is
-subtle, and if in any doubt supply a <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> function.  For example,
-the tuple type does not implement a <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> function, because it's
-possible to prove that no reference cycle can be composed entirely of tuples.
-Therefore the <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> functions of other types must be sufficient to
-break any cycle containing a tuple.  This isn't immediately obvious, and there's
-rarely a good reason to avoid implementing <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>.</p>
-<p>Implementations of <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> should drop the instance's references to
-those of its members that may be Python objects, and set its pointers to those
-members to <em>NULL</em>, as in the following example:</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 멤버 함수는 가비지 수집기에서 감지한 순환 가비지에서 참조 순환을 끊는 데 사용됩니다. 종합하여, 시스템의 모든 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 함수가 결합되어 모든 참조 순환을 끊어야 합니다. 이것은 미묘합니다, 확신이 서지 않으면 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 함수를 제공하십시오. 예를 들어, 튜플 형은 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 함수를 구현하지 않습니다. 튜플 만으로는 참조 순환이 구성 될 수 없음을 증명할 수 있기 때문입니다. 따라서 다른 형의 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 함수만으로 튜플을 포함하는 순환을 끊기에 충분해야 합니다. 이것은 그리 자명하지 않으며, <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>를 구현하지 않아도 좋을만한 이유는 거의 없습니다.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>의 구현은 다음 예제와 같이 파이썬 객체일 수 있는 자신의 멤버에 대한 인스턴스의 참조를 삭제하고 해당 멤버에 대한 포인터를 <em>NULL</em>로 설정해야 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span>
 <span class="nf">local_clear</span><span class="p">(</span><span class="n">localobject</span> <span class="o">*</span><span class="n">self</span><span class="p">)</span>
 <span class="p">{</span>
@@ -1635,54 +1609,32 @@ members to <em>NULL</em>, as in the following example:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="refcounting.html#c.Py_CLEAR" title="Py_CLEAR"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_CLEAR()</span></code></a> macro should be used, because clearing references is
-delicate:  the reference to the contained object must not be decremented until
-after the pointer to the contained object is set to <em>NULL</em>.  This is because
-decrementing the reference count may cause the contained object to become trash,
-triggering a chain of reclamation activity that may include invoking arbitrary
-Python code (due to finalizers, or weakref callbacks, associated with the
-contained object). If it's possible for such code to reference <em>self</em> again,
-it's important that the pointer to the contained object be <em>NULL</em> at that time,
-so that <em>self</em> knows the contained object can no longer be used.  The
-<a class="reference internal" href="refcounting.html#c.Py_CLEAR" title="Py_CLEAR"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_CLEAR()</span></code></a> macro performs the operations in a safe order.</p>
-<p>Because the goal of <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> functions is to break reference cycles,
-it's not necessary to clear contained objects like Python strings or Python
-integers, which can't participate in reference cycles. On the other hand, it may
-be convenient to clear all contained Python objects, and write the type's
-<a class="reference internal" href="#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> function to invoke <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>.</p>
-<p>More information about Python's garbage collection scheme can be found in
-section <a class="reference internal" href="gcsupport.html#supporting-cycle-detection"><span class="std std-ref">순환 가비지 수집 지원</span></a>.</p>
+<p>참조 제거는 섬세한 작업이라서 <a class="reference internal" href="refcounting.html#c.Py_CLEAR" title="Py_CLEAR"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_CLEAR()</span></code></a> 매크로를 사용해야합니다: 포함된 객체에 대한 포인터가 <em>NULL</em>로 설정될 때까지 포함된 객체에 대한 참조를 감소시키지 않아야합니다. 이는 참조 횟수를 줄이면 포함된 객체가 버려지게 되어 임의의 파이썬 코드 호출을 포함하는 일련의 교정 활동을 촉발할 수 있기 때문입니다 (포함된 객체와 연관된 파이널라이저나 약한 참조 콜백으로 인해). 그러한 코드가 <em>self</em>를 다시 참조 할 수 있다면, 포함된 객체를 더는 사용할 수 없다는 것을 <em>self</em>가 알 수 있도록, 포함된 객체에 대한 포인터가 그 시점에 <em>NULL</em>이 되는 것이 중요합니다. <a class="reference internal" href="refcounting.html#c.Py_CLEAR" title="Py_CLEAR"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_CLEAR()</span></code></a> 매크로는 안전한 순서로 작업을 수행합니다.</p>
+<p><a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 함수의 목표는 참조 순환을 끊는 것이기 때문에, 참조 순환에 참여할 수 없는 파이썬 문자열이나 파이썬 정수와 같은 포함된 객체를 정리할 필요는 없습니다. 반면에, 포함된 모든 파이썬 객체를 정리하고, 형의 <a class="reference internal" href="#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 함수가 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>를 호출하도록 작성하는 것이 편리할 수 있습니다.</p>
+<p>파이썬의 가비지 수집 체계에 대한 자세한 정보는 섹션 <a class="reference internal" href="gcsupport.html#supporting-cycle-detection"><span class="std std-ref">순환 가비지 수집 지원</span></a>에서 찾을 수 있습니다.</p>
 <p><strong>계승:</strong></p>
 <p>그룹: <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_traverse</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">tp_clear</span></code></p>
-<p>This field is inherited by subtypes together with <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> and the
-<a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag bit: the flag bit, <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>, and
-<a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> are all inherited from the base type if they are all zero in
-the subtype.</p>
+<p>이 필드는 <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>와 <a class="reference internal" href="#Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그 비트와 함께 서브 형에 의해 상속됩니다: 플래그 비트, <a class="reference internal" href="#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 및 <a class="reference internal" href="#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>가 서브 형에서 모두 0이면 모두 베이스 형에서 상속됩니다.</p>
 </dd></dl>
 
 <dl class="member">
 <dt id="c.PyTypeObject.tp_richcompare">
 <a class="reference internal" href="#c.richcmpfunc" title="richcmpfunc">richcmpfunc</a> <code class="descname">PyTypeObject.tp_richcompare</code><a class="headerlink" href="#c.PyTypeObject.tp_richcompare" title="정의 주소">¶</a></dt>
-<dd><p>An optional pointer to the rich comparison function, whose signature is:</p>
+<dd><p>풍부한 비교 함수(rich comparison function)에 대한 선택적 포인터. 서명은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="nf">tp_richcompare</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">other</span><span class="p">,</span> <span class="kt">int</span> <span class="n">op</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The first parameter is guaranteed to be an instance of the type
-that is defined by <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>.</p>
-<p>The function should return the result of the comparison (usually <code class="docutils literal notranslate"><span class="pre">Py_True</span></code>
-or <code class="docutils literal notranslate"><span class="pre">Py_False</span></code>).  If the comparison is undefined, it must return
-<code class="docutils literal notranslate"><span class="pre">Py_NotImplemented</span></code>, if another error occurred it must return <em>NULL</em> and
-set an exception condition.</p>
-<p>The following constants are defined to be used as the third argument for
-<a class="reference internal" href="#c.PyTypeObject.tp_richcompare" title="PyTypeObject.tp_richcompare"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_richcompare</span></code></a> and for <a class="reference internal" href="object.html#c.PyObject_RichCompare" title="PyObject_RichCompare"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_RichCompare()</span></code></a>:</p>
+<p>첫 번째 매개 변수는 <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>에 의해 정의된 형의 인스턴스임이 보장됩니다.</p>
+<p>이 함수는 비교 결과(일반적으로 <code class="docutils literal notranslate"><span class="pre">Py_True</span></code>나 <code class="docutils literal notranslate"><span class="pre">Py_False</span></code>)를 반환해야 합니다. 비교가 정의되어 있지 않으면, <code class="docutils literal notranslate"><span class="pre">Py_NotImplemented</span></code>를 반환하고, 다른 에러가 발생하면 <em>NULL</em>을 반환하고 예외 조건을 설정해야 합니다.</p>
+<p>다음 상수는 <a class="reference internal" href="#c.PyTypeObject.tp_richcompare" title="PyTypeObject.tp_richcompare"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_richcompare</span></code></a>와 <a class="reference internal" href="object.html#c.PyObject_RichCompare" title="PyObject_RichCompare"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_RichCompare()</span></code></a>의 세 번째 인자로 사용되도록 정의됩니다:</p>
 <table class="docutils align-center">
 <colgroup>
 <col style="width: 57%" />
 <col style="width: 43%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Constant</p></th>
-<th class="head"><p>Comparison</p></th>
+<tr class="row-odd"><th class="head"><p>상수</p></th>
+<th class="head"><p>비교</p></th>
 </tr>
 </thead>
 <tbody>
