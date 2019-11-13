@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>Descriptor HowTo Guide &#8212; 파이썬 설명서 주석판</title>
+    <title>디스크립터 사용법 안내서 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -119,146 +119,86 @@
           <div class="body" role="main">
             
   <div class="section" id="descriptor-howto-guide">
-<h1><a class="toc-backref" href="#id1">Descriptor HowTo Guide</a><a class="headerlink" href="#descriptor-howto-guide" title="제목 주소">¶</a></h1>
+<h1><a class="toc-backref" href="#id1">디스크립터 사용법 안내서</a><a class="headerlink" href="#descriptor-howto-guide" title="제목 주소">¶</a></h1>
 <dl class="field-list simple">
-<dt class="field-odd">Author</dt>
+<dt class="field-odd">저자</dt>
 <dd class="field-odd"><p>Raymond Hettinger</p>
 </dd>
-<dt class="field-even">Contact</dt>
+<dt class="field-even">연락처</dt>
 <dd class="field-even"><p>&lt;python at rcn dot com&gt;</p>
 </dd>
 </dl>
 <div class="contents topic" id="contents">
-<p class="topic-title first">Contents</p>
+<p class="topic-title first">목차</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#descriptor-howto-guide" id="id1">Descriptor HowTo Guide</a></p>
+<li><p><a class="reference internal" href="#descriptor-howto-guide" id="id1">디스크립터 사용법 안내서</a></p>
 <ul>
-<li><p><a class="reference internal" href="#abstract" id="id2">Abstract</a></p></li>
-<li><p><a class="reference internal" href="#definition-and-introduction" id="id3">Definition and Introduction</a></p></li>
-<li><p><a class="reference internal" href="#descriptor-protocol" id="id4">Descriptor Protocol</a></p></li>
-<li><p><a class="reference internal" href="#invoking-descriptors" id="id5">Invoking Descriptors</a></p></li>
-<li><p><a class="reference internal" href="#descriptor-example" id="id6">Descriptor Example</a></p></li>
-<li><p><a class="reference internal" href="#properties" id="id7">Properties</a></p></li>
-<li><p><a class="reference internal" href="#functions-and-methods" id="id8">Functions and Methods</a></p></li>
-<li><p><a class="reference internal" href="#static-methods-and-class-methods" id="id9">Static Methods and Class Methods</a></p></li>
+<li><p><a class="reference internal" href="#abstract" id="id2">요약</a></p></li>
+<li><p><a class="reference internal" href="#definition-and-introduction" id="id3">정의와 소개</a></p></li>
+<li><p><a class="reference internal" href="#descriptor-protocol" id="id4">디스크립터 프로토콜</a></p></li>
+<li><p><a class="reference internal" href="#invoking-descriptors" id="id5">디스크립터 호출하기</a></p></li>
+<li><p><a class="reference internal" href="#descriptor-example" id="id6">디스크립터 예제</a></p></li>
+<li><p><a class="reference internal" href="#properties" id="id7">프로퍼티</a></p></li>
+<li><p><a class="reference internal" href="#functions-and-methods" id="id8">함수와 메서드</a></p></li>
+<li><p><a class="reference internal" href="#static-methods-and-class-methods" id="id9">정적 메서드와 클래스 메서드</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="abstract">
-<h2><a class="toc-backref" href="#id2">Abstract</a><a class="headerlink" href="#abstract" title="제목 주소">¶</a></h2>
-<p>Defines descriptors, summarizes the protocol, and shows how descriptors are
-called.  Examines a custom descriptor and several built-in Python descriptors
-including functions, properties, static methods, and class methods.  Shows how
-each works by giving a pure Python equivalent and a sample application.</p>
-<p>Learning about descriptors not only provides access to a larger toolset, it
-creates a deeper understanding of how Python works and an appreciation for the
-elegance of its design.</p>
+<h2><a class="toc-backref" href="#id2">요약</a><a class="headerlink" href="#abstract" title="제목 주소">¶</a></h2>
+<p>디스크립터를 정의하고, 프로토콜을 요약하며 디스크립터를 호출하는 방법을 보여줍니다. 사용자 정의 디스크립터와 함수, 프로퍼티, 정적 메서드 및 클래스 메서드를 포함한 몇 가지 내장 파이썬 디스크립터를 살펴봅니다. 순수 파이썬과 동등물과 샘플 응용 프로그램을 제공하여 각각이 작동하는 방식을 보여줍니다.</p>
+<p>디스크립터에 대한 학습은 더 큰 도구 집합에 대한 액세스를 제공 할뿐만 아니라, 파이썬의 작동 방식에 대한 심층적인 이해와 설계의 우아함에 대한 감사를 만듭니다.</p>
 </div>
 <div class="section" id="definition-and-introduction">
-<h2><a class="toc-backref" href="#id3">Definition and Introduction</a><a class="headerlink" href="#definition-and-introduction" title="제목 주소">¶</a></h2>
-<p>In general, a descriptor is an object attribute with &quot;binding behavior&quot;, one
-whose attribute access has been overridden by methods in the descriptor
-protocol.  Those methods are <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>, <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a>, and
-<a class="reference internal" href="../reference/datamodel.html#object.__delete__" title="object.__delete__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__delete__()</span></code></a>.  If any of those methods are defined for an object, it is
-said to be a descriptor.</p>
-<p>The default behavior for attribute access is to get, set, or delete the
-attribute from an object's dictionary.  For instance, <code class="docutils literal notranslate"><span class="pre">a.x</span></code> has a lookup chain
-starting with <code class="docutils literal notranslate"><span class="pre">a.__dict__['x']</span></code>, then <code class="docutils literal notranslate"><span class="pre">type(a).__dict__['x']</span></code>, and
-continuing through the base classes of <code class="docutils literal notranslate"><span class="pre">type(a)</span></code> excluding metaclasses. If the
-looked-up value is an object defining one of the descriptor methods, then Python
-may override the default behavior and invoke the descriptor method instead.
-Where this occurs in the precedence chain depends on which descriptor methods
-were defined.</p>
-<p>Descriptors are a powerful, general purpose protocol.  They are the mechanism
-behind properties, methods, static methods, class methods, and <a class="reference internal" href="../library/functions.html#super" title="super"><code class="xref py py-func docutils literal notranslate"><span class="pre">super()</span></code></a>.
-They are used throughout Python itself to implement the new style classes
-introduced in version 2.2.  Descriptors simplify the underlying C-code and offer
-a flexible set of new tools for everyday Python programs.</p>
+<h2><a class="toc-backref" href="#id3">정의와 소개</a><a class="headerlink" href="#definition-and-introduction" title="제목 주소">¶</a></h2>
+<p>일반적으로 디스크립터는 &quot;바인딩 동작&quot;이 있는 객체 어트리뷰트로, 디스크립터 프로토콜의 메서드가 어트리뷰트 액세스를 재정의합니다. 이러한 메서드는 <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>, <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a> 및 <a class="reference internal" href="../reference/datamodel.html#object.__delete__" title="object.__delete__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__delete__()</span></code></a>입니다. 이러한 메서드 중 어느 하나가 객체에 대해 정의되면, 디스크립터라고 합니다.</p>
+<p>어트리뷰트 액세스의 기본 동작은 객체의 딕셔너리에서 어트리뷰트를 가져 오거나(get) 설정하거나(set) 삭제하는(delete) 것 입니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">a.x</span></code>는 <code class="docutils literal notranslate"><span class="pre">a.__dict__['x']</span></code>로 시작한 다음 <code class="docutils literal notranslate"><span class="pre">type(a).__dict__['x']</span></code>를 거쳐, 메타 클래스를 제외한 <code class="docutils literal notranslate"><span class="pre">type(a)</span></code>의 베이스 클래스로 계속되는 조회 체인을 갖습니다. 조회된 값이 디스크립터 메서드 중 하나를 정의하는 객체이면, 파이썬은 기본 동작을 대체하고 대신 디스크립터 메서드를 호출 할 수 있습니다. 우선 순위 체인에서 이것이 어디쯤 등장하는지는 어떤 디스크립터 메서드가 정의되었는 지에 따라 다릅니다.</p>
+<p>디스크립터는 강력한 범용 프로토콜입니다. 이것들이 프로퍼티, 메서드, 정적 메서드, 클래스 메서드 및 <a class="reference internal" href="../library/functions.html#super" title="super"><code class="xref py py-func docutils literal notranslate"><span class="pre">super()</span></code></a>의 뒤에 있는 메커니즘입니다. 버전 2.2에 도입 된 새로운 스타일 클래스를 구현하기 위해 파이썬 자체에서 사용되었습니다. 디스크립터는 하부 C 코드를 단순화하고 일상적인 파이썬 프로그램을위한 유연한 새 도구 집합을 제공합니다.</p>
 </div>
 <div class="section" id="descriptor-protocol">
-<h2><a class="toc-backref" href="#id4">Descriptor Protocol</a><a class="headerlink" href="#descriptor-protocol" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">디스크립터 프로토콜</a><a class="headerlink" href="#descriptor-protocol" title="제목 주소">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">descr.__get__(self,</span> <span class="pre">obj,</span> <span class="pre">type=None)</span> <span class="pre">-&gt;</span> <span class="pre">value</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">descr.__set__(self,</span> <span class="pre">obj,</span> <span class="pre">value)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">descr.__delete__(self,</span> <span class="pre">obj)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code></p>
-<p>That is all there is to it.  Define any of these methods and an object is
-considered a descriptor and can override default behavior upon being looked up
-as an attribute.</p>
-<p>If an object defines <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a> or <a class="reference internal" href="../reference/datamodel.html#object.__delete__" title="object.__delete__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__delete__()</span></code></a>, it is considered
-a data descriptor.  Descriptors that only define <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a> are called
-non-data descriptors (they are typically used for methods but other uses are
-possible).</p>
-<p>Data and non-data descriptors differ in how overrides are calculated with
-respect to entries in an instance's dictionary.  If an instance's dictionary
-has an entry with the same name as a data descriptor, the data descriptor
-takes precedence.  If an instance's dictionary has an entry with the same
-name as a non-data descriptor, the dictionary entry takes precedence.</p>
-<p>To make a read-only data descriptor, define both <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a> and
-<a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a> with the <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a> raising an <a class="reference internal" href="../library/exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">AttributeError</span></code></a> when
-called.  Defining the <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a> method with an exception raising
-placeholder is enough to make it a data descriptor.</p>
+<p>이것이 전부입니다. 이러한 방법 중 하나를 정의하십시오, 그러면 객체가 디스크립터로 간주되고 어트리뷰트로 조회 될 때 기본 동작을 재정의할 수 있습니다.</p>
+<p>객체가 <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a>이나 <a class="reference internal" href="../reference/datamodel.html#object.__delete__" title="object.__delete__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__delete__()</span></code></a>를 정의하면, 데이터 디스크립터로 간주됩니다. <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a> 만 정의하는 디스크립터를 비 데이터 디스크립터라고 합니다 (보통 메서드에 사용되지만 다른 용도도 가능합니다).</p>
+<p>데이터와 비 데이터 디스크립터는 인스턴스 딕셔너리의 항목과 관련하여 재정의가 계산되는 방식이 다릅니다. 인스턴스 딕셔너리에 데이터 디스크립터와 이름이 같은 항목이 있으면, 데이터 디스크립터가 우선합니다. 인스턴스의 딕셔너리에 비 데이터 디스크립터와 이름이 같은 항목이 있으면, 딕셔너리 항목이 우선합니다.</p>
+<p>읽기 전용 데이터 디스크립터를 만들려면, <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>과 <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a>을 모두 정의하고, <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a>이 호출될 때 <a class="reference internal" href="../library/exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">AttributeError</span></code></a>를 발생시키십시오. 데이터 디스크립터를 만들기 위해 예외를 발생시키는 자리 표시자로 <a class="reference internal" href="../reference/datamodel.html#object.__set__" title="object.__set__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__set__()</span></code></a> 메서드를 정의하는 것으로 충분합니다.</p>
 </div>
 <div class="section" id="invoking-descriptors">
-<h2><a class="toc-backref" href="#id5">Invoking Descriptors</a><a class="headerlink" href="#invoking-descriptors" title="제목 주소">¶</a></h2>
-<p>A descriptor can be called directly by its method name.  For example,
-<code class="docutils literal notranslate"><span class="pre">d.__get__(obj)</span></code>.</p>
-<p>Alternatively, it is more common for a descriptor to be invoked automatically
-upon attribute access.  For example, <code class="docutils literal notranslate"><span class="pre">obj.d</span></code> looks up <code class="docutils literal notranslate"><span class="pre">d</span></code> in the dictionary
-of <code class="docutils literal notranslate"><span class="pre">obj</span></code>.  If <code class="docutils literal notranslate"><span class="pre">d</span></code> defines the method <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>, then <code class="docutils literal notranslate"><span class="pre">d.__get__(obj)</span></code>
-is invoked according to the precedence rules listed below.</p>
-<p>The details of invocation depend on whether <code class="docutils literal notranslate"><span class="pre">obj</span></code> is an object or a class.</p>
-<p>For objects, the machinery is in <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__getattribute__()</span></code></a> which
-transforms <code class="docutils literal notranslate"><span class="pre">b.x</span></code> into <code class="docutils literal notranslate"><span class="pre">type(b).__dict__['x'].__get__(b,</span> <span class="pre">type(b))</span></code>.  The
-implementation works through a precedence chain that gives data descriptors
-priority over instance variables, instance variables priority over non-data
-descriptors, and assigns lowest priority to <a class="reference internal" href="../reference/datamodel.html#object.__getattr__" title="object.__getattr__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattr__()</span></code></a> if provided.
-The full C implementation can be found in <a class="reference internal" href="../c-api/object.html#c.PyObject_GenericGetAttr" title="PyObject_GenericGetAttr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GenericGetAttr()</span></code></a> in
-<a class="reference external" href="https://github.com/python/cpython/tree/3.8/Objects/object.c">Objects/object.c</a>.</p>
-<p>For classes, the machinery is in <code class="xref py py-meth docutils literal notranslate"><span class="pre">type.__getattribute__()</span></code> which transforms
-<code class="docutils literal notranslate"><span class="pre">B.x</span></code> into <code class="docutils literal notranslate"><span class="pre">B.__dict__['x'].__get__(None,</span> <span class="pre">B)</span></code>.  In pure Python, it looks
-like:</p>
+<h2><a class="toc-backref" href="#id5">디스크립터 호출하기</a><a class="headerlink" href="#invoking-descriptors" title="제목 주소">¶</a></h2>
+<p>디스크립터는 메서드 이름으로 직접 호출 할 수 있습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">d.__get__(obj)</span></code>.</p>
+<p>또는, 어트리뷰트 액세스 시 디스크립터가 자동으로 호출되는 것이 더 일반적입니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">obj.d</span></code>는 <code class="docutils literal notranslate"><span class="pre">obj</span></code> 딕셔너리에서 <code class="docutils literal notranslate"><span class="pre">d</span></code>를 조회합니다. <code class="docutils literal notranslate"><span class="pre">d</span></code>가 메서드 <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>을 정의하면, 아래 나열된 우선 순위 규칙에 따라 <code class="docutils literal notranslate"><span class="pre">d.__get__(obj)</span></code>가 호출됩니다.</p>
+<p>호출 세부 사항은 <code class="docutils literal notranslate"><span class="pre">obj</span></code>가 객체인지 클래스인지에 따라 다릅니다.</p>
+<p>객체의 경우, 절차는 <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__getattribute__()</span></code></a>에 있으며 <code class="docutils literal notranslate"><span class="pre">b.x</span></code>를 <code class="docutils literal notranslate"><span class="pre">type(b).__dict__['x'].__get__(b,</span> <span class="pre">type(b))</span></code>로 변환합니다. 구현은 우선 순위 체인을 통해 작동하며, 데이터 디스크립터는 인스턴스 변수보다 우선하고, 인스턴스 변수는 비 데이터 디스크립터보다 우선하고, 제공된다면 <a class="reference internal" href="../reference/datamodel.html#object.__getattr__" title="object.__getattr__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattr__()</span></code></a>에 가장 낮은 우선 순위를 지정합니다. 전체 C 구현은 <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Objects/object.c">Objects/object.c</a>의 <a class="reference internal" href="../c-api/object.html#c.PyObject_GenericGetAttr" title="PyObject_GenericGetAttr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GenericGetAttr()</span></code></a>에서 찾을 수 있습니다.</p>
+<p>클래스의 경우, 절차는 <code class="xref py py-meth docutils literal notranslate"><span class="pre">type.__getattribute__()</span></code>에 있으며 <code class="docutils literal notranslate"><span class="pre">B.x</span></code>를 <code class="docutils literal notranslate"><span class="pre">B.__dict__['x'].__get__(None,</span> <span class="pre">B)</span></code>로 변환합니다. 순수한 파이썬으로 표현하면, 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-    <span class="s2">&quot;Emulate type_getattro() in Objects/typeobject.c&quot;</span>
+    <span class="s2">&quot;Objects/typeobject.c 에 있는 type_getattro()를 흉내 냅니다&quot;</span>
     <span class="n">v</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;__get__&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">v</span>
 </pre></div>
 </div>
-<p>The important points to remember are:</p>
+<p>기억해야 할 중요한 사항은 다음과 같습니다:</p>
 <ul class="simple">
-<li><p>descriptors are invoked by the <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> method</p></li>
-<li><p>overriding <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> prevents automatic descriptor calls</p></li>
-<li><p><a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__getattribute__()</span></code></a> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">type.__getattribute__()</span></code> make
-different calls to <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>.</p></li>
-<li><p>data descriptors always override instance dictionaries.</p></li>
-<li><p>non-data descriptors may be overridden by instance dictionaries.</p></li>
+<li><p>디스크립터는 <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> 메서드에 의해 호출됩니다</p></li>
+<li><p><a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a>를 재정의하면 자동 디스크립터 호출이 방지됩니다</p></li>
+<li><p><a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__getattribute__()</span></code></a>와 <code class="xref py py-meth docutils literal notranslate"><span class="pre">type.__getattribute__()</span></code>는 <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a>를 다르게 호출합니다.</p></li>
+<li><p>데이터 디스크립터는 항상 인스턴스 딕셔너리를 대체합니다.</p></li>
+<li><p>비 데이터 디스크립터는 인스턴스 딕셔너리로 대체될 수 있습니다.</p></li>
 </ul>
-<p>The object returned by <code class="docutils literal notranslate"><span class="pre">super()</span></code> also has a custom <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a>
-method for invoking descriptors.  The attribute lookup <code class="docutils literal notranslate"><span class="pre">super(B,</span> <span class="pre">obj).m</span></code> searches
-<code class="docutils literal notranslate"><span class="pre">obj.__class__.__mro__</span></code> for the base class <code class="docutils literal notranslate"><span class="pre">A</span></code> immediately following <code class="docutils literal notranslate"><span class="pre">B</span></code>
-and then returns <code class="docutils literal notranslate"><span class="pre">A.__dict__['m'].__get__(obj,</span> <span class="pre">B)</span></code>.  If not a descriptor,
-<code class="docutils literal notranslate"><span class="pre">m</span></code> is returned unchanged.  If not in the dictionary, <code class="docutils literal notranslate"><span class="pre">m</span></code> reverts to a
-search using <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__getattribute__()</span></code></a>.</p>
-<p>The implementation details are in <code class="xref c c-func docutils literal notranslate"><span class="pre">super_getattro()</span></code> in
-<a class="reference external" href="https://github.com/python/cpython/tree/3.8/Objects/typeobject.c">Objects/typeobject.c</a>.  and a pure Python equivalent can be found in
-<a class="reference external" href="https://www.python.org/download/releases/2.2.3/descrintro/#cooperation">Guido's Tutorial</a>.</p>
-<p>The details above show that the mechanism for descriptors is embedded in the
-<a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> methods for <a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference internal" href="../library/functions.html#type" title="type"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a>, and
-<a class="reference internal" href="../library/functions.html#super" title="super"><code class="xref py py-func docutils literal notranslate"><span class="pre">super()</span></code></a>.  Classes inherit this machinery when they derive from
-<a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a> or if they have a meta-class providing similar functionality.
-Likewise, classes can turn-off descriptor invocation by overriding
-<a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">super()</span></code>가 반환한 객체에도 디스크립터 호출을 위한 사용자 정의 <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> 메서드가 있습니다. 어트리뷰트 조회 <code class="docutils literal notranslate"><span class="pre">super(B,</span> <span class="pre">obj).m</span></code>은 <code class="docutils literal notranslate"><span class="pre">obj.__class__.__mro__</span></code>에서 <code class="docutils literal notranslate"><span class="pre">B</span></code> 바로 다음에 오는 베이스 클래스 <code class="docutils literal notranslate"><span class="pre">A</span></code>를 검색한 다음 <code class="docutils literal notranslate"><span class="pre">A.__dict__['m'].__get__(obj,</span> <span class="pre">B)</span></code>를 반환합니다. 디스크립터가 아니면, <code class="docutils literal notranslate"><span class="pre">m</span></code>이 변경되지 않은 상태로 반환됩니다. 딕셔너리에 없으면, <code class="docutils literal notranslate"><span class="pre">m</span></code>은 <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__getattribute__()</span></code></a>를 사용한 검색으로 되돌아갑니다.</p>
+<p>구현 세부 사항은 <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Objects/typeobject.c">Objects/typeobject.c</a>의 <code class="xref c c-func docutils literal notranslate"><span class="pre">super_getattro()</span></code>에 있습니다. <a class="reference external" href="https://www.python.org/download/releases/2.2.3/descrintro/#cooperation">Guido's Tutorial</a>에서 순수한 파이썬 동등물을 찾을 수 있습니다.</p>
+<p>위의 세부 사항은 디스크립터 메커니즘이 <a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, <a class="reference internal" href="../library/functions.html#type" title="type"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a> 및 <a class="reference internal" href="../library/functions.html#super" title="super"><code class="xref py py-func docutils literal notranslate"><span class="pre">super()</span></code></a>의 <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> 메서드에 내장되어 있음을 보여줍니다. 클래스는 <a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>에서 파생되거나 유사한 기능을 제공하는 메타 클래스가 있을 때 이 절차를 상속합니다. 마찬가지로, 클래스는 <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a>를 재정의하여 디스크립터 호출을 끌 수 있습니다.</p>
 </div>
 <div class="section" id="descriptor-example">
-<h2><a class="toc-backref" href="#id6">Descriptor Example</a><a class="headerlink" href="#descriptor-example" title="제목 주소">¶</a></h2>
-<p>The following code creates a class whose objects are data descriptors which
-print a message for each get or set.  Overriding <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a> is
-alternate approach that could do this for every attribute.  However, this
-descriptor is useful for monitoring just a few chosen attributes:</p>
+<h2><a class="toc-backref" href="#id6">디스크립터 예제</a><a class="headerlink" href="#descriptor-example" title="제목 주소">¶</a></h2>
+<p>다음 코드는 객체가 데이터 디스크립터인 클래스를 만들어 각 get이나 set에 대해 메시지를 인쇄합니다. <a class="reference internal" href="../reference/datamodel.html#object.__getattribute__" title="object.__getattribute__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattribute__()</span></code></a>를 재정의하는 것은 모든 어트리뷰트에 대해 이를 수행 할 수 있는 대안 방법입니다. 하지만, 이 디스크립터는 선택한 몇 가지 어트리뷰트만 모니터링하는 데 유용합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RevealAccess</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A data descriptor that sets and returns values</span>
-<span class="sd">       normally and prints a message logging their access.</span>
+    <span class="sd">&quot;&quot;&quot;값을 정상적으로 설정 및 반환하고 액세스를 로깅 하는 메시지를 인쇄하는</span>
+<span class="sd">       데이터 디스크립터.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;var&#39;</span><span class="p">):</span>
@@ -290,13 +230,10 @@ descriptor is useful for monitoring just a few chosen attributes:</p>
 <span class="mi">5</span>
 </pre></div>
 </div>
-<p>The protocol is simple and offers exciting possibilities.  Several use cases are
-so common that they have been packaged into individual function calls.
-Properties, bound methods, static methods, and class methods are all
-based on the descriptor protocol.</p>
+<p>이 프로토콜은 간단하고 흥미로운 가능성을 제공합니다. 몇가지 유스 케이스는 아주 흔해서 개별 함수 호출로 패키징되었습니다. 프로퍼티, 연결된 메서드, 정적 메서드 및 클래스 메서드는 모두 디스크립터 프로토콜을 기반으로 합니다.</p>
 </div>
 <div class="section" id="properties">
-<h2><a class="toc-backref" href="#id7">Properties</a><a class="headerlink" href="#properties" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">프로퍼티</a><a class="headerlink" href="#properties" title="제목 주소">¶</a></h2>
 <p>Calling <a class="reference internal" href="../library/functions.html#property" title="property"><code class="xref py py-func docutils literal notranslate"><span class="pre">property()</span></code></a> is a succinct way of building a data descriptor that
 triggers function calls upon access to an attribute.  Its signature is:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fdel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">property</span> <span class="n">attribute</span>
@@ -369,7 +306,7 @@ to wrap access to the value attribute in a property data descriptor:</p>
 </div>
 </div>
 <div class="section" id="functions-and-methods">
-<h2><a class="toc-backref" href="#id8">Functions and Methods</a><a class="headerlink" href="#functions-and-methods" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id8">함수와 메서드</a><a class="headerlink" href="#functions-and-methods" title="제목 주소">¶</a></h2>
 <p>Python's object oriented features are built upon a function based environment.
 Using non-data descriptors, the two are merged seamlessly.</p>
 <p>Class dictionaries store methods as functions.  In a class definition, methods
@@ -429,7 +366,7 @@ object.  In pure Python, it works like this:</p>
 </div>
 </div>
 <div class="section" id="static-methods-and-class-methods">
-<h2><a class="toc-backref" href="#id9">Static Methods and Class Methods</a><a class="headerlink" href="#static-methods-and-class-methods" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">정적 메서드와 클래스 메서드</a><a class="headerlink" href="#static-methods-and-class-methods" title="제목 주소">¶</a></h2>
 <p>Non-data descriptors provide a simple mechanism for variations on the usual
 patterns of binding functions into methods.</p>
 <p>To recap, functions have a <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__get__()</span></code></a> method so that they can be converted
@@ -570,15 +507,15 @@ Python equivalent is:</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Descriptor HowTo Guide</a><ul>
-<li><a class="reference internal" href="#abstract">Abstract</a></li>
-<li><a class="reference internal" href="#definition-and-introduction">Definition and Introduction</a></li>
-<li><a class="reference internal" href="#descriptor-protocol">Descriptor Protocol</a></li>
-<li><a class="reference internal" href="#invoking-descriptors">Invoking Descriptors</a></li>
-<li><a class="reference internal" href="#descriptor-example">Descriptor Example</a></li>
-<li><a class="reference internal" href="#properties">Properties</a></li>
-<li><a class="reference internal" href="#functions-and-methods">Functions and Methods</a></li>
-<li><a class="reference internal" href="#static-methods-and-class-methods">Static Methods and Class Methods</a></li>
+<li><a class="reference internal" href="#">디스크립터 사용법 안내서</a><ul>
+<li><a class="reference internal" href="#abstract">요약</a></li>
+<li><a class="reference internal" href="#definition-and-introduction">정의와 소개</a></li>
+<li><a class="reference internal" href="#descriptor-protocol">디스크립터 프로토콜</a></li>
+<li><a class="reference internal" href="#invoking-descriptors">디스크립터 호출하기</a></li>
+<li><a class="reference internal" href="#descriptor-example">디스크립터 예제</a></li>
+<li><a class="reference internal" href="#properties">프로퍼티</a></li>
+<li><a class="reference internal" href="#functions-and-methods">함수와 메서드</a></li>
+<li><a class="reference internal" href="#static-methods-and-class-methods">정적 메서드와 클래스 메서드</a></li>
 </ul>
 </li>
 </ul>
