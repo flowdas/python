@@ -2052,7 +2052,7 @@ creating and testing the identity of objects like this.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="s1">&#39;some stuff&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>And for reading files:</p>
+<p>그리고 파일을 읽기 위해서는:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;__main__.open&#39;</span><span class="p">,</span> <span class="n">mock_open</span><span class="p">(</span><span class="n">read_data</span><span class="o">=</span><span class="s1">&#39;bibble&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">m</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h</span><span class="p">:</span>
 <span class="gp">... </span>        <span class="n">result</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -2064,20 +2064,10 @@ creating and testing the identity of objects like this.</p>
 </div>
 <div class="section" id="autospeccing">
 <span id="auto-speccing"></span><h3>자동 사양<a class="headerlink" href="#autospeccing" title="제목 주소">¶</a></h3>
-<p>Autospeccing is based on the existing <code class="xref py py-attr docutils literal notranslate"><span class="pre">spec</span></code> feature of mock. It limits the
-api of mocks to the api of an original object (the spec), but it is recursive
-(implemented lazily) so that attributes of mocks only have the same api as
-the attributes of the spec. In addition mocked functions / methods have the
-same call signature as the original so they raise a <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a> if they are
-called incorrectly.</p>
-<p>Before I explain how auto-speccing works, here's why it is needed.</p>
-<p><a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> is a very powerful and flexible object, but it suffers from two flaws
-when used to mock out objects from a system under test. One of these flaws is
-specific to the <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> api and the other is a more general problem with using
-mock objects.</p>
-<p>First the problem specific to <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>. <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> has two assert methods that are
-extremely handy: <a class="reference internal" href="#unittest.mock.Mock.assert_called_with" title="unittest.mock.Mock.assert_called_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">assert_called_with()</span></code></a> and
-<a class="reference internal" href="#unittest.mock.Mock.assert_called_once_with" title="unittest.mock.Mock.assert_called_once_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">assert_called_once_with()</span></code></a>.</p>
+<p>자동 사양은 기존의 <code class="xref py py-attr docutils literal notranslate"><span class="pre">spec</span></code> 기능을 기반으로 합니다. 모의 객체 api를 원본 객체(사양)의 api로 제한하지만, 재귀적(게으르게(lazily) 구현되었습니다)이라서 모의 객체의 어트리뷰트는 사양의 어트리뷰트와 같은 api만 갖습니다. 또한 모킹된 함수 / 메서드는 원본과 같은 호출 서명을 가지므로 잘못 호출되면 <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>를 발생시킵니다.</p>
+<p>자동 사양이 작동하는 방식을 설명하기 전에, 이것이 필요한 이유는 이렇습니다.</p>
+<p><a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>은 매우 강력하고 유연한 객체이지만, 테스트 대상 시스템에서 객체를 모킹할 때 두 가지 결함이 있습니다. 이러한 결함 중 하나는 <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> api에만 해당되며 다른 하나는 모의 객체 사용에 대한 보다 일반적인 문제입니다.</p>
+<p>먼저 <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>과 관련된 문제입니다. <a class="reference internal" href="#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>에는 <a class="reference internal" href="#unittest.mock.Mock.assert_called_with" title="unittest.mock.Mock.assert_called_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">assert_called_with()</span></code></a>와 <a class="reference internal" href="#unittest.mock.Mock.assert_called_once_with" title="unittest.mock.Mock.assert_called_once_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">assert_called_once_with()</span></code></a>라는 매우 편리한 두 가지 어서션 메서드가 있습니다.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Thing&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -2088,26 +2078,16 @@ extremely handy: <a class="reference internal" href="#unittest.mock.Mock.assert_
 <span class="gr">AssertionError</span>: <span class="n">Expected &#39;mock&#39; to be called once. Called 2 times.</span>
 </pre></div>
 </div>
-<p>Because mocks auto-create attributes on demand, and allow you to call them
-with arbitrary arguments, if you misspell one of these assert methods then
-your assertion is gone:</p>
+<p>모의 객체는 요청시 어트리뷰트를 자동 생성하고, 임의의 인자로 어트리뷰트를 호출하도록 허락합니다, 이러한 어서트 메서드 중 하나의 철자를 틀리면 어서션이 사라집니다:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Thing&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assret_called_once_with</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Your tests can pass silently and incorrectly because of the typo.</p>
-<p>The second issue is more general to mocking. If you refactor some of your
-code, rename members and so on, any tests for code that is still using the
-<em>old api</em> but uses mocks instead of the real objects will still pass. This
-means your tests can all pass even though your code is broken.</p>
-<p>Note that this is another reason why you need integration tests as well as
-unit tests. Testing everything in isolation is all fine and dandy, but if you
-don't test how your units are &quot;wired together&quot; there is still lots of room
-for bugs that tests might have caught.</p>
-<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">mock</span></code> already provides a feature to help with this, called speccing. If you
-use a class or instance as the <code class="xref py py-attr docutils literal notranslate"><span class="pre">spec</span></code> for a mock then you can only access
-attributes on the mock that exist on the real class:</p>
+<p>오타로 인해 테스트가 조용히 잘못 통과할 수 있습니다.</p>
+<p>두 번째 문제는 모킹에 더 일반적입니다. 멤버 이름 등을 변경하는 등 일부 코드를 리팩터링하면, 여전히 <em>예전 api</em>를 사용하는 코드에 대한 테스트는 실제 객체 대신 모의 객체를 사용하면 모두 통과합니다. 이것은 코드가 손상 되어도 테스트를 모두 통과 할 수 있다는 뜻입니다.</p>
+<p>이것이 단위 테스트뿐만 아니라 통합 테스트가 필요한 또 다른 이유입니다. 모든 것을 분리해서 테스트하는 것은 괜찮고 멋지지만, 단위들이 어떻게 &quot;서로 연결되어&quot; 있는지 테스트하지 않으면 테스트가 발견할 수도 있을 버그에 대한 여지가 여전히 많습니다.</p>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">mock</span></code>은 이미 이에 도움이 되는 기능인 사양(speccing)을 제공합니다. 모의 객체에 대해 클래스나 인스턴스를 <code class="xref py py-attr docutils literal notranslate"><span class="pre">spec</span></code>로 사용하면, 실제 클래스에 존재하는 모의 객체 어트리뷰트에만 액세스 할 수 있습니다:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">request</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assret_called_with</span>
@@ -2116,22 +2096,14 @@ attributes on the mock that exist on the real class:</p>
 <span class="gr">AttributeError</span>: <span class="n">Mock object has no attribute &#39;assret_called_with&#39;</span>
 </pre></div>
 </div>
-<p>The spec only applies to the mock itself, so we still have the same issue
-with any methods on the mock:</p>
+<p>사양은 모의 객체 자체에만 적용되므로, 모의 객체의 메서드와 관계된 문제는 여전히 있습니다:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">has_data</span><span class="p">()</span>
 <span class="go">&lt;mock.Mock object at 0x...&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">has_data</span><span class="o">.</span><span class="n">assret_called_with</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Auto-speccing solves this problem. You can either pass <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code> to
-<a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> / <a class="reference internal" href="#unittest.mock.patch.object" title="unittest.mock.patch.object"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.object()</span></code></a> or use the <a class="reference internal" href="#unittest.mock.create_autospec" title="unittest.mock.create_autospec"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_autospec()</span></code></a> function to create a
-mock with a spec. If you use the <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code> argument to <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> then the
-object that is being replaced will be used as the spec object. Because the
-speccing is done &quot;lazily&quot; (the spec is created as attributes on the mock are
-accessed) you can use it with very complex or deeply nested objects (like
-modules that import modules that import modules) without a big performance
-hit.</p>
-<p>Here's an example of it in use:</p>
+<p>자동 사양은 이 문제를 해결합니다. <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code>를 <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> / <a class="reference internal" href="#unittest.mock.patch.object" title="unittest.mock.patch.object"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch.object()</span></code></a>로 전달하거나 <a class="reference internal" href="#unittest.mock.create_autospec" title="unittest.mock.create_autospec"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_autospec()</span></code></a> 함수를 사용하여 사양이 있는 모의 객체를 만들 수 있습니다. <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code> 인자를 <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a>에 사용하면 대체중인 객체가 사양 객체로 사용됩니다. 사양화(speccing)는 &quot;게으르게(lazily)&quot; 수행되므로 (모의 객체의 어트리뷰트에 액세스할 때 사양이 만들어집니다) 성능이 크게 저하되지 않고도 매우 복잡하거나 깊이 중첩 된 객체(가령 모듈을 임포트하는 모듈을 임포트하는 모듈)와 함께 사용할 수 있습니다.</p>
+<p>사용 예는 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">request</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">patcher</span> <span class="o">=</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;__main__.request&#39;</span><span class="p">,</span> <span class="n">autospec</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock_request</span> <span class="o">=</span> <span class="n">patcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
@@ -2141,25 +2113,20 @@ hit.</p>
 <span class="go">&lt;MagicMock name=&#39;request.Request&#39; spec=&#39;Request&#39; id=&#39;...&#39;&gt;</span>
 </pre></div>
 </div>
-<p>You can see that <code class="xref py py-class docutils literal notranslate"><span class="pre">request.Request</span></code> has a spec. <code class="xref py py-class docutils literal notranslate"><span class="pre">request.Request</span></code> takes two
-arguments in the constructor (one of which is <em>self</em>). Here's what happens if
-we try to call it incorrectly:</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">request.Request</span></code>에 spec이 있음을 알 수 있습니다. <code class="xref py py-class docutils literal notranslate"><span class="pre">request.Request</span></code>는 생성자에서 두 개의 인자를 취합니다 (하나는 <em>self</em>입니다). 잘못 호출하면 이렇게 됩니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">req</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">()</span>
 <span class="gt">Traceback (most recent call last):</span>
  <span class="c">...</span>
 <span class="gr">TypeError</span>: <span class="n">&lt;lambda&gt;() takes at least 2 arguments (1 given)</span>
 </pre></div>
 </div>
-<p>The spec also applies to instantiated classes (i.e. the return value of
-specced mocks):</p>
+<p>사양은 인스턴스화 된 클래스(즉, 사양화된 모의 객체의 반환 값)에도 적용됩니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">req</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">req</span>
 <span class="go">&lt;NonCallableMagicMock name=&#39;request.Request()&#39; spec=&#39;Request&#39; id=&#39;...&#39;&gt;</span>
 </pre></div>
 </div>
-<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code> objects are not callable, so the return value of instantiating our
-mocked out <code class="xref py py-class docutils literal notranslate"><span class="pre">request.Request</span></code> is a non-callable mock. With the spec in place
-any typos in our asserts will raise the correct error:</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code> 객체는 콜러블이 아니므로, 모킹된 <code class="xref py py-class docutils literal notranslate"><span class="pre">request.Request</span></code>의 인스턴스화의 반환 값은 콜러블이 아닌 모의 객체입니다. 사양이 적용되면 어서션에 오타가 있을 때 올바른 에러를 발생시킵니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">req</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="s1">&#39;eggs&#39;</span><span class="p">)</span>
 <span class="go">&lt;MagicMock name=&#39;request.Request().add_header()&#39; id=&#39;...&#39;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">req</span><span class="o">.</span><span class="n">add_header</span><span class="o">.</span><span class="n">assret_called_with</span>
@@ -2169,9 +2136,7 @@ any typos in our asserts will raise the correct error:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">req</span><span class="o">.</span><span class="n">add_header</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="s1">&#39;eggs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In many cases you will just be able to add <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code> to your existing
-<a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> calls and then be protected against bugs due to typos and api
-changes.</p>
+<p>많은 경우 단지 기존 <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> 호출에 <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code>를 추가하면 오타와 api 변경으로 인한 버그로부터 보호할 수 있습니다.</p>
 <p>As well as using <em>autospec</em> through <a class="reference internal" href="#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> there is a
 <a class="reference internal" href="#unittest.mock.create_autospec" title="unittest.mock.create_autospec"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_autospec()</span></code></a> for creating autospecced mocks directly:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">request</span>
