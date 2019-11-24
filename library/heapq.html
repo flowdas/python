@@ -215,25 +215,15 @@
 </div>
 <div class="section" id="priority-queue-implementation-notes">
 <h2>우선순위 큐 구현 참고 사항<a class="headerlink" href="#priority-queue-implementation-notes" title="제목 주소">¶</a></h2>
-<p>A <a class="reference external" href="https://en.wikipedia.org/wiki/Priority_queue">priority queue</a> is common use
-for a heap, and it presents several implementation challenges:</p>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Priority_queue">우선순위 큐</a>는 힙의 일반적인 사용이며, 몇 가지 구현 과제가 있습니다:</p>
 <ul class="simple">
-<li><p>Sort stability:  how do you get two tasks with equal priorities to be returned
-in the order they were originally added?</p></li>
-<li><p>Tuple comparison breaks for (priority, task) pairs if the priorities are equal
-and the tasks do not have a default comparison order.</p></li>
-<li><p>If the priority of a task changes, how do you move it to a new position in
-the heap?</p></li>
-<li><p>Or if a pending task needs to be deleted, how do you find it and remove it
-from the queue?</p></li>
+<li><p>정렬 안정성: 우선 순위가 같은 두 개의 작업을 어떻게 원래 추가된 순서대로 반환합니까?</p></li>
+<li><p>우선순위가 같고 작업에 기본 비교 순서가 없으면 (우선순위, 작업) 쌍에 대한 튜플 비교가 성립하지 않습니다.</p></li>
+<li><p>작업의 우선 순위가 변경되면, 어떻게 힙의 새로운 위치로 옮깁니까?</p></li>
+<li><p>또는 계류중인 작업을 삭제해야하면, 작업을 어떻게 찾고 큐에서 제거합니까?</p></li>
 </ul>
-<p>A solution to the first two challenges is to store entries as 3-element list
-including the priority, an entry count, and the task.  The entry count serves as
-a tie-breaker so that two tasks with the same priority are returned in the order
-they were added. And since no two entry counts are the same, the tuple
-comparison will never attempt to directly compare two tasks.</p>
-<p>Another solution to the problem of non-comparable tasks is to create a wrapper
-class that ignores the task item and only compares the priority field:</p>
+<p>처음 두 가지 과제에 대한 해결책은 항목을 우선순위, 항목 수 및 작업을 포함하는 3-요소 리스트로 저장하는 것입니다. 항목 수는 순위 결정자 역할을 하므로 우선순위가 같은 두 작업이 추가된 순서대로 반환됩니다. 두 항목 수가 같은 경우는 없으므로, 튜플 비교는 두 작업을 직접 비교하려고 하지 않습니다.</p>
+<p>비교할수 없는 작업의 문제에 대한 또 다른 해결책은 작업 항목을 무시하고 우선순위 필드 만 비교하는 래퍼 클래스를 만드는 것입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="k">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span>
 
@@ -243,19 +233,15 @@ class that ignores the task item and only compares the priority field:</p>
     <span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="n">field</span><span class="p">(</span><span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The remaining challenges revolve around finding a pending task and making
-changes to its priority or removing it entirely.  Finding a task can be done
-with a dictionary pointing to an entry in the queue.</p>
-<p>Removing the entry or changing its priority is more difficult because it would
-break the heap structure invariants.  So, a possible solution is to mark the
-entry as removed and add a new entry with the revised priority:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">pq</span> <span class="o">=</span> <span class="p">[]</span>                         <span class="c1"># list of entries arranged in a heap</span>
-<span class="n">entry_finder</span> <span class="o">=</span> <span class="p">{}</span>               <span class="c1"># mapping of tasks to entries</span>
-<span class="n">REMOVED</span> <span class="o">=</span> <span class="s1">&#39;&lt;removed-task&gt;&#39;</span>      <span class="c1"># placeholder for a removed task</span>
-<span class="n">counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>     <span class="c1"># unique sequence count</span>
+<p>나머지 과제는 계류중인 작업을 찾고 우선순위를 변경하거나 완전히 제거하는 것과 관련이 있습니다. 작업을 찾는 것은 큐에 있는 항목을 가리키는 딕셔너리를 사용해서 해결할 수 있습니다.</p>
+<p>힙 구조 불변성을 깨뜨리기 때문에 항목을 제거하거나 우선순위를 변경하는 것은 더 어렵습니다. 따라서, 가능한 해결책은 항목을 제거된 것으로 표시하고 우선순위가 수정된 새 항목을 추가하는 것입니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">pq</span> <span class="o">=</span> <span class="p">[]</span>                         <span class="c1"># 힙에 배치된 항목의 리스트</span>
+<span class="n">entry_finder</span> <span class="o">=</span> <span class="p">{}</span>               <span class="c1"># 작업에서 항목으로의 매핑</span>
+<span class="n">REMOVED</span> <span class="o">=</span> <span class="s1">&#39;&lt;removed-task&gt;&#39;</span>      <span class="c1"># 삭제된 작업을 위한 자리 표시기</span>
+<span class="n">counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>     <span class="c1"># 고유한 시퀀스 카운트</span>
 
 <span class="k">def</span> <span class="nf">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="s1">&#39;Add a new task or update the priority of an existing task&#39;</span>
+    <span class="s1">&#39;새 작업을 추가하거나 기존 작업의 우선순위를 갱신합니다&#39;</span>
     <span class="k">if</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">entry_finder</span><span class="p">:</span>
         <span class="n">remove_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
     <span class="n">count</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">counter</span><span class="p">)</span>
@@ -264,12 +250,12 @@ entry as removed and add a new entry with the revised priority:</p>
     <span class="n">heappush</span><span class="p">(</span><span class="n">pq</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">remove_task</span><span class="p">(</span><span class="n">task</span><span class="p">):</span>
-    <span class="s1">&#39;Mark an existing task as REMOVED.  Raise KeyError if not found.&#39;</span>
+    <span class="s1">&#39;기존 작업을 REMOVED로 표시합니다.  발견되지 않으면 KeyError를 발생시킵니다.&#39;</span>
     <span class="n">entry</span> <span class="o">=</span> <span class="n">entry_finder</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
     <span class="n">entry</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">REMOVED</span>
 
 <span class="k">def</span> <span class="nf">pop_task</span><span class="p">():</span>
-    <span class="s1">&#39;Remove and return the lowest priority task. Raise KeyError if empty.&#39;</span>
+    <span class="s1">&#39;가장 낮은 우선순위 작업을 삭제하고 반환합니다. 비어있으면 KeyError를 발생시킵니다.&#39;</span>
     <span class="k">while</span> <span class="n">pq</span><span class="p">:</span>
         <span class="n">priority</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">heappop</span><span class="p">(</span><span class="n">pq</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">REMOVED</span><span class="p">:</span>
