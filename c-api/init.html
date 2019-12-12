@@ -435,7 +435,7 @@ called at all. It specifies which encoding and error handling to use
 with standard IO, with the same meanings as in <a class="reference internal" href="../library/stdtypes.html#str.encode" title="str.encode"><code class="xref py py-func docutils literal notranslate"><span class="pre">str.encode()</span></code></a>.</p>
 <p>It overrides <span class="target" id="index-18"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONIOENCODING"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONIOENCODING</span></code></a> values, and allows embedding code
 to control IO encoding when the environment variable does not work.</p>
-<p><code class="docutils literal notranslate"><span class="pre">encoding</span></code> and/or <code class="docutils literal notranslate"><span class="pre">errors</span></code> may be NULL to use
+<p><em>encoding</em> and/or <em>errors</em> may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> to use
 <span class="target" id="index-19"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONIOENCODING"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONIOENCODING</span></code></a> and/or default values (depending on other
 settings).</p>
 <p>Note that <a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stderr</span></code></a> always uses the &quot;backslashreplace&quot; error
@@ -806,9 +806,15 @@ interpreter (created automatically by <a class="reference internal" href="#c.Py_
 supports the creation of additional interpreters (using
 <a class="reference internal" href="#c.Py_NewInterpreter" title="Py_NewInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreter()</span></code></a>), but mixing multiple interpreters and the
 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_*()</span></code> API is unsupported.</p>
+</div>
+<div class="section" id="cautions-about-fork">
+<span id="fork-and-threads"></span><h3>Cautions about fork()<a class="headerlink" href="#cautions-about-fork" title="제목 주소">¶</a></h3>
 <p>Another important thing to note about threads is their behaviour in the face
 of the C <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> call. On most systems with <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>, after a
-process forks only the thread that issued the fork will exist. That also
+process forks only the thread that issued the fork will exist.  This has a
+concrete impact both on how locks must be handled and on all stored state
+in CPython's runtime.</p>
+<p>The fact that only the &quot;current&quot; thread remains
 means any locks held by other threads will never be released. Python solves
 this for <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> by acquiring the locks it uses internally before
 the fork, and releasing them afterwards. In addition, it resets any
@@ -822,6 +828,16 @@ into Python) may result in a deadlock by one of Python's internal locks
 being held by a thread that is defunct after the fork.
 <a class="reference internal" href="sys.html#c.PyOS_AfterFork_Child" title="PyOS_AfterFork_Child"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyOS_AfterFork_Child()</span></code></a> tries to reset the necessary locks, but is not
 always able to.</p>
+<p>The fact that all other threads go away also means that CPython's
+runtime state there must be cleaned up properly, which <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a>
+does.  This means finalizing all other <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> objects
+belonging to the current interpreter and all other
+<a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> objects.  Due to this and the special
+nature of the <a class="reference internal" href="#sub-interpreter-support"><span class="std std-ref">&quot;main&quot; interpreter</span></a>,
+<code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> should only be called in that interpreter's &quot;main&quot;
+thread, where the CPython global runtime was originally initialized.
+The only exception is if <code class="xref c c-func docutils literal notranslate"><span class="pre">exec()</span></code> will be called immediately
+after.</p>
 </div>
 <div class="section" id="high-level-api">
 <h3>High-level API<a class="headerlink" href="#high-level-api" title="제목 주소">¶</a></h3>
@@ -880,8 +896,8 @@ avoid calls to the locking API when running single-threaded.</p>
 <dt id="c.PyEval_SaveThread">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a>* <code class="descname">PyEval_SaveThread</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_SaveThread" title="정의 주소">¶</a></dt>
 <dd><p>Release the global interpreter lock (if it has been created) and reset the
-thread state to <em>NULL</em>, returning the previous thread state (which is not
-<em>NULL</em>).  If the lock has been created, the current thread must have
+thread state to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, returning the previous thread state (which is not
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code>).  If the lock has been created, the current thread must have
 acquired it.</p>
 </dd></dl>
 
@@ -889,7 +905,7 @@ acquired it.</p>
 <dt id="c.PyEval_RestoreThread">
 void <code class="descname">PyEval_RestoreThread</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_RestoreThread" title="정의 주소">¶</a></dt>
 <dd><p>Acquire the global interpreter lock (if it has been created) and set the
-thread state to <em>tstate</em>, which must not be <em>NULL</em>.  If the lock has been
+thread state to <em>tstate</em>, which must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  If the lock has been
 created, the current thread must not have acquired it, otherwise deadlock
 ensues.</p>
 <div class="admonition note">
@@ -906,15 +922,15 @@ this function to avoid unwanted termination.</p>
 <dt id="c.PyThreadState_Get">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a>* <code class="descname">PyThreadState_Get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Get" title="정의 주소">¶</a></dt>
 <dd><p>Return the current thread state.  The global interpreter lock must be held.
-When the current thread state is <em>NULL</em>, this issues a fatal error (so that
-the caller needn't check for <em>NULL</em>).</p>
+When the current thread state is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, this issues a fatal error (so that
+the caller needn't check for <code class="docutils literal notranslate"><span class="pre">NULL</span></code>).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyThreadState_Swap">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a>* <code class="descname">PyThreadState_Swap</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Swap" title="정의 주소">¶</a></dt>
 <dd><p>Swap the current thread state with the thread state given by the argument
-<em>tstate</em>, which may be <em>NULL</em>.  The global interpreter lock must be held
+<em>tstate</em>, which may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  The global interpreter lock must be held
 and is not released.</p>
 </dd></dl>
 
@@ -1090,7 +1106,7 @@ so then <code class="docutils literal notranslate"><span class="pre">-1</span></
 <dt id="c.PyInterpreterState_GetDict">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="descname">PyInterpreterState_GetDict</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState">PyInterpreterState</a><em> *interp</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_GetDict" title="정의 주소">¶</a></dt>
 <dd><p>Return a dictionary in which interpreter-specific data may be stored.
-If this function returns <em>NULL</em> then no exception has been raised and
+If this function returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> then no exception has been raised and
 the caller should assume no interpreter-specific dict is available.</p>
 <p>This is not a replacement for <a class="reference internal" href="module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a>, which
 extensions should use to store interpreter-specific state information.</p>
@@ -1105,7 +1121,7 @@ extensions should use to store interpreter-specific state information.</p>
 <dd><em class="refcount">Return value: Borrowed reference.</em><p>Return a dictionary in which extensions can store thread-specific state
 information.  Each extension should use a unique key to use to store state in
 the dictionary.  It is okay to call this function when no current thread state
-is available. If this function returns <em>NULL</em>, no exception has been raised and
+is available. If this function returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, no exception has been raised and
 the caller should assume no current thread state is available.</p>
 </dd></dl>
 
@@ -1129,7 +1145,7 @@ exception (if any) for the thread is cleared. This raises no exceptions.</p>
 <dt id="c.PyEval_AcquireThread">
 void <code class="descname">PyEval_AcquireThread</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_AcquireThread" title="정의 주소">¶</a></dt>
 <dd><p>Acquire the global interpreter lock and set the current thread state to
-<em>tstate</em>, which should not be <em>NULL</em>.  The lock must have been created earlier.
+<em>tstate</em>, which should not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  The lock must have been created earlier.
 If this thread already has the lock, deadlock ensues.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
@@ -1151,9 +1167,9 @@ available (even when threads have not been initialized).</p>
 <dl class="function">
 <dt id="c.PyEval_ReleaseThread">
 void <code class="descname">PyEval_ReleaseThread</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_ReleaseThread" title="정의 주소">¶</a></dt>
-<dd><p>Reset the current thread state to <em>NULL</em> and release the global interpreter
+<dd><p>Reset the current thread state to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and release the global interpreter
 lock.  The lock must have been created earlier and must be held by the current
-thread.  The <em>tstate</em> argument, which must not be <em>NULL</em>, is only used to check
+thread.  The <em>tstate</em> argument, which must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, is only used to check
 that it represents the current thread state --- if it isn't, a fatal error is
 reported.</p>
 <p><a class="reference internal" href="#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> is a higher-level function which is always
@@ -1227,7 +1243,7 @@ file descriptors).</p>
 <p>The return value points to the first thread state created in the new
 sub-interpreter.  This thread state is made in the current thread state.
 Note that no actual thread is created; see the discussion of thread states
-below.  If creation of the new interpreter is unsuccessful, <em>NULL</em> is
+below.  If creation of the new interpreter is unsuccessful, <code class="docutils literal notranslate"><span class="pre">NULL</span></code> is
 returned; no exception is set since the exception state is stored in the
 current thread state and there may not be a current thread state.  (Like all
 other Python/C API functions, the global interpreter lock must be held before
@@ -1250,7 +1266,7 @@ imported after the interpreter has been completely re-initialized by calling
 void <code class="descname">Py_EndInterpreter</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_EndInterpreter" title="정의 주소">¶</a></dt>
 <dd><p id="index-43">Destroy the (sub-)interpreter represented by the given thread state. The given
 thread state must be the current thread state.  See the discussion of thread
-states below.  When the call returns, the current thread state is <em>NULL</em>.  All
+states below.  When the call returns, the current thread state is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  All
 thread states associated with this interpreter are destroyed.  (The global
 interpreter lock must be held before calling this function and is still held
 when it returns.)  <a class="reference internal" href="#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> will destroy all sub-interpreters that
@@ -1346,8 +1362,8 @@ pertains, <em>what</em> is one of the constants <code class="xref py py-const do
 or <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_OPCODE</span></code>, and <em>arg</em> depends on the value of <em>what</em>:</p>
 <table class="docutils align-center">
 <colgroup>
-<col style="width: 44%" />
-<col style="width: 56%" />
+<col style="width: 43%" />
+<col style="width: 57%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Value of <em>what</em></p></th>
@@ -1367,7 +1383,7 @@ or <code class="xref py py-const docutils literal notranslate"><span class="pre"
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_RETURN</span></code></p></td>
 <td><p>Value being returned to the caller,
-or <em>NULL</em> if caused by an exception.</p></td>
+or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if caused by an exception.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_CALL</span></code></p></td>
 <td><p>Function object being called.</p></td>
@@ -1456,7 +1472,7 @@ not emitted by default: it must be explicitly requested by setting
 <dt id="c.PyEval_SetProfile">
 void <code class="descname">PyEval_SetProfile</code><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc">Py_tracefunc</a><em> func</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *obj</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_SetProfile" title="정의 주소">¶</a></dt>
 <dd><p>Set the profiler function to <em>func</em>.  The <em>obj</em> parameter is passed to the
-function as its first parameter, and may be any Python object, or <em>NULL</em>.  If
+function as its first parameter, and may be any Python object, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  If
 the profile function needs to maintain state, using a different value for <em>obj</em>
 for each thread provides a convenient and thread-safe place to store it.  The
 profile function is called for all monitored events except <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_LINE</span></code>
@@ -1570,7 +1586,7 @@ is not possible due to its implementation being opaque at build time.</p>
 <dt id="c.PyThread_tss_alloc">
 <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t">Py_tss_t</a>* <code class="descname">PyThread_tss_alloc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_alloc" title="정의 주소">¶</a></dt>
 <dd><p>Return a value which is the same state as a value initialized with
-<a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a>, or <em>NULL</em> in the case of dynamic allocation
+<a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> in the case of dynamic allocation
 failure.</p>
 </dd></dl>
 
@@ -1591,7 +1607,7 @@ argument is <cite>NULL</cite>.</p>
 </div>
 <div class="section" id="methods">
 <h4>Methods<a class="headerlink" href="#methods" title="제목 주소">¶</a></h4>
-<p>The parameter <em>key</em> of these functions must not be <em>NULL</em>.  Moreover, the
+<p>The parameter <em>key</em> of these functions must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  Moreover, the
 behaviors of <a class="reference internal" href="#c.PyThread_tss_set" title="PyThread_tss_set"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_set()</span></code></a> and <a class="reference internal" href="#c.PyThread_tss_get" title="PyThread_tss_get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_get()</span></code></a> are
 undefined if the given <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> has not been initialized by
 <a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>.</p>
@@ -1634,7 +1650,7 @@ mapping of the key to a <code class="xref c c-type docutils literal notranslate"
 <dt id="c.PyThread_tss_get">
 void* <code class="descname">PyThread_tss_get</code><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t">Py_tss_t</a><em> *key</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_get" title="정의 주소">¶</a></dt>
 <dd><p>Return the <code class="xref c c-type docutils literal notranslate"><span class="pre">void*</span></code> value associated with a TSS key in the current
-thread.  This returns <em>NULL</em> if no value is associated with the key in the
+thread.  This returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if no value is associated with the key in the
 current thread.</p>
 </dd></dl>
 
@@ -1705,6 +1721,7 @@ void <code class="descname">PyThread_ReInitTLS</code><span class="sig-paren">(</
 <li><a class="reference internal" href="#thread-state-and-the-global-interpreter-lock">Thread State and the Global Interpreter Lock</a><ul>
 <li><a class="reference internal" href="#releasing-the-gil-from-extension-code">Releasing the GIL from extension code</a></li>
 <li><a class="reference internal" href="#non-python-created-threads">Non-Python created threads</a></li>
+<li><a class="reference internal" href="#cautions-about-fork">Cautions about fork()</a></li>
 <li><a class="reference internal" href="#high-level-api">High-level API</a></li>
 <li><a class="reference internal" href="#low-level-api">Low-level API</a></li>
 </ul>

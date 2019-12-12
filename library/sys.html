@@ -138,14 +138,17 @@
 <dl class="function">
 <dt id="sys.addaudithook">
 <code class="descclassname">sys.</code><code class="descname">addaudithook</code><span class="sig-paren">(</span><em>hook</em><span class="sig-paren">)</span><a class="headerlink" href="#sys.addaudithook" title="정의 주소">¶</a></dt>
-<dd><p>현재 인터프리터의 활성 감사 훅 컬렉션에 콜러블 <em>hook</em>을 추가합니다.</p>
+<dd><p>현재 인터프리터의 활성 감사 훅 리스트에 콜러블 <em>hook</em>을 추가합니다.</p>
 <p><a class="reference internal" href="#sys.audit" title="sys.audit"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.audit()</span></code></a> 함수를 통해 감사 이벤트가 발생하면, 각 훅은 추가된 순서대로 이벤트 이름과 인자 튜플로 호출됩니다. <a class="reference internal" href="../c-api/sys.html#c.PySys_AddAuditHook" title="PySys_AddAuditHook"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_AddAuditHook()</span></code></a>으로 추가된 네이티브 훅이 먼저 호출되고, 현재 인터프리터에서 추가된 훅이 뒤따릅니다.</p>
-<p>이 함수를 호출하면 기존의 모든 훅에 대한 이벤트가 트리거 되고, <a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a>에서 파생된 예외가 발생하면, 추가가 조용히 무시됩니다. 결과적으로, 호출자는 기존의 모든 훅을 제어하지 않으면 훅이 추가되었다고 가정할 수 없습니다.</p>
+<p class="audit-hook">인자 없이 <a class="reference internal" href="#auditing"><span class="std std-ref">감사 이벤트</span></a> <code class="docutils literal notranslate"><span class="pre">sys.addaudithook</span></code>을 발생시킵니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8.1에서 변경: </span><a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a>에서 파생되었지만 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>가 아닌 예외는 더는 억제되지 않습니다.</p>
+</div>
 <div class="impl-detail compound">
-<p><strong>CPython implementation detail:</strong> 추적(tracing)이 활성화되었을 때, 파이썬 훅은 콜러블에 참값으로 설정된 <code class="docutils literal notranslate"><span class="pre">__cantrace__</span></code> 멤버가 있을 때만 추적합니다. 그렇지 않으면, 추적 함수는 훅을 보지 못합니다.</p>
+<p><strong>CPython implementation detail:</strong> 추적(tracing)이 활성화되었을 때 (<a class="reference internal" href="#sys.settrace" title="sys.settrace"><code class="xref py py-func docutils literal notranslate"><span class="pre">settrace()</span></code></a>를 참조하십시오), 파이썬 훅은 콜러블에 참값으로 설정된 <code class="docutils literal notranslate"><span class="pre">__cantrace__</span></code> 멤버가 있을 때만 추적합니다. 그렇지 않으면, 추적 함수는 훅을 건너뜁니다.</p>
 </div>
 </dd></dl>
 
@@ -167,7 +170,7 @@
 <p>이 함수는 어떤 훅에서건 발생한 첫 번째 예외를 발생시킵니다. 일반적으로, 이러한 에러는 처리되지 않아야 하며 가능한 한 빨리 프로세스를 종료해야 합니다.</p>
 <p>훅은 <a class="reference internal" href="#sys.addaudithook" title="sys.addaudithook"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.addaudithook()</span></code></a>이나 <a class="reference internal" href="../c-api/sys.html#c.PySys_AddAuditHook" title="PySys_AddAuditHook"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_AddAuditHook()</span></code></a> 함수를 사용하여 추가됩니다.</p>
 <p>이 함수의 네이티브 동등 물은 <a class="reference internal" href="../c-api/sys.html#c.PySys_Audit" title="PySys_Audit"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_Audit()</span></code></a>입니다. 가능하면 네이티브 함수를 사용하는 것이 좋습니다.</p>
-<p><code class="docutils literal notranslate"><span class="pre">CPython</span></code>이 발생시키는 모든 이벤트에 대해서는 <a class="reference internal" href="audit_events.html#audit-events"><span class="std std-ref">감사 이벤트 표</span></a>를 참조하십시오.</p>
+<p>CPython이 발생시키는 모든 이벤트에 대해서는 <a class="reference internal" href="audit_events.html#audit-events"><span class="std std-ref">감사 이벤트 표</span></a>를 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
@@ -316,6 +319,7 @@
 <code class="descclassname">sys.</code><code class="descname">excepthook</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>traceback</em><span class="sig-paren">)</span><a class="headerlink" href="#sys.excepthook" title="정의 주소">¶</a></dt>
 <dd><p>이 함수는 주어진 트레이스백(traceback)과 예외를 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code>에 인쇄합니다.</p>
 <p>예외가 발생하고 잡히지 않을 때, 인터프리터는 세 인자, 예외 클래스, 예외 인스턴스 및 트레이스백 객체로 <code class="docutils literal notranslate"><span class="pre">sys.excepthook</span></code>을 호출합니다. 대화식 세션에서는 제어가 프롬프트로 반환되기 직전에 일어납니다; 파이썬 프로그램에서는 프로그램이 종료되기 직전에 일어납니다. 이러한 최상위 예외 처리는 <code class="docutils literal notranslate"><span class="pre">sys.excepthook</span></code>에 다른 3-인자 함수를 대입하여 사용자 정의할 수 있습니다.</p>
+<p class="audit-hook">인자 <code class="docutils literal notranslate"><span class="pre">hook</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">traceback</span></code>으로 <a class="reference internal" href="#auditing"><span class="std std-ref">감사 이벤트</span></a> <code class="docutils literal notranslate"><span class="pre">sys.excepthook</span></code>을 발생시킵니다.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <p><a class="reference internal" href="#sys.unraisablehook" title="sys.unraisablehook"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.unraisablehook()</span></code></a> 함수는 발생시킬 수 없는 예외(unraisable exception)를 다루고 <a class="reference internal" href="threading.html#threading.excepthook" title="threading.excepthook"><code class="xref py py-func docutils literal notranslate"><span class="pre">threading.excepthook()</span></code></a> 함수는 <a class="reference internal" href="threading.html#threading.Thread.run" title="threading.Thread.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">threading.Thread.run()</span></code></a>이 발생시킨 예외를 다룹니다.</p>
@@ -1174,7 +1178,7 @@
 <p>이 스트림은 <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a> 함수에 의해 반환되는 것과 같은 일반적인 <a class="reference internal" href="../glossary.html#term-text-file"><span class="xref std std-term">텍스트 파일</span></a>입니다. 매개 변수는 다음과 같이 선택됩니다:</p>
 <ul>
 <li><p>문자 인코딩은 플랫폼에 따라 다릅니다. 윈도우 이외의 플랫폼은 로케일 인코딩을 사용합니다 (<a class="reference internal" href="locale.html#locale.getpreferredencoding" title="locale.getpreferredencoding"><code class="xref py py-meth docutils literal notranslate"><span class="pre">locale.getpreferredencoding()</span></code></a>을 참조하십시오).</p>
-<p>윈도우에서는, 콘솔 장치에 UTF-8이 사용됩니다. 디스크 파일과 파이프와 같은 비문자 장치는 시스템 로케일 인코딩(즉, ANSI 코드 페이지)을 사용합니다. NUL(즉, isatty()가 True를 반환하는)과 같은 비 콘솔 문자 장치는 시작 시에 콘솔 입력과 출력 코드 페이지의 값을 각각 stdin과 stdout/stderr에 사용합니다. 프로세스가 초기에 콘솔에 연결되지 않았으면 시스템 로케일 인코딩이 기본값입니다.</p>
+<p>윈도우에서는, 콘솔 장치에 UTF-8이 사용됩니다. 디스크 파일과 파이프와 같은 비문자 장치는 시스템 로케일 인코딩(즉, ANSI 코드 페이지)을 사용합니다. NUL(즉, <code class="docutils literal notranslate"><span class="pre">isatty()</span></code>가 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환하는)과 같은 비 콘솔 문자 장치는 시작 시에 콘솔 입력과 출력 코드 페이지의 값을 각각 stdin과 stdout/stderr에 사용합니다. 프로세스가 초기에 콘솔에 연결되지 않았으면 시스템 로케일 인코딩이 기본값입니다.</p>
 <p>파이썬을 시작하기 전에 환경 변수 PYTHONLEGACYWINDOWSSTDIO를 설정하여 콘솔의 특수 동작을 재정의할 수 있습니다. 이 경우, 콘솔 코드 페이지는 다른 모든 문자 장치에서처럼 사용됩니다.</p>
 <p>모든 플랫폼에서, 파이썬을 시작하기 전에 <span class="target" id="index-86"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONIOENCODING"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONIOENCODING</span></code></a> 환경 변수를 설정하거나 새로운 <a class="reference internal" href="../using/cmdline.html#id5"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code></a> <code class="docutils literal notranslate"><span class="pre">utf8</span></code> 명령 줄 옵션과 <span class="target" id="index-87"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONUTF8"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONUTF8</span></code></a> 환경 변수를 사용하여 문자 인코딩을 재정의할 수 있습니다. 그러나, 윈도우 콘솔의 경우, <span class="target" id="index-88"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONLEGACYWINDOWSSTDIO"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONLEGACYWINDOWSSTDIO</span></code></a> 도 설정했을 때만 적용됩니다.</p>
 </li>
@@ -1273,6 +1277,7 @@
 <p>사용자 정의 훅을 사용하여 <em>exc_value</em>를 저장하면 참조 순환이 만들어질 수 있습니다. 예외가 더는 필요하지 않을 때 참조 순환을 끊기 위해 명시적으로 지워야 합니다.</p>
 <p>사용자 정의 훅을 사용하여 <em>object</em>를 저장하면 파이널라이즈 중인 객체로 설정될 때 그것을 되살릴 수 있습니다. 객체 되살림을 방지하려면 사용자 정의 훅이 완료된 후 <em>object</em>를 저장하지 마십시오.</p>
 <p>잡히지 않은 예외를 처리하는 <a class="reference internal" href="#sys.excepthook" title="sys.excepthook"><code class="xref py py-func docutils literal notranslate"><span class="pre">excepthook()</span></code></a>도 참조하십시오.</p>
+<p class="audit-hook">인자 <code class="docutils literal notranslate"><span class="pre">hook</span></code>, <code class="docutils literal notranslate"><span class="pre">unraisable</span></code>로 감사 이벤트 <code class="docutils literal notranslate"><span class="pre">sys.unraisablehook</span></code>을 발생시킵니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
