@@ -200,14 +200,14 @@
 <li><p><a class="reference internal" href="#how-do-i-create-static-class-data-and-static-class-methods" id="id58">정적 클래스 데이터와 정적 클래스 메서드를 만들려면 어떻게 해야 합니까?</a></p></li>
 <li><p><a class="reference internal" href="#how-can-i-overload-constructors-or-methods-in-python" id="id59">파이썬에서 생성자(또는 메서드)를 어떻게 재정의할 수 있습니까?</a></p></li>
 <li><p><a class="reference internal" href="#i-try-to-use-spam-and-i-get-an-error-about-someclassname-spam" id="id60">__spam을 사용하려고 하는데 _SomeClassName__spam에 대한 에러가 발생합니다.</a></p></li>
-<li><p><a class="reference internal" href="#my-class-defines-del-but-it-is-not-called-when-i-delete-the-object" id="id61">My class defines __del__ but it is not called when I delete the object.</a></p></li>
-<li><p><a class="reference internal" href="#how-do-i-get-a-list-of-all-instances-of-a-given-class" id="id62">How do I get a list of all instances of a given class?</a></p></li>
-<li><p><a class="reference internal" href="#why-does-the-result-of-id-appear-to-be-not-unique" id="id63">Why does the result of <code class="docutils literal notranslate"><span class="pre">id()</span></code> appear to be not unique?</a></p></li>
+<li><p><a class="reference internal" href="#my-class-defines-del-but-it-is-not-called-when-i-delete-the-object" id="id61">내 클래스는 __del__을 정의하지만 객체를 삭제할 때 호출되지 않습니다.</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-get-a-list-of-all-instances-of-a-given-class" id="id62">주어진 클래스의 모든 인스턴스 목록을 어떻게 얻습니까?</a></p></li>
+<li><p><a class="reference internal" href="#why-does-the-result-of-id-appear-to-be-not-unique" id="id63"><code class="docutils literal notranslate"><span class="pre">id()</span></code>의 결과가 고유하지 않은 것처럼 보이는 이유는 무엇입니까?</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#modules" id="id64">Modules</a></p>
+<li><p><a class="reference internal" href="#modules" id="id64">모듈</a></p>
 <ul>
-<li><p><a class="reference internal" href="#how-do-i-create-a-pyc-file" id="id65">How do I create a .pyc file?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-create-a-pyc-file" id="id65">.pyc 파일을 어떻게 만듭니까?</a></p></li>
 <li><p><a class="reference internal" href="#how-do-i-find-the-current-module-name" id="id66">How do I find the current module name?</a></p></li>
 <li><p><a class="reference internal" href="#how-can-i-have-modules-that-mutually-import-each-other" id="id67">How can I have modules that mutually import each other?</a></p></li>
 <li><p><a class="reference internal" href="#import-x-y-z-returns-module-x-how-do-i-get-z" id="id68">__import__('x.y.z') returns &lt;module 'x'&gt;; how do I get z?</a></p></li>
@@ -1267,57 +1267,28 @@
 <p>이것은 비공개를 보장하지 않습니다: 외부 사용자는 여전히 &quot;_classname__spam&quot; 어트리뷰트에 의도적으로 액세스할 수 있으며, 비공개 값은 객체의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code>에 나타납니다. 많은 파이썬 프로그래머는 비공개 변수 이름을 전혀 사용하지 않습니다.</p>
 </div>
 <div class="section" id="my-class-defines-del-but-it-is-not-called-when-i-delete-the-object">
-<h3><a class="toc-backref" href="#id61">My class defines __del__ but it is not called when I delete the object.</a><a class="headerlink" href="#my-class-defines-del-but-it-is-not-called-when-i-delete-the-object" title="제목 주소">¶</a></h3>
-<p>There are several possible reasons for this.</p>
-<p>The del statement does not necessarily call <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> -- it simply
-decrements the object's reference count, and if this reaches zero
-<a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> is called.</p>
-<p>If your data structures contain circular links (e.g. a tree where each child has
-a parent reference and each parent has a list of children) the reference counts
-will never go back to zero.  Once in a while Python runs an algorithm to detect
-such cycles, but the garbage collector might run some time after the last
-reference to your data structure vanishes, so your <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> method may be
-called at an inconvenient and random time. This is inconvenient if you're trying
-to reproduce a problem. Worse, the order in which object's <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a>
-methods are executed is arbitrary.  You can run <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a> to force a
-collection, but there <em>are</em> pathological cases where objects will never be
-collected.</p>
-<p>Despite the cycle collector, it's still a good idea to define an explicit
-<code class="docutils literal notranslate"><span class="pre">close()</span></code> method on objects to be called whenever you're done with them.  The
-<code class="docutils literal notranslate"><span class="pre">close()</span></code> method can then remove attributes that refer to subobjects.  Don't
-call <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> directly -- <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> should call <code class="docutils literal notranslate"><span class="pre">close()</span></code> and
-<code class="docutils literal notranslate"><span class="pre">close()</span></code> should make sure that it can be called more than once for the same
-object.</p>
-<p>Another way to avoid cyclical references is to use the <a class="reference internal" href="../library/weakref.html#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> module,
-which allows you to point to objects without incrementing their reference count.
-Tree data structures, for instance, should use weak references for their parent
-and sibling references (if they need them!).</p>
-<p>Finally, if your <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> method raises an exception, a warning message
-is printed to <a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stderr</span></code></a>.</p>
+<h3><a class="toc-backref" href="#id61">내 클래스는 __del__을 정의하지만 객체를 삭제할 때 호출되지 않습니다.</a><a class="headerlink" href="#my-class-defines-del-but-it-is-not-called-when-i-delete-the-object" title="제목 주소">¶</a></h3>
+<p>몇 가지 가능한 이유가 있습니다.</p>
+<p>del 문이 반드시 <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a>을 호출할 필요는 없습니다 -- 단순히 객체의 참조 횟수를 감소시키고, 이것이 0에 도달하면 <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a>이 호출됩니다.</p>
+<p>여러분의 자료 구조가 순환 링크를 포함하면 (예를 들어 각 자식이 부모 참조를 갖고 각 부모에 자식 리스트가 있는 트리), 참조 횟수는 절대 0으로 돌아 가지 않습니다. 가끔 파이썬은 이러한 순환을 감지하기 위해 알고리즘을 실행하지만, 가비지 수거기는 여러분의 자료 구조에 대한 마지막 참조가 사라진 후 얼마 후에 실행될 수 있어서, <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> 메서드는 불편한 임의의 시간에 호출될 수 있습니다. 문제를 재현하려고 한다면 불편합니다. 더 나쁘게도, 객체의 <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> 메서드가 실행되는 순서가 임의적입니다. <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a>를 실행하여 수거를 강제할 수 있지만, 객체가 수거되지 않는 병리학적 사례가 <em>있습니다</em>.</p>
+<p>순환 수거기에도 불구하고, 완료될 때마다 호출될 객체의 명시적인 <code class="docutils literal notranslate"><span class="pre">close()</span></code> 메서드를 정의하는 것이 좋습니다. 그러면 <code class="docutils literal notranslate"><span class="pre">close()</span></code> 메서드는 서브 객체를 참조하는 어트리뷰트를 제거할 수 있습니다. <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a>을 직접 호출하지 마십시오 -- <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a>은 <code class="docutils literal notranslate"><span class="pre">close()</span></code>를 호출해야하며 <code class="docutils literal notranslate"><span class="pre">close()</span></code>는 같은 객체에 대해 두 번 이상 호출 될 수 있어야 합니다.</p>
+<p>순환 참조를 피하는 또 다른 방법은 <a class="reference internal" href="../library/weakref.html#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> 모듈을 사용하는 것입니다. 이 모듈은 참조 횟수를 늘리지 않고 객체를 가리킬 수 있도록 합니다. 예를 들어, 트리 자료 구조는 부모와 형제 참조에 대해 약한 참조를 사용해야합니다 (이런 것들이 필요하다면!).</p>
+<p>마지막으로, <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> 메서드에서 예외가 발생하면, 경고 메시지가 <a class="reference internal" href="../library/sys.html#sys.stderr" title="sys.stderr"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stderr</span></code></a>로 인쇄됩니다.</p>
 </div>
 <div class="section" id="how-do-i-get-a-list-of-all-instances-of-a-given-class">
-<h3><a class="toc-backref" href="#id62">How do I get a list of all instances of a given class?</a><a class="headerlink" href="#how-do-i-get-a-list-of-all-instances-of-a-given-class" title="제목 주소">¶</a></h3>
-<p>Python does not keep track of all instances of a class (or of a built-in type).
-You can program the class's constructor to keep track of all instances by
-keeping a list of weak references to each instance.</p>
+<h3><a class="toc-backref" href="#id62">주어진 클래스의 모든 인스턴스 목록을 어떻게 얻습니까?</a><a class="headerlink" href="#how-do-i-get-a-list-of-all-instances-of-a-given-class" title="제목 주소">¶</a></h3>
+<p>파이썬은 클래스(또는 내장 형)의 모든 인스턴스를 추적하지 않습니다. 클래스 생성자가 각 인스턴스에 대한 약한 참조 리스트를 유지하여 모든 인스턴스를 추적하도록 프로그래밍 할 수 있습니다.</p>
 </div>
 <div class="section" id="why-does-the-result-of-id-appear-to-be-not-unique">
-<h3><a class="toc-backref" href="#id63">Why does the result of <code class="docutils literal notranslate"><span class="pre">id()</span></code> appear to be not unique?</a><a class="headerlink" href="#why-does-the-result-of-id-appear-to-be-not-unique" title="제목 주소">¶</a></h3>
-<p>The <a class="reference internal" href="../library/functions.html#id" title="id"><code class="xref py py-func docutils literal notranslate"><span class="pre">id()</span></code></a> builtin returns an integer that is guaranteed to be unique during
-the lifetime of the object.  Since in CPython, this is the object's memory
-address, it happens frequently that after an object is deleted from memory, the
-next freshly created object is allocated at the same position in memory.  This
-is illustrated by this example:</p>
+<h3><a class="toc-backref" href="#id63"><code class="docutils literal notranslate"><span class="pre">id()</span></code>의 결과가 고유하지 않은 것처럼 보이는 이유는 무엇입니까?</a><a class="headerlink" href="#why-does-the-result-of-id-appear-to-be-not-unique" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="../library/functions.html#id" title="id"><code class="xref py py-func docutils literal notranslate"><span class="pre">id()</span></code></a> 내장은 객체 수명 동안 고유하도록 보장되는 정수를 반환합니다. CPython에서는 이것이 객체의 메모리 주소이므로, 객체가 메모리에서 삭제된 후 새로 만들어진 다음 객체가 메모리의 같은 위치에 할당되는 경우가 자주 발생합니다. 다음과 같이 예시할 수 있습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> 
 <span class="go">13901272</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span> 
 <span class="go">13901272</span>
 </pre></div>
 </div>
-<p>The two ids belong to different integer objects that are created before, and
-deleted immediately after execution of the <code class="docutils literal notranslate"><span class="pre">id()</span></code> call.  To be sure that
-objects whose id you want to examine are still alive, create another reference
-to the object:</p>
+<p>두 개의 id는 다른 정수 객체에 속하는데, <code class="docutils literal notranslate"><span class="pre">id()</span></code> 호출 실행 앞에 만들어지고, 호출 직후 삭제됩니다. id를 검사하려는 객체가 여전히 살아 있도록 하려면, 그 객체에 대한 다른 참조를 만드십시오:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2000</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> 
 <span class="go">13901272</span>
@@ -1328,9 +1299,9 @@ to the object:</p>
 </div>
 </div>
 <div class="section" id="modules">
-<h2><a class="toc-backref" href="#id64">Modules</a><a class="headerlink" href="#modules" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id64">모듈</a><a class="headerlink" href="#modules" title="제목 주소">¶</a></h2>
 <div class="section" id="how-do-i-create-a-pyc-file">
-<h3><a class="toc-backref" href="#id65">How do I create a .pyc file?</a><a class="headerlink" href="#how-do-i-create-a-pyc-file" title="제목 주소">¶</a></h3>
+<h3><a class="toc-backref" href="#id65">.pyc 파일을 어떻게 만듭니까?</a><a class="headerlink" href="#how-do-i-create-a-pyc-file" title="제목 주소">¶</a></h3>
 <p>When a module is imported for the first time (or when the source file has
 changed since the current compiled file was created) a <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> file containing
 the compiled code should be created in a <code class="docutils literal notranslate"><span class="pre">__pycache__</span></code> subdirectory of the
@@ -1499,7 +1470,7 @@ class objects:</p>
 <li><a class="reference internal" href="#performance">성능</a></li>
 <li><a class="reference internal" href="#sequences-tuples-lists">시퀀스 (튜플/리스트)</a></li>
 <li><a class="reference internal" href="#objects">객체</a></li>
-<li><a class="reference internal" href="#modules">Modules</a></li>
+<li><a class="reference internal" href="#modules">모듈</a></li>
 </ul>
 </li>
 </ul>
