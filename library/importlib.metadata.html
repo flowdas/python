@@ -255,7 +255,9 @@
 <div class="section" id="extending-the-search-algorithm">
 <h2>검색 알고리즘 확장하기<a class="headerlink" href="#extending-the-search-algorithm" title="제목 주소">¶</a></h2>
 <p>패키지 메타 데이터는 <code class="docutils literal notranslate"><span class="pre">sys.path</span></code> 검색이나 패키지 로더를 통해 직접 사용할 수 없으므로, 패키지의 메타 데이터는 임포트 시스템 <a class="reference external" href="https://python.flowdas.com/reference/import.html#finders-and-loaders">파인더</a>를 통해 찾습니다. 배포 패키지의 메타 데이터를 찾기 위해, <code class="docutils literal notranslate"><span class="pre">importlib.metadata</span></code>는 <a class="reference external" href="https://python.flowdas.com/library/sys.html#sys.meta_path">sys.meta_path</a>의 <a class="reference external" href="https://python.flowdas.com/glossary.html#term-meta-path-finder">메타 경로 파인더</a>의 리스트를 조회합니다.</p>
-<p>기본적으로 <code class="docutils literal notranslate"><span class="pre">importlib.metadata</span></code>는 파일 시스템에서 발견된 배포 패키지에 대한 파인더를 설치합니다. 이 파인더는 실제로 <em>패키지</em>를 찾지 않지만, 패키지의 메타 데이터를 찾을 수 있습니다.</p>
+<p>The default <code class="docutils literal notranslate"><span class="pre">PathFinder</span></code> for Python includes a hook that calls into
+<code class="docutils literal notranslate"><span class="pre">importlib.metadata.MetadataPathFinder</span></code> for finding distributions
+loaded from typical file-system-based paths.</p>
 <p>추상 클래스 <a class="reference internal" href="importlib.html#importlib.abc.MetaPathFinder" title="importlib.abc.MetaPathFinder"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.abc.MetaPathFinder</span></code></a>는 파이썬의 임포트 시스템에 의해 파인더가 기대하는 인터페이스를 정의합니다. <code class="docutils literal notranslate"><span class="pre">importlib.metadata</span></code>는 <code class="docutils literal notranslate"><span class="pre">sys.meta_path</span></code>의 파인더에서 선택적인 <code class="docutils literal notranslate"><span class="pre">find_distributions</span></code> 콜러블을 조회함으로써 이 프로토콜을 확장하고 이 확장된 인터페이스를 다음과 같은 추상 메서드를 정의하는 <code class="docutils literal notranslate"><span class="pre">DistributionFinder</span></code> 추상 베이스 클래스로 제공합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
 <span class="k">def</span> <span class="nf">find_distributions</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">DistributionFinder</span><span class="o">.</span><span class="n">Context</span><span class="p">()):</span>
@@ -265,7 +267,11 @@
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">DistributionFinder.Context</span></code> 객체는 검색할 경로와 일치할 이름을 가리키는 <code class="docutils literal notranslate"><span class="pre">.path</span></code>와 <code class="docutils literal notranslate"><span class="pre">.name</span></code> 프로퍼티를 제공하고 다른 관련 문맥을 제공할 수 있습니다.</p>
-<p>이것이 실제로 의미하는 것은, 파일 시스템이 아닌 위치에서 배포 패키지 메타 데이터를 찾는 것을 지원하려면, <code class="docutils literal notranslate"><span class="pre">Distribution</span></code>을 계승하고 <code class="docutils literal notranslate"><span class="pre">load_metadata()</span></code> 메서드를 구현해야 한다는 것입니다. 그런 다음 파인더의 <code class="docutils literal notranslate"><span class="pre">find_distributions()</span></code> 메서드에서, 이 파생된 <code class="docutils literal notranslate"><span class="pre">Distribution</span></code>의 인스턴스를 반환하십시오.</p>
+<p>What this means in practice is that to support finding distribution package
+metadata in locations other than the file system, subclass
+<code class="docutils literal notranslate"><span class="pre">Distribution</span></code> and implement the abstract methods. Then from
+a custom finder, return instances of this derived <code class="docutils literal notranslate"><span class="pre">Distribution</span></code> in the
+<code class="docutils literal notranslate"><span class="pre">find_distributions()</span></code> method.</p>
 <p class="rubric">각주</p>
 <dl class="footnote brackets">
 <dt class="label" id="f1"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
