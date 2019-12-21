@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>weakref --- Weak references &#8212; 파이썬 설명서 주석판</title>
+    <title>weakref --- 약한 참조 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -120,196 +120,111 @@
           <div class="body" role="main">
             
   <div class="section" id="module-weakref">
-<span id="weakref-weak-references"></span><h1><a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> --- Weak references<a class="headerlink" href="#module-weakref" title="제목 주소">¶</a></h1>
-<p><strong>Source code:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Lib/weakref.py">Lib/weakref.py</a></p>
+<span id="weakref-weak-references"></span><h1><a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> --- 약한 참조<a class="headerlink" href="#module-weakref" title="제목 주소">¶</a></h1>
+<p><strong>소스 코드:</strong> <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Lib/weakref.py">Lib/weakref.py</a></p>
 <hr class="docutils" />
-<p>The <a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> module allows the Python programmer to create <em class="dfn">weak
-references</em> to objects.</p>
-<p>In the following, the term <em class="dfn">referent</em> means the object which is referred to
-by a weak reference.</p>
-<p>A weak reference to an object is not enough to keep the object alive: when the
-only remaining references to a referent are weak references,
-<a class="reference internal" href="../glossary.html#term-garbage-collection"><span class="xref std std-term">garbage collection</span></a> is free to destroy the referent and reuse its memory
-for something else.  However, until the object is actually destroyed the weak
-reference may return the object even if there are no strong references to it.</p>
-<p>A primary use for weak references is to implement caches or
-mappings holding large objects, where it's desired that a large object not be
-kept alive solely because it appears in a cache or mapping.</p>
-<p>For example, if you have a number of large binary image objects, you may wish to
-associate a name with each.  If you used a Python dictionary to map names to
-images, or images to names, the image objects would remain alive just because
-they appeared as values or keys in the dictionaries.  The
-<a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> and <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> classes supplied by
-the <a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> module are an alternative, using weak references to construct
-mappings that don't keep objects alive solely because they appear in the mapping
-objects.  If, for example, an image object is a value in a
-<a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a>, then when the last remaining references to that
-image object are the weak references held by weak mappings, garbage collection
-can reclaim the object, and its corresponding entries in weak mappings are
-simply deleted.</p>
-<p><a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> and <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> use weak references
-in their implementation, setting up callback functions on the weak references
-that notify the weak dictionaries when a key or value has been reclaimed by
-garbage collection.  <a class="reference internal" href="#weakref.WeakSet" title="weakref.WeakSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakSet</span></code></a> implements the <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> interface,
-but keeps weak references to its elements, just like a
-<a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> does.</p>
-<p><a class="reference internal" href="#weakref.finalize" title="weakref.finalize"><code class="xref py py-class docutils literal notranslate"><span class="pre">finalize</span></code></a> provides a straight forward way to register a
-cleanup function to be called when an object is garbage collected.
-This is simpler to use than setting up a callback function on a raw
-weak reference, since the module automatically ensures that the finalizer
-remains alive until the object is collected.</p>
-<p>Most programs should find that using one of these weak container types
-or <a class="reference internal" href="#weakref.finalize" title="weakref.finalize"><code class="xref py py-class docutils literal notranslate"><span class="pre">finalize</span></code></a> is all they need -- it's not usually necessary to
-create your own weak references directly.  The low-level machinery is
-exposed by the <a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> module for the benefit of advanced uses.</p>
-<p>Not all objects can be weakly referenced; those objects which can include class
-instances, functions written in Python (but not in C), instance methods, sets,
-frozensets, some <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">file objects</span></a>, <a class="reference internal" href="../glossary.html#term-generator"><span class="xref std std-term">generators</span></a>,
-type objects, sockets, arrays, deques, regular expression pattern objects, and code
-objects.</p>
+<p><a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> 모듈은 파이썬 프로그래머가 객체에 대한 <em class="dfn">약한 참조 (weak references)</em>를 만들 수 있도록 합니다.</p>
+<p>이하에서, 용어 <em class="dfn">참조대상 (referent)</em>은 약한 참조로 참조되는 객체를 의미합니다.</p>
+<p>객체에 대한 약한 참조만으로는 객체를 살아있게 유지할 수 없습니다: 참조대상에 대한 유일한 남은 참조가 약한 참조면, <a class="reference internal" href="../glossary.html#term-garbage-collection"><span class="xref std std-term">가비지 수거</span></a>는 자유롭게 참조대상을 파괴하고 메모리를 다른 용도로 재사용할 수 있습니다. 그러나 객체가 실제로 파괴 될 때까지 약한 참조는 강한 참조가 없어도 객체를 반환할 수 있습니다.</p>
+<p>약한 참조의 주요 용도는 큰 객체를 보유하는 캐시나 매핑을 구현하는 것입니다. 큰 객체는 캐시나 매핑에 등장한다는 이유만으로 살아 있지 않아야합니다.</p>
+<p>예를 들어, 큰 바이너리 이미지 객체가 여러 개 있을 때, 이름을 각 객체와 연관지을 수 있습니다. 파이썬 딕셔너리를 사용하여 이름을 이미지에 매핑하거나 이미지를 이름에 매핑하면, 이미지 객체는 딕셔너리에 값이나 키로 등장하기 때문에 계속 살아있게 됩니다. <a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> 모듈에서 제공하는 <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a>와 <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> 클래스는 대안이며, 약한 참조를 사용하여 매핑을 구축하기 때문에 매핑 객체에 등장한다는 이뮤만으로 객체를 살려두지 않습니다. 예를 들어 이미지 객체가 <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a>의 값이면, 해당 이미지 객체에 대한 마지막 남은 참조가 약한 매핑에 들어있는 약한 참조이면, 가비지 수거는 객체를 회수할 수 있으며, 약한 매핑의 해당 항목은 간단히 삭제됩니다.</p>
+<p><a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a>와 <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a>는 구현에 약한 참조를 사용하여, 가비지 수거에서 키나 값이 회수될 때, 약한 딕셔너리에 알리는 약한 참조에 대한 콜백 함수를 설정합니다. <a class="reference internal" href="#weakref.WeakSet" title="weakref.WeakSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakSet</span></code></a>은 <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> 인터페이스를 구현하지만, <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a>처럼 원소에 대한 약한 참조를 유지합니다.</p>
+<p><a class="reference internal" href="#weakref.finalize" title="weakref.finalize"><code class="xref py py-class docutils literal notranslate"><span class="pre">finalize</span></code></a>는 객체가 가비지 수거될 때 호출될 정리 함수를 등록하는 간단한 방법을 제공합니다. 이 모듈은 원시 약한 참조에 콜백 함수를 설정하는 것보다 사용하기가 더 쉽습니다. 모듈은 객체가 수거될 때까지 자동으로 파이널라이저가 활성 상태로 유지되도록 하기 때문입니다.</p>
+<p>대부분의 프로그램은 이러한 약한 컨테이너 형의 하나나 <a class="reference internal" href="#weakref.finalize" title="weakref.finalize"><code class="xref py py-class docutils literal notranslate"><span class="pre">finalize</span></code></a>를 사용하는 것으로 충분합니다 -- 일반적으로 여러분 스스로 약한 참조를 직접 만들 필요는 없습니다. 저수준 장치는 고급 용도를 위해 <a class="reference internal" href="#module-weakref" title="weakref: Support for weak references and weak dictionaries."><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code></a> 모듈이 노출합니다.</p>
+<p>모든 객체를 약하게 참조할 수 있는 것은 아닙니다; 가능한 객체에는 클래스 인스턴스, 파이썬으로 작성된 함수 (C로 작성된 함수는 아닙니다), 인스턴스 메서드, 집합, 불변 집합(frozenset), 일부 <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">파일 객체</span></a>, <a class="reference internal" href="../glossary.html#term-generator"><span class="xref std std-term">제너레이터</span></a>, 형 객체, 소켓, 배열, 데크(deque), 정규식 패턴 객체 및 코드 객체가 포함됩니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.2에서 변경: </span>Added support for thread.lock, threading.Lock, and code objects.</p>
+<p><span class="versionmodified changed">버전 3.2에서 변경: </span>thread.lock, threading.Lock 및 코드 객체에 대한 지원이 추가되었습니다.</p>
 </div>
-<p>Several built-in types such as <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> and <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> do not directly
-support weak references but can add support through subclassing:</p>
+<p><a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>와 <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>와 같은 여러 내장형은 약한 참조를 직접 지원하지 않지만 서브 클래싱을 통해 지원을 추가할 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="k">pass</span>
 
-<span class="n">obj</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">(</span><span class="n">red</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">green</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">blue</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>   <span class="c1"># this object is weak referenceable</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">(</span><span class="n">red</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">green</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">blue</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>   <span class="c1"># 이 객체는 약한 참조할 수 있습니다</span>
 </pre></div>
 </div>
 <div class="impl-detail compound">
-<p><strong>CPython implementation detail:</strong> Other built-in types such as <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> and <a class="reference internal" href="functions.html#int" title="int"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> do not support weak
-references even when subclassed.</p>
+<p><strong>CPython implementation detail:</strong> <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>과 <a class="reference internal" href="functions.html#int" title="int"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>와 같은 다른 내장형은 서브 클래싱될 때도 약한 참조를 지원하지 않습니다.</p>
 </div>
-<p>Extension types can easily be made to support weak references; see
-<a class="reference internal" href="../extending/newtypes.html#weakref-support"><span class="std std-ref">Weak Reference Support</span></a>.</p>
+<p>확장 형은 쉽게 약한 참조를 지원하도록 만들 수 있습니다; <a class="reference internal" href="../extending/newtypes.html#weakref-support"><span class="std std-ref">Weak Reference Support</span></a>을 참조하십시오.</p>
 <dl class="class">
 <dt id="weakref.ref">
 <em class="property">class </em><code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">ref</code><span class="sig-paren">(</span><em class="sig-param">object</em><span class="optional">[</span>, <em class="sig-param">callback</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.ref" title="정의 주소">¶</a></dt>
-<dd><p>Return a weak reference to <em>object</em>.  The original object can be retrieved by
-calling the reference object if the referent is still alive; if the referent is
-no longer alive, calling the reference object will cause <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a> to be
-returned.  If <em>callback</em> is provided and not <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>, and the returned
-weakref object is still alive, the callback will be called when the object is
-about to be finalized; the weak reference object will be passed as the only
-parameter to the callback; the referent will no longer be available.</p>
-<p>It is allowable for many weak references to be constructed for the same object.
-Callbacks registered for each weak reference will be called from the most
-recently registered callback to the oldest registered callback.</p>
-<p>Exceptions raised by the callback will be noted on the standard error output,
-but cannot be propagated; they are handled in exactly the same way as exceptions
-raised from an object's <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> method.</p>
-<p>Weak references are <a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">hashable</span></a> if the <em>object</em> is hashable.  They will
-maintain their hash value even after the <em>object</em> was deleted.  If
-<a class="reference internal" href="functions.html#hash" title="hash"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash()</span></code></a> is called the first time only after the <em>object</em> was deleted,
-the call will raise <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>.</p>
-<p>Weak references support tests for equality, but not ordering.  If the referents
-are still alive, two references have the same equality relationship as their
-referents (regardless of the <em>callback</em>).  If either referent has been deleted,
-the references are equal only if the reference objects are the same object.</p>
-<p>This is a subclassable type rather than a factory function.</p>
+<dd><p><em>object</em>에 대한 약한 참조를 반환합니다. 참조대상이 아직 살아있으면 참조 객체를 호출하여 원래 객체를 얻을 수 있습니다. 참조대상이 더는 존재하지 않으면 참조 객체를 호출할 때 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>이 반환됩니다. <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>이 아닌 <em>callback</em>이 제공되고, 반환된 약한 참조 객체가 여전히 살아있으면, 객체가 파이널라이즈 되려고 할 때 콜백이 호출됩니다; 약한 참조 객체는 콜백에 유일한 매개 변수로 전달됩니다; 참조대상은 더는 사용할 수 없습니다.</p>
+<p>같은 객체에 대해 여러 개의 약한 참조를 구성할 수 있습니다. 각 약한 참조에 등록된 콜백은 가장 최근에 등록된 콜백에서 가장 오래전에 등록된 콜백 순으로 호출됩니다.</p>
+<p>콜백에 의해 발생한 예외는 표준 에러 출력에 표시되지만, 전파될 수는 없습니다; 객체의 <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> 메서드에서 발생한 예외와 정확히 같은 방식으로 처리됩니다.</p>
+<p>약한 참조는 <em>object</em>가 해시 가능이면 <a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">해시 가능</span></a>입니다. <em>object</em>가 삭제된 후에도 해시 값을 유지합니다. 오직 <em>object</em>가 삭제된 후에 <a class="reference internal" href="functions.html#hash" title="hash"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash()</span></code></a>를 처음 호출하면, 호출은 <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>를 발생시킵니다.</p>
+<p>약한 참조는 동등 검사를 지원하지만, 순서는 지원하지 않습니다. 참조대상이 여전히 살아 있다면, 두 참조는 (<em>callback</em>에 관계없이) 참조대상과 같은 동등 관계를 갖습니다. 참조대상이 삭제되었으면, 참조 객체가 같은 객체일 때만 참조가 같습니다.</p>
+<p>이것은 팩토리 함수가 아니라 서브 클래싱할 수 있는 형입니다.</p>
 <dl class="attribute">
 <dt id="weakref.ref.__callback__">
 <code class="sig-name descname">__callback__</code><a class="headerlink" href="#weakref.ref.__callback__" title="정의 주소">¶</a></dt>
-<dd><p>This read-only attribute returns the callback currently associated to the
-weakref.  If there is no callback or if the referent of the weakref is
-no longer alive then this attribute will have value <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dd><p>이 읽기 전용 어트리뷰트는 현재 약한 참조와 연관된 콜백을 반환합니다. 콜백이 없거나 약한 참조의 참조대상이 더는 살아있지 않으면 이 어트리뷰트의 값은 <code class="docutils literal notranslate"><span class="pre">None</span></code>이 됩니다.</p>
 </dd></dl>
 
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.4에서 변경: </span>Added the <a class="reference internal" href="#weakref.ref.__callback__" title="weakref.ref.__callback__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__callback__</span></code></a> attribute.</p>
+<p><span class="versionmodified changed">버전 3.4에서 변경: </span><a class="reference internal" href="#weakref.ref.__callback__" title="weakref.ref.__callback__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__callback__</span></code></a> 어트리뷰트를 추가했습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="weakref.proxy">
 <code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">proxy</code><span class="sig-paren">(</span><em class="sig-param">object</em><span class="optional">[</span>, <em class="sig-param">callback</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.proxy" title="정의 주소">¶</a></dt>
-<dd><p>Return a proxy to <em>object</em> which uses a weak reference.  This supports use of
-the proxy in most contexts instead of requiring the explicit dereferencing used
-with weak reference objects.  The returned object will have a type of either
-<code class="docutils literal notranslate"><span class="pre">ProxyType</span></code> or <code class="docutils literal notranslate"><span class="pre">CallableProxyType</span></code>, depending on whether <em>object</em> is
-callable.  Proxy objects are not <a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">hashable</span></a> regardless of the referent; this
-avoids a number of problems related to their fundamentally mutable nature, and
-prevent their use as dictionary keys.  <em>callback</em> is the same as the parameter
-of the same name to the <a class="reference internal" href="#weakref.ref" title="weakref.ref"><code class="xref py py-func docutils literal notranslate"><span class="pre">ref()</span></code></a> function.</p>
+<dd><p><em>object</em>로의 약한 참조를 사용하는 프락시를 반환합니다. 이는 약한 참조 객체에서 사용되는 명시적 역 참조를 요구하는 대신 대부분의 문맥에서 프락시의 사용을 지원합니다. 반환 된 객체는 <em>object</em>가 콜러블인지에 따라 <code class="docutils literal notranslate"><span class="pre">ProxyType</span></code>이나 <code class="docutils literal notranslate"><span class="pre">CallableProxyType</span></code> 형을 갖습니다. 프락시 객체는 참조대상에 관계없이 <a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">해시 가능</span></a>하지 않습니다; 이것은 그들의 근본적인 가변 특성과 관련된 여러 가지 문제를 피하고, 딕셔너리 키로 사용하는 것을 방지합니다. <em>callback</em>은 <a class="reference internal" href="#weakref.ref" title="weakref.ref"><code class="xref py py-func docutils literal notranslate"><span class="pre">ref()</span></code></a> 함수의 같은 이름의 매개 변수와 같습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Extended the operator support on proxy objects to include the matrix
-multiplication operators <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;=</span></code>.</p>
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>행렬 곱셈 연산자 <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>와 <code class="docutils literal notranslate"><span class="pre">&#64;=</span></code>를 포함하도록 프락시 객체에 대한 연산자 지원을 확장했습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="weakref.getweakrefcount">
 <code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">getweakrefcount</code><span class="sig-paren">(</span><em class="sig-param">object</em><span class="sig-paren">)</span><a class="headerlink" href="#weakref.getweakrefcount" title="정의 주소">¶</a></dt>
-<dd><p>Return the number of weak references and proxies which refer to <em>object</em>.</p>
+<dd><p><em>object</em>를 참조하는 약한 참조와 프락시의 갯수를 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="weakref.getweakrefs">
 <code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">getweakrefs</code><span class="sig-paren">(</span><em class="sig-param">object</em><span class="sig-paren">)</span><a class="headerlink" href="#weakref.getweakrefs" title="정의 주소">¶</a></dt>
-<dd><p>Return a list of all weak reference and proxy objects which refer to <em>object</em>.</p>
+<dd><p><em>object</em>를 참조하는 모든 약한 참조와 프락시 객체의 리스트를 반환합니다.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="weakref.WeakKeyDictionary">
 <em class="property">class </em><code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">WeakKeyDictionary</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">dict</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.WeakKeyDictionary" title="정의 주소">¶</a></dt>
-<dd><p>Mapping class that references keys weakly.  Entries in the dictionary will be
-discarded when there is no longer a strong reference to the key.  This can be
-used to associate additional data with an object owned by other parts of an
-application without adding attributes to those objects.  This can be especially
-useful with objects that override attribute accesses.</p>
+<dd><p>키를 약하게 참조하는 매핑 클래스. 더는 키에 대한 강한 참조가 없으면 딕셔너리의 항목이 삭제됩니다. 이것은 응용 프로그램의 다른 부분이 소유한 객체에 어트리뷰트를 추가하지 않고도 추가 데이터를 연결하는 데 사용될 수 있습니다. 어트리뷰트 액세스를 재정의하는 객체에 특히 유용할 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Caution: Because a <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> is built on top of a Python
-dictionary, it must not change size when iterating over it.  This can be
-difficult to ensure for a <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> because actions
-performed by the program during iteration may cause items in the
-dictionary to vanish &quot;by magic&quot; (as a side effect of garbage collection).</p>
+<p>주의: <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a>는 파이썬 딕셔너리 위에 구축되므로, 이터레이션 할 때 크기를 변경해서는 안됩니다. <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a>에서 이를 보장하기는 어려울 수 있는데, 이터레이션 중에 프로그램에 의해 수행된 액션으로 인해 딕셔너리의 항목이 &quot;마법처럼&quot; (가비지 수거의 부작용으로) 사라질 수 있기 때문입니다.</p>
 </div>
 </dd></dl>
 
-<p><a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> objects have an additional method that
-exposes the internal references directly.  The references are not guaranteed to
-be &quot;live&quot; at the time they are used, so the result of calling the references
-needs to be checked before being used.  This can be used to avoid creating
-references that will cause the garbage collector to keep the keys around longer
-than needed.</p>
+<p><a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> 객체에는 내부 참조를 직접 노출시키는 추가 메서드가 있습니다. 참조는 사용되는 시점에 &quot;살아있다고&quot; 보장되지 않으므로, 참조를 호출한 결과를 사용하기 전에 확인해야합니다. 가비지 수거기가 키를 필요 이상으로 길게 유지하도록 하는 참조를 만들지 않도록 하는 데 사용할 수 있습니다.</p>
 <dl class="method">
 <dt id="weakref.WeakKeyDictionary.keyrefs">
 <code class="sig-prename descclassname">WeakKeyDictionary.</code><code class="sig-name descname">keyrefs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.WeakKeyDictionary.keyrefs" title="정의 주소">¶</a></dt>
-<dd><p>Return an iterable of the weak references to the keys.</p>
+<dd><p>키에 대한 약한 참조의 이터러블을 반환합니다.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="weakref.WeakValueDictionary">
 <em class="property">class </em><code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">WeakValueDictionary</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">dict</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.WeakValueDictionary" title="정의 주소">¶</a></dt>
-<dd><p>Mapping class that references values weakly.  Entries in the dictionary will be
-discarded when no strong reference to the value exists any more.</p>
+<dd><p>값을 약하게 참조하는 매핑 클래스. 값에 대한 강한 참조가 더는 존재하지 않을 때 딕셔너리의 항목이 삭제됩니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Caution:  Because a <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> is built on top of a Python
-dictionary, it must not change size when iterating over it.  This can be
-difficult to ensure for a <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> because actions performed
-by the program during iteration may cause items in the dictionary to vanish &quot;by
-magic&quot; (as a side effect of garbage collection).</p>
+<p>주의: <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a>는 파이썬 딕셔너리 위에 구축되므로, 이터레이션 할 때 크기를 변경해서는 안됩니다. <a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a>에서 이를 보장하기는 어려울 수 있는데, 이터레이션 중에 프로그램에 의해 수행된 액션으로 인해 딕셔너리의 항목이 &quot;마법처럼&quot; (가비지 수거의 부작용으로) 사라질 수 있기 때문입니다.</p>
 </div>
 </dd></dl>
 
-<p><a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> objects have an additional method that has the
-same issues as the <code class="xref py py-meth docutils literal notranslate"><span class="pre">keyrefs()</span></code> method of <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a>
-objects.</p>
+<p><a class="reference internal" href="#weakref.WeakValueDictionary" title="weakref.WeakValueDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakValueDictionary</span></code></a> 객체에는 <a class="reference internal" href="#weakref.WeakKeyDictionary" title="weakref.WeakKeyDictionary"><code class="xref py py-class docutils literal notranslate"><span class="pre">WeakKeyDictionary</span></code></a> 객체의 <code class="xref py py-meth docutils literal notranslate"><span class="pre">keyrefs()</span></code> 메서드와 같은 문제가 있는 추가 메서드가 있습니다.</p>
 <dl class="method">
 <dt id="weakref.WeakValueDictionary.valuerefs">
 <code class="sig-prename descclassname">WeakValueDictionary.</code><code class="sig-name descname">valuerefs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.WeakValueDictionary.valuerefs" title="정의 주소">¶</a></dt>
-<dd><p>Return an iterable of the weak references to the values.</p>
+<dd><p>값에 대한 약한 참조의 이터러블을 반환합니다.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="weakref.WeakSet">
 <em class="property">class </em><code class="sig-prename descclassname">weakref.</code><code class="sig-name descname">WeakSet</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">elements</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#weakref.WeakSet" title="정의 주소">¶</a></dt>
-<dd><p>Set class that keeps weak references to its elements.  An element will be
-discarded when no strong reference to it exists any more.</p>
+<dd><p>원소에 대한 약한 참조를 유지하는 집합 클래스. 원소에 대한 강한 참조가 더는 존재하지 않을 때 원소가 삭제됩니다.</p>
 </dd></dl>
 
 <dl class="class">
@@ -686,7 +601,7 @@ do not guarantee that cleanup occurs either.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code> --- Weak references</a><ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">weakref</span></code> --- 약한 참조</a><ul>
 <li><a class="reference internal" href="#weak-reference-objects">Weak Reference Objects</a></li>
 <li><a class="reference internal" href="#example">Example</a></li>
 <li><a class="reference internal" href="#finalizer-objects">Finalizer Objects</a></li>
