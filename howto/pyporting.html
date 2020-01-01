@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>Porting Python 2 Code to Python 3 &#8212; 파이썬 설명서 주석판</title>
+    <title>파이썬 2 코드를 파이썬 3으로 이식하기 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -119,113 +119,58 @@
           <div class="body" role="main">
             
   <div class="section" id="porting-python-2-code-to-python-3">
-<span id="pyporting-howto"></span><h1>Porting Python 2 Code to Python 3<a class="headerlink" href="#porting-python-2-code-to-python-3" title="제목 주소">¶</a></h1>
+<span id="pyporting-howto"></span><h1>파이썬 2 코드를 파이썬 3으로 이식하기<a class="headerlink" href="#porting-python-2-code-to-python-3" title="제목 주소">¶</a></h1>
 <dl class="field-list simple">
-<dt class="field-odd">author</dt>
+<dt class="field-odd">저자</dt>
 <dd class="field-odd"><p>Brett Cannon</p>
 </dd>
 </dl>
 <div class="topic">
-<p class="topic-title first">Abstract</p>
-<p>With Python 3 being the future of Python while Python 2 is still in active
-use, it is good to have your project available for both major releases of
-Python. This guide is meant to help you figure out how best to support both
-Python 2 &amp; 3 simultaneously.</p>
-<p>If you are looking to port an extension module instead of pure Python code,
-please see <a class="reference internal" href="cporting.html#cporting-howto"><span class="std std-ref">확장 모듈을 파이썬 3에 이식하기</span></a>.</p>
-<p>If you would like to read one core Python developer's take on why Python 3
-came into existence, you can read Nick Coghlan's <a class="reference external" href="https://ncoghlan-devs-python-notes.readthedocs.io/en/latest/python3/questions_and_answers.html">Python 3 Q &amp; A</a> or
-Brett Cannon's <a class="reference external" href="https://snarky.ca/why-python-3-exists">Why Python 3 exists</a>.</p>
-<p>For help with porting, you can email the <a class="reference external" href="https://mail.python.org/mailman/listinfo/python-porting">python-porting</a> mailing list with
-questions.</p>
+<p class="topic-title first">요약</p>
+<p>파이썬 3이 파이썬의 미래이지만 파이썬 2가 여전히 활발하게 사용되고 있기 때문에, 두 가지 주요 파이썬 릴리스에서 프로젝트를 사용할 수있게하는 것이 좋습니다. 이 안내서는 파이썬 2와 3을 동시에 지원하는 가장 좋은 방법을 찾는 데 도움을 주려고 합니다.</p>
+<p>순수 파이썬 코드 대신 확장 모듈을 이식하려고 한다면 <a class="reference internal" href="cporting.html#cporting-howto"><span class="std std-ref">확장 모듈을 파이썬 3에 이식하기</span></a>를 참조하십시오.</p>
+<p>파이썬 3이 왜 등장했는지에 대한 핵심 파이썬 개발자의 글을 읽고 싶다면, Nick Coghlan의 <a class="reference external" href="https://ncoghlan-devs-python-notes.readthedocs.io/en/latest/python3/questions_and_answers.html">Python 3 Q &amp; A</a>나 Brett Cannon의 <a class="reference external" href="https://snarky.ca/why-python-3-exists">Why Python 3 exists</a>를 추천합니다.</p>
+<p>이식에 도움이 필요하면, <a class="reference external" href="https://mail.python.org/mailman/listinfo/python-porting">python-porting</a> 메일링 리스트에 질문을 전자우편으로 보낼 수 있습니다.</p>
 </div>
 <div class="section" id="the-short-explanation">
-<h2>The Short Explanation<a class="headerlink" href="#the-short-explanation" title="제목 주소">¶</a></h2>
-<p>To make your project be single-source Python 2/3 compatible, the basic steps
-are:</p>
+<h2>짧은 설명<a class="headerlink" href="#the-short-explanation" title="제목 주소">¶</a></h2>
+<p>프로젝트를 단일 소스 파이썬 2/3 호환으로 만들려면, 기본 단계는 다음과 같습니다:</p>
 <ol class="arabic simple">
-<li><p>Only worry about supporting Python 2.7</p></li>
-<li><p>Make sure you have good test coverage (<a class="reference external" href="https://pypi.org/project/coverage">coverage.py</a> can help;
-<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">coverage</span></code>)</p></li>
-<li><p>Learn the differences between Python 2 &amp; 3</p></li>
-<li><p>Use <a class="reference external" href="http://python-future.org/automatic_conversion.html">Futurize</a> (or <a class="reference external" href="https://python-modernize.readthedocs.io/">Modernize</a>) to update your code (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">future</span></code>)</p></li>
-<li><p>Use <a class="reference external" href="https://pypi.org/project/pylint">Pylint</a> to help make sure you don't regress on your Python 3 support
-(<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pylint</span></code>)</p></li>
-<li><p>Use <a class="reference external" href="https://pypi.org/project/caniusepython3">caniusepython3</a> to find out which of your dependencies are blocking your
-use of Python 3 (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">caniusepython3</span></code>)</p></li>
-<li><p>Once your dependencies are no longer blocking you, use continuous integration
-to make sure you stay compatible with Python 2 &amp; 3 (<a class="reference external" href="https://pypi.org/project/tox">tox</a> can help test
-against multiple versions of Python; <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">tox</span></code>)</p></li>
-<li><p>Consider using optional static type checking to make sure your type usage
-works in both Python 2 &amp; 3 (e.g. use <a class="reference external" href="http://mypy-lang.org/">mypy</a> to check your typing under both
-Python 2 &amp; Python 3).</p></li>
+<li><p>파이썬 2.7 지원만 신경쓰십시오</p></li>
+<li><p>테스트 커버리지가 양호한지 확인하십시오 (<a class="reference external" href="https://pypi.org/project/coverage">coverage.py</a>가 도움이 될 수 있습니다; <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">coverage</span></code>)</p></li>
+<li><p>파이썬 2와 3의 차이점을 공부하십시오</p></li>
+<li><p><a class="reference external" href="http://python-future.org/automatic_conversion.html">Futurize</a>(또는 <a class="reference external" href="https://python-modernize.readthedocs.io/">Modernize</a>)를 사용하여 코드를 갱신하십시오 (예를 들어 <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">future</span></code>)</p></li>
+<li><p><a class="reference external" href="https://pypi.org/project/pylint">Pylint</a>를 사용하여 파이썬 3 지원의 회귀 테스트가 실패하지 않도록 점검하십시오 (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pylint</span></code>)</p></li>
+<li><p><a class="reference external" href="https://pypi.org/project/caniusepython3">caniusepython3</a>을 사용하여 파이썬 3 사용을 막는 의존성(dependencies)을 찾으십시오 (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">caniusepython3</span></code>)</p></li>
+<li><p>일단 의존성이 더는 여러분을 막지 않으면, 지속적인 통합을 사용하여 파이썬 2 &amp; 3와의 호환성을 유지하십시오 (<a class="reference external" href="https://pypi.org/project/tox">tox</a>는 여러 버전의 파이썬에서 테스트하는 데 도움이 됩니다; <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">tox</span></code>)</p></li>
+<li><p>선택적으로 정적 형 검사를 사용하여 형 사용이 파이썬 2와 3에서 모두 작동하는지 확인하십시오 (예를 들어 <a class="reference external" href="http://mypy-lang.org/">mypy</a>를 사용하여 파이썬 2와 파이썬 3 모두에서 형 사용을 검사하십시오).</p></li>
 </ol>
 </div>
 <div class="section" id="details">
-<h2>Details<a class="headerlink" href="#details" title="제목 주소">¶</a></h2>
-<p>A key point about supporting Python 2 &amp; 3 simultaneously is that you can start
-<strong>today</strong>! Even if your dependencies are not supporting Python 3 yet that does
-not mean you can't modernize your code <strong>now</strong> to support Python 3. Most changes
-required to support Python 3 lead to cleaner code using newer practices even in
-Python 2 code.</p>
-<p>Another key point is that modernizing your Python 2 code to also support
-Python 3 is largely automated for you. While you might have to make some API
-decisions thanks to Python 3 clarifying text data versus binary data, the
-lower-level work is now mostly done for you and thus can at least benefit from
-the automated changes immediately.</p>
-<p>Keep those key points in mind while you read on about the details of porting
-your code to support Python 2 &amp; 3 simultaneously.</p>
+<h2>세부 사항<a class="headerlink" href="#details" title="제목 주소">¶</a></h2>
+<p>파이썬 2와 3을 동시에 지원하는 것에 대한 요점은 <strong>오늘</strong> 시작할 수 있다는 것입니다! 의존성이 아직 파이썬 3를 지원하지 않을 때 조차 여려분의 코드를 파이썬 3를 지원하도록 <strong>지금</strong> 현대화할 수 없다는 뜻은 아닙니다. 파이썬 3를 지원하는데 필요한 대부분의 변경은 파이썬 2 코드에서도 새로운 방법을 사용하여 더 깔끔한 코드를 만듭니다.</p>
+<p>또 다른 요점은 파이썬 3도 지원하도록 파이썬 2 코드를 현대화하는 것이 대부분 자동화되어 있다는 것입니다. 여러분이 일부 API 결정을 내려야 할 수도 있지만, 텍스트 데이터와 바이너리 데이터를 명확히 구분하는 파이썬 3 덕분에, 이제 저수준 작업이 대부분 수행되므로 최소한 자동 변경의 이점을 즉시 누릴 수 있습니다.</p>
+<p>파이썬 2와 3을 동시에 지원하기 위해 코드를 이식하는 것에 대한 자세한 내용을 읽는 동안 이러한 요점을 명심하십시오.</p>
 <div class="section" id="drop-support-for-python-2-6-and-older">
-<h3>Drop support for Python 2.6 and older<a class="headerlink" href="#drop-support-for-python-2-6-and-older" title="제목 주소">¶</a></h3>
-<p>While you can make Python 2.5 work with Python 3, it is <strong>much</strong> easier if you
-only have to work with Python 2.7. If dropping Python 2.5 is not an
-option then the <a class="reference external" href="https://pypi.org/project/six">six</a> project can help you support Python 2.5 &amp; 3 simultaneously
-(<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">six</span></code>). Do realize, though, that nearly all the projects listed
-in this HOWTO will not be available to you.</p>
-<p>If you are able to skip Python 2.5 and older, then the required changes
-to your code should continue to look and feel like idiomatic Python code. At
-worst you will have to use a function instead of a method in some instances or
-have to import a function instead of using a built-in one, but otherwise the
-overall transformation should not feel foreign to you.</p>
-<p>But you should aim for only supporting Python 2.7. Python 2.6 is no longer
-freely supported and thus is not receiving bugfixes. This means <strong>you</strong> will have
-to work around any issues you come across with Python 2.6. There are also some
-tools mentioned in this HOWTO which do not support Python 2.6 (e.g., <a class="reference external" href="https://pypi.org/project/pylint">Pylint</a>),
-and this will become more commonplace as time goes on. It will simply be easier
-for you if you only support the versions of Python that you have to support.</p>
+<h3>파이썬 2.6이하에 대한 지원을 중단하십시오<a class="headerlink" href="#drop-support-for-python-2-6-and-older" title="제목 주소">¶</a></h3>
+<p>파이썬 2.5를 파이썬 3에서 동작하게 만들 수 있지만, 파이썬 2.7만 지원한다면 <strong>훨씬</strong> 쉽습니다. 파이썬 2.5를 포기하는 것이 옵션이 아니면 <a class="reference external" href="https://pypi.org/project/six">six</a> 프로젝트를 사용해서 파이썬 2.5와 3을 동시에 지원할 수 있습니다 (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">six</span></code>). 그러나 이 HOWTO에 나열된 거의 모든 프로젝트를 이용할 수 없다는 것을 알고 계십시오.</p>
+<p>파이썬 2.5와 그 이전 버전을 무시할 수 있다면, 코드에 필요한 변경 사항은 계속 관용적인 파이썬 코드처럼 보이고 느껴져야 합니다. 최악의 경우 일부 인스턴스에서 메서드 대신 함수를 사용해야하거나 내장 함수를 사용하는 대신 함수를 임포트해야 하지만, 그외에는 전체적인 변환이 이질적으로 느껴지지 않아야합니다.</p>
+<p>그러나 파이썬 2.7 만 지원해야합니다. 파이썬 2.6은 더는 무료로 지원되지 않아서 버그 수정이 없습니다. 이것은 여러분이 만나는 파이썬 2.6의 문제를 <strong>여러분이</strong> 해결해야한다는 뜻입니다. 이 HOWTO에서 언급하는 몇가지 도구는 파이썬 2.6을 지원하지 않기도 하고 (예를 들어 <a class="reference external" href="https://pypi.org/project/pylint">Pylint</a>), 시간이 지남에 따라 더 늘어날 것입니다. 지원해야만 하는 파이썬 버전만 지원하는 것이 더 쉬울 것입니다.</p>
 </div>
 <div class="section" id="make-sure-you-specify-the-proper-version-support-in-your-setup-py-file">
-<h3>Make sure you specify the proper version support in your <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file<a class="headerlink" href="#make-sure-you-specify-the-proper-version-support-in-your-setup-py-file" title="제목 주소">¶</a></h3>
-<p>In your <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file you should have the proper <a class="reference external" href="https://pypi.org/classifiers">trove classifier</a>
-specifying what versions of Python you support. As your project does not support
-Python 3 yet you should at least have
-<code class="docutils literal notranslate"><span class="pre">Programming</span> <span class="pre">Language</span> <span class="pre">::</span> <span class="pre">Python</span> <span class="pre">::</span> <span class="pre">2</span> <span class="pre">::</span> <span class="pre">Only</span></code> specified. Ideally you should
-also specify each major/minor version of Python that you do support, e.g.
-<code class="docutils literal notranslate"><span class="pre">Programming</span> <span class="pre">Language</span> <span class="pre">::</span> <span class="pre">Python</span> <span class="pre">::</span> <span class="pre">2.7</span></code>.</p>
+<h3><code class="docutils literal notranslate"><span class="pre">setup.py</span></code> 파일에서 올바른 버전 지원을 지정했는지 확인하십시오<a class="headerlink" href="#make-sure-you-specify-the-proper-version-support-in-your-setup-py-file" title="제목 주소">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">setup.py</span></code> 파일에는 여러분이 지원하는 파이썬 버전을 지정하는 적절한 <a class="reference external" href="https://pypi.org/classifiers">trove 분류</a>가 있어야합니다. 여러분의 프로젝트가 아직 파이썬 3을 지원하지 않으므로 최소한 <code class="docutils literal notranslate"><span class="pre">Programming</span> <span class="pre">Language</span> <span class="pre">::</span> <span class="pre">Python</span> <span class="pre">::</span> <span class="pre">2</span> <span class="pre">::</span> <span class="pre">Only</span></code>를 지정해야합니다. 이상적으로는 지원하는 각 주/부 버전의 파이썬을 지정해야합니다, 예를 들어 <code class="docutils literal notranslate"><span class="pre">Programming</span> <span class="pre">Language</span> <span class="pre">::</span> <span class="pre">Python</span> <span class="pre">::</span> <span class="pre">2.7</span></code>.</p>
 </div>
 <div class="section" id="have-good-test-coverage">
-<h3>Have good test coverage<a class="headerlink" href="#have-good-test-coverage" title="제목 주소">¶</a></h3>
-<p>Once you have your code supporting the oldest version of Python 2 you want it
-to, you will want to make sure your test suite has good coverage. A good rule of
-thumb is that if you want to be confident enough in your test suite that any
-failures that appear after having tools rewrite your code are actual bugs in the
-tools and not in your code. If you want a number to aim for, try to get over 80%
-coverage (and don't feel bad if you find it hard to get better than 90%
-coverage). If you don't already have a tool to measure test coverage then
-<a class="reference external" href="https://pypi.org/project/coverage">coverage.py</a> is recommended.</p>
+<h3>양호한 테스트 커버리지를 갖추십시오<a class="headerlink" href="#have-good-test-coverage" title="제목 주소">¶</a></h3>
+<p>일단 여러분이 원하는 가장 오래된 파이썬 2 버전을 지원하는 코드를 확보하면, 테스트 스위트가 양호한 커버리지를 갖는지 확인해야합니다. 경험 규칙은 도구가 코드를 다시 작성한 후 나타나는 실패가 여러분의 코드가 아니라 도구에 있는 실제 버그라는 확신을 가질 만큼 테스트 스위트를 신뢰할 수 있는 수준입니다. 목표로 할 숫자가 필요하다면, 80% 이상의 커버리지를 시도하십시오 (그리고 90% 이상의 커버리지를 얻기 어려워도 실망하지 마십시오). 테스트 커버리지를 측정하는 도구가 없으면 <a class="reference external" href="https://pypi.org/project/coverage">coverage.py</a>를 추천합니다.</p>
 </div>
 <div class="section" id="learn-the-differences-between-python-2-3">
-<h3>Learn the differences between Python 2 &amp; 3<a class="headerlink" href="#learn-the-differences-between-python-2-3" title="제목 주소">¶</a></h3>
-<p>Once you have your code well-tested you are ready to begin porting your code to
-Python 3! But to fully understand how your code is going to change and what
-you want to look out for while you code, you will want to learn what changes
-Python 3 makes in terms of Python 2. Typically the two best ways of doing that
-is reading the <a class="reference external" href="https://docs.python.org/3/whatsnew/index.html">&quot;What's New&quot;</a> doc for each release of Python 3 and the
-<a class="reference external" href="http://python3porting.com/">Porting to Python 3</a> book (which is free online). There is also a handy
-<a class="reference external" href="http://python-future.org/compatible_idioms.html">cheat sheet</a> from the Python-Future project.</p>
+<h3>파이썬 2와 3의 차이점을 공부하십시오<a class="headerlink" href="#learn-the-differences-between-python-2-3" title="제목 주소">¶</a></h3>
+<p>코드를 잘 테스트했으면, 코드를 파이썬 3으로 이식할 준비가 되었습니다! 그러나 코드가 어떻게 변경되고 코드를 작성하는 동안 무엇을 살펴야 하는지 완전히 이해하려면, 파이썬 3이 파이썬 2에 어떤 변경을 가했는지 배우고 싶을 것입니다. 일반적으로 두 가지 가장 좋은 방법은 각 파이썬 3 릴리스의 <a class="reference external" href="https://python.flowdas.com/whatsnew/index.html">&quot;새로운 기능&quot;</a> 문서와 <a class="reference external" href="http://python3porting.com/">Porting to Python 3</a> 책(온라인에서 무료로 제공됩니다)을 읽는 것입니다. Python-Future 프로젝트의 편리한 <a class="reference external" href="http://python-future.org/compatible_idioms.html">cheat sheet</a>도 있습니다.</p>
 </div>
 <div class="section" id="update-your-code">
-<h3>Update your code<a class="headerlink" href="#update-your-code" title="제목 주소">¶</a></h3>
+<h3>여러분의 코드를 갱신하십시오<a class="headerlink" href="#update-your-code" title="제목 주소">¶</a></h3>
 <p>Once you feel like you know what is different in Python 3 compared to Python 2,
 it's time to update your code! You have a choice between two tools in porting
 your code automatically: <a class="reference external" href="http://python-future.org/automatic_conversion.html">Futurize</a> and <a class="reference external" href="https://python-modernize.readthedocs.io/">Modernize</a>. Which tool you choose will
@@ -396,7 +341,7 @@ of whether the version of Python you're running under supports what you need.
 If for some reason that doesn't work then you should make the version check be
 against Python 2 and not Python 3. To help explain this, let's look at an
 example.</p>
-<p>Let's pretend that you need access to a feature of <a class="reference external" href="https://docs.python.org/3/library/importlib.html#module-importlib">importlib</a> that
+<p>Let's pretend that you need access to a feature of <a class="reference external" href="https://python.flowdas.com/library/importlib.html#module-importlib">importlib</a> that
 is available in Python's standard library since Python 3.3 and available for
 Python 2 through <a class="reference external" href="https://pypi.org/project/importlib2">importlib2</a> on PyPI. You might be tempted to write code to
 access e.g. the <code class="docutils literal notranslate"><span class="pre">importlib.abc</span></code> module by doing the following:</p>
@@ -517,14 +462,14 @@ to make sure everything functions as expected in both versions of Python.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Porting Python 2 Code to Python 3</a><ul>
-<li><a class="reference internal" href="#the-short-explanation">The Short Explanation</a></li>
-<li><a class="reference internal" href="#details">Details</a><ul>
-<li><a class="reference internal" href="#drop-support-for-python-2-6-and-older">Drop support for Python 2.6 and older</a></li>
-<li><a class="reference internal" href="#make-sure-you-specify-the-proper-version-support-in-your-setup-py-file">Make sure you specify the proper version support in your <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file</a></li>
-<li><a class="reference internal" href="#have-good-test-coverage">Have good test coverage</a></li>
-<li><a class="reference internal" href="#learn-the-differences-between-python-2-3">Learn the differences between Python 2 &amp; 3</a></li>
-<li><a class="reference internal" href="#update-your-code">Update your code</a><ul>
+<li><a class="reference internal" href="#">파이썬 2 코드를 파이썬 3으로 이식하기</a><ul>
+<li><a class="reference internal" href="#the-short-explanation">짧은 설명</a></li>
+<li><a class="reference internal" href="#details">세부 사항</a><ul>
+<li><a class="reference internal" href="#drop-support-for-python-2-6-and-older">파이썬 2.6이하에 대한 지원을 중단하십시오</a></li>
+<li><a class="reference internal" href="#make-sure-you-specify-the-proper-version-support-in-your-setup-py-file"><code class="docutils literal notranslate"><span class="pre">setup.py</span></code> 파일에서 올바른 버전 지원을 지정했는지 확인하십시오</a></li>
+<li><a class="reference internal" href="#have-good-test-coverage">양호한 테스트 커버리지를 갖추십시오</a></li>
+<li><a class="reference internal" href="#learn-the-differences-between-python-2-3">파이썬 2와 3의 차이점을 공부하십시오</a></li>
+<li><a class="reference internal" href="#update-your-code">여러분의 코드를 갱신하십시오</a><ul>
 <li><a class="reference internal" href="#division">Division</a></li>
 <li><a class="reference internal" href="#text-versus-binary-data">Text versus binary data</a></li>
 <li><a class="reference internal" href="#use-feature-detection-instead-of-version-detection">Use feature detection instead of version detection</a></li>
