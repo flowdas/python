@@ -538,43 +538,25 @@
 <p><em>timeout</em> 초 후에 프로세스가 종료되지 않으면, <a class="reference internal" href="#subprocess.TimeoutExpired" title="subprocess.TimeoutExpired"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TimeoutExpired</span></code></a> 예외를 발생시킵니다. 이 예외를 잡고 다시 기다리는 것은 안전합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>This will deadlock when using <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code> or <code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code>
-and the child process generates enough output to a pipe such that
-it blocks waiting for the OS pipe buffer to accept more data.
-Use <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Popen.communicate()</span></code></a> when using pipes to avoid that.</p>
+<p>이는 <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code>나 <code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code>를 사용하고 자식 프로세스가 파이프에 너무 많은 출력을 보내서 OS 파이프 버퍼가 더 많은 데이터를 받아들일 때까지 기다리느나 블록하면 교착 상태에 빠집니다. 파이프를 사용할 때 이를 피하려면 <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Popen.communicate()</span></code></a>를 사용하십시오.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The function is implemented using a busy loop (non-blocking call and
-short sleeps). Use the <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> module for an asynchronous wait:
-see <a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_exec" title="asyncio.create_subprocess_exec"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.create_subprocess_exec</span></code></a>.</p>
+<p>이 함수는 비지 루프(비 블로킹 호출과 짧은 잠자기)를 사용하여 구현됩니다. 비동기 대기에는 <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> 모듈을 사용하십시오: <a class="reference internal" href="asyncio-subprocess.html#asyncio.create_subprocess_exec" title="asyncio.create_subprocess_exec"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.create_subprocess_exec</span></code></a>를 참조하십시오.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em> was added.</p>
+<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em>이 추가되었습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="subprocess.Popen.communicate">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">communicate</code><span class="sig-paren">(</span><em class="sig-param">input=None</em>, <em class="sig-param">timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#subprocess.Popen.communicate" title="정의 주소">¶</a></dt>
-<dd><p>Interact with process: Send data to stdin.  Read data from stdout and stderr,
-until end-of-file is reached.  Wait for process to terminate.  The optional
-<em>input</em> argument should be data to be sent to the child process, or
-<code class="docutils literal notranslate"><span class="pre">None</span></code>, if no data should be sent to the child.  If streams were opened in
-text mode, <em>input</em> must be a string.  Otherwise, it must be bytes.</p>
-<p><a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">communicate()</span></code></a> returns a tuple <code class="docutils literal notranslate"><span class="pre">(stdout_data,</span> <span class="pre">stderr_data)</span></code>.
-The data will be strings if streams were opened in text mode; otherwise,
-bytes.</p>
-<p>Note that if you want to send data to the process's stdin, you need to create
-the Popen object with <code class="docutils literal notranslate"><span class="pre">stdin=PIPE</span></code>.  Similarly, to get anything other than
-<code class="docutils literal notranslate"><span class="pre">None</span></code> in the result tuple, you need to give <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code> and/or
-<code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code> too.</p>
-<p>If the process does not terminate after <em>timeout</em> seconds, a
-<a class="reference internal" href="#subprocess.TimeoutExpired" title="subprocess.TimeoutExpired"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TimeoutExpired</span></code></a> exception will be raised.  Catching this exception and
-retrying communication will not lose any output.</p>
-<p>The child process is not killed if the timeout expires, so in order to
-cleanup properly a well-behaved application should kill the child process and
-finish communication:</p>
+<dd><p>프로세스와 상호 작용합니다: stdin에 데이터를 보냅니다. 파일 끝에 도달할 때까지 stdout과 stderr에서 데이터를 읽습니다. 프로세스가 종료될 때까지 기다립니다. 선택적 <em>input</em> 인자는 자식 프로세스로 전송될 데이터이거나, 자식으로 데이터를 보내지 않으면 <code class="docutils literal notranslate"><span class="pre">None</span></code>이어야 합니다. 스트림이 텍스트 모드로 열렸으면, <em>input</em>은 문자열이어야 합니다. 그렇지 않으면, 바이트열이어야 합니다.</p>
+<p><a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">communicate()</span></code></a>는 튜플 <code class="docutils literal notranslate"><span class="pre">(stdout_data,</span> <span class="pre">stderr_data)</span></code>를 반환합니다. 스트림이 텍스트 모드로 열렸으면 데이터는 문자열이 됩니다. 그렇지 않으면 바이트열입니다.</p>
+<p>프로세스의 stdin으로 데이터를 보내려면, <code class="docutils literal notranslate"><span class="pre">stdin=PIPE</span></code>를 사용하여 Popen 객체를 만들어야 함에 유의하십시오. 마찬가지로, 결과 튜플에서 <code class="docutils literal notranslate"><span class="pre">None</span></code> 이외의 것을 얻으려면, <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code> 및/또는 <code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code>도 제공해야합니다.</p>
+<p><em>timeout</em> 초 후에 프로세스가 종료되지 않으면, <a class="reference internal" href="#subprocess.TimeoutExpired" title="subprocess.TimeoutExpired"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TimeoutExpired</span></code></a> 예외가 발생합니다. 이 예외를 잡고 통신을 다시 시도해도 출력이 손실되지 않습니다.</p>
+<p>시간제한이 만료되면 자식 프로세스를 죽이지 않습니다, 올바르게 정리하려면 제대로 작동하는 응용 프로그램은 자식 프로세스를 죽이고 통신을 완료해야합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">outs</span><span class="p">,</span> <span class="n">errs</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
@@ -585,47 +567,40 @@ finish communication:</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The data read is buffered in memory, so do not use this method if the data
-size is large or unlimited.</p>
+<p>읽은 데이터는 메모리에 버퍼링되므로, 데이터 크기가 크거나 무제한이면 이 메서드를 사용하지 마십시오.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em> was added.</p>
+<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em>이 추가되었습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="subprocess.Popen.send_signal">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">send_signal</code><span class="sig-paren">(</span><em class="sig-param">signal</em><span class="sig-paren">)</span><a class="headerlink" href="#subprocess.Popen.send_signal" title="정의 주소">¶</a></dt>
-<dd><p>Sends the signal <em>signal</em> to the child.</p>
+<dd><p>시그널 <em>signal</em>을 자식에게 보냅니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>On Windows, SIGTERM is an alias for <a class="reference internal" href="#subprocess.Popen.terminate" title="subprocess.Popen.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">terminate()</span></code></a>. CTRL_C_EVENT and
-CTRL_BREAK_EVENT can be sent to processes started with a <em>creationflags</em>
-parameter which includes <cite>CREATE_NEW_PROCESS_GROUP</cite>.</p>
+<p>윈도우에서, SIGTERM은 <a class="reference internal" href="#subprocess.Popen.terminate" title="subprocess.Popen.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">terminate()</span></code></a>의 별칭입니다. CTRL_C_EVENT와 CTRL_BREAK_EVENT는 <cite>CREATE_NEW_PROCESS_GROUP</cite>을 포함하는 <em>creationflags</em> 매개 변수로 시작된 프로세스로 보낼 수 수 있습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="subprocess.Popen.terminate">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subprocess.Popen.terminate" title="정의 주소">¶</a></dt>
-<dd><p>Stop the child. On Posix OSs the method sends SIGTERM to the
-child. On Windows the Win32 API function <code class="xref c c-func docutils literal notranslate"><span class="pre">TerminateProcess()</span></code> is called
-to stop the child.</p>
+<dd><p>자식을 멈춥니다. Posix OS에서 이 메서드는 SIGTERM을 자식에게 보냅니다. 윈도우에서는 자식을 중지하기 위해 Win32 API 함수 <code class="xref c c-func docutils literal notranslate"><span class="pre">TerminateProcess()</span></code>가 호출됩니다.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="subprocess.Popen.kill">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">kill</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subprocess.Popen.kill" title="정의 주소">¶</a></dt>
-<dd><p>Kills the child. On Posix OSs the function sends SIGKILL to the child.
-On Windows <a class="reference internal" href="#subprocess.Popen.kill" title="subprocess.Popen.kill"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kill()</span></code></a> is an alias for <a class="reference internal" href="#subprocess.Popen.terminate" title="subprocess.Popen.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">terminate()</span></code></a>.</p>
+<dd><p>자식을 죽입니다. Posix OS에서 이 함수는 SIGKILL을 자식에게 보냅니다. 윈도우에서 <a class="reference internal" href="#subprocess.Popen.kill" title="subprocess.Popen.kill"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kill()</span></code></a>은 <a class="reference internal" href="#subprocess.Popen.terminate" title="subprocess.Popen.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">terminate()</span></code></a>의 별칭입니다.</p>
 </dd></dl>
 
-<p>The following attributes are also available:</p>
+<p>다음과 같은 어트리뷰트도 사용할 수 있습니다:</p>
 <dl class="attribute">
 <dt id="subprocess.Popen.args">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">args</code><a class="headerlink" href="#subprocess.Popen.args" title="정의 주소">¶</a></dt>
-<dd><p>The <em>args</em> argument as it was passed to <a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a> -- a
-sequence of program arguments or else a single string.</p>
+<dd><p><a class="reference internal" href="#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">Popen</span></code></a>으로 전달된 <em>args</em> 인자 -- 프로그램 인자의 시퀀스거나 단일 문자열.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가.</span></p>
 </div>
@@ -634,62 +609,42 @@ sequence of program arguments or else a single string.</p>
 <dl class="attribute">
 <dt id="subprocess.Popen.stdin">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">stdin</code><a class="headerlink" href="#subprocess.Popen.stdin" title="정의 주소">¶</a></dt>
-<dd><p>If the <em>stdin</em> argument was <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>, this attribute is a writeable
-stream object as returned by <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a>. If the <em>encoding</em> or <em>errors</em>
-arguments were specified or the <em>universal_newlines</em> argument was <code class="docutils literal notranslate"><span class="pre">True</span></code>,
-the stream is a text stream, otherwise it is a byte stream. If the <em>stdin</em>
-argument was not <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>, this attribute is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dd><p><em>stdin</em> 인자가 <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>이면, 이 어트리뷰트는 <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a>이 반환한 쓰기 가능한 스트림 객체입니다. <em>encoding</em>이나 <em>errors</em> 인자가 지정되었거나 <em>universal_newlines</em> 인자가 <code class="docutils literal notranslate"><span class="pre">True</span></code>이면, 스트림은 텍스트 스트림이고, 그렇지 않으면 바이트 스트림입니다. <em>stdin</em> 인자가 <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>가 아니면, 이 어트리뷰트는 <code class="docutils literal notranslate"><span class="pre">None</span></code>입니다.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="subprocess.Popen.stdout">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">stdout</code><a class="headerlink" href="#subprocess.Popen.stdout" title="정의 주소">¶</a></dt>
-<dd><p>If the <em>stdout</em> argument was <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>, this attribute is a readable
-stream object as returned by <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a>. Reading from the stream provides
-output from the child process. If the <em>encoding</em> or <em>errors</em> arguments were
-specified or the <em>universal_newlines</em> argument was <code class="docutils literal notranslate"><span class="pre">True</span></code>, the stream is a
-text stream, otherwise it is a byte stream. If the <em>stdout</em> argument was not
-<a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>, this attribute is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dd><p><em>stdout</em> 인자가 <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>이면, 이 어트리뷰트는 <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a>이 반환한 읽기 가능한 스트림 객체입니다. 스트림에서 읽으면 자식 프로세스의 출력을 제공합니다. <em>encoding</em>이나 <em>errors</em> 인자가 지정되었거나 <em>universal_newlines</em> 인자가 <code class="docutils literal notranslate"><span class="pre">True</span></code>이면, 스트림은 텍스트 스트림이고, 그렇지 않으면 바이트 스트림입니다. <em>stdout</em> 인자가 <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>가 아니면, 이 어트리뷰트는 <code class="docutils literal notranslate"><span class="pre">None</span></code>입니다.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="subprocess.Popen.stderr">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">stderr</code><a class="headerlink" href="#subprocess.Popen.stderr" title="정의 주소">¶</a></dt>
-<dd><p>If the <em>stderr</em> argument was <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>, this attribute is a readable
-stream object as returned by <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a>. Reading from the stream provides
-error output from the child process. If the <em>encoding</em> or <em>errors</em> arguments
-were specified or the <em>universal_newlines</em> argument was <code class="docutils literal notranslate"><span class="pre">True</span></code>, the stream
-is a text stream, otherwise it is a byte stream. If the <em>stderr</em> argument was
-not <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>, this attribute is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dd><p><em>stderr</em> 인자가 <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>이면, 이 어트리뷰트는 <a class="reference internal" href="functions.html#open" title="open"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a>이 반환한 읽기 가능한 스트림 객체입니다. 스트림에서 읽으면 자식 프로세스의 에러 출력을 제공합니다. <em>encoding</em>이나 <em>errors</em> 인자가 지정되었거나 <em>universal_newlines</em> 인자가 <code class="docutils literal notranslate"><span class="pre">True</span></code>이면, 스트림은 텍스트 스트림이고, 그렇지 않으면 바이트 스트림입니다. <em>stderr</em> 인자가 <a class="reference internal" href="#subprocess.PIPE" title="subprocess.PIPE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PIPE</span></code></a>가 아니면, 어트리뷰트는 <code class="docutils literal notranslate"><span class="pre">None</span></code>입니다.</p>
 </dd></dl>
 
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>Use <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">communicate()</span></code></a> rather than <a class="reference internal" href="#subprocess.Popen.stdin" title="subprocess.Popen.stdin"><code class="xref py py-attr docutils literal notranslate"><span class="pre">.stdin.write</span></code></a>,
-<a class="reference internal" href="#subprocess.Popen.stdout" title="subprocess.Popen.stdout"><code class="xref py py-attr docutils literal notranslate"><span class="pre">.stdout.read</span></code></a> or <a class="reference internal" href="#subprocess.Popen.stderr" title="subprocess.Popen.stderr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">.stderr.read</span></code></a> to avoid
-deadlocks due to any of the other OS pipe buffers filling up and blocking the
-child process.</p>
+<p>다른 OS 파이프 버퍼가 차고 자식 프로세스를 블로킹하는 것으로 인한 교착 상태를 피하려면 <a class="reference internal" href="#subprocess.Popen.stdin" title="subprocess.Popen.stdin"><code class="xref py py-attr docutils literal notranslate"><span class="pre">.stdin.write</span></code></a>, <a class="reference internal" href="#subprocess.Popen.stdout" title="subprocess.Popen.stdout"><code class="xref py py-attr docutils literal notranslate"><span class="pre">.stdout.read</span></code></a> 또는 <a class="reference internal" href="#subprocess.Popen.stderr" title="subprocess.Popen.stderr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">.stderr.read</span></code></a> 대신 <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">communicate()</span></code></a>를 사용하십시오.</p>
 </div>
 <dl class="attribute">
 <dt id="subprocess.Popen.pid">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">pid</code><a class="headerlink" href="#subprocess.Popen.pid" title="정의 주소">¶</a></dt>
-<dd><p>The process ID of the child process.</p>
-<p>Note that if you set the <em>shell</em> argument to <code class="docutils literal notranslate"><span class="pre">True</span></code>, this is the process ID
-of the spawned shell.</p>
+<dd><p>자식 프로세스의 프로세스 ID</p>
+<p><em>shell</em> 인자를 <code class="docutils literal notranslate"><span class="pre">True</span></code>로 설정하면, 이것은 생성된 셸의 프로세스 ID입니다.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="subprocess.Popen.returncode">
 <code class="sig-prename descclassname">Popen.</code><code class="sig-name descname">returncode</code><a class="headerlink" href="#subprocess.Popen.returncode" title="정의 주소">¶</a></dt>
-<dd><p>The child return code, set by <a class="reference internal" href="#subprocess.Popen.poll" title="subprocess.Popen.poll"><code class="xref py py-meth docutils literal notranslate"><span class="pre">poll()</span></code></a> and <a class="reference internal" href="#subprocess.Popen.wait" title="subprocess.Popen.wait"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wait()</span></code></a> (and indirectly
-by <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">communicate()</span></code></a>).  A <code class="docutils literal notranslate"><span class="pre">None</span></code> value indicates that the process
-hasn't terminated yet.</p>
+<dd><p><a class="reference internal" href="#subprocess.Popen.poll" title="subprocess.Popen.poll"><code class="xref py py-meth docutils literal notranslate"><span class="pre">poll()</span></code></a>과 <a class="reference internal" href="#subprocess.Popen.wait" title="subprocess.Popen.wait"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wait()</span></code></a>(그리고 <a class="reference internal" href="#subprocess.Popen.communicate" title="subprocess.Popen.communicate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">communicate()</span></code></a>에 의해 간접적으로)로 설정된 자식 반환 코드. <code class="docutils literal notranslate"><span class="pre">None</span></code> 값은 프로세스가 아직 종료되지 않았음을 나타냅니다.</p>
 <p>음수 값 <code class="docutils literal notranslate"><span class="pre">-N</span></code>은 자식이 시그널 <code class="docutils literal notranslate"><span class="pre">N</span></code>에 의해 종료되었음을 나타냅니다 (POSIX 만 해당합니다).</p>
 </dd></dl>
 
 </div>
 <div class="section" id="windows-popen-helpers">
-<h2>Windows Popen Helpers<a class="headerlink" href="#windows-popen-helpers" title="제목 주소">¶</a></h2>
+<h2>윈도우 Popen 도우미<a class="headerlink" href="#windows-popen-helpers" title="제목 주소">¶</a></h2>
 <p>The <a class="reference internal" href="#subprocess.STARTUPINFO" title="subprocess.STARTUPINFO"><code class="xref py py-class docutils literal notranslate"><span class="pre">STARTUPINFO</span></code></a> class and following constants are only available
 on Windows.</p>
 <dl class="class">
@@ -982,7 +937,7 @@ output to a pipe to fill up the OS pipe buffer as the pipes are
 not being read from.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em> was added.</p>
+<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em>이 추가되었습니다.</p>
 </div>
 </dd></dl>
 
@@ -1010,7 +965,7 @@ output to a pipe to fill up the OS pipe buffer as the pipes are
 not being read from.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em> was added.</p>
+<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em>이 추가되었습니다.</p>
 </div>
 </dd></dl>
 
@@ -1050,7 +1005,7 @@ or <em>universal_newlines</em> to <code class="docutils literal notranslate"><sp
 <p><span class="versionmodified added">버전 3.1에 추가.</span></p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em> was added.</p>
+<p><span class="versionmodified changed">버전 3.3에서 변경: </span><em>timeout</em>이 추가되었습니다.</p>
 </div>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.4에서 변경: </span>Support for the <em>input</em> keyword argument was added.</p>
@@ -1342,7 +1297,7 @@ described in rule 3.</p></li>
 </li>
 <li><a class="reference internal" href="#security-considerations">보안 고려 사항</a></li>
 <li><a class="reference internal" href="#popen-objects">Popen 객체</a></li>
-<li><a class="reference internal" href="#windows-popen-helpers">Windows Popen Helpers</a><ul>
+<li><a class="reference internal" href="#windows-popen-helpers">윈도우 Popen 도우미</a><ul>
 <li><a class="reference internal" href="#windows-constants">Windows Constants</a></li>
 </ul>
 </li>
