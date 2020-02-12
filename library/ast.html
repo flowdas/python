@@ -436,7 +436,7 @@ module Python
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RewriteName</span><span class="p">(</span><span class="n">NodeTransformer</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">copy_location</span><span class="p">(</span><span class="n">Subscript</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">Subscript</span><span class="p">(</span>
             <span class="n">value</span><span class="o">=</span><span class="n">Name</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">Load</span><span class="p">()),</span>
             <span class="nb">slice</span><span class="o">=</span><span class="n">Index</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">Constant</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)),</span>
             <span class="n">ctx</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">ctx</span>
@@ -445,6 +445,11 @@ module Python
 </div>
 <p>작업 중인 노드에 자식 노드가 있으면 자식 노드를 직접 변환하거나 노드에 대한 <code class="xref py py-meth docutils literal notranslate"><span class="pre">generic_visit()</span></code> 메서드를 먼저 호출해야 함을 염두에 두십시오.</p>
 <p>문장의 컬렉션의 일부인 노드의 경우 (모든 문장 노드에 적용됩니다), 방문자는 단일 노드가 아닌 노드 리스트를 반환 할 수도 있습니다.</p>
+<p><a class="reference internal" href="#ast.NodeTransformer" title="ast.NodeTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeTransformer</span></code></a>가 위치 정보(가령 <code class="xref py py-attr docutils literal notranslate"><span class="pre">lineno</span></code>)를 제공하지 않고 (원래 트리의 일부가 아닌) 새 노드를 도입하면, 위치 정보를 다시 계산하려면 <a class="reference internal" href="#ast.fix_missing_locations" title="ast.fix_missing_locations"><code class="xref py py-func docutils literal notranslate"><span class="pre">fix_missing_locations()</span></code></a>를 새 서브 트리로 호출해야 합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">tree</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+<span class="n">new_tree</span> <span class="o">=</span> <span class="n">fix_missing_locations</span><span class="p">(</span><span class="n">RewriteName</span><span class="p">()</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">tree</span><span class="p">))</span>
+</pre></div>
+</div>
 <p>일반적으로 다음과 같이 변환기를 사용합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">node</span> <span class="o">=</span> <span class="n">YourTransformer</span><span class="p">()</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 </pre></div>

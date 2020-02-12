@@ -284,6 +284,7 @@
 <p>하나의 &quot;item&quot; 을 사용하는 <a class="reference internal" href="#with"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">with</span></code></a> 문의 실행은 다음과 같이 진행됩니다:</p>
 <ol class="arabic">
 <li><p>컨텍스트 관리자를 얻기 위해 컨텍스트 표현식 (<a class="reference internal" href="#grammar-token-with-item"><code class="xref std std-token docutils literal notranslate"><span class="pre">with_item</span></code></a> 에 주어진 expression) 의 값을 구합니다.</p></li>
+<li><p>나중에 사용하기 위해 컨텍스트 관리자의 <a class="reference internal" href="datamodel.html#object.__enter__" title="object.__enter__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__enter__()</span></code></a> 가 로드됩니다.</p></li>
 <li><p>나중에 사용하기 위해 컨텍스트 관리자의 <a class="reference internal" href="datamodel.html#object.__exit__" title="object.__exit__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__exit__()</span></code></a> 가 로드됩니다.</p></li>
 <li><p>컨텍스트 관리자의 <a class="reference internal" href="datamodel.html#object.__enter__" title="object.__enter__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__enter__()</span></code></a> 메서드를 호출합니다.</p></li>
 <li><p><a class="reference internal" href="#with"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">with</span></code></a> 문에 타깃이 포함되었으면, 그것에 <a class="reference internal" href="datamodel.html#object.__enter__" title="object.__enter__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__enter__()</span></code></a> 의 반환 값을 대입합니다.</p>
@@ -298,15 +299,39 @@
 <p>스위트가 예외 이외의 이유로 종료되면, <a class="reference internal" href="datamodel.html#object.__exit__" title="object.__exit__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__exit__()</span></code></a> 의 반환 값은 무시되고, 해당 종료의 종류에 맞는 위치에서 실행을 계속합니다.</p>
 </li>
 </ol>
-<p>하나 보다 많은 항목을 주면, 컨텍스트 관리자는 <a class="reference internal" href="#with"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">with</span></code></a> 문이 중첩된 것처럼 진행합니다:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">A</span><span class="p">()</span> <span class="k">as</span> <span class="n">a</span><span class="p">,</span> <span class="n">B</span><span class="p">()</span> <span class="k">as</span> <span class="n">b</span><span class="p">:</span>
-    <span class="n">suite</span>
+<p>다음과 같은 코드는:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">EXPRESSION</span> <span class="k">as</span> <span class="n">TARGET</span><span class="p">:</span>
+    <span class="n">SUITE</span>
 </pre></div>
 </div>
-<p>는 다음과 동등합니다</p>
+<p>의미상으로 다음과 동등합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">manager</span> <span class="o">=</span> <span class="p">(</span><span class="n">EXPRESSION</span><span class="p">)</span>
+<span class="n">enter</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="fm">__enter__</span>
+<span class="n">exit</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="fm">__exit__</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">enter</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+<span class="n">hit_except</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">TARGET</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="n">SUITE</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">hit_except</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exit</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()):</span>
+        <span class="k">raise</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hit_except</span><span class="p">:</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>하나 보다 많은 항목을 주면, 컨텍스트 관리자는 <a class="reference internal" href="#with"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">with</span></code></a> 문이 중첩된 것처럼 진행합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">A</span><span class="p">()</span> <span class="k">as</span> <span class="n">a</span><span class="p">,</span> <span class="n">B</span><span class="p">()</span> <span class="k">as</span> <span class="n">b</span><span class="p">:</span>
+    <span class="n">SUITE</span>
+</pre></div>
+</div>
+<p>의미상으로 다음과 동등합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">A</span><span class="p">()</span> <span class="k">as</span> <span class="n">a</span><span class="p">:</span>
     <span class="k">with</span> <span class="n">B</span><span class="p">()</span> <span class="k">as</span> <span class="n">b</span><span class="p">:</span>
-        <span class="n">suite</span>
+        <span class="n">SUITE</span>
 </pre></div>
 </div>
 <div class="versionchanged">
@@ -480,24 +505,25 @@
 <p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> 문은 비동기 이터레이터에 대한 편리한 이터레이션을 허락합니다.</p>
 <p>다음과 같은 코드는:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">for</span> <span class="n">TARGET</span> <span class="ow">in</span> <span class="n">ITER</span><span class="p">:</span>
-    <span class="n">BLOCK</span>
+    <span class="n">SUITE</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">BLOCK2</span>
+    <span class="n">SUITE2</span>
 </pre></div>
 </div>
 <p>의미상으로 다음과 동등합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="nb">iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">ITER</span><span class="p">)</span>
 <span class="nb">iter</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="nb">iter</span><span class="p">)</span><span class="o">.</span><span class="fm">__aiter__</span><span class="p">(</span><span class="nb">iter</span><span class="p">)</span>
 <span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+
 <span class="k">while</span> <span class="n">running</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">TARGET</span> <span class="o">=</span> <span class="k">await</span> <span class="nb">type</span><span class="p">(</span><span class="nb">iter</span><span class="p">)</span><span class="o">.</span><span class="fm">__anext__</span><span class="p">(</span><span class="nb">iter</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">StopAsyncIteration</span><span class="p">:</span>
         <span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">BLOCK</span>
+        <span class="n">SUITE</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">BLOCK2</span>
+    <span class="n">SUITE2</span>
 </pre></div>
 </div>
 <p>더 자세한 내용은 <a class="reference internal" href="datamodel.html#object.__aiter__" title="object.__aiter__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__aiter__()</span></code></a> 를 <a class="reference internal" href="datamodel.html#object.__anext__" title="object.__anext__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__anext__()</span></code></a> 보면 됩니다.</p>
@@ -510,23 +536,27 @@
 </pre>
 <p><a class="reference internal" href="../glossary.html#term-asynchronous-context-manager"><span class="xref std std-term">비동기 컨텍스트 관리자</span></a> 는 <em>enter</em> 와 <em>exit</em> 메서드에서 실행을 일시 중지할 수 있는 <a class="reference internal" href="../glossary.html#term-context-manager"><span class="xref std std-term">컨텍스트 관리자</span></a> 입니다.</p>
 <p>다음과 같은 코드는:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">EXPR</span> <span class="k">as</span> <span class="n">VAR</span><span class="p">:</span>
-    <span class="n">BLOCK</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">EXPRESSION</span> <span class="k">as</span> <span class="n">TARGET</span><span class="p">:</span>
+    <span class="n">SUITE</span>
 </pre></div>
 </div>
 <p>의미상으로 다음과 동등합니다:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">mgr</span> <span class="o">=</span> <span class="p">(</span><span class="n">EXPR</span><span class="p">)</span>
-<span class="n">aexit</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mgr</span><span class="p">)</span><span class="o">.</span><span class="fm">__aexit__</span>
-<span class="n">aenter</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mgr</span><span class="p">)</span><span class="o">.</span><span class="fm">__aenter__</span><span class="p">(</span><span class="n">mgr</span><span class="p">)</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">manager</span> <span class="o">=</span> <span class="p">(</span><span class="n">EXPRESSION</span><span class="p">)</span>
+<span class="n">aexit</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="fm">__aexit__</span>
+<span class="n">aenter</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="fm">__aenter__</span>
+<span class="n">value</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aenter</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+<span class="n">hit_except</span> <span class="o">=</span> <span class="kc">False</span>
 
-<span class="n">VAR</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aenter</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">BLOCK</span>
+    <span class="n">TARGET</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="n">SUITE</span>
 <span class="k">except</span><span class="p">:</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">aexit</span><span class="p">(</span><span class="n">mgr</span><span class="p">,</span> <span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()):</span>
+    <span class="n">hit_except</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">aexit</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()):</span>
         <span class="k">raise</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">aexit</span><span class="p">(</span><span class="n">mgr</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hit_except</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">aexit</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>더 자세한 내용은 <a class="reference internal" href="datamodel.html#object.__aenter__" title="object.__aenter__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__aenter__()</span></code></a> 와 <a class="reference internal" href="datamodel.html#object.__aexit__" title="object.__aexit__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__aexit__()</span></code></a> 를 보면 됩니다.</p>

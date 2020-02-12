@@ -1225,7 +1225,7 @@ It is usually the only Python interpreter in a process.  Unlike sub-interpreters
 the main interpreter has unique process-global responsibilities like signal
 handling.  It is also responsible for execution during runtime initialization and
 is usually the active interpreter during runtime finalization.  The
-<a class="reference internal" href="#c.PyInterpreterState_Main" title="PyInterpreterState_Main"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Main()</span></code></a> funtion returns a pointer to its state.</p>
+<a class="reference internal" href="#c.PyInterpreterState_Main" title="PyInterpreterState_Main"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Main()</span></code></a> function returns a pointer to its state.</p>
 <p>You can switch between sub-interpreters using the <a class="reference internal" href="#c.PyThreadState_Swap" title="PyThreadState_Swap"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Swap()</span></code></a>
 function. You can create and destroy them using the following functions:</p>
 <dl class="function">
@@ -1250,15 +1250,31 @@ other Python/C API functions, the global interpreter lock must be held before
 calling this function and is still held when it returns; however, unlike most
 other Python/C API functions, there needn't be a current thread state on
 entry.)</p>
-<p id="index-41">Extension modules are shared between (sub-)interpreters as follows: the first
-time a particular extension is imported, it is initialized normally, and a
-(shallow) copy of its module's dictionary is squirreled away.  When the same
-extension is imported by another (sub-)interpreter, a new module is initialized
-and filled with the contents of this copy; the extension's <code class="docutils literal notranslate"><span class="pre">init</span></code> function is
-not called.  Note that this is different from what happens when an extension is
-imported after the interpreter has been completely re-initialized by calling
-<a class="reference internal" href="#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> and <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>; in that case, the extension's
-<code class="docutils literal notranslate"><span class="pre">initmodule</span></code> function <em>is</em> called again.</p>
+<p id="index-41">Extension modules are shared between (sub-)interpreters as follows:</p>
+<ul>
+<li><p>For modules using multi-phase initialization,
+e.g. <a class="reference internal" href="module.html#c.PyModule_FromDefAndSpec" title="PyModule_FromDefAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_FromDefAndSpec()</span></code></a>, a separate module object is
+created and initialized for each interpreter.
+Only C-level static and global variables are shared between these
+module objects.</p></li>
+<li><p>For modules using single-phase initialization,
+e.g. <a class="reference internal" href="module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a>, the first time a particular extension
+is imported, it is initialized normally, and a (shallow) copy of its
+module's dictionary is squirreled away.
+When the same extension is imported by another (sub-)interpreter, a new
+module is initialized and filled with the contents of this copy; the
+extension's <code class="docutils literal notranslate"><span class="pre">init</span></code> function is not called.
+Objects in the module's dictionary thus end up shared across
+(sub-)interpreters, which might cause unwanted behavior (see
+<a class="reference internal" href="#bugs-and-caveats">Bugs and caveats</a> below).</p>
+<p>Note that this is different from what happens when an extension is
+imported after the interpreter has been completely re-initialized by
+calling <a class="reference internal" href="#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> and <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>; in that
+case, the extension's <code class="docutils literal notranslate"><span class="pre">initmodule</span></code> function <em>is</em> called again.
+As with multi-phase initialization, this means that only C-level static
+and global variables are shared between these modules.</p>
+</li>
+</ul>
 <span class="target" id="index-42"></span></dd></dl>
 
 <dl class="function">
@@ -1280,14 +1296,15 @@ process, the insulation between them isn't perfect --- for example, using
 low-level file operations like  <a class="reference internal" href="../library/os.html#os.close" title="os.close"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.close()</span></code></a> they can
 (accidentally or maliciously) affect each other's open files.  Because of the
 way extensions are shared between (sub-)interpreters, some extensions may not
-work properly; this is especially likely when the extension makes use of
-(static) global variables, or when the extension manipulates its module's
-dictionary after its initialization.  It is possible to insert objects created
-in one sub-interpreter into a namespace of another sub-interpreter; this should
-be done with great care to avoid sharing user-defined functions, methods,
-instances or classes between sub-interpreters, since import operations executed
-by such objects may affect the wrong (sub-)interpreter's dictionary of loaded
-modules.</p>
+work properly; this is especially likely when using single-phase initialization
+or (static) global variables.
+It is possible to insert objects created in one sub-interpreter into
+a namespace of another (sub-)interpreter; this should be avoided if possible.</p>
+<p>Special care should be taken to avoid sharing user-defined functions,
+methods, instances or classes between sub-interpreters, since import
+operations executed by such objects may affect the wrong (sub-)interpreter's
+dictionary of loaded modules. It is equally important to avoid sharing
+objects from which the above are reachable.</p>
 <p>Also note that combining this functionality with <code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_*()</span></code> APIs
 is delicate, because these APIs assume a bijection between Python thread states
 and OS-level threads, an assumption broken by the presence of sub-interpreters.
