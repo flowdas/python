@@ -125,20 +125,20 @@
 <p>이 모듈은 파이썬에서 시그널 처리기를 사용하는 메커니즘을 제공합니다.</p>
 <div class="section" id="general-rules">
 <h2>일반 규칙<a class="headerlink" href="#general-rules" title="제목 주소">¶</a></h2>
-<p><a class="reference internal" href="#signal.signal" title="signal.signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">signal.signal()</span></code></a> 함수는 시그널이 수신될 때 실행될 사용자 정의 처리기를 정의하도록 합니다. 소수의 기본 처리기가 설치됩니다: <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code>는 무시되고 (그래서 파이프와 소켓에 대한 쓰기 에러는 일반 파이썬 예외로 보고 될 수 있습니다) <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>는 부모 프로세스가 변경하지 않았다면 <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> 예외로 변역됩니다.</p>
-<p>일단 설정되면, 특정 시그널에 대한 처리기는 명시적으로 재설정 될 때까지 (파이썬은 하부 구현에 관계없이 BSD 스타일 인터페이스를 흉내냅니다) 설치된 상태로 유지됩니다. <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGCHLD</span></code>에 대한 처리기는 예외인데, 하부 구현을 따릅니다.</p>
+<p><a class="reference internal" href="#signal.signal" title="signal.signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">signal.signal()</span></code></a> 함수는 시그널이 수신될 때 실행될 사용자 정의 처리기를 정의하도록 합니다. 소수의 기본 처리기가 설치됩니다: <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code>는 무시되고 (그래서 파이프와 소켓에 대한 쓰기 에러는 일반 파이썬 예외로 보고될 수 있습니다) <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>는 부모 프로세스가 변경하지 않았다면 <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> 예외로 번역됩니다.</p>
+<p>일단 설정되면, 특정 시그널에 대한 처리기는 명시적으로 재설정 될 때까지 (파이썬은 하부 구현과 관계없이 BSD 스타일 인터페이스를 흉내 냅니다) 설치된 상태로 유지됩니다. <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGCHLD</span></code>에 대한 처리기는 예외인데, 하부 구현을 따릅니다.</p>
 <div class="section" id="execution-of-python-signal-handlers">
 <h3>파이썬 시그널 처리기의 실행<a class="headerlink" href="#execution-of-python-signal-handlers" title="제목 주소">¶</a></h3>
 <p>파이썬 시그널 처리기는 저수준 (C) 시그널 처리기 내에서 실행되지 않습니다. 대신, 저수준 시그널 처리기는 <a class="reference internal" href="../glossary.html#term-virtual-machine"><span class="xref std std-term">가상 기계</span></a>에게 나중에 (예를 들어 다음 <a class="reference internal" href="../glossary.html#term-bytecode"><span class="xref std std-term">바이트 코드</span></a> 명령에서) 해당 파이썬 시그널 처리기를 실행하도록 지시하는 플래그를 설정합니다. 결과는 다음과 같습니다:</p>
 <ul class="simple">
-<li><p>C 코드에서의 유효하지 않은 연산으로 인해 발생하는 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGFPE</span></code>나 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGSEGV</span></code>와 같은 동기 에러를 잡는 것은 그리 의미가 없습니다. 파이썬은 시그널 처리기에서 C 코드로 돌아 오는데, 같은 시그널을 다시 발생 시켜서, 파이썬이 멈출 것입니다. 파이썬 3.3부터는, <a class="reference internal" href="faulthandler.html#module-faulthandler" title="faulthandler: Dump the Python traceback."><code class="xref py py-mod docutils literal notranslate"><span class="pre">faulthandler</span></code></a> 모듈을 사용하여 동기 에러를 보고할 수 있습니다.</p></li>
-<li><p>C로만 구현된 오래 실행되는 계산(가령 커다란 텍스트 본문에 대한 정규식 일치)은 수신된 시그널에 상관 없이 임의의 시간 동안 중단없이 실행될 수 있습니다. 계산이 끝나면 파이썬 시그널 처리기가 호출됩니다.</p></li>
+<li><p>C 코드에서의 유효하지 않은 연산으로 인해 발생하는 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGFPE</span></code>나 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGSEGV</span></code>와 같은 동기 에러를 잡는 것은 그리 의미가 없습니다. 파이썬은 시그널 처리기에서 C 코드로 돌아오는데, 같은 시그널을 다시 발생시켜서, 파이썬이 멈출 것입니다. 파이썬 3.3부터는, <a class="reference internal" href="faulthandler.html#module-faulthandler" title="faulthandler: Dump the Python traceback."><code class="xref py py-mod docutils literal notranslate"><span class="pre">faulthandler</span></code></a> 모듈을 사용하여 동기 에러를 보고할 수 있습니다.</p></li>
+<li><p>C로만 구현된 오래 실행되는 계산(가령 커다란 텍스트 본문에 대한 정규식 일치)은 수신된 시그널에 상관없이 임의의 시간 동안 중단없이 실행될 수 있습니다. 계산이 끝나면 파이썬 시그널 처리기가 호출됩니다.</p></li>
 </ul>
 </div>
 <div class="section" id="signals-and-threads">
 <span id="id1"></span><h3>시그널과 스레드<a class="headerlink" href="#signals-and-threads" title="제목 주소">¶</a></h3>
 <p>파이썬 시그널 처리기는 시그널이 다른 스레드에서 수신될 때도 항상 메인 파이썬 스레드에서 실행됩니다. 이는 시그널을 스레드 간 통신 수단으로 사용할 수 없음을 의미합니다. 대신 <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈의 동기화 프리미티브를 사용할 수 있습니다.</p>
-<p>게다가, 메인 스레드 만이 새로운 시그널 처리기를 설정할 수 있습니다.</p>
+<p>게다가, 메인 스레드만 새로운 시그널 처리기를 설정할 수 있습니다.</p>
 </div>
 </div>
 <div class="section" id="module-contents">
@@ -150,7 +150,7 @@
 <dl class="data">
 <dt id="signal.SIG_DFL">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">SIG_DFL</code><a class="headerlink" href="#signal.SIG_DFL" title="정의 주소">¶</a></dt>
-<dd><p>이것은 두 가지 표준 시그널 처리 옵션 중 하나입니다; 단순히 시그널의 기본 기능을 수행합니다. 예를 들어, 대부분의 시스템에서 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGQUIT</span></code>의 기본 동작은 코어를 덤프하고 종료하는 것인 반면, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGCHLD</span></code>의 기본 동작은 단순히 무시하는 것입니다.</p>
+<dd><p>이것은 두 가지 표준 시그널 처리 옵션 중 하나입니다; 단순히 시그널의 기본 기능을 수행합니다. 예를 들어, 대부분의 시스템에서 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGQUIT</span></code>의 기본 동작은 코어를 덤프하고 종료하는 것이지만, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGCHLD</span></code>의 기본 동작은 단순히 무시하는 것입니다.</p>
 </dd></dl>
 
 <dl class="data">
@@ -194,19 +194,19 @@
 <dl class="data">
 <dt id="signal.ITIMER_REAL">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">ITIMER_REAL</code><a class="headerlink" href="#signal.ITIMER_REAL" title="정의 주소">¶</a></dt>
-<dd><p>간격 타이머(interval timer)를 실시간으로 감소시키고, 만료시 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code>를 전달합니다.</p>
+<dd><p>간격 타이머(interval timer)를 실시간으로 감소시키고, 만료 시 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code>을 전달합니다.</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="signal.ITIMER_VIRTUAL">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">ITIMER_VIRTUAL</code><a class="headerlink" href="#signal.ITIMER_VIRTUAL" title="정의 주소">¶</a></dt>
-<dd><p>프로세스가 실행 중일 때만 간격 타이머(interval timer)를 감소시키고, 만료시 SIGVTALRM을 전달합니다.</p>
+<dd><p>프로세스가 실행 중일 때만 간격 타이머(interval timer)를 감소시키고, 만료 시 SIGVTALRM을 전달합니다.</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="signal.ITIMER_PROF">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">ITIMER_PROF</code><a class="headerlink" href="#signal.ITIMER_PROF" title="정의 주소">¶</a></dt>
-<dd><p>프로세스가 실행될 때와 시스템이 프로세스를 대신하여 실행될 때 간격 타이머(interval timer)를 감소시킵니다. ITIMER_VIRTUAL과 함께 사용되어, 이 타이머는 일반적으로 사용자와 커널 공간에서 응용 프로그램이 소비한 시간을 프로파일링 하는 데 사용됩니다. 만료시 SIGPROF를 전달합니다.</p>
+<dd><p>프로세스가 실행될 때와 시스템이 프로세스를 대신하여 실행될 때 간격 타이머(interval timer)를 감소시킵니다. ITIMER_VIRTUAL과 함께 사용되어, 이 타이머는 일반적으로 사용자와 커널 공간에서 응용 프로그램이 소비한 시간을 프로파일링하는 데 사용됩니다. 만료 시 SIGPROF를 전달합니다.</p>
 </dd></dl>
 
 <dl class="data">
@@ -240,7 +240,7 @@
 <dl class="exception">
 <dt id="signal.ItimerError">
 <em class="property">exception </em><code class="sig-prename descclassname">signal.</code><code class="sig-name descname">ItimerError</code><a class="headerlink" href="#signal.ItimerError" title="정의 주소">¶</a></dt>
-<dd><p>하부 <a class="reference internal" href="#signal.setitimer" title="signal.setitimer"><code class="xref py py-func docutils literal notranslate"><span class="pre">setitimer()</span></code></a>나 <a class="reference internal" href="#signal.getitimer" title="signal.getitimer"><code class="xref py py-func docutils literal notranslate"><span class="pre">getitimer()</span></code></a> 구현으로 부터의 에러를 알리기 위해 발생합니다. 유효하지 않은 간격 타이머나 음의 시간이 <a class="reference internal" href="#signal.setitimer" title="signal.setitimer"><code class="xref py py-func docutils literal notranslate"><span class="pre">setitimer()</span></code></a>에 전달되면 이 에러가 예상됩니다. 이 에러는 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>의 서브 형입니다.</p>
+<dd><p>하부 <a class="reference internal" href="#signal.setitimer" title="signal.setitimer"><code class="xref py py-func docutils literal notranslate"><span class="pre">setitimer()</span></code></a>나 <a class="reference internal" href="#signal.getitimer" title="signal.getitimer"><code class="xref py py-func docutils literal notranslate"><span class="pre">getitimer()</span></code></a> 구현으로부터의 에러를 알리기 위해 발생합니다. 유효하지 않은 간격 타이머나 음의 시간이 <a class="reference internal" href="#signal.setitimer" title="signal.setitimer"><code class="xref py py-func docutils literal notranslate"><span class="pre">setitimer()</span></code></a>에 전달되면 이 에러가 예상됩니다. 이 에러는 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>의 서브 형입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가: </span>이 에러는 <a class="reference internal" href="exceptions.html#IOError" title="IOError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">IOError</span></code></a>의 서브 형이었습니다, 이제는 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>의 별칭입니다.</p>
 </div>
@@ -250,14 +250,14 @@
 <dl class="function">
 <dt id="signal.alarm">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">alarm</code><span class="sig-paren">(</span><em class="sig-param">time</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.alarm" title="정의 주소">¶</a></dt>
-<dd><p><em>time</em>이 0이 아아니면, 이 함수는 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code> 시그널이 <em>time</em> 초 내에 프로세스로 전송되도록 요청합니다. 이전에 예약된 알람은 취소됩니다 (임의의 시간에 오직 하나의 알람만 예약될 수 있습니다). 반환된 값은 이전에 설정된 알람이 전달되기 까지 남은 초(seconds)입니다. <em>time</em>이 0이면, 알람이 예약되지 않고, 예약 된 알람이 취소됩니다. 반환 값이 0이면, 현재 예약된 알람이 없습니다.</p>
+<dd><p><em>time</em>이 0이 아니면, 이 함수는 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code> 시그널이 <em>time</em> 초 내에 프로세스로 전송되도록 요청합니다. 이전에 예약된 알람은 취소됩니다 (임의의 시간에 오직 하나의 알람만 예약될 수 있습니다). 반환된 값은 이전에 설정된 알람이 전달되기까지 남은 초(seconds)입니다. <em>time</em>이 0이면, 알람이 예약되지 않고, 예약된 알람이 취소됩니다. 반환 값이 0이면, 현재 예약된 알람이 없습니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/alarm(2)">alarm(2)</a></em>를 참조하십시오.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.getsignal">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">getsignal</code><span class="sig-paren">(</span><em class="sig-param">signalnum</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.getsignal" title="정의 주소">¶</a></dt>
-<dd><p>시그널 <em>signalnum</em>에 대한 현재 시그널 처리기를 반환합니다. 반환된 값은 콜러블 파이썬 객체이거나, 특수 값 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>, <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a> 중 하나 이거나 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>일 수 있습니다. 여기서 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>은 시그널이 이전에 무시되었음을 의미하고, <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a>은 시그널을 처리하는 기본 방법이 이전에 사용 중임을 의미하고, <code class="docutils literal notranslate"><span class="pre">None</span></code>는 이전 시그널 처리기가 파이썬에서 설치되지 않았음을 의미합니다.</p>
+<dd><p>시그널 <em>signalnum</em>에 대한 현재 시그널 처리기를 반환합니다. 반환된 값은 콜러블 파이썬 객체이거나, 특수 값 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>, <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a> 중 하나이거나 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>일 수 있습니다. 여기서 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>은 시그널이 이전에 무시되었음을 의미하고, <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a>은 시그널을 처리하는 기본 방법이 이전에 사용 중임을 의미하고, <code class="docutils literal notranslate"><span class="pre">None</span></code>은 이전 시그널 처리기가 파이썬에서 설치되지 않았음을 의미합니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -298,8 +298,8 @@
 <dl class="function">
 <dt id="signal.pthread_kill">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">pthread_kill</code><span class="sig-paren">(</span><em class="sig-param">thread_id</em>, <em class="sig-param">signalnum</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.pthread_kill" title="정의 주소">¶</a></dt>
-<dd><p>시그널 <em>signalnum</em>을 호출자와 같은 프로세스의 다른 스레드인 스레드 <em>thread_id</em>로 보냅니다. 대상 스레드는 임의의 (파이썬이거나 아닌) 코드를 실행 중일 수 있습니다. 그러나, 대상 스레드가 파이썬 인터프리터를 실행중이면, 파이썬 시그널 처리기는 <a class="reference internal" href="#signals-and-threads"><span class="std std-ref">메인 스레드에서 실행</span></a>됩니다. 따라서, 특정 파이썬 스레드에 시그널을 보내는 것의 유일한 용도는 실행중인 시스템 호출이 <a class="reference internal" href="exceptions.html#InterruptedError" title="InterruptedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterruptedError</span></code></a>로 실패하도록 하는 것입니다.</p>
-<p><em>thread_id</em>에 적합한 값을 얻으려면 <a class="reference internal" href="threading.html#threading.get_ident" title="threading.get_ident"><code class="xref py py-func docutils literal notranslate"><span class="pre">threading.get_ident()</span></code></a>나 <a class="reference internal" href="threading.html#threading.Thread" title="threading.Thread"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></a> 객체의 <a class="reference internal" href="threading.html#threading.Thread.ident" title="threading.Thread.ident"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ident</span></code></a> 어트리뷰트를 사용하십시오.</p>
+<dd><p>시그널 <em>signalnum</em>을 호출자와 같은 프로세스의 다른 스레드인 스레드 <em>thread_id</em>로 보냅니다. 대상 스레드는 임의의 (파이썬이거나 아닌) 코드를 실행 중일 수 있습니다. 그러나, 대상 스레드가 파이썬 인터프리터를 실행 중이면, 파이썬 시그널 처리기는 <a class="reference internal" href="#signals-and-threads"><span class="std std-ref">메인 스레드에서 실행</span></a>됩니다. 따라서, 특정 파이썬 스레드에 시그널을 보내는 것의 유일한 용도는 실행 중인 시스템 호출이 <a class="reference internal" href="exceptions.html#InterruptedError" title="InterruptedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterruptedError</span></code></a>로 실패하도록 하는 것입니다.</p>
+<p><em>thread_id</em>에 적합한 값을 얻으려면 <a class="reference internal" href="threading.html#threading.get_ident" title="threading.get_ident"><code class="xref py py-func docutils literal notranslate"><span class="pre">threading.get_ident()</span></code></a> 나 <a class="reference internal" href="threading.html#threading.Thread" title="threading.Thread"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></a> 객체의 <a class="reference internal" href="threading.html#threading.Thread.ident" title="threading.Thread.ident"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ident</span></code></a> 어트리뷰트를 사용하십시오.</p>
 <p><em>signalnum</em>이 0이면, 시그널이 전송되지 않지만, 여전히 에러 검사가 수행됩니다; 대상 스레드가 여전히 실행 중인지 확인하는 데 사용할 수 있습니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/pthread_kill(3)">pthread_kill(3)</a></em>을 참조하십시오.</p>
 <p><a class="reference internal" href="os.html#os.kill" title="os.kill"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.kill()</span></code></a>도 참조하십시오.</p>
@@ -311,14 +311,14 @@
 <dl class="function">
 <dt id="signal.pthread_sigmask">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">pthread_sigmask</code><span class="sig-paren">(</span><em class="sig-param">how</em>, <em class="sig-param">mask</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.pthread_sigmask" title="정의 주소">¶</a></dt>
-<dd><p>호출하는 스레드의 시그널 마스크를 가져오거나 변경거나 가져오면서 변경합니다. 시그널 마스크는 호출자에게 현재 배달이 차단된 시그널 집합입니다. 이전 시그널 마스크를 시그널 집합으로 반환합니다.</p>
+<dd><p>호출하는 스레드의 시그널 마스크를 가져오거나 변경하거나 가져오면서 변경합니다. 시그널 마스크는 호출자에게 현재 배달이 차단된 시그널 집합입니다. 이전 시그널 마스크를 시그널 집합으로 반환합니다.</p>
 <p>호출의 동작은 다음과 같이 <em>how</em> 값에 따라 다릅니다.</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#signal.SIG_BLOCK" title="signal.SIG_BLOCK"><code class="xref py py-data docutils literal notranslate"><span class="pre">SIG_BLOCK</span></code></a>: 차단된 시그널 집합은 현재 집합과 <em>mask</em> 인자의 합집합입니다.</p></li>
 <li><p><a class="reference internal" href="#signal.SIG_UNBLOCK" title="signal.SIG_UNBLOCK"><code class="xref py py-data docutils literal notranslate"><span class="pre">SIG_UNBLOCK</span></code></a>: <em>mask</em>에 있는 시그널이 차단된 시그널의 현재 집합에서 제거됩니다. 차단되지 않은 시그널을 차단 해제하려고 시도할 수 있습니다.</p></li>
 <li><p><a class="reference internal" href="#signal.SIG_SETMASK" title="signal.SIG_SETMASK"><code class="xref py py-data docutils literal notranslate"><span class="pre">SIG_SETMASK</span></code></a>: 차단된 시그널 집합이 <em>mask</em> 인자로 설정됩니다.</p></li>
 </ul>
-<p><em>mask</em>는 시그널 번호 집합입니다 (예를 들어 {<code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIGINT</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIGTERM</span></code>}). 모든 시그널을 포함한 전체 마스크를 얻으려면 <a class="reference internal" href="#signal.valid_signals" title="signal.valid_signals"><code class="xref py py-func docutils literal notranslate"><span class="pre">valid_signals()</span></code></a>을 사용하십시오.</p>
+<p><em>mask</em>는 시그널 번호 집합입니다 (예를 들어 {<code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIGINT</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIGTERM</span></code>}). 모든 시그널을 포함한 전체 마스크를 얻으려면 <a class="reference internal" href="#signal.valid_signals" title="signal.valid_signals"><code class="xref py py-func docutils literal notranslate"><span class="pre">valid_signals()</span></code></a>를 사용하십시오.</p>
 <p>예를 들어, <code class="docutils literal notranslate"><span class="pre">signal.pthread_sigmask(signal.SIG_BLOCK,</span> <span class="pre">[])</span></code>은 호출하는 스레드의 시그널 마스크를 읽습니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigprocmask(3)">sigprocmask(3)</a></em>과 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/pthread_sigmask(3)">pthread_sigmask(3)</a></em>을 참조하십시오.</p>
 <p><a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.sigpending" title="signal.sigpending"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigpending()</span></code></a> 및 <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a>도 참조하십시오.</p>
@@ -330,114 +330,60 @@
 <dl class="function">
 <dt id="signal.setitimer">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">setitimer</code><span class="sig-paren">(</span><em class="sig-param">which</em>, <em class="sig-param">seconds</em>, <em class="sig-param">interval=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.setitimer" title="정의 주소">¶</a></dt>
-<dd><p>Sets given interval timer (one of <a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a>,
-<a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a> or <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a>) specified
-by <em>which</em> to fire after <em>seconds</em> (float is accepted, different from
-<a class="reference internal" href="#signal.alarm" title="signal.alarm"><code class="xref py py-func docutils literal notranslate"><span class="pre">alarm()</span></code></a>) and after that every <em>interval</em> seconds (if <em>interval</em>
-is non-zero). The interval timer specified by <em>which</em> can be cleared by
-setting <em>seconds</em> to zero.</p>
-<p>When an interval timer fires, a signal is sent to the process.
-The signal sent is dependent on the timer being used;
-<a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a> will deliver <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code>,
-<a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a> sends <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGVTALRM</span></code>,
-and <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a> will deliver <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPROF</span></code>.</p>
-<p>The old values are returned as a tuple: (delay, interval).</p>
-<p>Attempting to pass an invalid interval timer will cause an
-<a class="reference internal" href="#signal.ItimerError" title="signal.ItimerError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ItimerError</span></code></a>.</p>
+<dd><p><em>seconds</em>(<a class="reference internal" href="#signal.alarm" title="signal.alarm"><code class="xref py py-func docutils literal notranslate"><span class="pre">alarm()</span></code></a>과 달리 float가 허용됩니다) 이후에 그리고 (<em>interval</em>이 0이 아니면) 그 후로 <em>interval</em> 초마다 발사(fire)하도록 <em>which</em>로 지정된 간격 타이머(<a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a>, <a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a> 또는 <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a> 중 하나)를 설정합니다. <em>which</em>로 지정된 간격 타이머는 <em>seconds</em>를 0으로 설정하여 지울 수 있습니다.</p>
+<p>간격 타이머가 발사(fire)하면, 시그널이 프로세스로 전송됩니다. 전송된 시그널은 사용 중인 타이머에 따라 다릅니다; <a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a>은 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code>을, <a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a>은 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGVTALRM</span></code>을, <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a>는 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPROF</span></code>를 전달합니다.</p>
+<p>이전 값은 튜플로 반환됩니다: (지연, 간격).</p>
+<p>유효하지 않은 간격 타이머를 전달하려고 하면 <a class="reference internal" href="#signal.ItimerError" title="signal.ItimerError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ItimerError</span></code></a>가 발생합니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.getitimer">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">getitimer</code><span class="sig-paren">(</span><em class="sig-param">which</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.getitimer" title="정의 주소">¶</a></dt>
-<dd><p>Returns current value of a given interval timer specified by <em>which</em>.</p>
+<dd><p><em>which</em>로 지정된 주어진 간격 타이머의 현재 값을 반환합니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.set_wakeup_fd">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">set_wakeup_fd</code><span class="sig-paren">(</span><em class="sig-param">fd</em>, <em class="sig-param">*</em>, <em class="sig-param">warn_on_full_buffer=True</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.set_wakeup_fd" title="정의 주소">¶</a></dt>
-<dd><p>Set the wakeup file descriptor to <em>fd</em>.  When a signal is received, the
-signal number is written as a single byte into the fd.  This can be used by
-a library to wakeup a poll or select call, allowing the signal to be fully
-processed.</p>
-<p>The old wakeup fd is returned (or -1 if file descriptor wakeup was not
-enabled).  If <em>fd</em> is -1, file descriptor wakeup is disabled.
-If not -1, <em>fd</em> must be non-blocking.  It is up to the library to remove
-any bytes from <em>fd</em> before calling poll or select again.</p>
-<p>When threads are enabled, this function can only be called from the main thread;
-attempting to call it from other threads will cause a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>
-exception to be raised.</p>
-<p>There are two common ways to use this function. In both approaches,
-you use the fd to wake up when a signal arrives, but then they
-differ in how they determine <em>which</em> signal or signals have
-arrived.</p>
-<p>In the first approach, we read the data out of the fd's buffer, and
-the byte values give you the signal numbers. This is simple, but in
-rare cases it can run into a problem: generally the fd will have a
-limited amount of buffer space, and if too many signals arrive too
-quickly, then the buffer may become full, and some signals may be
-lost. If you use this approach, then you should set
-<code class="docutils literal notranslate"><span class="pre">warn_on_full_buffer=True</span></code>, which will at least cause a warning
-to be printed to stderr when signals are lost.</p>
-<p>In the second approach, we use the wakeup fd <em>only</em> for wakeups,
-and ignore the actual byte values. In this case, all we care about
-is whether the fd's buffer is empty or non-empty; a full buffer
-doesn't indicate a problem at all. If you use this approach, then
-you should set <code class="docutils literal notranslate"><span class="pre">warn_on_full_buffer=False</span></code>, so that your users
-are not confused by spurious warning messages.</p>
+<dd><p>웨이크업 파일 기술자를 <em>fd</em>로 설정합니다. 시그널이 수신되면 시그널 번호는 단일 바이트로 fd에 기록됩니다. 라이브러리에서 poll이나 select 호출을 깨워서, 시그널을 완전히 처리하는 데 사용될 수 있습니다.</p>
+<p>이전 웨이크업 fd가 반환됩니다 (또는 파일 기술자 웨이크업이 활성화되지 않았으면 -1). <em>fd</em>가 -1이면, 파일 기술자 웨이크업이 비활성화됩니다. -1이 아니면, <em>fd</em>는 비 블로킹이어야 합니다. poll이나 select를 다시 호출하기 전에 <em>fd</em>에서 바이트를 제거하는 것은 라이브러리의 책임입니다.</p>
+<p>스레드가 활성화되었을 때, 이 함수는 메인 스레드에서만 호출할 수 있습니다; 다른 스레드에서 호출하려고 하면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> 예외가 발생합니다.</p>
+<p>이 함수를 사용하는 일반적인 두 가지 방법이 있습니다. 두 방법 모두, 시그널이 도착할 때 깨어나기 위해 fd를 사용하지만, <em>어떤</em> 시그널이나 시그널들이 도착했는지 판단하는 방법이 다릅니다.</p>
+<p>첫 번째 방법에서는, fd의 버퍼에서 데이터를 읽고, 바이트 값이 시그널 번호를 제공합니다. 이것은 간단합니다만, 드물게 문제가 될 수 있습니다: 일반적으로 fd에는 제한된 버퍼 공간이 있으며, 너무 많은 시그널이 너무 빨리 도착하면, 버퍼가 가득 차고, 일부 시그널이 손실될 수 있습니다. 이 방법을 사용하면, 시그널이 손실될 때 최소한 stderr에 경고가 인쇄되도록 <code class="docutils literal notranslate"><span class="pre">warn_on_full_buffer=True</span></code>를 설정해야 합니다.</p>
+<p>두 번째 방법에서는, 오직 웨이크업만을 위해 웨이크업 fd를 사용하고, 실제 바이트 값은 무시합니다. 이 경우, 우리가 신경 쓰는 것은 fd의 버퍼가 비어 있는지 비어 있지 않은지 입니다; 가득 찬 버퍼는 전혀 문제를 가리키지 않습니다. 이 방법을 사용하면, 사용자가 가짜 경고 메시지로 혼동되지 않도록 <code class="docutils literal notranslate"><span class="pre">warn_on_full_buffer=False</span></code>를 설정해야 합니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.5에서 변경: </span>On Windows, the function now also supports socket handles.</p>
+<p><span class="versionmodified changed">버전 3.5에서 변경: </span>윈도우에서, 이 함수는 이제 소켓 핸들도 지원합니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.7에서 변경: </span>Added <code class="docutils literal notranslate"><span class="pre">warn_on_full_buffer</span></code> parameter.</p>
+<p><span class="versionmodified changed">버전 3.7에서 변경: </span><code class="docutils literal notranslate"><span class="pre">warn_on_full_buffer</span></code> 매개 변수를 추가했습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.siginterrupt">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">siginterrupt</code><span class="sig-paren">(</span><em class="sig-param">signalnum</em>, <em class="sig-param">flag</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.siginterrupt" title="정의 주소">¶</a></dt>
-<dd><p>Change system call restart behaviour: if <em>flag</em> is <a class="reference internal" href="constants.html#False" title="False"><code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code></a>, system
-calls will be restarted when interrupted by signal <em>signalnum</em>, otherwise
-system calls will be interrupted.  Returns nothing.</p>
+<dd><p>시스템 호출 재시작 동작을 변경합니다: <em>flag</em>가 <a class="reference internal" href="constants.html#False" title="False"><code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code></a>이면, 시그널 <em>signalnum</em>에 의해 인터럽트 될 때 시스템 호출이 다시 시작되고, 그렇지 않으면 시스템 호출이 중단됩니다. 아무것도 반환하지 않습니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/siginterrupt(3)">siginterrupt(3)</a></em>을 참조하십시오.</p>
-<p>Note that installing a signal handler with <a class="reference internal" href="#module-signal" title="signal: Set handlers for asynchronous events."><code class="xref py py-func docutils literal notranslate"><span class="pre">signal()</span></code></a> will reset the
-restart behaviour to interruptible by implicitly calling
-<code class="xref c c-func docutils literal notranslate"><span class="pre">siginterrupt()</span></code> with a true <em>flag</em> value for the given signal.</p>
+<p><a class="reference internal" href="#module-signal" title="signal: Set handlers for asynchronous events."><code class="xref py py-func docutils literal notranslate"><span class="pre">signal()</span></code></a>로 시그널 처리기를 설치하면 주어진 시그널에 대해 <em>flag</em> 값을 참으로 <code class="xref c c-func docutils literal notranslate"><span class="pre">siginterrupt()</span></code>를 묵시적으로 호출하여 재시작 동작을 인터럽트 가능으로 재설정합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.signal">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">signal</code><span class="sig-paren">(</span><em class="sig-param">signalnum</em>, <em class="sig-param">handler</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.signal" title="정의 주소">¶</a></dt>
-<dd><p>Set the handler for signal <em>signalnum</em> to the function <em>handler</em>.  <em>handler</em> can
-be a callable Python object taking two arguments (see below), or one of the
-special values <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a> or <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a>.  The previous
-signal handler will be returned (see the description of <a class="reference internal" href="#signal.getsignal" title="signal.getsignal"><code class="xref py py-func docutils literal notranslate"><span class="pre">getsignal()</span></code></a>
-above).  (See the Unix man page <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(2)">signal(2)</a></em> for further information.)</p>
-<p>When threads are enabled, this function can only be called from the main thread;
-attempting to call it from other threads will cause a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>
-exception to be raised.</p>
-<p>The <em>handler</em> is called with two arguments: the signal number and the current
-stack frame (<code class="docutils literal notranslate"><span class="pre">None</span></code> or a frame object; for a description of frame objects,
-see the <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">description in the type hierarchy</span></a> or see the
-attribute descriptions in the <a class="reference internal" href="inspect.html#module-inspect" title="inspect: Extract information and source code from live objects."><code class="xref py py-mod docutils literal notranslate"><span class="pre">inspect</span></code></a> module).</p>
-<p>On Windows, <a class="reference internal" href="#module-signal" title="signal: Set handlers for asynchronous events."><code class="xref py py-func docutils literal notranslate"><span class="pre">signal()</span></code></a> can only be called with <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGABRT</span></code>,
-<code class="xref py py-const docutils literal notranslate"><span class="pre">SIGFPE</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGILL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGSEGV</span></code>,
-<code class="xref py py-const docutils literal notranslate"><span class="pre">SIGTERM</span></code>, or <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGBREAK</span></code>.
-A <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> will be raised in any other case.
-Note that not all systems define the same set of signal names; an
-<a class="reference internal" href="exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">AttributeError</span></code></a> will be raised if a signal name is not defined as
-<code class="docutils literal notranslate"><span class="pre">SIG*</span></code> module level constant.</p>
+<dd><p>시그널 <em>signalnum</em>의 처리기를 함수 <em>handler</em>로 설정합니다. <em>handler</em>는 두 개의 인자(아래를 참조하십시오)를  취하는 콜러블 파이썬 객체, 또는 특수 값 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>이나 <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a> 중 하나일 수 있습니다. 이전 시그널 처리기가 반환됩니다 (위의 <a class="reference internal" href="#signal.getsignal" title="signal.getsignal"><code class="xref py py-func docutils literal notranslate"><span class="pre">getsignal()</span></code></a> 설명을 참조하십시오). (자세한 내용은 유닉스 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(2)">signal(2)</a></em>를 참조하십시오.)</p>
+<p>스레드가 활성화되었을 때, 이 함수는 메인 스레드에서만 호출할 수 있습니다; 다른 스레드에서 호출하려고 하면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> 예외가 발생합니다.</p>
+<p><em>handler</em>는 두 개의 인자로 호출됩니다: 시그널 번호와 현재 스택 프레임 (<code class="docutils literal notranslate"><span class="pre">None</span></code>이나 프레임 객체; 프레임 객체에 대한 설명은, <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">형 계층에 있는 설명</span></a>을 참조하거나 <a class="reference internal" href="inspect.html#module-inspect" title="inspect: Extract information and source code from live objects."><code class="xref py py-mod docutils literal notranslate"><span class="pre">inspect</span></code></a> 모듈의 어트리뷰트 설명을 참조하십시오).</p>
+<p>윈도우에서, <a class="reference internal" href="#module-signal" title="signal: Set handlers for asynchronous events."><code class="xref py py-func docutils literal notranslate"><span class="pre">signal()</span></code></a>은 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGABRT</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGFPE</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGILL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGSEGV</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGTERM</span></code> 또는 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGBREAK</span></code>로만 호출 할 수 있습니다. 다른 경우에는 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다. 모든 시스템이 같은 시그널 이름 집합을 정의하는 것은 아님에 유의하십시오; 시그널 이름이 <code class="docutils literal notranslate"><span class="pre">SIG*</span></code> 모듈 수준 상수로 정의되지 않으면 <a class="reference internal" href="exceptions.html#AttributeError" title="AttributeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">AttributeError</span></code></a>가 발생합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.sigpending">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">sigpending</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#signal.sigpending" title="정의 주소">¶</a></dt>
-<dd><p>Examine the set of signals that are pending for delivery to the calling
-thread (i.e., the signals which have been raised while blocked).  Return the
-set of the pending signals.</p>
+<dd><p>호출하는 스레드로 전달 계류 중인 시그널 집합을 검사합니다 (즉, 차단된 동안 발생한 시그널). 계류 중인 시그널 집합을 반환합니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigpending(2)">sigpending(2)</a></em>를 참조하십시오.</p>
-<p>See also <a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.pthread_sigmask" title="signal.pthread_sigmask"><code class="xref py py-func docutils literal notranslate"><span class="pre">pthread_sigmask()</span></code></a> and <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a>.</p>
+<p><a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.pthread_sigmask" title="signal.pthread_sigmask"><code class="xref py py-func docutils literal notranslate"><span class="pre">pthread_sigmask()</span></code></a> 및 <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a>도 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가.</span></p>
 </div>
@@ -446,12 +392,9 @@ set of the pending signals.</p>
 <dl class="function">
 <dt id="signal.sigwait">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">sigwait</code><span class="sig-paren">(</span><em class="sig-param">sigset</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.sigwait" title="정의 주소">¶</a></dt>
-<dd><p>Suspend execution of the calling thread until the delivery of one of the
-signals specified in the signal set <em>sigset</em>.  The function accepts the signal
-(removes it from the pending list of signals), and returns the signal number.</p>
+<dd><p>시그널 집합 <em>sigset</em>에 지정된 시그널 중 하나가 전달될 때까지 호출하는 스레드의 실행을 일시 중단합니다. 이 함수는 시그널을 받아들이고 (계류 중인 시그널 목록에서 제거합니다), 시그널 번호를 반환합니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigwait(3)">sigwait(3)</a></em>을 참조하십시오.</p>
-<p>See also <a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.pthread_sigmask" title="signal.pthread_sigmask"><code class="xref py py-func docutils literal notranslate"><span class="pre">pthread_sigmask()</span></code></a>, <a class="reference internal" href="#signal.sigpending" title="signal.sigpending"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigpending()</span></code></a>,
-<a class="reference internal" href="#signal.sigwaitinfo" title="signal.sigwaitinfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwaitinfo()</span></code></a> and <a class="reference internal" href="#signal.sigtimedwait" title="signal.sigtimedwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigtimedwait()</span></code></a>.</p>
+<p><a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.pthread_sigmask" title="signal.pthread_sigmask"><code class="xref py py-func docutils literal notranslate"><span class="pre">pthread_sigmask()</span></code></a>, <a class="reference internal" href="#signal.sigpending" title="signal.sigpending"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigpending()</span></code></a>, <a class="reference internal" href="#signal.sigwaitinfo" title="signal.sigwaitinfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwaitinfo()</span></code></a> 및 <a class="reference internal" href="#signal.sigtimedwait" title="signal.sigtimedwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigtimedwait()</span></code></a>도 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가.</span></p>
 </div>
@@ -460,107 +403,79 @@ signals specified in the signal set <em>sigset</em>.  The function accepts the s
 <dl class="function">
 <dt id="signal.sigwaitinfo">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">sigwaitinfo</code><span class="sig-paren">(</span><em class="sig-param">sigset</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.sigwaitinfo" title="정의 주소">¶</a></dt>
-<dd><p>Suspend execution of the calling thread until the delivery of one of the
-signals specified in the signal set <em>sigset</em>.  The function accepts the
-signal and removes it from the pending list of signals. If one of the
-signals in <em>sigset</em> is already pending for the calling thread, the function
-will return immediately with information about that signal. The signal
-handler is not called for the delivered signal. The function raises an
-<a class="reference internal" href="exceptions.html#InterruptedError" title="InterruptedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterruptedError</span></code></a> if it is interrupted by a signal that is not in
-<em>sigset</em>.</p>
-<p>The return value is an object representing the data contained in the
-<code class="xref c c-type docutils literal notranslate"><span class="pre">siginfo_t</span></code> structure, namely: <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_signo</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_code</span></code>,
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">si_errno</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_pid</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_uid</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_status</span></code>,
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">si_band</span></code>.</p>
+<dd><p>시그널 집합 <em>sigset</em>에 지정된 시그널 중 하나가 전달될 때까지 호출하는 스레드의 실행을 일시 중단합니다. 이 함수는 시그널을 받아들이고 계류 중인 시그널 목록에서 제거합니다. <em>sigset</em>의 시그널 중 하나가 이미 호출하는 스레드에 대해 계류 중이면, 함수는 해당 시그널에 대한 정보와 함께 즉시 반환합니다. 전달된 시그널에 대해 시그널 처리기가 호출되지 않습니다. 이 함수는 <em>sigset</em>에 없는 시그널에 의해 중단되면 <a class="reference internal" href="exceptions.html#InterruptedError" title="InterruptedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterruptedError</span></code></a>를 발생시킵니다.</p>
+<p>반환 값은 <code class="xref c c-type docutils literal notranslate"><span class="pre">siginfo_t</span></code> 구조체에 포함된 데이터, 즉 <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_signo</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_code</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_errno</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_pid</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_uid</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_status</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">si_band</span></code>를 표현하는 객체입니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigwaitinfo(2)">sigwaitinfo(2)</a></em>를 참조하십시오.</p>
-<p>See also <a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a> and <a class="reference internal" href="#signal.sigtimedwait" title="signal.sigtimedwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigtimedwait()</span></code></a>.</p>
+<p><a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a> 및 <a class="reference internal" href="#signal.sigtimedwait" title="signal.sigtimedwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigtimedwait()</span></code></a>도 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가.</span></p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.5에서 변경: </span>The function is now retried if interrupted by a signal not in <em>sigset</em>
-and the signal handler does not raise an exception (see <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0475"><strong>PEP 475</strong></a> for
-the rationale).</p>
+<p><span class="versionmodified changed">버전 3.5에서 변경: </span>이 함수는 이제 <em>sigset</em>에 없는 시그널에 의해 중단되고 시그널 처리기가 예외를 발생시키지 않으면 재시도됩니다 (이유는 <span class="target" id="index-4"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0475"><strong>PEP 475</strong></a>를 참조하십시오).</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="signal.sigtimedwait">
 <code class="sig-prename descclassname">signal.</code><code class="sig-name descname">sigtimedwait</code><span class="sig-paren">(</span><em class="sig-param">sigset</em>, <em class="sig-param">timeout</em><span class="sig-paren">)</span><a class="headerlink" href="#signal.sigtimedwait" title="정의 주소">¶</a></dt>
-<dd><p>Like <a class="reference internal" href="#signal.sigwaitinfo" title="signal.sigwaitinfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwaitinfo()</span></code></a>, but takes an additional <em>timeout</em> argument
-specifying a timeout. If <em>timeout</em> is specified as <code class="xref py py-const docutils literal notranslate"><span class="pre">0</span></code>, a poll is
-performed. Returns <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a> if a timeout occurs.</p>
+<dd><p><a class="reference internal" href="#signal.sigwaitinfo" title="signal.sigwaitinfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwaitinfo()</span></code></a>와 유사하지만, 시간제한을 지정하는 추가 <em>timeout</em> 인자를 취합니다. <em>timeout</em>이 <code class="xref py py-const docutils literal notranslate"><span class="pre">0</span></code>으로 지정되면, 폴링이 수행됩니다. 시간제한 초과가 발생하면 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 반환합니다.</p>
 <p class="availability"><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: 유닉스. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigtimedwait(2)">sigtimedwait(2)</a></em>를 참조하십시오.</p>
-<p>See also <a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a> and <a class="reference internal" href="#signal.sigwaitinfo" title="signal.sigwaitinfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwaitinfo()</span></code></a>.</p>
+<p><a class="reference internal" href="#signal.pause" title="signal.pause"><code class="xref py py-func docutils literal notranslate"><span class="pre">pause()</span></code></a>, <a class="reference internal" href="#signal.sigwait" title="signal.sigwait"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwait()</span></code></a> 및 <a class="reference internal" href="#signal.sigwaitinfo" title="signal.sigwaitinfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">sigwaitinfo()</span></code></a>도 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가.</span></p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.5에서 변경: </span>The function is now retried with the recomputed <em>timeout</em> if interrupted
-by a signal not in <em>sigset</em> and the signal handler does not raise an
-exception (see <span class="target" id="index-1"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0475"><strong>PEP 475</strong></a> for the rationale).</p>
+<p><span class="versionmodified changed">버전 3.5에서 변경: </span>이 함수는 이제 <em>sigset</em>에 없는 시그널에 의해 중단되고 시그널 처리기가 예외를 발생시키지 않으면 다시 계산된 <em>timeout</em>으로 재시도됩니다 (이유는 <span class="target" id="index-5"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0475"><strong>PEP 475</strong></a>를 참조하십시오).</p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="example">
-<span id="signal-example"></span><h2>Example<a class="headerlink" href="#example" title="제목 주소">¶</a></h2>
-<p>Here is a minimal example program. It uses the <a class="reference internal" href="#signal.alarm" title="signal.alarm"><code class="xref py py-func docutils literal notranslate"><span class="pre">alarm()</span></code></a> function to limit
-the time spent waiting to open a file; this is useful if the file is for a
-serial device that may not be turned on, which would normally cause the
-<a class="reference internal" href="os.html#os.open" title="os.open"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.open()</span></code></a> to hang indefinitely.  The solution is to set a 5-second alarm
-before opening the file; if the operation takes too long, the alarm signal will
-be sent, and the handler raises an exception.</p>
+<span id="signal-example"></span><h2>예<a class="headerlink" href="#example" title="제목 주소">¶</a></h2>
+<p>다음은 최소한의 예제 프로그램입니다. <a class="reference internal" href="#signal.alarm" title="signal.alarm"><code class="xref py py-func docutils literal notranslate"><span class="pre">alarm()</span></code></a> 함수를 사용하여 파일을 여는 데 대기하는 시간을 제한합니다; 이것은 파일이 켜져 있지 않을 수 있는 직렬 장치를 위한 파일일 때 유용하며, 일반적으로 <a class="reference internal" href="os.html#os.open" title="os.open"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.open()</span></code></a>이 무기한 정지됩니다. 해결책은 파일을 열기 전에 5초 알람을 설정하는 것입니다; 작업이 너무 오래 걸리면, 알람 시그널이 전송되고, 처리기가 예외를 발생시킵니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">signal</span><span class="o">,</span> <span class="nn">os</span>
 
 <span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Signal handler called with signal&#39;</span><span class="p">,</span> <span class="n">signum</span><span class="p">)</span>
     <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t open device!&quot;</span><span class="p">)</span>
 
-<span class="c1"># Set the signal handler and a 5-second alarm</span>
+<span class="c1"># 시그널 처리기와 5초 알람을 설정합니다</span>
 <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
 <span class="n">signal</span><span class="o">.</span><span class="n">alarm</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
-<span class="c1"># This open() may hang indefinitely</span>
+<span class="c1"># 이 open()은 무기한 멈출 수 있습니다</span>
 <span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;/dev/ttyS0&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_RDWR</span><span class="p">)</span>
 
-<span class="n">signal</span><span class="o">.</span><span class="n">alarm</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="c1"># Disable the alarm</span>
+<span class="n">signal</span><span class="o">.</span><span class="n">alarm</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="c1"># 알람을 비활성화합니다</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="note-on-sigpipe">
-<h2>Note on SIGPIPE<a class="headerlink" href="#note-on-sigpipe" title="제목 주소">¶</a></h2>
-<p>Piping output of your program to tools like <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/head(1)">head(1)</a></em> will
-cause a <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code> signal to be sent to your process when the receiver
-of its standard output closes early.  This results in an exception
-like <code class="code docutils literal notranslate"><span class="pre">BrokenPipeError:</span> <span class="pre">[Errno</span> <span class="pre">32]</span> <span class="pre">Broken</span> <span class="pre">pipe</span></code>.  To handle this
-case, wrap your entry point to catch this exception as follows:</p>
+<h2>SIGPIPE에 대한 참고 사항<a class="headerlink" href="#note-on-sigpipe" title="제목 주소">¶</a></h2>
+<p>프로그램의 출력을 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/head(1)">head(1)</a></em>와 같은 도구로 파이핑 하면 표준 출력의 수신기가 일찍 닫힐 때 여러분의 프로세스로 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code> 시그널이 전송됩니다. 이것은 <code class="code docutils literal notranslate"><span class="pre">BrokenPipeError:</span> <span class="pre">[Errno</span> <span class="pre">32]</span> <span class="pre">Broken</span> <span class="pre">pipe</span></code>와 같은 예외를 일으킵니다. 이 경우를 처리하려면, 다음과 같이 이 예외를 포착하도록 진입점을 감싸십시오:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># simulate large output (your code replaces this loop)</span>
+        <span class="c1"># 큰 출력을 시뮬레이션합니다 (여러분의 코드가 이 루프를 대체합니다)</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
-        <span class="c1"># flush output here to force SIGPIPE to be triggered</span>
-        <span class="c1"># while inside this try block.</span>
+        <span class="c1"># 이 try 블록 내부에 있는 동안 SIGPIPE를 강제로 트리거 하기 위해</span>
+        <span class="c1"># 여기에서 출력을 플러시 합니다.</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">BrokenPipeError</span><span class="p">:</span>
-        <span class="c1"># Python flushes standard streams on exit; redirect remaining output</span>
-        <span class="c1"># to devnull to avoid another BrokenPipeError at shutdown</span>
+        <span class="c1"># 파이썬은 종료 시 표준 스트림을 플러시 합니다; 종료 시 또 다른 BrokenPipeError를</span>
+        <span class="c1"># 피하고자 나머지 출력을 devnull 로 리디렉션 합니다</span>
         <span class="n">devnull</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_WRONLY</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">dup2</span><span class="p">(</span><span class="n">devnull</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">fileno</span><span class="p">())</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Python exits with error code 1 on EPIPE</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># EPIPE에 대해 파이썬은 에러 코드 1로 종료합니다</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Do not set <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code>'s disposition to <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_DFL</span></code></a>
-in order to avoid <a class="reference internal" href="exceptions.html#BrokenPipeError" title="BrokenPipeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BrokenPipeError</span></code></a>.  Doing that would cause
-your program to exit unexpectedly also whenever any socket connection
-is interrupted while your program is still writing to it.</p>
+<p><a class="reference internal" href="exceptions.html#BrokenPipeError" title="BrokenPipeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BrokenPipeError</span></code></a>를 피하고자 <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code>의 배치를 <a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_DFL</span></code></a>로 설정하지 마십시오. 그렇게 하면 프로그램이 여전히 쓰고 있는 동안 소켓 연결이 중단될 때마다 프로그램이 예기치 않게 종료되도록 합니다.</p>
 </div>
 </div>
 
@@ -579,8 +494,8 @@ is interrupted while your program is still writing to it.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-contents">모듈 내용</a></li>
-<li><a class="reference internal" href="#example">Example</a></li>
-<li><a class="reference internal" href="#note-on-sigpipe">Note on SIGPIPE</a></li>
+<li><a class="reference internal" href="#example">예</a></li>
+<li><a class="reference internal" href="#note-on-sigpipe">SIGPIPE에 대한 참고 사항</a></li>
 </ul>
 </li>
 </ul>
