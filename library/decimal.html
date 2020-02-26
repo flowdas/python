@@ -2045,13 +2045,7 @@ float 로 변환한 값으로 계산한 후 float 값을 돌려줍니다.</p>
 </pre></div>
 </div>
 <p>Q. CPython 구현은 커다란 수에서 빠릅니까?</p>
-<p>A. 예. CPython 과 PyPy3 구현에서, decimal 모듈의 C/CFFI 버전은 임의의 정밀도로 올바르게 자리 올림 되는 십진 부동 소수점 산술을 위한 고속 <a class="reference external" href="https://www.bytereef.org/mpdecimal/doc/libmpdec/index.html">libmpdec</a> 라이브러리를 통합합니다. <code class="docutils literal notranslate"><span class="pre">libmpdec</span></code>는 중간 크기의 숫자에는 <a class="reference external" href="https://en.wikipedia.org/wiki/Karatsuba_algorithm">카라추바 곱셈(Karatsuba multiplication)</a>을 사용하고 매우 큰 숫자에는 <a class="reference external" href="https://en.wikipedia.org/wiki/Discrete_Fourier_transform_(general)#Number-theoretic_transform">수론적 변환(Number Theoretic Transform)</a>을 사용합니다. 하지만, 이 성능 향상을 실현하려면, 컨텍스트를 자리 올림 없는 계산으로 설정 해야 합니다.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">getcontext</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="n">MAX_PREC</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">Emax</span> <span class="o">=</span> <span class="n">MAX_EMAX</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">Emin</span> <span class="o">=</span> <span class="n">MIN_EMIN</span>
-</pre></div>
-</div>
+<p>A. 예. CPython 과 PyPy3 구현에서, decimal 모듈의 C/CFFI 버전은 임의의 정밀도로 올바르게 자리 올림 되는 십진 부동 소수점 산술을 위한 고속 <a class="reference external" href="https://www.bytereef.org/mpdecimal/doc/libmpdec/index.html">libmpdec</a> 라이브러리를 통합합니다 <a class="footnote-reference brackets" href="#id4" id="id2">1</a>. <code class="docutils literal notranslate"><span class="pre">libmpdec</span></code>는 중간 크기의 숫자에는 <a class="reference external" href="https://en.wikipedia.org/wiki/Karatsuba_algorithm">카라추바 곱셈(Karatsuba multiplication)</a>을 사용하고 매우 큰 숫자에는 <a class="reference external" href="https://en.wikipedia.org/wiki/Discrete_Fourier_transform_(general)#Number-theoretic_transform">수론적 변환(Number Theoretic Transform)</a>을 사용합니다.</p>
 <div class="admonition-flowdas admonition">
 <p class="admonition-title">flowdas</p>
 <p>2019년 3월에 David Harvey와 Joris Van Der Hoeven이 마침내 O(n log n) 알고리즘을 발견했습니다.
@@ -2061,9 +2055,56 @@ FFT를 사용하는 알고리즘인데, 자세한 내용은
 <a class="reference external" href="https://www.quantamagazine.org/mathematicians-discover-the-perfect-way-to-multiply-20190411/">Mathematicians Discover the Perfect Way to Multiply</a>도
 참고하시면 좋습니다.</p>
 </div>
-<div class="versionadded">
+<p>컨텍스트는 정확한 임의 정밀도 산술에 맞게 조정되어야 합니다. <code class="xref py py-attr docutils literal notranslate"><span class="pre">Emin</span></code>과 <code class="xref py py-attr docutils literal notranslate"><span class="pre">Emax</span></code>는 항상 최댓값으로 설정해야 하며, <code class="xref py py-attr docutils literal notranslate"><span class="pre">clamp</span></code>는 항상 0(기본값)이어야 합니다. <code class="xref py py-attr docutils literal notranslate"><span class="pre">prec</span></code>를 설정하려면 약간의 주의가 필요합니다.</p>
+<p>큰 숫자 산술을 시도하는 가장 쉬운 방법은 <code class="xref py py-attr docutils literal notranslate"><span class="pre">prec</span></code>의 최댓값도 사용하는 것입니다 <a class="footnote-reference brackets" href="#id5" id="id3">2</a>:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">setcontext</span><span class="p">(</span><span class="n">Context</span><span class="p">(</span><span class="n">prec</span><span class="o">=</span><span class="n">MAX_PREC</span><span class="p">,</span> <span class="n">Emax</span><span class="o">=</span><span class="n">MAX_EMAX</span><span class="p">,</span> <span class="n">Emin</span><span class="o">=</span><span class="n">MIN_EMIN</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Decimal</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">256</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">/</span> <span class="mi">128</span>
+<span class="go">Decimal(&#39;904625697166532776746648320380374280103671755200316906558262375061821325312&#39;)</span>
+</pre></div>
+</div>
+<p>부정확한 결과의 경우, 64비트 플랫폼에서 <a class="reference internal" href="#decimal.MAX_PREC" title="decimal.MAX_PREC"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MAX_PREC</span></code></a>는 너무 크고 사용 가능한 메모리가 충분하지 않을 것입니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">MemoryError</span>
+</pre></div>
+</div>
+<p>초과 할당(overallocation)이 있는 시스템(예를 들어 리눅스)에서, 더 정교한 접근 방식은 <code class="xref py py-attr docutils literal notranslate"><span class="pre">prec</span></code>를 사용 가능한 RAM의 양으로 조정하는 것입니다. RAM이 8GB이고 각각 최대 500MB를 사용하는 피연산자 10개가 동시에 있다고 가정합시다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 8-바이트 워드와 워드 당 19 자릿수로 500MB를 사용하는 단일 피연산자의 최대 자릿수</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># (32비트 빌드에서는 4-바이트와 9 자릿수):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">maxdigits</span> <span class="o">=</span> <span class="mi">19</span> <span class="o">*</span> <span class="p">((</span><span class="mi">500</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 이것이 동작하는지 확인합니다:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">(</span><span class="n">prec</span><span class="o">=</span><span class="n">maxdigits</span><span class="p">,</span> <span class="n">Emax</span><span class="o">=</span><span class="n">MAX_EMAX</span><span class="p">,</span> <span class="n">Emin</span><span class="o">=</span><span class="n">MIN_EMIN</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">traps</span><span class="p">[</span><span class="n">Inexact</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">setcontext</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 사용 가능한 정밀도를 9로 채웁니다:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Decimal</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">logical_invert</span><span class="p">()</span> <span class="o">*</span> <span class="mi">9</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">524288112</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">  decimal.Inexact</span>: <span class="n">[&lt;class &#39;decimal.Inexact&#39;&gt;]</span>
+</pre></div>
+</div>
+<p>일반적으로 (그리고 특히 초과 할당이 없는 시스템에서), 더 엄격한 경계를 추정하고 모든 계산이 정확할 것으로 예상되면 <a class="reference internal" href="#decimal.Inexact" title="decimal.Inexact"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Inexact</span></code></a> 트랩을 설정하는 것이 좋습니다.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
+<dd><div class="versionadded">
 <p><span class="versionmodified added">버전 3.3에 추가.</span></p>
 </div>
+</dd>
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
+<dd><div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>이 접근법은 정수가 아닌 거듭제곱을 제외한 모든 정확한 결과에 적용됩니다. 3.7과 3.8로 역 이식되었습니다.</p>
+</div>
+</dd>
+</dl>
 </div>
 </div>
 
