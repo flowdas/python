@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>1. Extending Python with C or C++ &#8212; 파이썬 설명서 주석판</title>
+    <title>1. C나 C++로 파이썬 확장하기 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -119,69 +119,35 @@
           <div class="body" role="main">
             
   <div class="section" id="extending-python-with-c-or-c">
-<span id="extending-intro"></span><h1><span class="section-number">1. </span>Extending Python with C or C++<a class="headerlink" href="#extending-python-with-c-or-c" title="제목 주소">¶</a></h1>
-<p>It is quite easy to add new built-in modules to Python, if you know how to
-program in C.  Such <em class="dfn">extension modules</em> can do two things that can't be
-done directly in Python: they can implement new built-in object types, and they
-can call C library functions and system calls.</p>
-<p>To support extensions, the Python API (Application Programmers Interface)
-defines a set of functions, macros and variables that provide access to most
-aspects of the Python run-time system.  The Python API is incorporated in a C
-source file by including the header <code class="docutils literal notranslate"><span class="pre">&quot;Python.h&quot;</span></code>.</p>
-<p>The compilation of an extension module depends on its intended use as well as on
-your system setup; details are given in later chapters.</p>
+<span id="extending-intro"></span><h1><span class="section-number">1. </span>C나 C++로 파이썬 확장하기<a class="headerlink" href="#extending-python-with-c-or-c" title="제목 주소">¶</a></h1>
+<p>C로 프로그래밍하는 방법을 알고 있다면, 파이썬에 새로운 내장 모듈을 추가하는 것은 매우 쉽습니다. 그러한 <em class="dfn">확장 모듈(extension modules)</em>은 파이썬에서 직접 할 수 없는 두 가지 일을 할 수 있습니다: 새로운 내장 객체 형을 구현할 수 있고, C 라이브러리 함수와 시스템 호출을 호출할 수 있습니다.</p>
+<p>확장을 지원하기 위해, 파이썬 API(Application Programmers Interface)는 파이썬 런타임 시스템의 대부분 측면에 액세스 할 수 있는 함수, 매크로 및 변수 집합을 정의합니다. 파이썬 API는 헤더 <code class="docutils literal notranslate"><span class="pre">&quot;Python.h&quot;</span></code>를 포함시켜 C 소스 파일에 통합됩니다.</p>
+<p>확장 모듈의 컴파일은 시스템 설정뿐만 아니라 의도하는 용도에 따라 다릅니다; 자세한 내용은 다음 장에서 설명합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The C extension interface is specific to CPython, and extension modules do
-not work on other Python implementations.  In many cases, it is possible to
-avoid writing C extensions and preserve portability to other implementations.
-For example, if your use case is calling C library functions or system calls,
-you should consider using the <a class="reference internal" href="../library/ctypes.html#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> module or the <a class="reference external" href="https://cffi.readthedocs.io/">cffi</a> library rather than writing
-custom C code.
-These modules let you write Python code to interface with C code and are more
-portable between implementations of Python than writing and compiling a C
-extension module.</p>
+<p>C 확장 인터페이스는 CPython에만 해당되며, 확장 모듈은 다른 파이썬 구현에서는 작동하지 않습니다. 많은 경우에, C 확장을 작성하지 않고 다른 구현으로의 이식성을 유지하는 것이 가능합니다. 예를 들어, 사용 사례가 C 라이브러리 함수나 시스템 호출을 호출하는 것이라면, 사용자 정의 C 코드를 작성하는 대신 <a class="reference internal" href="../library/ctypes.html#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> 모듈이나 <a class="reference external" href="https://cffi.readthedocs.io/">cffi</a> 라이브러리 사용을 고려해야합니다. 이 모듈을 사용하면 C 코드와 인터페이스하기 위한 파이썬 코드를 작성할 수 있으며 C 확장 모듈을 작성하고 컴파일하는 것보다 파이썬 구현간에 이식성이 더 좋습니다.</p>
 </div>
 <div class="section" id="a-simple-example">
-<span id="extending-simpleexample"></span><h2><span class="section-number">1.1. </span>A Simple Example<a class="headerlink" href="#a-simple-example" title="제목 주소">¶</a></h2>
-<p>Let's create an extension module called <code class="docutils literal notranslate"><span class="pre">spam</span></code> (the favorite food of Monty
-Python fans...) and let's say we want to create a Python interface to the C
-library function <code class="xref c c-func docutils literal notranslate"><span class="pre">system()</span></code> <a class="footnote-reference brackets" href="#id5" id="id1">1</a>. This function takes a null-terminated
-character string as argument and returns an integer.  We want this function to
-be callable from Python as follows:</p>
+<span id="extending-simpleexample"></span><h2><span class="section-number">1.1. </span>간단한 예<a class="headerlink" href="#a-simple-example" title="제목 주소">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">spam</span></code>(몬티 파이썬 팬들이 가장 좋아하는 음식...)이라는 확장 모듈을 만듭시다, 그리고 C 라이브러리 함수 <code class="xref c c-func docutils literal notranslate"><span class="pre">system()</span></code>에 대한 파이썬 인터페이스를 만들고 싶다고 합시다 <a class="footnote-reference brackets" href="#id5" id="id1">1</a>. 이 함수는 널 종료 문자열을 인자로 취하고 정수를 반환합니다. 우리는 이 함수를 다음과 같이 파이썬에서 호출할 수 있기를 원합니다:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">spam</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">status</span> <span class="o">=</span> <span class="n">spam</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;ls -l&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Begin by creating a file <code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code>.  (Historically, if a module is
-called <code class="docutils literal notranslate"><span class="pre">spam</span></code>, the C file containing its implementation is called
-<code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code>; if the module name is very long, like <code class="docutils literal notranslate"><span class="pre">spammify</span></code>, the
-module name can be just <code class="file docutils literal notranslate"><span class="pre">spammify.c</span></code>.)</p>
-<p>The first two lines of our file can be:</p>
+<p><code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code> 파일을 만드는 것으로 시작하십시오. (역사적으로, 모듈을 <code class="docutils literal notranslate"><span class="pre">spam</span></code>이라고 하면, 해당 구현을 포함하는 C 파일은 <code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code>라고 합니다; 모듈 이름이 <code class="docutils literal notranslate"><span class="pre">spammify</span></code>처럼 매우 길면, 모듈 이름은 그냥 <code class="file docutils literal notranslate"><span class="pre">spammify.c</span></code>일 수 있습니다.)</p>
+<p>파일의 처음 두 줄은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
 <span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 </pre></div>
 </div>
-<p>which pulls in the Python API (you can add a comment describing the purpose of
-the module and a copyright notice if you like).</p>
+<p>이것은 파이썬 API를 가져옵니다 (원한다면 모듈의 목적과 저작권 표시를 설명하는 주석을 추가할 수 있습니다).</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Since Python may define some pre-processor definitions which affect the standard
-headers on some systems, you <em>must</em> include <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> before any standard
-headers are included.</p>
-<p>It is recommended to always define <code class="docutils literal notranslate"><span class="pre">PY_SSIZE_T_CLEAN</span></code> before including
-<code class="docutils literal notranslate"><span class="pre">Python.h</span></code>.  See <a class="reference internal" href="#parsetuple"><span class="std std-ref">Extracting Parameters in Extension Functions</span></a> for a description of this macro.</p>
+<p>파이썬이 일부 시스템의 표준 헤더에 영향을 미치는 일부 전 처리기 정의를 정의할 수 있어서, 표준 헤더가 포함되기 전에 <em>반드시</em> <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code>를 포함해야 합니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Python.h</span></code>를 포함하기 전에 항상 <code class="docutils literal notranslate"><span class="pre">PY_SSIZE_T_CLEAN</span></code>를 정의하는 것이 좋습니다. 이 매크로에 대한 설명은 <a class="reference internal" href="#parsetuple"><span class="std std-ref">확장 함수에서 매개 변수 추출하기</span></a>를 참조하십시오.</p>
 </div>
-<p>All user-visible symbols defined by <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> have a prefix of <code class="docutils literal notranslate"><span class="pre">Py</span></code> or
-<code class="docutils literal notranslate"><span class="pre">PY</span></code>, except those defined in standard header files. For convenience, and
-since they are used extensively by the Python interpreter, <code class="docutils literal notranslate"><span class="pre">&quot;Python.h&quot;</span></code>
-includes a few standard header files: <code class="docutils literal notranslate"><span class="pre">&lt;stdio.h&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;string.h&gt;</span></code>,
-<code class="docutils literal notranslate"><span class="pre">&lt;errno.h&gt;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&lt;stdlib.h&gt;</span></code>.  If the latter header file does not exist on
-your system, it declares the functions <code class="xref c c-func docutils literal notranslate"><span class="pre">malloc()</span></code>, <code class="xref c c-func docutils literal notranslate"><span class="pre">free()</span></code> and
-<code class="xref c c-func docutils literal notranslate"><span class="pre">realloc()</span></code> directly.</p>
-<p>The next thing we add to our module file is the C function that will be called
-when the Python expression <code class="docutils literal notranslate"><span class="pre">spam.system(string)</span></code> is evaluated (we'll see
-shortly how it ends up being called):</p>
+<p><code class="file docutils literal notranslate"><span class="pre">Python.h</span></code>가 정의한 사용자가 볼 수 있는 기호는 표준 헤더 파일에 정의된 기호를 제외하고 모두 <code class="docutils literal notranslate"><span class="pre">Py</span></code>나 <code class="docutils literal notranslate"><span class="pre">PY</span></code> 접두사를 갖습니다. 편의를 위해, 그리고 파이썬 인터프리터가 광범위하게 사용하기 때문에, <code class="docutils literal notranslate"><span class="pre">&quot;Python.h&quot;</span></code>는 몇 가지 표준 헤더 파일을 포함합니다: <code class="docutils literal notranslate"><span class="pre">&lt;stdio.h&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;string.h&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;errno.h&gt;</span></code> 및 <code class="docutils literal notranslate"><span class="pre">&lt;stdlib.h&gt;</span></code>. 후자의 헤더 파일이 시스템에 없으면, 함수 <code class="xref c c-func docutils literal notranslate"><span class="pre">malloc()</span></code>, <code class="xref c c-func docutils literal notranslate"><span class="pre">free()</span></code> 및 <code class="xref c c-func docutils literal notranslate"><span class="pre">realloc()</span></code>를 직접 선언합니다.</p>
+<p>다음으로 모듈 파일에 추가하는 것은 파이썬 표현식 <code class="docutils literal notranslate"><span class="pre">spam.system(string)</span></code>이 평가될 때 호출될 C 함수입니다 (이것이 어떻게 호출되는지 곧 보게 될 것입니다):</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">spam_system</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
 <span class="p">{</span>
@@ -195,69 +161,20 @@ shortly how it ends up being called):</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>There is a straightforward translation from the argument list in Python (for
-example, the single expression <code class="docutils literal notranslate"><span class="pre">&quot;ls</span> <span class="pre">-l&quot;</span></code>) to the arguments passed to the C
-function.  The C function always has two arguments, conventionally named <em>self</em>
-and <em>args</em>.</p>
-<p>The <em>self</em> argument points to the module object for module-level functions;
-for a method it would point to the object instance.</p>
-<p>The <em>args</em> argument will be a pointer to a Python tuple object containing the
-arguments.  Each item of the tuple corresponds to an argument in the call's
-argument list.  The arguments are Python objects --- in order to do anything
-with them in our C function we have to convert them to C values.  The function
-<a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> in the Python API checks the argument types and
-converts them to C values.  It uses a template string to determine the required
-types of the arguments as well as the types of the C variables into which to
-store the converted values.  More about this later.</p>
-<p><a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> returns true (nonzero) if all arguments have the right
-type and its components have been stored in the variables whose addresses are
-passed.  It returns false (zero) if an invalid argument list was passed.  In the
-latter case it also raises an appropriate exception so the calling function can
-return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> immediately (as we saw in the example).</p>
+<p>파이썬의 인자 목록(예를 들어, 단일 표현식 <code class="docutils literal notranslate"><span class="pre">&quot;ls</span> <span class="pre">-l&quot;</span></code>)에서 C 함수로 전달되는 인자로의 간단한 변환이 있습니다. C 함수에는 항상 <em>self</em>와 <em>args</em>라는 두 개의 인자가 있습니다.</p>
+<p><em>self</em> 인자는 모듈 수준 함수에서 모듈 객체를 가리킵니다; 메서드의 경우 객체 인스턴스를 가리킵니다.</p>
+<p><em>args</em> 인자는 인자를 포함하는 파이썬 튜플 객체에 대한 포인터입니다. 튜플의 각 항목은 호출의 인자 목록에 있는 인자에 해당합니다. 인자는 파이썬 객체입니다 --- C 함수에서 무언가를 수행하려면 이들을 C 값으로 변환해야합니다. 파이썬 API의 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> 함수는 인자 형을 확인하고 C 값으로 변환합니다. 템플릿 문자열을 사용하여 필요한 인자 형과 변환된 값을 저장할 C 변수 형을 결정합니다. 나중에 이것에 대해 자세히 알아보겠습니다.</p>
+<p>모든 인자의 형이 올바르고 해당 구성 요소가 주소가 전달된 변수에 저장되면, <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>는 참(0이 아닙니다)을 반환합니다. 유효하지 않은 인자 목록이 전달되면 거짓(0)을 반환합니다. 후자의 경우 호출 함수가  (예에서 보듯이) <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 즉시 반환할 수 있도록 적절한 예외를 발생시킵니다.</p>
 </div>
 <div class="section" id="intermezzo-errors-and-exceptions">
-<span id="extending-errors"></span><h2><span class="section-number">1.2. </span>Intermezzo: Errors and Exceptions<a class="headerlink" href="#intermezzo-errors-and-exceptions" title="제목 주소">¶</a></h2>
-<p>An important convention throughout the Python interpreter is the following: when
-a function fails, it should set an exception condition and return an error value
-(usually a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer).  Exceptions are stored in a static global variable
-inside the interpreter; if this variable is <code class="docutils literal notranslate"><span class="pre">NULL</span></code> no exception has occurred.  A
-second global variable stores the &quot;associated value&quot; of the exception (the
-second argument to <a class="reference internal" href="../reference/simple_stmts.html#raise"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">raise</span></code></a>).  A third variable contains the stack
-traceback in case the error originated in Python code.  These three variables
-are the C equivalents of the result in Python of <a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a> (see the
-section on module <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a> in the Python Library Reference).  It is important
-to know about them to understand how errors are passed around.</p>
-<p>The Python API defines a number of functions to set various types of exceptions.</p>
-<p>The most common one is <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_SetString" title="PyErr_SetString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetString()</span></code></a>.  Its arguments are an exception
-object and a C string.  The exception object is usually a predefined object like
-<code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ZeroDivisionError</span></code>.  The C string indicates the cause of the error
-and is converted to a Python string object and stored as the &quot;associated value&quot;
-of the exception.</p>
-<p>Another useful function is <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_SetFromErrno" title="PyErr_SetFromErrno"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetFromErrno()</span></code></a>, which only takes an
-exception argument and constructs the associated value by inspection of the
-global variable <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code>.  The most general function is
-<a class="reference internal" href="../c-api/exceptions.html#c.PyErr_SetObject" title="PyErr_SetObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetObject()</span></code></a>, which takes two object arguments, the exception and
-its associated value.  You don't need to <a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a> the objects passed
-to any of these functions.</p>
-<p>You can test non-destructively whether an exception has been set with
-<a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Occurred" title="PyErr_Occurred"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Occurred()</span></code></a>.  This returns the current exception object, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code>
-if no exception has occurred.  You normally don't need to call
-<a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Occurred" title="PyErr_Occurred"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Occurred()</span></code></a> to see whether an error occurred in a function call,
-since you should be able to tell from the return value.</p>
-<p>When a function <em>f</em> that calls another function <em>g</em> detects that the latter
-fails, <em>f</em> should itself return an error value (usually <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code>).  It
-should <em>not</em> call one of the <code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_*()</span></code> functions --- one has already
-been called by <em>g</em>. <em>f</em>'s caller is then supposed to also return an error
-indication to <em>its</em> caller, again <em>without</em> calling <code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_*()</span></code>, and so on
---- the most detailed cause of the error was already reported by the function
-that first detected it.  Once the error reaches the Python interpreter's main
-loop, this aborts the currently executing Python code and tries to find an
-exception handler specified by the Python programmer.</p>
-<p>(There are situations where a module can actually give a more detailed error
-message by calling another <code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_*()</span></code> function, and in such cases it is
-fine to do so.  As a general rule, however, this is not necessary, and can cause
-information about the cause of the error to be lost: most operations can fail
-for a variety of reasons.)</p>
+<span id="extending-errors"></span><h2><span class="section-number">1.2. </span>막간극: 에러와 예외<a class="headerlink" href="#intermezzo-errors-and-exceptions" title="제목 주소">¶</a></h2>
+<p>파이썬 인터프리터 전체에서 중요한 규칙은 다음과 같습니다: 함수가 실패하면 예외 조건을 설정하고 에러 값(보통 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 포인터)을 반환해야합니다. 예외는 인터프리터 내부의 정적 전역 변수에 저장됩니다; 이 변수가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이면 예외가 발생하지 않은 것입니다. 두 번째 전역 변수는 예외의 &quot;연관된 값&quot;(<a class="reference internal" href="../reference/simple_stmts.html#raise"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">raise</span></code></a>에 대한 두 번째 인자)을 저장합니다. 세 번째 변수에는 에러가 파이썬 코드에서 발생한 경우 스택 트레이스백이 포함됩니다. 이 세 변수는 <a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a>의 파이썬 결과에 대한 C 동등물입니다 (파이썬 라이브러리 레퍼런스에 있는 모듈 <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a>에 대한 섹션을 참조하십시오). 에러가 어떻게 전달되는지 이해하기 위해서는 이들에 대해 아는 것이 중요합니다.</p>
+<p>파이썬 API는 다양한 형의 예외를 설정하기 위한 여러 함수를 정의합니다.</p>
+<p>가장 일반적인 것은 <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_SetString" title="PyErr_SetString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetString()</span></code></a>입니다. 인자는 예외 객체와 C 문자열입니다. 예외 객체는 보통 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ZeroDivisionError</span></code>와 같은 미리 정의된 객체입니다. C 문자열은 에러의 원인을 나타내며 파이썬 문자열 객체로 변환되어 예외의 &quot;연관된 값&quot;으로 저장됩니다.</p>
+<p>또 다른 유용한 함수는 <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_SetFromErrno" title="PyErr_SetFromErrno"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetFromErrno()</span></code></a>입니다. 이 함수는 예외 인자만 취하고 전역 변수 <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code>를 검사하여 관련 값을 구성합니다. 가장 일반적인 함수는 <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_SetObject" title="PyErr_SetObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetObject()</span></code></a>이며, 예외와 관련 값인 두 개의 객체 인자를 취합니다. 이러한 함수들에 전달되는 객체를 <a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a> 할 필요는 없습니다.</p>
+<p><a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Occurred" title="PyErr_Occurred"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Occurred()</span></code></a>로 예외가 설정되어 있는지 비 파괴적으로 검사할 수 있습니다. 현재 예외 객체나 예외가 발생하지 않았으면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. 반환 값에서 알 수 있어야 하기 때문에 일반적으로 함수 호출에서 에러가 발생했는지 확인하기 위해 <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Occurred" title="PyErr_Occurred"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Occurred()</span></code></a>를 호출할 필요는 없습니다.</p>
+<p>다른 함수 <em>g</em>를 호출하는 함수 <em>f</em>가 <em>g</em>의 실패를 감지할 때, <em>f</em> 자체가 에러 값(보통 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이나 <code class="docutils literal notranslate"><span class="pre">-1</span></code>)을 반환해야합니다. <code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_*()</span></code> 함수 중 하나를 호출하지 <em>않아야</em> 합니다 --- <em>g</em>에 의해 이미 호출되었습니다. 그러면 <em>f</em>의 호출자도 역시 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_*()</span></code> 호출 <em>없이</em>, <em>자신의</em> 호출자에게 에러 표시를 반환하고, 이런 식으로 계속된다고 가정합니다 --- 에러를 가장 먼저 감지한 함수에 의해 에러의 가장 자세한 원인이 이미보고되었습니다. 일단 에러가 파이썬 인터프리터의 메인 루프에 도달하면, 현재 실행 중인 파이썬 코드를 중단하고 파이썬 프로그래머가 지정한 예외 처리기를 찾으려고 시도합니다.</p>
+<p>(모듈이 실제로 다른 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_*()</span></code> 함수를 호출하여 더 자세한 에러 메시지를 표시할 수 있는 상황이 있습니다. 이러한 경우에는 그렇게하는 것이 좋습니다. 그러나, 일반적인 규칙으로 이는 필요하지 않고, 에러가 발생하는 원인에 관한 정보를 잃어버리게 합니다: 대부분의 연산은 다양한 이유로 실패할 수 있습니다.)</p>
 <p>To ignore an exception set by a function call that failed, the exception
 condition must be cleared explicitly by calling <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Clear" title="PyErr_Clear"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Clear()</span></code></a>.  The only
 time C code should call <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Clear" title="PyErr_Clear"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Clear()</span></code></a> is if it doesn't want to pass the
@@ -571,7 +488,7 @@ be part of a module definition:</p>
 <p>This function must be registered with the interpreter using the
 <a class="reference internal" href="../c-api/structures.html#METH_VARARGS" title="METH_VARARGS"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_VARARGS</span></code></a> flag; this is described in section <a class="reference internal" href="#methodtable"><span class="std std-ref">The Module's Method Table and Initialization Function</span></a>.  The
 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> function and its arguments are documented in section
-<a class="reference internal" href="#parsetuple"><span class="std std-ref">Extracting Parameters in Extension Functions</span></a>.</p>
+<a class="reference internal" href="#parsetuple"><span class="std std-ref">확장 함수에서 매개 변수 추출하기</span></a>.</p>
 <p>The macros <a class="reference internal" href="../c-api/refcounting.html#c.Py_XINCREF" title="Py_XINCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XINCREF()</span></code></a> and <a class="reference internal" href="../c-api/refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a> increment/decrement the
 reference count of an object and are safe in the presence of <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointers
 (but note that <em>temp</em> will not be  <code class="docutils literal notranslate"><span class="pre">NULL</span></code> in this context).  More info on them
@@ -658,7 +575,7 @@ the above example, we use <a class="reference internal" href="../c-api/arg.html#
 </div>
 </div>
 <div class="section" id="extracting-parameters-in-extension-functions">
-<span id="parsetuple"></span><h2><span class="section-number">1.7. </span>Extracting Parameters in Extension Functions<a class="headerlink" href="#extracting-parameters-in-extension-functions" title="제목 주소">¶</a></h2>
+<span id="parsetuple"></span><h2><span class="section-number">1.7. </span>확장 함수에서 매개 변수 추출하기<a class="headerlink" href="#extracting-parameters-in-extension-functions" title="제목 주소">¶</a></h2>
 <p id="index-2">The <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> function is declared as follows:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">PyArg_ParseTuple</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
 </pre></div>
@@ -1151,7 +1068,7 @@ file corresponding to the module provides a macro that takes care of importing
 the module and retrieving its C API pointers; client modules only have to call
 this macro before accessing the C API.</p>
 <p>The exporting module is a modification of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">spam</span></code> module from section
-<a class="reference internal" href="#extending-simpleexample"><span class="std std-ref">A Simple Example</span></a>. The function <code class="xref py py-func docutils literal notranslate"><span class="pre">spam.system()</span></code> does not call
+<a class="reference internal" href="#extending-simpleexample"><span class="std std-ref">간단한 예</span></a>. The function <code class="xref py py-func docutils literal notranslate"><span class="pre">spam.system()</span></code> does not call
 the C library function <code class="xref c c-func docutils literal notranslate"><span class="pre">system()</span></code> directly, but a function
 <code class="xref c c-func docutils literal notranslate"><span class="pre">PySpam_System()</span></code>, which would of course do something more complicated in
 reality (such as adding &quot;spam&quot; to every command). This function
@@ -1298,11 +1215,10 @@ stored in a Capsule. The details are described in the Python/C API Reference
 Manual in the section <a class="reference internal" href="../c-api/capsule.html#capsules"><span class="std std-ref">캡슐</span></a> and in the implementation of Capsules (files
 <code class="file docutils literal notranslate"><span class="pre">Include/pycapsule.h</span></code> and <code class="file docutils literal notranslate"><span class="pre">Objects/pycapsule.c</span></code> in the Python source
 code distribution).</p>
-<p class="rubric">Footnotes</p>
+<p class="rubric">각주</p>
 <dl class="footnote brackets">
 <dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>An interface for this function already exists in the standard module <a class="reference internal" href="../library/os.html#module-os" title="os: Miscellaneous operating system interfaces."><code class="xref py py-mod docutils literal notranslate"><span class="pre">os</span></code></a>
---- it was chosen as a simple and straightforward example.</p>
+<dd><p>이 함수에 대한 인터페이스는 표준 모듈 <a class="reference internal" href="../library/os.html#module-os" title="os: Miscellaneous operating system interfaces."><code class="xref py py-mod docutils literal notranslate"><span class="pre">os</span></code></a>에 이미 존재합니다 --- 간단하고 단순한 예제로 선택되었습니다.</p>
 </dd>
 <dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
 <dd><p>The metaphor of &quot;borrowing&quot; a reference is not completely correct: the owner
@@ -1329,14 +1245,14 @@ this is still found in much existing code.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#">1. Extending Python with C or C++</a><ul>
-<li><a class="reference internal" href="#a-simple-example">1.1. A Simple Example</a></li>
-<li><a class="reference internal" href="#intermezzo-errors-and-exceptions">1.2. Intermezzo: Errors and Exceptions</a></li>
+<li><a class="reference internal" href="#">1. C나 C++로 파이썬 확장하기</a><ul>
+<li><a class="reference internal" href="#a-simple-example">1.1. 간단한 예</a></li>
+<li><a class="reference internal" href="#intermezzo-errors-and-exceptions">1.2. 막간극: 에러와 예외</a></li>
 <li><a class="reference internal" href="#back-to-the-example">1.3. Back to the Example</a></li>
 <li><a class="reference internal" href="#the-module-s-method-table-and-initialization-function">1.4. The Module's Method Table and Initialization Function</a></li>
 <li><a class="reference internal" href="#compilation-and-linkage">1.5. Compilation and Linkage</a></li>
 <li><a class="reference internal" href="#calling-python-functions-from-c">1.6. Calling Python Functions from C</a></li>
-<li><a class="reference internal" href="#extracting-parameters-in-extension-functions">1.7. Extracting Parameters in Extension Functions</a></li>
+<li><a class="reference internal" href="#extracting-parameters-in-extension-functions">1.7. 확장 함수에서 매개 변수 추출하기</a></li>
 <li><a class="reference internal" href="#keyword-parameters-for-extension-functions">1.8. Keyword Parameters for Extension Functions</a></li>
 <li><a class="reference internal" href="#building-arbitrary-values">1.9. Building Arbitrary Values</a></li>
 <li><a class="reference internal" href="#reference-counts">1.10. Reference Counts</a><ul>
