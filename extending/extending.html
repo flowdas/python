@@ -331,52 +331,22 @@
 </div>
 <div class="section" id="compilation-and-linkage">
 <span id="compilation"></span><h2><span class="section-number">1.5. </span>컴파일과 링크<a class="headerlink" href="#compilation-and-linkage" title="제목 주소">¶</a></h2>
-<p>There are two more things to do before you can use your new extension: compiling
-and linking it with the Python system.  If you use dynamic loading, the details
-may depend on the style of dynamic loading your system uses; see the chapters
-about building extension modules (chapter <a class="reference internal" href="building.html#building"><span class="std std-ref">C와 C++ 확장 빌드하기</span></a>) and additional
-information that pertains only to building on Windows (chapter
-<a class="reference internal" href="windows.html#building-on-windows"><span class="std std-ref">윈도우에서 C와 C++ 확장 빌드하기</span></a>) for more information about this.</p>
-<p>If you can't use dynamic loading, or if you want to make your module a permanent
-part of the Python interpreter, you will have to change the configuration setup
-and rebuild the interpreter.  Luckily, this is very simple on Unix: just place
-your file (<code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code> for example) in the <code class="file docutils literal notranslate"><span class="pre">Modules/</span></code> directory
-of an unpacked source distribution, add a line to the file
-<code class="file docutils literal notranslate"><span class="pre">Modules/Setup.local</span></code> describing your file:</p>
+<p>새로운 확장을 사용하기 전에 해야 할 두 가지 작업이 더 있습니다: 컴파일과 파이썬 시스템과의 링크. 동적 로딩을 사용하면, 세부 사항은 시스템이 사용하는 동적 로딩 스타일에 따라 달라질 수 있습니다; 확장 모듈을 빌드하는 것에 관한 장(<a class="reference internal" href="building.html#building"><span class="std std-ref">C와 C++ 확장 빌드하기</span></a> 장)과 윈도우 빌드에 대한 자세한 정보는 이에만 관련된 추가 정보(<a class="reference internal" href="windows.html#building-on-windows"><span class="std std-ref">윈도우에서 C와 C++ 확장 빌드하기</span></a> 장)를 참조하십시오.</p>
+<p>동적 로딩을 사용할 수 없거나, 모듈을 파이썬 인터프리터의 영구적인 부분으로 만들려면, 구성 설정을 변경하고 인터프리터를 다시 빌드해야 합니다. 운 좋게도, 이것은 유닉스에서 매우 간단합니다: 압축을 푼 소스 배포의 <code class="file docutils literal notranslate"><span class="pre">Modules/</span></code> 디렉터리에 파일(예를 들어 <code class="file docutils literal notranslate"><span class="pre">spammodule.c</span></code>)을 놓고, <code class="file docutils literal notranslate"><span class="pre">Modules/Setup.local</span></code> 파일에 여러분의 파일을 기술하는 한 줄을 추가하십시오:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>spam spammodule.o
 </pre></div>
 </div>
-<p>and rebuild the interpreter by running <strong class="program">make</strong> in the toplevel
-directory.  You can also run <strong class="program">make</strong> in the <code class="file docutils literal notranslate"><span class="pre">Modules/</span></code>
-subdirectory, but then you must first rebuild <code class="file docutils literal notranslate"><span class="pre">Makefile</span></code> there by running
-'<strong class="program">make</strong> Makefile'.  (This is necessary each time you change the
-<code class="file docutils literal notranslate"><span class="pre">Setup</span></code> file.)</p>
-<p>If your module requires additional libraries to link with, these can be listed
-on the line in the configuration file as well, for instance:</p>
+<p>그리고 최상위 디렉터리에서 <strong class="program">make</strong>를 실행하여 인터프리터를 다시 빌드하십시오. <code class="file docutils literal notranslate"><span class="pre">Modules/</span></code> 서브 디렉터리에서 <strong class="program">make</strong>를 실행할 수도 있지만, 먼저 '<strong class="program">make</strong> Makefile'을 실행하여 <code class="file docutils literal notranslate"><span class="pre">Makefile</span></code>를 다시 빌드해야합니다. (이것은 <code class="file docutils literal notranslate"><span class="pre">Setup</span></code> 파일을 변경할 때마다 필요합니다.)</p>
+<p>모듈에 링크할 추가 라이브러리가 필요하면, 이것도 구성 파일의 줄에 나열 될 수 있습니다, 예를 들어:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>spam spammodule.o -lX11
 </pre></div>
 </div>
 </div>
 <div class="section" id="calling-python-functions-from-c">
-<span id="callingpython"></span><h2><span class="section-number">1.6. </span>Calling Python Functions from C<a class="headerlink" href="#calling-python-functions-from-c" title="제목 주소">¶</a></h2>
-<p>So far we have concentrated on making C functions callable from Python.  The
-reverse is also useful: calling Python functions from C. This is especially the
-case for libraries that support so-called &quot;callback&quot; functions.  If a C
-interface makes use of callbacks, the equivalent Python often needs to provide a
-callback mechanism to the Python programmer; the implementation will require
-calling the Python callback functions from a C callback.  Other uses are also
-imaginable.</p>
-<p>Fortunately, the Python interpreter is easily called recursively, and there is a
-standard interface to call a Python function.  (I won't dwell on how to call the
-Python parser with a particular string as input --- if you're interested, have a
-look at the implementation of the <a class="reference internal" href="../using/cmdline.html#cmdoption-c"><code class="xref std std-option docutils literal notranslate"><span class="pre">-c</span></code></a> command line option in
-<code class="file docutils literal notranslate"><span class="pre">Modules/main.c</span></code> from the Python source code.)</p>
-<p>Calling a Python function is easy.  First, the Python program must somehow pass
-you the Python function object.  You should provide a function (or some other
-interface) to do this.  When this function is called, save a pointer to the
-Python function object (be careful to <a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a> it!) in a global
-variable --- or wherever you see fit. For example, the following function might
-be part of a module definition:</p>
+<span id="callingpython"></span><h2><span class="section-number">1.6. </span>C에서 파이썬 함수 호출하기<a class="headerlink" href="#calling-python-functions-from-c" title="제목 주소">¶</a></h2>
+<p>지금까지 파이썬에서 C 함수를 호출할 수 있도록 하는 데 집중했습니다. 그 반대도 유용합니다: C에서 파이썬 함수 호출하기. 이것은 특히 &quot;콜백&quot; 함수를 지원하는 라이브러리의 경우에 해당합니다. C 인터페이스가 콜백을 사용하면, 동등한 파이썬은 종종 파이썬 프로그래머에게 콜백 메커니즘을 제공해야할 필요가 있습니다; 구현은 C 콜백에서 파이썬 콜백 함수를 호출해야 합니다. 다른 용도도 상상할 수 있습니다.</p>
+<p>다행히, 파이썬 인터프리터는 재귀적으로 쉽게 호출되며, 파이썬 함수를 호출하는 표준 인터페이스가 있습니다. (특정 문자열을 입력으로 파이썬 파서를 호출하는 방법에 대해서는 다루지 않겠습니다 --- 관심이 있다면, 파이썬 소스 코드에서 <code class="file docutils literal notranslate"><span class="pre">Modules/main.c</span></code>의 <a class="reference internal" href="../using/cmdline.html#cmdoption-c"><code class="xref std std-option docutils literal notranslate"><span class="pre">-c</span></code></a> 명령 줄 옵션 구현을 살펴보십시오.)</p>
+<p>파이썬 함수를 호출하는 것은 쉽습니다. 먼저, 파이썬 프로그램은 어떻게 든 여러분에게 파이썬 함수 객체를 전달해야합니다. 이를 위해 함수(또는 다른 인터페이스)를 제공해야 합니다. 이 함수가 호출될 때, 전역 변수(또는 여러분이 보기에 적절한 곳 어디에나)에 파이썬 함수 객체에 대한 포인터를 저장하십시오 (<a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a>해야 하는 것에 주의하십시오!). 예를 들어, 다음 함수는 모듈 정의의 일부일 수 있습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">my_callback</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
 
 <span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
@@ -390,10 +360,10 @@ be part of a module definition:</p>
             <span class="n">PyErr_SetString</span><span class="p">(</span><span class="n">PyExc_TypeError</span><span class="p">,</span> <span class="s">&quot;parameter must be callable&quot;</span><span class="p">);</span>
             <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
         <span class="p">}</span>
-        <span class="n">Py_XINCREF</span><span class="p">(</span><span class="n">temp</span><span class="p">);</span>         <span class="cm">/* Add a reference to new callback */</span>
-        <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">my_callback</span><span class="p">);</span>  <span class="cm">/* Dispose of previous callback */</span>
-        <span class="n">my_callback</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>       <span class="cm">/* Remember new callback */</span>
-        <span class="cm">/* Boilerplate to return &quot;None&quot; */</span>
+        <span class="n">Py_XINCREF</span><span class="p">(</span><span class="n">temp</span><span class="p">);</span>         <span class="cm">/* 새 콜백에 대한 참조를 추가합니다 */</span>
+        <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">my_callback</span><span class="p">);</span>  <span class="cm">/* 이전 콜백을 처리합니다 */</span>
+        <span class="n">my_callback</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>       <span class="cm">/* 새 콜백을 기억합니다 */</span>
+        <span class="cm">/* &quot;None&quot;을 반환하는 보일러 플레이트 */</span>
         <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">Py_None</span><span class="p">);</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">Py_None</span><span class="p">;</span>
     <span class="p">}</span>
@@ -401,114 +371,67 @@ be part of a module definition:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This function must be registered with the interpreter using the
-<a class="reference internal" href="../c-api/structures.html#METH_VARARGS" title="METH_VARARGS"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_VARARGS</span></code></a> flag; this is described in section <a class="reference internal" href="#methodtable"><span class="std std-ref">모듈의 메서드 테이블과 초기화 함수</span></a>.  The
-<a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> function and its arguments are documented in section
-<a class="reference internal" href="#parsetuple"><span class="std std-ref">확장 함수에서 매개 변수 추출하기</span></a>.</p>
-<p>The macros <a class="reference internal" href="../c-api/refcounting.html#c.Py_XINCREF" title="Py_XINCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XINCREF()</span></code></a> and <a class="reference internal" href="../c-api/refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a> increment/decrement the
-reference count of an object and are safe in the presence of <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointers
-(but note that <em>temp</em> will not be  <code class="docutils literal notranslate"><span class="pre">NULL</span></code> in this context).  More info on them
-in section <a class="reference internal" href="#refcounts"><span class="std std-ref">Reference Counts</span></a>.</p>
-<p id="index-1">Later, when it is time to call the function, you call the C function
-<a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>.  This function has two arguments, both pointers to
-arbitrary Python objects: the Python function, and the argument list.  The
-argument list must always be a tuple object, whose length is the number of
-arguments.  To call the Python function with no arguments, pass in <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, or
-an empty tuple; to call it with one argument, pass a singleton tuple.
-<a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a> returns a tuple when its format string consists of zero
-or more format codes between parentheses.  For example:</p>
+<p>이 함수는 <a class="reference internal" href="../c-api/structures.html#METH_VARARGS" title="METH_VARARGS"><code class="xref py py-const docutils literal notranslate"><span class="pre">METH_VARARGS</span></code></a> 플래그를 사용하여 인터프리터에 등록해야합니다; 이것은 섹션 <a class="reference internal" href="#methodtable"><span class="std std-ref">모듈의 메서드 테이블과 초기화 함수</span></a>에 설명되어 있습니다. <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> 함수와 그것의 인자는 <a class="reference internal" href="#parsetuple"><span class="std std-ref">확장 함수에서 매개 변수 추출하기</span></a> 섹션에 설명되어 있습니다.</p>
+<p>매크로 <a class="reference internal" href="../c-api/refcounting.html#c.Py_XINCREF" title="Py_XINCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XINCREF()</span></code></a>와 <a class="reference internal" href="../c-api/refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a>는 객체의 참조 횟수를 증가/감소 시키며 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 포인터가 있을 때 안전합니다 (그러나 이 문맥에서 <em>temp</em>는 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아님에 유의하십시오). 섹션 <a class="reference internal" href="#refcounts"><span class="std std-ref">Reference Counts</span></a>에 이에 대한 자세한 정보가 있습니다.</p>
+<p id="index-1">나중에, 함수를 호출할 때, C 함수 <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>를 호출합니다. 이 함수에는 두 개의 인자가 있는데, 모두 임의의 파이썬 객체에 대한 포인터입니다: 파이썬 함수와 인자 목록. 인자 목록은 항상 길이가 인자의 수인 튜플 객체여야 합니다. 인자없이 파이썬 함수를 호출하려면, <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이나 빈 튜플을 전달하십시오; 하나의 인자로 호출하려면, 단항목 튜플을 전달하십시오. <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>는 포맷 문자열이 괄호 사이에 0개 이상의 포맷 코드로 구성되었을 때 튜플을 반환합니다. 예를 들면:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">arg</span><span class="p">;</span>
 <span class="n">PyObject</span> <span class="o">*</span><span class="n">arglist</span><span class="p">;</span>
 <span class="n">PyObject</span> <span class="o">*</span><span class="n">result</span><span class="p">;</span>
 <span class="p">...</span>
 <span class="n">arg</span> <span class="o">=</span> <span class="mi">123</span><span class="p">;</span>
 <span class="p">...</span>
-<span class="cm">/* Time to call the callback */</span>
+<span class="cm">/* 콜백을 호출할 시간입니다 */</span>
 <span class="n">arglist</span> <span class="o">=</span> <span class="n">Py_BuildValue</span><span class="p">(</span><span class="s">&quot;(i)&quot;</span><span class="p">,</span> <span class="n">arg</span><span class="p">);</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">PyObject_CallObject</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">arglist</span><span class="p">);</span>
 <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">arglist</span><span class="p">);</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a> returns a Python object pointer: this is the return
-value of the Python function.  <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a> is
-&quot;reference-count-neutral&quot; with respect to its arguments.  In the example a new
-tuple was created to serve as the argument list, which is
-<a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>-ed immediately after the <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>
-call.</p>
-<p>The return value of <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a> is &quot;new&quot;: either it is a brand
-new object, or it is an existing object whose reference count has been
-incremented.  So, unless you want to save it in a global variable, you should
-somehow <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> the result, even (especially!) if you are not
-interested in its value.</p>
-<p>Before you do this, however, it is important to check that the return value
-isn't <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  If it is, the Python function terminated by raising an exception.
-If the C code that called <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a> is called from Python, it
-should now return an error indication to its Python caller, so the interpreter
-can print a stack trace, or the calling Python code can handle the exception.
-If this is not possible or desirable, the exception should be cleared by calling
-<a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Clear" title="PyErr_Clear"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Clear()</span></code></a>.  For example:</p>
+<p><a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>는 파이썬 객체 포인터를 반환합니다: 이것은 파이썬 함수의 반환 값입니다. <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>는 인자와 관련하여 &quot;참조 횟수 중립적&quot;입니다. 이 예에서는 <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a> 호출 직후 <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>되는 인자 목록으로 사용할 새 튜플이 만들어졌습니다.</p>
+<p><a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>의 반환 값은 &quot;새 것&quot;입니다: 완전히 새로운 객체이거나 참조 횟수가 증가한 기존 객체입니다. 따라서, 전역 변수에 저장하려는 것이 아닌 한, 설사 (특히!) 그 값에 관심이 없더라도 결과를 <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>해야 합니다.</p>
+<p>그러나, 이 작업을 수행하기 전에 반환 값이 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌지 확인해야 합니다. 그렇다면, 파이썬 함수는 예외를 발생시켜 종료한 것입니다. <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>라는 C 코드가 파이썬에서 호출되었다면 이제 파이썬 호출자에게 에러 표시를 반환하여, 인터프리터가 스택 트레이스를 인쇄하거나 호출하는 파이썬 코드가 예외를 처리할 수 있도록 합니다. 이것이 불가능하거나 바람직하지 않으면, <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Clear" title="PyErr_Clear"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Clear()</span></code></a>를 호출하여 예외를 지워야 합니다. 예를 들면:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* Pass error back */</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* 에러를 돌려줍니다 */</span>
 <span class="p">...</span><span class="n">use</span> <span class="n">result</span><span class="p">...</span>
 <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Depending on the desired interface to the Python callback function, you may also
-have to provide an argument list to <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>.  In some cases
-the argument list is also provided by the Python program, through the same
-interface that specified the callback function.  It can then be saved and used
-in the same manner as the function object.  In other cases, you may have to
-construct a new tuple to pass as the argument list.  The simplest way to do this
-is to call <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>.  For example, if you want to pass an integral
-event code, you might use the following code:</p>
+<p>파이썬 콜백 함수에 대해 원하는 인터페이스에 따라, <a class="reference internal" href="../c-api/object.html#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a>에 인자 목록을 제공해야 할 수도 있습니다. 경우에 따라 인자 목록은 콜백 함수를 지정한 같은 인터페이스를 통해 파이썬 프로그램에서 제공됩니다. 그런 다음 함수 객체와 같은 방식으로 저장하고 사용할 수 있습니다. 다른 경우에는, 인자 목록으로 전달할 새 튜플을 구성해야 할 수도 있습니다. 이렇게 하는 가장 간단한 방법은 <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>를 호출하는 것입니다. 예를 들어, 정수 이벤트 코드를 전달하려면, 다음 코드를 사용할 수 있습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="n">arglist</span><span class="p">;</span>
 <span class="p">...</span>
 <span class="n">arglist</span> <span class="o">=</span> <span class="n">Py_BuildValue</span><span class="p">(</span><span class="s">&quot;(l)&quot;</span><span class="p">,</span> <span class="n">eventcode</span><span class="p">);</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">PyObject_CallObject</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">arglist</span><span class="p">);</span>
 <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">arglist</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* Pass error back */</span>
-<span class="cm">/* Here maybe use the result */</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* 에러를 돌려줍니다 */</span>
+<span class="cm">/* 여기서 아마도 result를 사용합니다 */</span>
 <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Note the placement of <code class="docutils literal notranslate"><span class="pre">Py_DECREF(arglist)</span></code> immediately after the call, before
-the error check!  Also note that strictly speaking this code is not complete:
-<a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a> may run out of memory, and this should be checked.</p>
-<p>You may also call a function with keyword arguments by using
-<a class="reference internal" href="../c-api/object.html#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call()</span></code></a>, which supports arguments and keyword arguments.  As in
-the above example, we use <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a> to construct the dictionary.</p>
+<p>호출 직후, 에러 점검 전에 <code class="docutils literal notranslate"><span class="pre">Py_DECREF(arglist)</span></code>의 배치에 유의하십시오! 또한 엄격하게 말하면 이 코드가 완전하지 않음에도 유의하십시오: <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>에 메모리가 부족할 수 있어서 확인해야 합니다.</p>
+<p>인자와 키워드 인자를 지원하는 <a class="reference internal" href="../c-api/object.html#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call()</span></code></a>을 사용하여 키워드 인자가 있는 함수를 호출할 수도 있습니다. 위의 예에서와 같이, <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>를 사용하여 딕셔너리를 구성합니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="n">dict</span><span class="p">;</span>
 <span class="p">...</span>
 <span class="n">dict</span> <span class="o">=</span> <span class="n">Py_BuildValue</span><span class="p">(</span><span class="s">&quot;{s:i}&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="n">val</span><span class="p">);</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">PyObject_Call</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">dict</span><span class="p">);</span>
 <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">dict</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* Pass error back */</span>
-<span class="cm">/* Here maybe use the result */</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* 에러를 돌려줍니다 */</span>
+<span class="cm">/* 여기서 아마도 result를 사용합니다 */</span>
 <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="extracting-parameters-in-extension-functions">
 <span id="parsetuple"></span><h2><span class="section-number">1.7. </span>확장 함수에서 매개 변수 추출하기<a class="headerlink" href="#extracting-parameters-in-extension-functions" title="제목 주소">¶</a></h2>
-<p id="index-2">The <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> function is declared as follows:</p>
+<p id="index-2"><a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> 함수는 다음과 같이 선언됩니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">PyArg_ParseTuple</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
 </pre></div>
 </div>
-<p>The <em>arg</em> argument must be a tuple object containing an argument list passed
-from Python to a C function.  The <em>format</em> argument must be a format string,
-whose syntax is explained in <a class="reference internal" href="../c-api/arg.html#arg-parsing"><span class="std std-ref">Parsing arguments and building values</span></a> in the Python/C API Reference
-Manual.  The remaining arguments must be addresses of variables whose type is
-determined by the format string.</p>
-<p>Note that while <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> checks that the Python arguments have
-the required types, it cannot check the validity of the addresses of C variables
-passed to the call: if you make mistakes there, your code will probably crash or
-at least overwrite random bits in memory.  So be careful!</p>
-<p>Note that any Python object references which are provided to the caller are
-<em>borrowed</em> references; do not decrement their reference count!</p>
-<p>Some example calls:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN  </span><span class="cm">/* Make &quot;s#&quot; use Py_ssize_t rather than int. */</span><span class="cp"></span>
+<p><em>arg</em> 인자는 파이썬에서 C 함수로 전달되는 인자 목록이 포함된 튜플 객체여야 합니다. <em>format</em> 인자는 포맷 문자열이어야 하며, 문법은 파이썬/C API 레퍼런스 매뉴얼의 <a class="reference internal" href="../c-api/arg.html#arg-parsing"><span class="std std-ref">Parsing arguments and building values</span></a>에 설명되어 있습니다. 나머지 인자는 포맷 문자열에 의해 형이 결정되는 변수의 주소여야 합니다.</p>
+<p><a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>은 파이썬 인자가 요구되는 형인지 확인하지만, 호출에 전달된 C 변수 주소의 유효성을 확인할 수는 없습니다: 실수를 하면, 코드가 충돌하거나 적어도 메모리의 임의 비트를 덮어 씁니다. 그러니 조심하십시오!</p>
+<p>호출자에게 제공되는 모든 파이썬 객체 참조는 <em>빌려온(borrowed)</em> 참조임에 유의하십시오; 참조 횟수를 줄이지 마십시오!</p>
+<p>몇가지 예제 호출:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN  </span><span class="cm">/* &quot;s#&quot;이 int대신 Py_ssize_t를 사용하도록 만듭니다. */</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 </pre></div>
 </div>
@@ -518,21 +441,21 @@ at least overwrite random bits in memory.  So be careful!</p>
 <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span>
 <span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">;</span>
 
-<span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span> <span class="cm">/* No arguments */</span>
-    <span class="cm">/* Python call: f() */</span>
+<span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span> <span class="cm">/* 인자가 없습니다 */</span>
+    <span class="cm">/* 파이썬 호출: f() */</span>
 </pre></div>
 </div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;s&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span> <span class="cm">/* A string */</span>
-    <span class="cm">/* Possible Python call: f(&#39;whoops!&#39;) */</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;s&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span> <span class="cm">/* 문자열 */</span>
+    <span class="cm">/* 가능한 파이썬 호출: f(&#39;whoops!&#39;) */</span>
 </pre></div>
 </div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;lls&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">k</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">l</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span> <span class="cm">/* Two longs and a string */</span>
-    <span class="cm">/* Possible Python call: f(1, 2, &#39;three&#39;) */</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;lls&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">k</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">l</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span> <span class="cm">/* 두 개의 long과 문자열 */</span>
+    <span class="cm">/* 가능한 파이썬 호출: f(1, 2, &#39;three&#39;) */</span>
 </pre></div>
 </div>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;(ii)s#&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">i</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">j</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">);</span>
-    <span class="cm">/* A pair of ints and a string, whose size is also returned */</span>
-    <span class="cm">/* Possible Python call: f((1, 2), &#39;three&#39;) */</span>
+    <span class="cm">/* int 쌍과 문자열, 문자열의 크기도 반환됩니다 */</span>
+    <span class="cm">/* 가능한 파이썬 호출: f((1, 2), &#39;three&#39;) */</span>
 </pre></div>
 </div>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -540,8 +463,8 @@ at least overwrite random bits in memory.  So be careful!</p>
     <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">mode</span> <span class="o">=</span> <span class="s">&quot;r&quot;</span><span class="p">;</span>
     <span class="kt">int</span> <span class="n">bufsize</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;s|si&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">file</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">mode</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">bufsize</span><span class="p">);</span>
-    <span class="cm">/* A string, and optionally another string and an integer */</span>
-    <span class="cm">/* Possible Python calls:</span>
+    <span class="cm">/* 문자열, 그리고 선택적으로 또 다른 문자열과 정수 */</span>
+    <span class="cm">/* 가능한 파이썬 호출:</span>
 <span class="cm">       f(&#39;spam&#39;)</span>
 <span class="cm">       f(&#39;spam&#39;, &#39;w&#39;)</span>
 <span class="cm">       f(&#39;spam&#39;, &#39;wb&#39;, 100000) */</span>
@@ -552,8 +475,8 @@ at least overwrite random bits in memory.  So be careful!</p>
     <span class="kt">int</span> <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">;</span>
     <span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;((ii)(ii))(ii)&quot;</span><span class="p">,</span>
              <span class="o">&amp;</span><span class="n">left</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">top</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">right</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">bottom</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">h</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">);</span>
-    <span class="cm">/* A rectangle and a point */</span>
-    <span class="cm">/* Possible Python call:</span>
+    <span class="cm">/* 직사각형과 점 */</span>
+    <span class="cm">/* 가능한 파이썬 호출:</span>
 <span class="cm">       f(((0, 0), (400, 300)), (10, 10)) */</span>
 <span class="p">}</span>
 </pre></div>
@@ -561,15 +484,15 @@ at least overwrite random bits in memory.  So be careful!</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="n">Py_complex</span> <span class="n">c</span><span class="p">;</span>
     <span class="n">ok</span> <span class="o">=</span> <span class="n">PyArg_ParseTuple</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&quot;D:myfunction&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">c</span><span class="p">);</span>
-    <span class="cm">/* a complex, also providing a function name for errors */</span>
-    <span class="cm">/* Possible Python call: myfunction(1+2j) */</span>
+    <span class="cm">/* 복소수, 에러를 위한 함수 이름도 제공합니다 */</span>
+    <span class="cm">/* 가능한 파이썬 호출: myfunction(1+2j) */</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="keyword-parameters-for-extension-functions">
-<span id="parsetupleandkeywords"></span><h2><span class="section-number">1.8. </span>Keyword Parameters for Extension Functions<a class="headerlink" href="#keyword-parameters-for-extension-functions" title="제목 주소">¶</a></h2>
-<p id="index-3">The <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a> function is declared as follows:</p>
+<span id="parsetupleandkeywords"></span><h2><span class="section-number">1.8. </span>확장 함수를 위한 키워드 매개 변수<a class="headerlink" href="#keyword-parameters-for-extension-functions" title="제목 주소">¶</a></h2>
+<p id="index-3"><a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a> 함수는 다음과 같이 선언됩니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">PyArg_ParseTupleAndKeywords</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">kwdict</span><span class="p">,</span>
                                 <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">kwlist</span><span class="p">[],</span> <span class="p">...);</span>
 </pre></div>
@@ -1167,9 +1090,9 @@ this is still found in much existing code.</p>
 <li><a class="reference internal" href="#back-to-the-example">1.3. 예제로 돌아 가기</a></li>
 <li><a class="reference internal" href="#the-module-s-method-table-and-initialization-function">1.4. 모듈의 메서드 테이블과 초기화 함수</a></li>
 <li><a class="reference internal" href="#compilation-and-linkage">1.5. 컴파일과 링크</a></li>
-<li><a class="reference internal" href="#calling-python-functions-from-c">1.6. Calling Python Functions from C</a></li>
+<li><a class="reference internal" href="#calling-python-functions-from-c">1.6. C에서 파이썬 함수 호출하기</a></li>
 <li><a class="reference internal" href="#extracting-parameters-in-extension-functions">1.7. 확장 함수에서 매개 변수 추출하기</a></li>
-<li><a class="reference internal" href="#keyword-parameters-for-extension-functions">1.8. Keyword Parameters for Extension Functions</a></li>
+<li><a class="reference internal" href="#keyword-parameters-for-extension-functions">1.8. 확장 함수를 위한 키워드 매개 변수</a></li>
 <li><a class="reference internal" href="#building-arbitrary-values">1.9. Building Arbitrary Values</a></li>
 <li><a class="reference internal" href="#reference-counts">1.10. Reference Counts</a><ul>
 <li><a class="reference internal" href="#reference-counting-in-python">1.10.1. Reference Counting in Python</a></li>
