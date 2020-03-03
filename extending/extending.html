@@ -261,7 +261,7 @@
     <span class="p">{</span><span class="s">&quot;system&quot;</span><span class="p">,</span>  <span class="n">spam_system</span><span class="p">,</span> <span class="n">METH_VARARGS</span><span class="p">,</span>
      <span class="s">&quot;Execute a shell command.&quot;</span><span class="p">},</span>
     <span class="p">...</span>
-    <span class="p">{</span><span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">}</span>        <span class="cm">/* Sentinel */</span>
+    <span class="p">{</span><span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">}</span>        <span class="cm">/* 끝 표지 */</span>
 <span class="p">};</span>
 </pre></div>
 </div>
@@ -271,10 +271,10 @@
 <p>메서드 테이블은 모듈 정의 구조체에서 참조되어야 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="n">PyModuleDef</span> <span class="n">spammodule</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">PyModuleDef_HEAD_INIT</span><span class="p">,</span>
-    <span class="s">&quot;spam&quot;</span><span class="p">,</span>   <span class="cm">/* name of module */</span>
-    <span class="n">spam_doc</span><span class="p">,</span> <span class="cm">/* module documentation, may be NULL */</span>
-    <span class="o">-</span><span class="mi">1</span><span class="p">,</span>       <span class="cm">/* size of per-interpreter state of the module,</span>
-<span class="cm">                 or -1 if the module keeps state in global variables. */</span>
+    <span class="s">&quot;spam&quot;</span><span class="p">,</span>   <span class="cm">/* 모듈의 이름 */</span>
+    <span class="n">spam_doc</span><span class="p">,</span> <span class="cm">/* 모듈 설명, NULL일 수 있습니다 */</span>
+    <span class="o">-</span><span class="mi">1</span><span class="p">,</span>       <span class="cm">/* 모듈의 인터프리터별 상태의 크기,</span>
+<span class="cm">                 또는 모듈이 전역 변수에 상태를 유지하면 -1. */</span>
     <span class="n">SpamMethods</span>
 <span class="p">};</span>
 </pre></div>
@@ -289,7 +289,7 @@
 </div>
 <p>PyMODINIT_FUNC는 함수를 <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code> 반환 형으로 선언하고, 플랫폼에 필요한 특수 링크 선언을 선언하며, C++의 경우 함수를 <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code>로 선언함에 유의하십시오.</p>
 <p>파이썬 프로그램이 처음으로 모듈 <code class="xref py py-mod docutils literal notranslate"><span class="pre">spam</span></code>를 임포트할 때, <code class="xref c c-func docutils literal notranslate"><span class="pre">PyInit_spam()</span></code>이 호출됩니다. (파이썬 내장에 대해서는 아래에서 언급합니다.) 이는 <a class="reference internal" href="../c-api/module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a>를 호출하는데, 모듈 객체를 반환하고 모듈 정의에서 찾은 테이블(<a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> 구조체의 배열)을 기반으로 내장 함수 객체들을 새로 만든 모듈에 삽입합니다. <a class="reference internal" href="../c-api/module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a>는 만든 모듈 객체에 대한 포인터를 반환합니다. 특정 에러의 경우 치명적인 에러로 중단되거나, 모듈을 만족스럽게 초기화할 수 없으면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환할 수 있습니다. 초기화 함수는 모듈 객체를 호출자에게 반환해야합니다. 그러면 <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>에 삽입됩니다.</p>
-<p>파이썬을 내장할 때, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyImport_Inittab</span></code> 테이블에 항목이 없으면 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyInit_spam()</span></code> 함수가 자동으로 호출되지 않습니다. 모듈을 초기화 테이블에 추가하려면, <a class="reference internal" href="../c-api/import.html#c.PyImport_AppendInittab" title="PyImport_AppendInittab"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_AppendInittab()</span></code></a>을 사용하고, 선택적으로 드 다음에 모듈을 임포트합니다:</p>
+<p>파이썬을 내장할 때, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyImport_Inittab</span></code> 테이블에 항목이 없으면 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyInit_spam()</span></code> 함수가 자동으로 호출되지 않습니다. 모듈을 초기화 테이블에 추가하려면, <a class="reference internal" href="../c-api/import.html#c.PyImport_AppendInittab" title="PyImport_AppendInittab"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_AppendInittab()</span></code></a>을 사용하고, 선택적으로 그 다음에 모듈을 임포트합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
 <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
 <span class="p">{</span>
@@ -299,18 +299,17 @@
         <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
     <span class="p">}</span>
 
-    <span class="cm">/* Add a built-in module, before Py_Initialize */</span>
+    <span class="cm">/* Py_Initialize 앞에 내장 모듈을 추가합니다 */</span>
     <span class="n">PyImport_AppendInittab</span><span class="p">(</span><span class="s">&quot;spam&quot;</span><span class="p">,</span> <span class="n">PyInit_spam</span><span class="p">);</span>
 
-    <span class="cm">/* Pass argv[0] to the Python interpreter */</span>
+    <span class="cm">/* 파이썬 인터프리터로 argv[0] 을 전달합니다 */</span>
     <span class="n">Py_SetProgramName</span><span class="p">(</span><span class="n">program</span><span class="p">);</span>
 
-    <span class="cm">/* Initialize the Python interpreter.  Required. */</span>
+    <span class="cm">/* 파이썬 인터프리터를 초기화합니다. 필수. */</span>
     <span class="n">Py_Initialize</span><span class="p">();</span>
 
-    <span class="cm">/* Optionally import the module; alternatively,</span>
-<span class="cm">       import can be deferred until the embedded script</span>
-<span class="cm">       imports it. */</span>
+    <span class="cm">/* 선택적으로 모듈을 임포트 합니다; 또는, 내장된 스크립트가 임포트</span>
+<span class="cm">       할 때까지 임포트를 지연시킬 수 있습니다. */</span>
     <span class="n">PyImport_ImportModule</span><span class="p">(</span><span class="s">&quot;spam&quot;</span><span class="p">);</span>
 
     <span class="p">...</span>
