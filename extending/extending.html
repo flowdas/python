@@ -595,40 +595,15 @@ Py_BuildValue(&quot;((ii)(ii)) (ii)&quot;,
 <p>참조 횟수의 증가와 감소를 처리하는 두 개의 매크로 <code class="docutils literal notranslate"><span class="pre">Py_INCREF(x)</span></code>와 <code class="docutils literal notranslate"><span class="pre">Py_DECREF(x)</span></code>가 있습니다. <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>는 횟수가 0에 도달하면 객체를 해제하기도 합니다. 유연성을 위해, <code class="xref c c-func docutils literal notranslate"><span class="pre">free()</span></code>를 직접 호출하지 않습니다 --- 대신, 객체의 <em class="dfn">형 객체(type object)</em>에 있는 함수 포인터를 통해 호출합니다. 이 목적(및 기타)을 위해 모든 객체에는 해당 형 객체에 대한 포인터도 포함됩니다.</p>
 <p>이제 큰 질문이 남습니다: 언제 <code class="docutils literal notranslate"><span class="pre">Py_INCREF(x)</span></code>와 <code class="docutils literal notranslate"><span class="pre">Py_DECREF(x)</span></code>를 사용합니까? 먼저 몇 가지 용어를 소개하겠습니다. 아무도 객체를 &quot;소유(owns)&quot;하지 않습니다ㅣ 그러나, 객체에 대한 <em class="dfn">참조를 소유(own a reference)</em>할 수 있습니다. 객체의 참조 횟수는 이제 이 객체에 대한 참조를 소유한 수로 정의됩니다. 참조 소유자는 더는 참조가 필요하지 않을 때 <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>를 호출해야 합니다. 참조의 소유권을 양도 할 수 있습니다. 소유한 참조를 처리하는 세 가지 방법이 있습니다: 전달, 저장 및 <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> 호출. 소유한 참조를 처리하지 않으면 메모리 누수가 발생합니다.</p>
 <p>객체에 대한 참조를 <em class="dfn">빌리는(borrow)</em> <a class="footnote-reference brackets" href="#id6" id="id2">2</a> 것도 가능합니다. 참조의 대여자(borrower)는 <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>를 호출해서는 안됩니다. 대여지는 빌린 소유자보다 더 오래 객체를 붙잡아서는 안됩니다. 소유자가 처리한 후 빌린 참조를 사용하면 해제 된 메모리를 사용할 위험이 있으므로 절대 피해야합니다 <a class="footnote-reference brackets" href="#id7" id="id3">3</a>.</p>
-<p>The advantage of borrowing over owning a reference is that you don't need to
-take care of disposing of the reference on all possible paths through the code
---- in other words, with a borrowed reference you don't run the risk of leaking
-when a premature exit is taken.  The disadvantage of borrowing over owning is
-that there are some subtle situations where in seemingly correct code a borrowed
-reference can be used after the owner from which it was borrowed has in fact
-disposed of it.</p>
-<p>A borrowed reference can be changed into an owned reference by calling
-<a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a>.  This does not affect the status of the owner from which the
-reference was borrowed --- it creates a new owned reference, and gives full
-owner responsibilities (the new owner must dispose of the reference properly, as
-well as the previous owner).</p>
+<p>참조 소유에 비교할 때 빌리기의 이점은 코드를 통한 가능한 모든 경로에서 참조를 처리할 필요가 없다는 것입니다 --- 즉, 빌려온 참조를 사용하면 조기 종료시에 누수의 위험이 없습니다. 소유하는 것에 비해 빌리는 것의 단점은, 겉보기에는 올바른 코드지만, 빌려준 소유자가 실제로는 참조를 처리 한 후에 빌린 참조가 사용될 수 있는 미묘한 상황이 있다는 것입니다.</p>
+<p>빌린 참조는 <a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a>를 호출하여 소유한 참조로 변경할 수 있습니다. 이는 참조를 빌려온 소유자의 상태에 영향을 미치지 않습니다 --- 새로운 소유된 참조를 만들고, 완전한 소유자 책임을 부여합니다 (이전 소유자뿐만 아니라, 새 소유자는 참조를 올바르게 처리해야합니다).</p>
 </div>
 <div class="section" id="ownership-rules">
-<span id="ownershiprules"></span><h3><span class="section-number">1.10.2. </span>Ownership Rules<a class="headerlink" href="#ownership-rules" title="제목 주소">¶</a></h3>
-<p>Whenever an object reference is passed into or out of a function, it is part of
-the function's interface specification whether ownership is transferred with the
-reference or not.</p>
-<p>Most functions that return a reference to an object pass on ownership with the
-reference.  In particular, all functions whose function it is to create a new
-object, such as <a class="reference internal" href="../c-api/long.html#c.PyLong_FromLong" title="PyLong_FromLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyLong_FromLong()</span></code></a> and <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>, pass
-ownership to the receiver.  Even if the object is not actually new, you still
-receive ownership of a new reference to that object.  For instance,
-<a class="reference internal" href="../c-api/long.html#c.PyLong_FromLong" title="PyLong_FromLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyLong_FromLong()</span></code></a> maintains a cache of popular values and can return a
-reference to a cached item.</p>
-<p>Many functions that extract objects from other objects also transfer ownership
-with the reference, for instance <a class="reference internal" href="../c-api/object.html#c.PyObject_GetAttrString" title="PyObject_GetAttrString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetAttrString()</span></code></a>.  The picture
-is less clear, here, however, since a few common routines are exceptions:
-<a class="reference internal" href="../c-api/tuple.html#c.PyTuple_GetItem" title="PyTuple_GetItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyTuple_GetItem()</span></code></a>, <a class="reference internal" href="../c-api/list.html#c.PyList_GetItem" title="PyList_GetItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyList_GetItem()</span></code></a>, <a class="reference internal" href="../c-api/dict.html#c.PyDict_GetItem" title="PyDict_GetItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_GetItem()</span></code></a>, and
-<a class="reference internal" href="../c-api/dict.html#c.PyDict_GetItemString" title="PyDict_GetItemString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_GetItemString()</span></code></a> all return references that you borrow from the
-tuple, list or dictionary.</p>
-<p>The function <a class="reference internal" href="../c-api/import.html#c.PyImport_AddModule" title="PyImport_AddModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_AddModule()</span></code></a> also returns a borrowed reference, even
-though it may actually create the object it returns: this is possible because an
-owned reference to the object is stored in <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>.</p>
+<span id="ownershiprules"></span><h3><span class="section-number">1.10.2. </span>소유권 규칙<a class="headerlink" href="#ownership-rules" title="제목 주소">¶</a></h3>
+<p>객체 참조가 함수 안팎으로 전달 될 때마다, 소유권이 참조와 함께 전달되는지 그렇지 않은지는 함수 인터페이스 명세의 일부입니다.</p>
+<p>객체에 대한 참조를 반환하는 대부분의 함수는 참조와 함께 소유권을 전달합니다. 특히, <a class="reference internal" href="../c-api/long.html#c.PyLong_FromLong" title="PyLong_FromLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyLong_FromLong()</span></code></a>이나 <a class="reference internal" href="../c-api/arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a>와 같은 새 객체를 만드는 기능을 가진 모든 함수는 소유권을 수신자에게 전달합니다. 객체가 실제로 새 객체가 아니더라도, 여전히 해당 객체에 대한 새 참조의 소유권을 받습니다. 예를 들어, <a class="reference internal" href="../c-api/long.html#c.PyLong_FromLong" title="PyLong_FromLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyLong_FromLong()</span></code></a>은 흔히 사용되는 값의 캐시를 유지하고 캐시 된 항목에 대한 참조를 반환할 수 있습니다.</p>
+<p>다른 객체에서 객체를 추출하는 많은 함수들도 참조와 함께 소유권을 전달합니다, 예를 들어 <a class="reference internal" href="../c-api/object.html#c.PyObject_GetAttrString" title="PyObject_GetAttrString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetAttrString()</span></code></a>. 그러나 몇 가지 일반적인 루틴이 예외이기 때문에 그림이 명확하지 않습니다: <a class="reference internal" href="../c-api/tuple.html#c.PyTuple_GetItem" title="PyTuple_GetItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyTuple_GetItem()</span></code></a>, <a class="reference internal" href="../c-api/list.html#c.PyList_GetItem" title="PyList_GetItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyList_GetItem()</span></code></a>, <a class="reference internal" href="../c-api/dict.html#c.PyDict_GetItem" title="PyDict_GetItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_GetItem()</span></code></a> 및 <a class="reference internal" href="../c-api/dict.html#c.PyDict_GetItemString" title="PyDict_GetItemString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_GetItemString()</span></code></a>은 모두 튜플, 리스트 또는 딕셔너리에서 빌린 참조를 반환합니다.</p>
+<p><a class="reference internal" href="../c-api/import.html#c.PyImport_AddModule" title="PyImport_AddModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_AddModule()</span></code></a> 함수도 실제는 반환하는 객체를 만들 수 있지만 빌린 참조를 반환합니다: 객체에 대한 소유한 참조가 <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>에 저장되어 있기 때문에 가능합니다.</p>
 <p>When you pass an object reference into another function, in general, the
 function borrows the reference from you --- if it needs to store it, it will use
 <a class="reference internal" href="../c-api/refcounting.html#c.Py_INCREF" title="Py_INCREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_INCREF()</span></code></a> to become an independent owner.  There are exactly two
@@ -1000,7 +975,7 @@ this is still found in much existing code.</p>
 <li><a class="reference internal" href="#building-arbitrary-values">1.9. 임의의 값을 구축하기</a></li>
 <li><a class="reference internal" href="#reference-counts">1.10. 참조 횟수</a><ul>
 <li><a class="reference internal" href="#reference-counting-in-python">1.10.1. 파이썬에서 참조 횟수 세기</a></li>
-<li><a class="reference internal" href="#ownership-rules">1.10.2. Ownership Rules</a></li>
+<li><a class="reference internal" href="#ownership-rules">1.10.2. 소유권 규칙</a></li>
 <li><a class="reference internal" href="#thin-ice">1.10.3. Thin Ice</a></li>
 <li><a class="reference internal" href="#null-pointers">1.10.4. NULL Pointers</a></li>
 </ul>
