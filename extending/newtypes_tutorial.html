@@ -828,9 +828,7 @@
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>To provide greater control, over the <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> attributes,
-we'll use custom getter and setter functions.  Here are the functions for
-getting and setting the <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> attribute:</p>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code>와 <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> 어트리뷰트를 더 효과적으로 제어하기 위해, 사용자 정의 게터(getter)와 세터(setter) 함수를 사용합니다. <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> 어트리뷰트를 가져오고 설정하는 함수는 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">Custom_getfirst</span><span class="p">(</span><span class="n">CustomObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">closure</span><span class="p">)</span>
 <span class="p">{</span>
@@ -859,16 +857,9 @@ getting and setting the <code class="xref py py-attr docutils literal notranslat
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The getter function is passed a <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> object and a &quot;closure&quot;, which is
-a void pointer.  In this case, the closure is ignored.  (The closure supports an
-advanced usage in which definition data is passed to the getter and setter. This
-could, for example, be used to allow a single set of getter and setter functions
-that decide the attribute to get or set based on data in the closure.)</p>
-<p>The setter function is passed the <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> object, the new value, and the
-closure.  The new value may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, in which case the attribute is being
-deleted.  In our setter, we raise an error if the attribute is deleted or if its
-new value is not a string.</p>
-<p>We create an array of <a class="reference internal" href="../c-api/structures.html#c.PyGetSetDef" title="PyGetSetDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyGetSetDef</span></code></a> structures:</p>
+<p>게터(getter) 함수에는 <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 객체와 &quot;클로저(closure)&quot;(void 포인터)가 전달됩니다. 이 경우, 클로저는 무시됩니다. (클로저는 정의 데이터가 게터(getter)와 세터(setter)로 전달되는 고급 사용법을 지원합니다. 예를 들어, 클로저의 데이터에 기반하여 가져오거나 설정할 어트리뷰트를 결정하는 단일 게터(getter)와 세터(setter) 함수 집합을 가능하게 합니다.)</p>
+<p>세터(setter) 함수에는 <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 객체, 새 값 및 클로저(closure)가 전달됩니다. 새 값은 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>일 수 있으며, 이 경우 어트리뷰트가 삭제됩니다. 세터(setter)에서, 우리는 어트리뷰트가 삭제되거나 새 값이 문자열이 아니면 에러를 발생시킵니다.</p>
+<p><a class="reference internal" href="../c-api/structures.html#c.PyGetSetDef" title="PyGetSetDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyGetSetDef</span></code></a> 구조체의 배열을 만듭니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyGetSetDef</span> <span class="n">Custom_getsetters</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="p">{</span><span class="s">&quot;first&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">getter</span><span class="p">)</span> <span class="n">Custom_getfirst</span><span class="p">,</span> <span class="p">(</span><span class="n">setter</span><span class="p">)</span> <span class="n">Custom_setfirst</span><span class="p">,</span>
      <span class="s">&quot;first name&quot;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">},</span>
@@ -878,13 +869,12 @@ new value is not a string.</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>and register it in the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_getset" title="PyTypeObject.tp_getset"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getset</span></code></a> slot:</p>
+<p>그리고 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_getset" title="PyTypeObject.tp_getset"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_getset</span></code></a> 슬롯에 등록합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_getset</span> <span class="o">=</span> <span class="n">Custom_getsetters</span><span class="p">,</span>
 </pre></div>
 </div>
-<p>The last item in a <a class="reference internal" href="../c-api/structures.html#c.PyGetSetDef" title="PyGetSetDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyGetSetDef</span></code></a> structure is the &quot;closure&quot; mentioned
-above.  In this case, we aren't using a closure, so we just pass <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
-<p>We also remove the member definitions for these attributes:</p>
+<p><a class="reference internal" href="../c-api/structures.html#c.PyGetSetDef" title="PyGetSetDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyGetSetDef</span></code></a> 구조체의 마지막 항목은 위에서 언급한 &quot;클로저&quot;입니다. 이 경우, 클로저를 사용하지 않아서, <code class="docutils literal notranslate"><span class="pre">NULL</span></code>만 전달합니다.</p>
+<p>또한 이러한 어트리뷰트에 대한 멤버 정의를 제거합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyMemberDef</span> <span class="n">Custom_members</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="p">{</span><span class="s">&quot;number&quot;</span><span class="p">,</span> <span class="n">T_INT</span><span class="p">,</span> <span class="n">offsetof</span><span class="p">(</span><span class="n">CustomObject</span><span class="p">,</span> <span class="n">number</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span>
      <span class="s">&quot;custom number&quot;</span><span class="p">},</span>
@@ -892,8 +882,7 @@ above.  In this case, we aren't using a closure, so we just pass <code class="do
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>We also need to update the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a> handler to only
-allow strings <a class="footnote-reference brackets" href="#id7" id="id3">3</a> to be passed:</p>
+<p>또한 문자열만 전달되도록 <a class="footnote-reference brackets" href="#id7" id="id3">3</a> <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a> 처리기를 갱신해야 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span>
 <span class="nf">Custom_init</span><span class="p">(</span><span class="n">CustomObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">kwds</span><span class="p">)</span>
 <span class="p">{</span>
@@ -921,35 +910,19 @@ allow strings <a class="footnote-reference brackets" href="#id7" id="id3">3</a> 
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>With these changes, we can assure that the <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> members are
-never <code class="docutils literal notranslate"><span class="pre">NULL</span></code> so we can remove checks for <code class="docutils literal notranslate"><span class="pre">NULL</span></code> values in almost all cases.
-This means that most of the <a class="reference internal" href="../c-api/refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a> calls can be converted to
-<a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> calls.  The only place we can't change these calls is in
-the <code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> implementation, where there is the possibility that the
-initialization of these members failed in <code class="docutils literal notranslate"><span class="pre">tp_new</span></code>.</p>
-<p>We also rename the module initialization function and module name in the
-initialization function, as we did before, and we add an extra definition to the
-<code class="file docutils literal notranslate"><span class="pre">setup.py</span></code> file.</p>
+<p>이러한 변경을 통해, <code class="docutils literal notranslate"><span class="pre">first</span></code>와 <code class="docutils literal notranslate"><span class="pre">last</span></code> 멤버가 절대 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니라고 확신할 수 있어서, 거의 모든 경우에 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 값 검사를 제거할 수 있습니다. 이것은 대부분의 <a class="reference internal" href="../c-api/refcounting.html#c.Py_XDECREF" title="Py_XDECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_XDECREF()</span></code></a> 호출이 <a class="reference internal" href="../c-api/refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> 호출로 변환될 수 있음을 의미합니다. 이러한 호출을 변경할 수 없는 유일한 장소는 <code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 구현에서 인데, <code class="docutils literal notranslate"><span class="pre">tp_new</span></code>에서 이 멤버의 초기화가 실패했을 가능성이 있습니다.</p>
+<p>또한 이전과 마찬가지로, 초기화 함수에서 모듈 초기화 함수와 모듈 이름을 바꾸고, <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code> 파일에 추가 정의를 추가합니다.</p>
 </div>
 <div class="section" id="supporting-cyclic-garbage-collection">
-<h2><span class="section-number">2.4. </span>Supporting cyclic garbage collection<a class="headerlink" href="#supporting-cyclic-garbage-collection" title="제목 주소">¶</a></h2>
-<p>Python has a <a class="reference internal" href="../glossary.html#term-garbage-collection"><span class="xref std std-term">cyclic garbage collector (GC)</span></a> that
-can identify unneeded objects even when their reference counts are not zero.
-This can happen when objects are involved in cycles.  For example, consider:</p>
+<h2><span class="section-number">2.4. </span>순환 가비지 수거 지원하기<a class="headerlink" href="#supporting-cyclic-garbage-collection" title="제목 주소">¶</a></h2>
+<p>파이썬에는 참조 횟수가 0이 아닐 때도 불필요한 객체를 식별할 수 있는 <a class="reference internal" href="../glossary.html#term-garbage-collection"><span class="xref std std-term">순환 가비지 수거기 (GC)</span></a>가 있습니다. 이것은 객체가 순환에 참여할 때 일어날 수 있습니다. 예를 들어, 다음을 고려하십시오:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">l</span>
 </pre></div>
 </div>
-<p>In this example, we create a list that contains itself. When we delete it, it
-still has a reference from itself. Its reference count doesn't drop to zero.
-Fortunately, Python's cyclic garbage collector will eventually figure out that
-the list is garbage and free it.</p>
-<p>In the second version of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> example, we allowed any kind of
-object to be stored in the <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> or <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> attributes <a class="footnote-reference brackets" href="#id8" id="id4">4</a>.
-Besides, in the second and third versions, we allowed subclassing
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code>, and subclasses may add arbitrary attributes.  For any of
-those two reasons, <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> objects can participate in cycles:</p>
+<p>이 예에서, 스스로를 포함하는 리스트를 만듭니다. 삭제해도 여전히 자체 참조가 있습니다. 참조 횟수가 0으로 떨어지지 않습니다. 다행스럽게도, 파이썬의 순환 가비지 수거기는 결국 리스트가 가비지임을 확인하고 해제합니다.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 예제의 두 번째 버전에서는, 모든 종류의 객체를 <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code>나 <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> 어트리뷰트에 저장할 수 있었습니다 <a class="footnote-reference brackets" href="#id8" id="id4">4</a>. 게다가 두 번째와 세 번째 버전에서는, <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code>을 서브 클래싱 할 수 있었고, 서브 클래스는 임의의 어트리뷰트를 추가할 수 있습니다. 이 두 가지 이유 중 어느 것으로도, <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 객체는 순환에 참여할 수 있습니다:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">custom3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Derived</span><span class="p">(</span><span class="n">custom3</span><span class="o">.</span><span class="n">Custom</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">...</span>
@@ -957,9 +930,7 @@ those two reasons, <code class="xref py py-class docutils literal notranslate"><
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n</span><span class="o">.</span><span class="n">some_attribute</span> <span class="o">=</span> <span class="n">n</span>
 </pre></div>
 </div>
-<p>To allow a <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> instance participating in a reference cycle to
-be properly detected and collected by the cyclic GC, our <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> type
-needs to fill two additional slots and to enable a flag that enables these slots:</p>
+<p>순환 GC가 참조 순환에 참여하는 <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 인스턴스를 올바르게 감지하고 수집할 수 있도록, <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 형은 두 개의 추가 슬롯을 채우고 이러한 슬롯을 활성화하는 플래그를 활성화해야 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
 <span class="cp">#include</span> <span class="cpf">&lt;Python.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&quot;structmember.h&quot;</span><span class="cp"></span>
@@ -1165,8 +1136,7 @@ needs to fill two additional slots and to enable a flag that enables these slots
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>First, the traversal method lets the cyclic GC know about subobjects that could
-participate in cycles:</p>
+<p>먼저, 탐색(traversal) 메서드는 순환 GC가 순환에 참여할 수 있는 서브 객체에 대해 알 수 있도록 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span>
 <span class="nf">Custom_traverse</span><span class="p">(</span><span class="n">CustomObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">visitproc</span> <span class="n">visit</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
 <span class="p">{</span>
@@ -1426,16 +1396,10 @@ module is the same as with the basic <code class="xref py py-class docutils lite
 <dd><p>우리의 형이 가비지 수거를 지원하지 않기 때문에, 이 예제에서는 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 처리기에서 이것을 사용했습니다.</p>
 </dd>
 <dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
-<dd><p>We now know that the first and last members are strings, so perhaps we
-could be less careful about decrementing their reference counts, however,
-we accept instances of string subclasses.  Even though deallocating normal
-strings won't call back into our objects, we can't guarantee that deallocating
-an instance of a string subclass won't call back into our objects.</p>
+<dd><p>우리는 이제 first와 last 멤버가 문자열이라는 것을 알고 있어서, 참조 횟수를 줄이는 데 덜 주의 할 수 있지만, 우리는 문자열 서브 클래스의 인스턴스를 받아들입니다. 일반 문자열을 할당 해제하는 것이 우리 객체로 다시 호출되지지는 않더라도, 문자열 서브 클래스의 인스턴스를 할당 해제하는 것이 객체로 다시 호출되지 않는다고 보장할 수 없습니다.</p>
 </dd>
 <dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
-<dd><p>Also, even with our attributes restricted to strings instances, the user
-could pass arbitrary <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> subclasses and therefore still create
-reference cycles.</p>
+<dd><p>또한, 어트리뷰트가 문자열 인스턴스로 제한된 경우에도, 사용자는 임의의 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> 서브 클래스를 전달할 수 있어서 여전히 참조 순환을 만들 수 있습니다.</p>
 </dd>
 </dl>
 </div>
@@ -1453,7 +1417,7 @@ reference cycles.</p>
 <li><a class="reference internal" href="#the-basics">2.1. 기초</a></li>
 <li><a class="reference internal" href="#adding-data-and-methods-to-the-basic-example">2.2. 기초 예제에 데이터와 메서드 추가하기</a></li>
 <li><a class="reference internal" href="#providing-finer-control-over-data-attributes">2.3. 데이터 어트리뷰트를 더 세밀하게 제어하기</a></li>
-<li><a class="reference internal" href="#supporting-cyclic-garbage-collection">2.4. Supporting cyclic garbage collection</a></li>
+<li><a class="reference internal" href="#supporting-cyclic-garbage-collection">2.4. 순환 가비지 수거 지원하기</a></li>
 <li><a class="reference internal" href="#subclassing-other-types">2.5. Subclassing other types</a></li>
 </ul>
 </li>
