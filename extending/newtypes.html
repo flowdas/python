@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>3. Defining Extension Types: Assorted Topics &#8212; 파이썬 설명서 주석판</title>
+    <title>3. 확장형 정의하기: 여러 주제 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -119,11 +119,9 @@
           <div class="body" role="main">
             
   <div class="section" id="defining-extension-types-assorted-topics">
-<span id="new-types-topics"></span><h1><span class="section-number">3. </span>Defining Extension Types: Assorted Topics<a class="headerlink" href="#defining-extension-types-assorted-topics" title="제목 주소">¶</a></h1>
-<p id="dnt-type-methods">This section aims to give a quick fly-by on the various type methods you can
-implement and what they do.</p>
-<p>Here is the definition of <a class="reference internal" href="../c-api/type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>, with some fields only used in
-debug builds omitted:</p>
+<span id="new-types-topics"></span><h1><span class="section-number">3. </span>확장형 정의하기: 여러 주제<a class="headerlink" href="#defining-extension-types-assorted-topics" title="제목 주소">¶</a></h1>
+<p id="dnt-type-methods">이 섹션은 구현할 수 있는 다양한 형 메서드와 그것이 하는 일에 대한 훑어보기를 제공하기위한 것입니다.</p>
+<p>다음은 디버그 빌드에서만 사용되는 일부 필드가 생략된 <a class="reference internal" href="../c-api/type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>의 정의입니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_typeobject</span> <span class="p">{</span>
     <span class="n">PyObject_VAR_HEAD</span>
     <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">tp_name</span><span class="p">;</span> <span class="cm">/* 인쇄용, &quot;&lt;module&gt;.&lt;name&gt;&quot; 형식 */</span>
@@ -206,45 +204,27 @@ debug builds omitted:</p>
 <span class="p">}</span> <span class="n">PyTypeObject</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Now that's a <em>lot</em> of methods.  Don't worry too much though -- if you have
-a type you want to define, the chances are very good that you will only
-implement a handful of these.</p>
-<p>As you probably expect by now, we're going to go over this and give more
-information about the various handlers.  We won't go in the order they are
-defined in the structure, because there is a lot of historical baggage that
-impacts the ordering of the fields.  It's often easiest to find an example
-that includes the fields you need and then change the values to suit your new
-type.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">tp_name</span><span class="p">;</span> <span class="cm">/* For printing */</span>
+<p>이제 메서드가 아주 <em>많습니다</em>. 너무 걱정하지 마십시오 -- 정의하려는 형이 있으면, 이 중 일부만 구현할 가능성이 매우 높습니다.</p>
+<p>아마 지금까지 예상했듯이, 이것에 대해 살펴보고 다양한 처리기에 대한 자세한 정보를 제공할 것입니다. 필드의 순서에 영향을 미치는 많은 과거의 짐이 있기 때문에, 구조체에 정의된 순서대로 진행하지 않을 것입니다. 필요한 필드가 포함된 예제를 찾은 다음 새 형에 맞게 값을 변경하는 것이 종종 가장 쉽습니다.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">tp_name</span><span class="p">;</span> <span class="cm">/* 인쇄용 */</span>
 </pre></div>
 </div>
-<p>The name of the type -- as mentioned in the previous chapter, this will appear in
-various places, almost entirely for diagnostic purposes. Try to choose something
-that will be helpful in such a situation!</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_ssize_t</span> <span class="n">tp_basicsize</span><span class="p">,</span> <span class="n">tp_itemsize</span><span class="p">;</span> <span class="cm">/* For allocation */</span>
+<p>형의 이름 -- 이전 장에서 언급했듯이, 이것은 여러 곳에서 나타나는데, 거의 진단 목적입니다. 그러한 상황에서 도움이 될만한 것을 선택하십시오!</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_ssize_t</span> <span class="n">tp_basicsize</span><span class="p">,</span> <span class="n">tp_itemsize</span><span class="p">;</span> <span class="cm">/* 할당(allocation)용 */</span>
 </pre></div>
 </div>
-<p>These fields tell the runtime how much memory to allocate when new objects of
-this type are created.  Python has some built-in support for variable length
-structures (think: strings, tuples) which is where the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_itemsize</span></code></a> field
-comes in.  This will be dealt with later.</p>
+<p>이 필드는 이 형의 새 객체가 만들어질 때 할당할 메모리 양을 런타임에 알려줍니다. 파이썬은 가변 길이 구조(생각하세요: 문자열, 튜플)에 대한 지원을 내장하고 있는데, 이 때 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_itemsize</span></code></a> 필드가 참여합니다. 이것은 나중에 다룰 것입니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">tp_doc</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Here you can put a string (or its address) that you want returned when the
-Python script references <code class="docutils literal notranslate"><span class="pre">obj.__doc__</span></code> to retrieve the doc string.</p>
-<p>Now we come to the basic type methods -- the ones most extension types will
-implement.</p>
+<p>여기에 파이썬 스크립트가 <code class="docutils literal notranslate"><span class="pre">obj.__doc__</span></code>를 참조하여 독스트링을 꺼낼 때 반환할 문자열(또는 문자열의 주소)을 넣을 수 있습니다.</p>
+<p>이제 기본 형 메서드에 대해 살펴 보겠습니다 -- 대부분의 확장형이 구현할 것들입니다.</p>
 <div class="section" id="finalization-and-de-allocation">
-<h2><span class="section-number">3.1. </span>Finalization and De-allocation<a class="headerlink" href="#finalization-and-de-allocation" title="제목 주소">¶</a></h2>
+<h2><span class="section-number">3.1. </span>파이널리제이션과 할당 해제<a class="headerlink" href="#finalization-and-de-allocation" title="제목 주소">¶</a></h2>
 <div class="highlight-c notranslate" id="index-0"><div class="highlight"><pre><span></span><span class="n">destructor</span> <span class="n">tp_dealloc</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>This function is called when the reference count of the instance of your type is
-reduced to zero and the Python interpreter wants to reclaim it.  If your type
-has memory to free or other clean-up to perform, you can put it here.  The
-object itself needs to be freed here as well.  Here is an example of this
-function:</p>
+<p>이 함수는 형의 인스턴스의 참조 횟수가 0으로 줄어들고 파이썬 인터프리터가 그것을 재활용하고자 할 때 호출됩니다. 여러분의 형에 해제할 메모리가 있거나 수행할 기타 정리 작업이 있으면, 여기에 넣을 수 있습니다. 객체 자체도 여기서 해제해야합니다. 이 함수의 예는 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
 <span class="nf">newdatatype_dealloc</span><span class="p">(</span><span class="n">newdatatypeobject</span> <span class="o">*</span><span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
@@ -253,17 +233,7 @@ function:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p id="index-1">One important requirement of the deallocator function is that it leaves any
-pending exceptions alone.  This is important since deallocators are frequently
-called as the interpreter unwinds the Python stack; when the stack is unwound
-due to an exception (rather than normal returns), nothing is done to protect the
-deallocators from seeing that an exception has already been set.  Any actions
-which a deallocator performs which may cause additional Python code to be
-executed may detect that an exception has been set.  This can lead to misleading
-errors from the interpreter.  The proper way to protect against this is to save
-a pending exception before performing the unsafe action, and restoring it when
-done.  This can be done using the <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Fetch" title="PyErr_Fetch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Fetch()</span></code></a> and
-<a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Restore" title="PyErr_Restore"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Restore()</span></code></a> functions:</p>
+<p id="index-1">할당 해제 함수의 중요한 요구 사항 중 하나는 계류 중인 예외를 그대로 남겨 두어야 한다는 것입니다. 인터프리터가 파이썬 스택을 되감을 때 할당 해제기가 자주 호출되기 때문에 중요합니다; 스택이 (정상적인 반환이 아닌) 예외로 인해 되감길 때, 할당 해제기가 예외가 이미 설정되어 있음을 알 수 없도록 하는 것은 아무것도 수행되지 않습니다. 할당 해제기가 수행하는 추가 파이썬 코드가 실행될 수 있도록 하는 추가 조치는 예외가 설정되었음을 감지할 수 있습니다. 이는 인터프리터가 혼동하도록 할 수 있습니다. 이를 방지하는 올바른 방법은 안전하지 않은 조치를 수행하기 전에 계류 중인 예외를 저장하고 완료되면 복원하는 것입니다. <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Fetch" title="PyErr_Fetch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Fetch()</span></code></a>와 <a class="reference internal" href="../c-api/exceptions.html#c.PyErr_Restore" title="PyErr_Restore"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Restore()</span></code></a> 함수를 사용하여 수행할 수 있습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
 <span class="nf">my_dealloc</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
@@ -273,7 +243,7 @@ done.  This can be done using the <a class="reference internal" href="../c-api/e
     <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">my_callback</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">PyObject</span> <span class="o">*</span><span class="n">err_type</span><span class="p">,</span> <span class="o">*</span><span class="n">err_value</span><span class="p">,</span> <span class="o">*</span><span class="n">err_traceback</span><span class="p">;</span>
 
-        <span class="cm">/* This saves the current exception state */</span>
+        <span class="cm">/* 이것은 현재 예외 상태를 저장합니다 */</span>
         <span class="n">PyErr_Fetch</span><span class="p">(</span><span class="o">&amp;</span><span class="n">err_type</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">err_value</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">err_traceback</span><span class="p">);</span>
 
         <span class="n">cbresult</span> <span class="o">=</span> <span class="n">PyObject_CallObject</span><span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">my_callback</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
@@ -282,7 +252,7 @@ done.  This can be done using the <a class="reference internal" href="../c-api/e
         <span class="k">else</span>
             <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">cbresult</span><span class="p">);</span>
 
-        <span class="cm">/* This restores the saved exception state */</span>
+        <span class="cm">/* 저장된 예외 상태를 복원합니다 */</span>
         <span class="n">PyErr_Restore</span><span class="p">(</span><span class="n">err_type</span><span class="p">,</span> <span class="n">err_value</span><span class="p">,</span> <span class="n">err_traceback</span><span class="p">);</span>
 
         <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">my_callback</span><span class="p">);</span>
@@ -293,35 +263,22 @@ done.  This can be done using the <a class="reference internal" href="../c-api/e
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>There are limitations to what you can safely do in a deallocator function.
-First, if your type supports garbage collection (using <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>
-and/or <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>), some of the object's members can have been
-cleared or finalized by the time <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> is called.  Second, in
-<a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>, your object is in an unstable state: its reference
-count is equal to zero.  Any call to a non-trivial object or API (as in the
-example above) might end up calling <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> again, causing a
-double free and a crash.</p>
-<p>Starting with Python 3.4, it is recommended not to put any complex
-finalization code in <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>, and instead use the new
-<a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> type method.</p>
+<p>할당 해제 함수에서 안전하게 수행할 수있는 작업에는 제한이 있습니다. 먼저, 형이 가비지 수거를 지원하면 (<a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 및/또는 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>를 사용해서), <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>가 호출될 때 객체의 일부 멤버가 지워지거나 파이널라이즈 될 수 있습니다. 둘째, <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>에서, 객체는 불안정한 상태에 있습니다: 참조 횟수가 0입니다. (위의 예에서와 같이) 사소하지 않은 객체나 API를 호출하면 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>를 다시 호출하게 되어, 이중 해제와 크래시가 발생할 수 있습니다.</p>
+<p>파이썬 3.4부터는, <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>에 복잡한 파이널리제이션 코드를 넣지 말고, 대신 새로운 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 형 메서드를 사용하는 것이 좋습니다.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0442"><strong>PEP 442</strong></a> explains the new finalization scheme.</p>
+<p><span class="target" id="index-6"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0442"><strong>PEP 442</strong></a>는 새로운 파이널리제이션 체계를 설명합니다.</p>
 </div>
 </div>
 </div>
 <div class="section" id="object-presentation">
-<span id="index-3"></span><h2><span class="section-number">3.2. </span>Object Presentation<a class="headerlink" href="#object-presentation" title="제목 주소">¶</a></h2>
-<p>In Python, there are two ways to generate a textual representation of an object:
-the <a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">repr()</span></code></a> function, and the <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a> function.  (The <a class="reference internal" href="../library/functions.html#print" title="print"><code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code></a>
-function just calls <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a>.)  These handlers are both optional.</p>
+<span id="index-3"></span><h2><span class="section-number">3.2. </span>객체 표현<a class="headerlink" href="#object-presentation" title="제목 주소">¶</a></h2>
+<p>파이썬에서, 객체의 텍스트 표현을 생성하는 두 가지 방법이 있습니다: <a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">repr()</span></code></a> 함수와, <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a> 함수. (<a class="reference internal" href="../library/functions.html#print" title="print"><code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code></a> 함수는 단지 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a>을 호출합니다.) 이 처리기들은 모두 선택적입니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">reprfunc</span> <span class="n">tp_repr</span><span class="p">;</span>
 <span class="n">reprfunc</span> <span class="n">tp_str</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> handler should return a string object containing a
-representation of the instance for which it is called.  Here is a simple
-example:</p>
+<p><a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 처리기는 호출된 인스턴스의 표현을 포함하는 문자열 객체를 반환해야합니다. 다음은 간단한 예입니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">newdatatype_repr</span><span class="p">(</span><span class="n">newdatatypeobject</span> <span class="o">*</span> <span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
@@ -330,16 +287,9 @@ example:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If no <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> handler is specified, the interpreter will supply a
-representation that uses the type's <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_name" title="PyTypeObject.tp_name"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_name</span></code></a> and a uniquely-identifying
-value for the object.</p>
-<p>The <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_str" title="PyTypeObject.tp_str"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_str</span></code></a> handler is to <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a> what the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> handler
-described above is to <a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">repr()</span></code></a>; that is, it is called when Python code calls
-<a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a> on an instance of your object.  Its implementation is very similar
-to the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> function, but the resulting string is intended for human
-consumption.  If <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_str" title="PyTypeObject.tp_str"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_str</span></code></a> is not specified, the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> handler is
-used instead.</p>
-<p>Here is a simple example:</p>
+<p><a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 처리기가 지정되지 않으면, 인터프리터는 형의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_name" title="PyTypeObject.tp_name"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_name</span></code></a>과 객체의 고유 식별값을 사용하는 표현을 제공합니다.</p>
+<p><a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_str" title="PyTypeObject.tp_str"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_str</span></code></a> 처리기는 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a>에 대한 것이고, 위에서 설명한 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 처리기와 <a class="reference internal" href="../library/functions.html#repr" title="repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">repr()</span></code></a> 간의 관계와 같은 관계입니다; 즉, 파이썬 코드가 객체의 인스턴스에서 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a>을 호출할 때 호출됩니다. 구현은 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 함수와 매우 유사하지만, 결과 문자열은 사람이 사용하기위한 것입니다. <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_str" title="PyTypeObject.tp_str"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_str</span></code></a>을 지정하지 않으면, <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 처리기가 대신 사용됩니다.</p>
+<p>다음은 간단한 예입니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">newdatatype_str</span><span class="p">(</span><span class="n">newdatatypeobject</span> <span class="o">*</span> <span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
@@ -350,32 +300,19 @@ used instead.</p>
 </div>
 </div>
 <div class="section" id="attribute-management">
-<h2><span class="section-number">3.3. </span>Attribute Management<a class="headerlink" href="#attribute-management" title="제목 주소">¶</a></h2>
-<p>For every object which can support attributes, the corresponding type must
-provide the functions that control how the attributes are resolved.  There needs
-to be a function which can retrieve attributes (if any are defined), and another
-to set attributes (if setting attributes is allowed).  Removing an attribute is
-a special case, for which the new value passed to the handler is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
-<p>Python supports two pairs of attribute handlers; a type that supports attributes
-only needs to implement the functions for one pair.  The difference is that one
-pair takes the name of the attribute as a <code class="xref c c-type docutils literal notranslate"><span class="pre">char*</span></code>, while the other
-accepts a <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a>.  Each type can use whichever pair makes more
-sense for the implementation's convenience.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">getattrfunc</span>  <span class="n">tp_getattr</span><span class="p">;</span>        <span class="cm">/* char * version */</span>
+<h2><span class="section-number">3.3. </span>어트리뷰트 관리<a class="headerlink" href="#attribute-management" title="제목 주소">¶</a></h2>
+<p>어트리뷰트를 지원할 수 있는 모든 객체에 대해, 해당 형은 어트리뷰트가 결정되는(resolved) 방법을 제어하는 함수를 제공해야합니다. 어트리뷰트를 꺼낼 수 있는 함수와 (뭔가 정의되어 있다면), 어트리뷰트를 설정하는 다른 함수(어트리뷰트 설정이 허용된다면)가 있어야합니다. 어트리뷰트 제거는 특별한 경우이며, 처리기에 전달된 새 값이 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>입니다.</p>
+<p>파이썬은 두 쌍의 어트리뷰트 처리기를 지원합니다; 어트리뷰트를 지원하는 형은 한 쌍의 함수 만 구현하면됩니다. 차이점은 한 쌍은 어트리뷰트 이름을 <code class="xref c c-type docutils literal notranslate"><span class="pre">char*</span></code>로 취하고, 다른 쌍은 <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a>를 받아들인다는 것입니다. 각 형은 구현의 편의에 더 적합한 쌍을 사용할 수 있습니다.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">getattrfunc</span>  <span class="n">tp_getattr</span><span class="p">;</span>        <span class="cm">/* char * 버전 */</span>
 <span class="n">setattrfunc</span>  <span class="n">tp_setattr</span><span class="p">;</span>
 <span class="cm">/* ... */</span>
-<span class="n">getattrofunc</span> <span class="n">tp_getattro</span><span class="p">;</span>       <span class="cm">/* PyObject * version */</span>
+<span class="n">getattrofunc</span> <span class="n">tp_getattro</span><span class="p">;</span>       <span class="cm">/* PyObject * 버전 */</span>
 <span class="n">setattrofunc</span> <span class="n">tp_setattro</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>If accessing attributes of an object is always a simple operation (this will be
-explained shortly), there are generic implementations which can be used to
-provide the <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a> version of the attribute management functions.
-The actual need for type-specific attribute handlers almost completely
-disappeared starting with Python 2.2, though there are many examples which have
-not been updated to use some of the new generic mechanism that is available.</p>
+<p>객체의 어트리뷰트에 액세스하는 것이 항상 간단한 연산이면 (짧게 설명할 것입니다), 어트리뷰트 관리 함수의 <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a> 버전을 제공하는 데 사용할 수있는 일반적인 구현이 있습니다. 파이썬 2.2부터 형 별 어트리뷰트 처리기에 대한 실제 필요성은 거의 완전히 사라졌지 만, 사용 가능한 새로운 일반 메커니즘을 사용하도록 갱신되지 않은 예제가 많이 있습니다.</p>
 <div class="section" id="generic-attribute-management">
-<span id="id1"></span><h3><span class="section-number">3.3.1. </span>Generic Attribute Management<a class="headerlink" href="#generic-attribute-management" title="제목 주소">¶</a></h3>
+<span id="id1"></span><h3><span class="section-number">3.3.1. </span>범용 어트리뷰트 관리<a class="headerlink" href="#generic-attribute-management" title="제목 주소">¶</a></h3>
 <p>Most extension types only use <em>simple</em> attributes.  So, what makes the
 attributes simple?  There are only a couple of conditions that must be met:</p>
 <ol class="arabic simple">
@@ -759,11 +696,11 @@ its use might be something like the following:</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Defining Extension Types: Assorted Topics</a><ul>
-<li><a class="reference internal" href="#finalization-and-de-allocation">3.1. Finalization and De-allocation</a></li>
-<li><a class="reference internal" href="#object-presentation">3.2. Object Presentation</a></li>
-<li><a class="reference internal" href="#attribute-management">3.3. Attribute Management</a><ul>
-<li><a class="reference internal" href="#generic-attribute-management">3.3.1. Generic Attribute Management</a></li>
+<li><a class="reference internal" href="#">3. 확장형 정의하기: 여러 주제</a><ul>
+<li><a class="reference internal" href="#finalization-and-de-allocation">3.1. 파이널리제이션과 할당 해제</a></li>
+<li><a class="reference internal" href="#object-presentation">3.2. 객체 표현</a></li>
+<li><a class="reference internal" href="#attribute-management">3.3. 어트리뷰트 관리</a><ul>
+<li><a class="reference internal" href="#generic-attribute-management">3.3.1. 범용 어트리뷰트 관리</a></li>
 <li><a class="reference internal" href="#type-specific-attribute-management">3.3.2. Type-specific Attribute Management</a></li>
 </ul>
 </li>
