@@ -300,17 +300,25 @@
     <span class="p">}</span>
 
     <span class="cm">/* Py_Initialize 앞에 내장 모듈을 추가합니다 */</span>
-    <span class="n">PyImport_AppendInittab</span><span class="p">(</span><span class="s">&quot;spam&quot;</span><span class="p">,</span> <span class="n">PyInit_spam</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">PyImport_AppendInittab</span><span class="p">(</span><span class="s">&quot;spam&quot;</span><span class="p">,</span> <span class="n">PyInit_spam</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Error: could not extend in-built modules table</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
 
     <span class="cm">/* 파이썬 인터프리터로 argv[0] 을 전달합니다 */</span>
     <span class="n">Py_SetProgramName</span><span class="p">(</span><span class="n">program</span><span class="p">);</span>
 
-    <span class="cm">/* 파이썬 인터프리터를 초기화합니다. 필수. */</span>
+    <span class="cm">/* 파이썬 인터프리터를 초기화합니다. 필수.</span>
+<span class="cm">       이 단계가 실패하면, 치명적인 에러가 됩니다. */</span>
     <span class="n">Py_Initialize</span><span class="p">();</span>
 
     <span class="cm">/* 선택적으로 모듈을 임포트 합니다; 또는, 내장된 스크립트가 임포트</span>
 <span class="cm">       할 때까지 임포트를 지연시킬 수 있습니다. */</span>
-    <span class="n">PyImport_ImportModule</span><span class="p">(</span><span class="s">&quot;spam&quot;</span><span class="p">);</span>
+    <span class="n">pmodule</span> <span class="o">=</span> <span class="n">PyImport_ImportModule</span><span class="p">(</span><span class="s">&quot;spam&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">pmodule</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">PyErr_Print</span><span class="p">();</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Error: could not import module &#39;spam&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
 
     <span class="p">...</span>
 
