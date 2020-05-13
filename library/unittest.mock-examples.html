@@ -633,14 +633,7 @@ self passed in. The workaround is to patch the unbound method with a real
 function instead. The <a class="reference internal" href="unittest.mock.html#unittest.mock.patch" title="unittest.mock.patch"><code class="xref py py-func docutils literal notranslate"><span class="pre">patch()</span></code></a> decorator makes it so simple to
 patch out methods with a mock that having to create a real function becomes a
 nuisance.</p>
-<p>If you pass <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code> to patch then it does the patching with a
-<em>real</em> function object. This function object has the same signature as the one
-it is replacing, but delegates to a mock under the hood. You still get your
-mock auto-created in exactly the same way as before. What it means though, is
-that if you use it to patch out an unbound method on a class the mocked
-function will be turned into a bound method if it is fetched from an instance.
-It will have <code class="docutils literal notranslate"><span class="pre">self</span></code> passed in as the first argument, which is exactly what I
-wanted:</p>
+<p><code class="docutils literal notranslate"><span class="pre">autospec=True</span></code>를 패치로 전달하면 <em>실제</em> 함수 객체로 패치가 수행됩니다. 이 함수 객체는 그것이 교체하는 것과 같은 서명을 갖지만, 수면 아래에서 모의 객체로 위임합니다. 전과 똑같은 방식으로 여전히 자동 생성된 모의 객체를 얻습니다. 그것이 의미하는 것은, 클래스에서 연결되지 않은 메서드를 패치하는데 사용하면 모킹 된 함수가 인스턴스에서 꺼낼 때 연결된 메서드로 바뀐다는 것입니다. <code class="docutils literal notranslate"><span class="pre">self</span></code>가 첫 번째 인자로 전달되고, 정확히 제가 원하는 것입니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
 <span class="gp">... </span>  <span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">pass</span>
@@ -654,21 +647,18 @@ wanted:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock_foo</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If we don't use <code class="docutils literal notranslate"><span class="pre">autospec=True</span></code> then the unbound method is patched out
-with a Mock instance instead, and isn't called with <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">autospec=True</span></code>를 사용하지 않으면 연결되지 않은 메서드가 대신 Mock 인스턴스로 패치되고, <code class="docutils literal notranslate"><span class="pre">self</span></code>로 호출되지 않습니다.</p>
 </div>
 <div class="section" id="checking-multiple-calls-with-mock">
-<h3>Checking multiple calls with mock<a class="headerlink" href="#checking-multiple-calls-with-mock" title="제목 주소">¶</a></h3>
-<p>mock has a nice API for making assertions about how your mock objects are used.</p>
+<h3>모의 객체로 여러 호출 확인하기<a class="headerlink" href="#checking-multiple-calls-with-mock" title="제목 주소">¶</a></h3>
+<p>mock에는 모의 객체가 어떻게 사용되는지에 대한 어서션을 만드는 데 유용한 API가 있습니다.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">foo_bar</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">foo_bar</span><span class="p">(</span><span class="s1">&#39;baz&#39;</span><span class="p">,</span> <span class="n">spam</span><span class="o">=</span><span class="s1">&#39;eggs&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">foo_bar</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s1">&#39;baz&#39;</span><span class="p">,</span> <span class="n">spam</span><span class="o">=</span><span class="s1">&#39;eggs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If your mock is only being called once you can use the
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">assert_called_once_with()</span></code> method that also asserts that the
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">call_count</span></code> is one.</p>
+<p>모의 객체가 한 번만 호출되면 <code class="xref py py-attr docutils literal notranslate"><span class="pre">call_count</span></code>가 1이라는 것도 어서트하는 <code class="xref py py-meth docutils literal notranslate"><span class="pre">assert_called_once_with()</span></code> 메서드를 사용할 수 있습니다.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">foo_bar</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="s1">&#39;baz&#39;</span><span class="p">,</span> <span class="n">spam</span><span class="o">=</span><span class="s1">&#39;eggs&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">foo_bar</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">foo_bar</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="s1">&#39;baz&#39;</span><span class="p">,</span> <span class="n">spam</span><span class="o">=</span><span class="s1">&#39;eggs&#39;</span><span class="p">)</span>
@@ -677,10 +667,7 @@ with a Mock instance instead, and isn't called with <code class="docutils litera
 <span class="gr">AssertionError</span>: <span class="n">Expected to be called once. Called 2 times.</span>
 </pre></div>
 </div>
-<p>Both <code class="docutils literal notranslate"><span class="pre">assert_called_with</span></code> and <code class="docutils literal notranslate"><span class="pre">assert_called_once_with</span></code> make assertions about
-the <em>most recent</em> call. If your mock is going to be called several times, and
-you want to make assertions about <em>all</em> those calls you can use
-<a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.call_args_list" title="unittest.mock.Mock.call_args_list"><code class="xref py py-attr docutils literal notranslate"><span class="pre">call_args_list</span></code></a>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">assert_called_with</span></code>와 <code class="docutils literal notranslate"><span class="pre">assert_called_once_with</span></code>는 모두 <em>가장 최근</em> 호출에 대한 어서션을 합니다. 모의 객체가 여러 번 호출될 것이고, 이 호출 <em>모두</em>에 대해 어서션을 하고 싶다면 <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.call_args_list" title="unittest.mock.Mock.call_args_list"><code class="xref py py-attr docutils literal notranslate"><span class="pre">call_args_list</span></code></a>를 사용할 수 있습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">return_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
@@ -689,9 +676,7 @@ you want to make assertions about <em>all</em> those calls you can use
 <span class="go">[call(1, 2, 3), call(4, 5, 6), call()]</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="unittest.mock.html#unittest.mock.call" title="unittest.mock.call"><code class="xref py py-data docutils literal notranslate"><span class="pre">call</span></code></a> helper makes it easy to make assertions about these calls. You
-can build up a list of expected calls and compare it to <code class="docutils literal notranslate"><span class="pre">call_args_list</span></code>. This
-looks remarkably similar to the repr of the <code class="docutils literal notranslate"><span class="pre">call_args_list</span></code>:</p>
+<p><a class="reference internal" href="unittest.mock.html#unittest.mock.call" title="unittest.mock.call"><code class="xref py py-data docutils literal notranslate"><span class="pre">call</span></code></a> 도우미를 사용하면 이러한 호출에 대한 어서션을 쉽게 할 수 있습니다. 예상 호출 리스트를 만들어서 <code class="docutils literal notranslate"><span class="pre">call_args_list</span></code>와 비교할 수 있습니다. 이것은 <code class="docutils literal notranslate"><span class="pre">call_args_list</span></code>의 repr과 매우 유사합니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">call</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">call</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">call</span><span class="p">()]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">call_args_list</span> <span class="o">==</span> <span class="n">expected</span>
 <span class="go">True</span>
@@ -699,24 +684,19 @@ looks remarkably similar to the repr of the <code class="docutils literal notran
 </div>
 </div>
 <div class="section" id="coping-with-mutable-arguments">
-<h3>Coping with mutable arguments<a class="headerlink" href="#coping-with-mutable-arguments" title="제목 주소">¶</a></h3>
-<p>Another situation is rare, but can bite you, is when your mock is called with
-mutable arguments. <code class="docutils literal notranslate"><span class="pre">call_args</span></code> and <code class="docutils literal notranslate"><span class="pre">call_args_list</span></code> store <em>references</em> to the
-arguments. If the arguments are mutated by the code under test then you can no
-longer make assertions about what the values were when the mock was called.</p>
-<p>Here's some example code that shows the problem. Imagine the following functions
-defined in 'mymodule':</p>
+<h3>가변 인자에 대처하기<a class="headerlink" href="#coping-with-mutable-arguments" title="제목 주소">¶</a></h3>
+<p>드물지만 여러분을 괴롭힐 수 있는 또 다른 상황은 모의 객체가 가변 인자로 호출되는 경우입니다. <code class="docutils literal notranslate"><span class="pre">call_args</span></code>와 <code class="docutils literal notranslate"><span class="pre">call_args_list</span></code>는 인자에 대한 <em>참조</em>를 저장합니다. 테스트 중인 코드에 의해 인자가 변경되면 모의 객체가 호출되었을 때의 값에 대해 더는 어서션 할 수 없습니다.</p>
+<p>다음은 문제를 보여주는 예제 코드입니다. 'mymodule'에 정의된 다음 함수를 상상해보십시오:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">frob</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
     <span class="k">pass</span>
 
 <span class="k">def</span> <span class="nf">grob</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-    <span class="s2">&quot;First frob and then clear val&quot;</span>
+    <span class="s2">&quot;먼저 frob 한 다음 val을 clear 합니다&quot;</span>
     <span class="n">frob</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
     <span class="n">val</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>When we try to test that <code class="docutils literal notranslate"><span class="pre">grob</span></code> calls <code class="docutils literal notranslate"><span class="pre">frob</span></code> with the correct argument look
-what happens:</p>
+<p><code class="docutils literal notranslate"><span class="pre">grob</span></code>이 올바른 인자로 <code class="docutils literal notranslate"><span class="pre">frob</span></code>을 호출하는지 테스트하려고 할 때 어떤 일이 발생하는지 보십시오:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;mymodule.frob&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock_frob</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">val</span> <span class="o">=</span> <span class="p">{</span><span class="mi">6</span><span class="p">}</span>
 <span class="gp">... </span>    <span class="n">mymodule</span><span class="o">.</span><span class="n">grob</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
@@ -730,16 +710,8 @@ what happens:</p>
 <span class="go">Called with: ((set(),), {})</span>
 </pre></div>
 </div>
-<p>One possibility would be for mock to copy the arguments you pass in. This
-could then cause problems if you do assertions that rely on object identity
-for equality.</p>
-<p>Here's one solution that uses the <code class="xref py py-attr docutils literal notranslate"><span class="pre">side_effect</span></code>
-functionality. If you provide a <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> function for a mock then
-<code class="docutils literal notranslate"><span class="pre">side_effect</span></code> will be called with the same args as the mock. This gives us an
-opportunity to copy the arguments and store them for later assertions. In this
-example I'm using <em>another</em> mock to store the arguments so that I can use the
-mock methods for doing the assertion. Again a helper function sets this up for
-me.</p>
+<p>한가지 가능성은 모의 객체가 전달한 인자를 복사하는 것일 수 있습니다. 그러면 동일성(equality)을 위해 객체 아이덴티티에 의존하는 어서션을 수행하면 문제가 발생할 수 있습니다.</p>
+<p>여기에 <code class="xref py py-attr docutils literal notranslate"><span class="pre">side_effect</span></code> 함수를 사용하는 한가지 해결책이 있습니다. 모의 객체에 <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> 함수를 제공하면 모의 객체와 같은 인자로 <code class="docutils literal notranslate"><span class="pre">side_effect</span></code>가 호출됩니다. 이는 인자를 복사하여 나중에 어서션을 위해 저장할 수 있는 기회를 제공합니다. 이 예제에서는 <em>다른</em> 모의 객체를 사용하여 인자를 저장해서 어서션을 수행하기 위해 모의 객체 메서드를 사용할 수 있습니다. 다시 한 번 도우미 함수가 이것을 설정합니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="k">import</span> <span class="n">Mock</span><span class="p">,</span> <span class="n">patch</span><span class="p">,</span> <span class="n">DEFAULT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">copy_call_args</span><span class="p">(</span><span class="n">mock</span><span class="p">):</span>
@@ -762,14 +734,10 @@ me.</p>
 <span class="go">call({6})</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">copy_call_args</span></code> is called with the mock that will be called. It returns a new
-mock that we do the assertion on. The <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> function makes a copy of
-the args and calls our <code class="docutils literal notranslate"><span class="pre">new_mock</span></code> with the copy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">copy_call_args</span></code>는 호출될 모의로 호출됩니다. 어서션을 수행할 새로운 모의 객체를 반환합니다. <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> 함수는 인자의 사본을 만들고 사본으로 <code class="docutils literal notranslate"><span class="pre">new_mock</span></code>을 호출합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>If your mock is only going to be used once there is an easier way of
-checking arguments at the point they are called. You can simply do the
-checking inside a <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> function.</p>
+<p>모의 객체를 한 번만 사용하려는 경우 호출 시점에서 인자를 확인하는 쉬운 방법이 있습니다. 단순히 <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> 함수 내에서 확인할 수 있습니다.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">side_effect</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">assert</span> <span class="n">arg</span> <span class="o">==</span> <span class="p">{</span><span class="mi">6</span><span class="p">}</span>
 <span class="gp">...</span>
@@ -782,9 +750,7 @@ checking inside a <code class="docutils literal notranslate"><span class="pre">s
 </pre></div>
 </div>
 </div>
-<p>An alternative approach is to create a subclass of <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a> or
-<a class="reference internal" href="unittest.mock.html#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a> that copies (using <a class="reference internal" href="copy.html#copy.deepcopy" title="copy.deepcopy"><code class="xref py py-func docutils literal notranslate"><span class="pre">copy.deepcopy()</span></code></a>) the arguments.
-Here's an example implementation:</p>
+<p>다른 접근법은 인자를 복사(<a class="reference internal" href="copy.html#copy.deepcopy" title="copy.deepcopy"><code class="xref py py-func docutils literal notranslate"><span class="pre">copy.deepcopy()</span></code></a>를 사용해서)하는 <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>이나 <a class="reference internal" href="unittest.mock.html#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a>의 서브 클래스를 만드는 것입니다. 구현 예는 다음과 같습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">CopyingMock</span><span class="p">(</span><span class="n">MagicMock</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -806,15 +772,11 @@ Here's an example implementation:</p>
 <span class="go">&lt;CopyingMock name=&#39;mock.foo&#39; id=&#39;...&#39;&gt;</span>
 </pre></div>
 </div>
-<p>When you subclass <code class="docutils literal notranslate"><span class="pre">Mock</span></code> or <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> all dynamically created attributes,
-and the <code class="docutils literal notranslate"><span class="pre">return_value</span></code> will use your subclass automatically. That means all
-children of a <code class="docutils literal notranslate"><span class="pre">CopyingMock</span></code> will also have the type <code class="docutils literal notranslate"><span class="pre">CopyingMock</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Mock</span></code>이나 <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>을 서브 클래싱할 때 모든 동적으로 만들어진 어트리뷰트와 <code class="docutils literal notranslate"><span class="pre">return_value</span></code>는 자동으로 서브 클래스를 사용합니다. 즉, <code class="docutils literal notranslate"><span class="pre">CopyingMock</span></code>의 모든 자식도 <code class="docutils literal notranslate"><span class="pre">CopyingMock</span></code> 형이 됩니다.</p>
 </div>
 <div class="section" id="nesting-patches">
-<h3>Nesting Patches<a class="headerlink" href="#nesting-patches" title="제목 주소">¶</a></h3>
-<p>Using patch as a context manager is nice, but if you do multiple patches you
-can end up with nested with statements indenting further and further to the
-right:</p>
+<h3>중첩 패치<a class="headerlink" href="#nesting-patches" title="제목 주소">¶</a></h3>
+<p>patch를 컨텍스트 관리자로 것이 멋지기는 하지만, 여러 패치를 수행하면 오른쪽으로 점점 더 들여 쓰기되는 문장으로 중첩될 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
 <span class="gp">...</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">test_foo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -830,10 +792,7 @@ right:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">mymodule</span><span class="o">.</span><span class="n">Foo</span> <span class="ow">is</span> <span class="n">original</span>
 </pre></div>
 </div>
-<p>With unittest <code class="docutils literal notranslate"><span class="pre">cleanup</span></code> functions and the <a class="reference internal" href="unittest.mock.html#start-and-stop"><span class="std std-ref">패처 메서드: start와 stop</span></a> we can
-achieve the same effect without the nested indentation. A simple helper
-method, <code class="docutils literal notranslate"><span class="pre">create_patch</span></code>, puts the patch in place and returns the created mock
-for us:</p>
+<p>unittest <code class="docutils literal notranslate"><span class="pre">cleanup</span></code> 함수와 <a class="reference internal" href="unittest.mock.html#start-and-stop"><span class="std std-ref">패처 메서드: start와 stop</span></a>을 사용하면 중첩된 들여 쓰기 없이 같은 효과를 얻을 수 있습니다. 간단한 도우미 메서드인 <code class="docutils literal notranslate"><span class="pre">create_patch</span></code>는 제 자리에서 패치를 설치하고 만들어진 모의 객체를 반환합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
 <span class="gp">...</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">create_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -858,17 +817,11 @@ for us:</p>
 </div>
 </div>
 <div class="section" id="mocking-a-dictionary-with-magicmock">
-<h3>Mocking a dictionary with MagicMock<a class="headerlink" href="#mocking-a-dictionary-with-magicmock" title="제목 주소">¶</a></h3>
-<p>You may want to mock a dictionary, or other container object, recording all
-access to it whilst having it still behave like a dictionary.</p>
-<p>We can do this with <a class="reference internal" href="unittest.mock.html#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a>, which will behave like a dictionary,
-and using <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.side_effect" title="unittest.mock.Mock.side_effect"><code class="xref py py-data docutils literal notranslate"><span class="pre">side_effect</span></code></a> to delegate dictionary access to a real
-underlying dictionary that is under our control.</p>
-<p>When the <a class="reference internal" href="../reference/datamodel.html#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getitem__()</span></code></a> and <a class="reference internal" href="../reference/datamodel.html#object.__setitem__" title="object.__setitem__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__setitem__()</span></code></a> methods of our <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> are called
-(normal dictionary access) then <code class="docutils literal notranslate"><span class="pre">side_effect</span></code> is called with the key (and in
-the case of <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code> the value too). We can also control what is returned.</p>
-<p>After the <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> has been used we can use attributes like
-<a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.call_args_list" title="unittest.mock.Mock.call_args_list"><code class="xref py py-data docutils literal notranslate"><span class="pre">call_args_list</span></code></a> to assert about how the dictionary was used:</p>
+<h3>MagicMock으로 딕셔너리 모킹하기<a class="headerlink" href="#mocking-a-dictionary-with-magicmock" title="제목 주소">¶</a></h3>
+<p>딕셔너리나 다른 컨테이너 객체를 모킹하여, 여전히 딕셔너리처럼 동작하면서 이에 대한 모든 액세스를 기록하고 싶을 수 있습니다.</p>
+<p>딕셔너리처럼 동작하는 <a class="reference internal" href="unittest.mock.html#unittest.mock.MagicMock" title="unittest.mock.MagicMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">MagicMock</span></code></a>을 사용하고 <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.side_effect" title="unittest.mock.Mock.side_effect"><code class="xref py py-data docutils literal notranslate"><span class="pre">side_effect</span></code></a>가 딕셔너리 액세스를 우리의 제어하에 있는 실제 하부 딕셔너리로 위임하게 해서 목적을 달성할 수 있습니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>의 <a class="reference internal" href="../reference/datamodel.html#object.__getitem__" title="object.__getitem__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getitem__()</span></code></a>과 <a class="reference internal" href="../reference/datamodel.html#object.__setitem__" title="object.__setitem__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__setitem__()</span></code></a> 메서드가 호출될 때 (일반 딕셔너리 액세스), <code class="docutils literal notranslate"><span class="pre">side_effect</span></code>는 키로 호출됩니다 (그리고 <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>의 경우는 값도). 반환되는 것을 제어 할 수도 있습니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>이 사용된 후에 <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock.call_args_list" title="unittest.mock.Mock.call_args_list"><code class="xref py py-data docutils literal notranslate"><span class="pre">call_args_list</span></code></a>와 같은 어트리뷰트를 사용하여 딕셔너리가 어떻게 사용되었는지를 어서트할 수 있습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getitem</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="gp">... </span>     <span class="k">return</span> <span class="n">my_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
@@ -883,25 +836,20 @@ the case of <code class="docutils literal notranslate"><span class="pre">__setit
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>An alternative to using <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> is to use <code class="docutils literal notranslate"><span class="pre">Mock</span></code> and <em>only</em> provide
-the magic methods you specifically want:</p>
+<p><code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>을 사용하는 대신 <code class="docutils literal notranslate"><span class="pre">Mock</span></code>을 사용하고 <em>오직</em> 원하는 매직 메서드만 제공할 수 있습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__getitem__</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">side_effect</span><span class="o">=</span><span class="n">getitem</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__setitem__</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">side_effect</span><span class="o">=</span><span class="n">setitem</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>A <em>third</em> option is to use <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> but passing in <code class="docutils literal notranslate"><span class="pre">dict</span></code> as the <em>spec</em>
-(or <em>spec_set</em>) argument so that the <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> created only has
-dictionary magic methods available:</p>
+<p><em>세번째</em> 옵션은 <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>을 사용하지만 <code class="docutils literal notranslate"><span class="pre">dict</span></code>를 <em>spec</em> (또는 <em>spec_set</em>) 인자로 전달하여 만들어진 <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>이 딕셔너리 매직 메서드 만 갖도록 하는 것입니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">spec_set</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__getitem__</span><span class="o">.</span><span class="n">side_effect</span> <span class="o">=</span> <span class="n">getitem</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__setitem__</span><span class="o">.</span><span class="n">side_effect</span> <span class="o">=</span> <span class="n">setitem</span>
 </pre></div>
 </div>
 </div>
-<p>With these side effect functions in place, the <code class="docutils literal notranslate"><span class="pre">mock</span></code> will behave like a normal
-dictionary but recording the access. It even raises a <a class="reference internal" href="exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a> if you try
-to access a key that doesn't exist.</p>
+<p>이러한 부작용 함수가 제자리에 들어가면, <code class="docutils literal notranslate"><span class="pre">mock</span></code>은 일반 딕셔너리처럼 작동하지만 액세스를 기록합니다. 존재하지 않는 키에 액세스하려고하면 <a class="reference internal" href="exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a>를 발생시키기 조차 합니다.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
 <span class="go">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span>
@@ -918,8 +866,7 @@ to access a key that doesn't exist.</p>
 <span class="go">&#39;eggs&#39;</span>
 </pre></div>
 </div>
-<p>After it has been used you can make assertions about the access using the normal
-mock methods and attributes:</p>
+<p>사용 된 후에 일반적인 모의 객체 메서드와 어트리뷰트를 사용하여 액세스에 대한 어서션을 할 수 있습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__getitem__</span><span class="o">.</span><span class="n">call_args_list</span>
 <span class="go">[call(&#39;a&#39;), call(&#39;c&#39;), call(&#39;d&#39;), call(&#39;b&#39;), call(&#39;d&#39;)]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="fm">__setitem__</span><span class="o">.</span><span class="n">call_args_list</span>
@@ -930,9 +877,8 @@ mock methods and attributes:</p>
 </div>
 </div>
 <div class="section" id="mock-subclasses-and-their-attributes">
-<h3>Mock subclasses and their attributes<a class="headerlink" href="#mock-subclasses-and-their-attributes" title="제목 주소">¶</a></h3>
-<p>There are various reasons why you might want to subclass <a class="reference internal" href="unittest.mock.html#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>. One
-reason might be to add helper methods. Here's a silly example:</p>
+<h3>Mock 서브 클래스와 그 어트리뷰트<a class="headerlink" href="#mock-subclasses-and-their-attributes" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="unittest.mock.html#unittest.mock.Mock" title="unittest.mock.Mock"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mock</span></code></a>을 서브 클래싱하려는 여러 가지 이유가 있습니다. 한 가지 이유는 도우미 메서드를 추가하는 것입니다. 다음은 시시한 예입니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyMock</span><span class="p">(</span><span class="n">MagicMock</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">has_been_called</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">called</span>
@@ -947,12 +893,7 @@ reason might be to add helper methods. Here's a silly example:</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>The standard behaviour for <code class="docutils literal notranslate"><span class="pre">Mock</span></code> instances is that attributes and the return
-value mocks are of the same type as the mock they are accessed on. This ensures
-that <code class="docutils literal notranslate"><span class="pre">Mock</span></code> attributes are <code class="docutils literal notranslate"><span class="pre">Mocks</span></code> and <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> attributes are <code class="docutils literal notranslate"><span class="pre">MagicMocks</span></code>
-<a class="footnote-reference brackets" href="#id5" id="id4">2</a>. So if you're subclassing to add helper methods then they'll also be
-available on the attributes and return value mock of instances of your
-subclass.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Mock</span></code> 인스턴스의 표준 동작은 어트리뷰트와 반환 값 모의 객체가 액세스되는 모의 객체의 형과 같은 형이라는 것입니다. 이를 통해 <code class="docutils literal notranslate"><span class="pre">Mock</span></code> 어트리뷰트는 <code class="docutils literal notranslate"><span class="pre">Mock</span></code>이고 <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code> 어트리뷰트는 <code class="docutils literal notranslate"><span class="pre">MagicMock</span></code>이 됩니다 <a class="footnote-reference brackets" href="#id5" id="id4">2</a>. 따라서 도우미 메서드를 추가하기 위해 서브 클래싱하면 이 메서드는 서브 클래스 인스턴스의 어트리뷰트와 반환 값 모의 객체에서도 사용할 수 있습니다.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mymock</span><span class="o">.</span><span class="n">foo</span>
 <span class="go">&lt;MyMock name=&#39;mock.foo&#39; id=&#39;...&#39;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mymock</span><span class="o">.</span><span class="n">foo</span><span class="o">.</span><span class="n">has_been_called</span><span class="p">()</span>
@@ -963,14 +904,8 @@ subclass.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>Sometimes this is inconvenient. For example, <a class="reference external" href="https://code.google.com/archive/p/mock/issues/105">one user</a> is subclassing mock to
-created a <a class="reference external" href="https://twistedmatrix.com/documents/11.0.0/api/twisted.python.components.html">Twisted adaptor</a>.
-Having this applied to attributes too actually causes errors.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Mock</span></code> (in all its flavours) uses a method called <code class="docutils literal notranslate"><span class="pre">_get_child_mock</span></code> to create
-these &quot;sub-mocks&quot; for attributes and return values. You can prevent your
-subclass being used for attributes by overriding this method. The signature is
-that it takes arbitrary keyword arguments (<code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>) which are then passed
-onto the mock constructor:</p>
+<p>때때로 이것은 불편합니다. 예를 들어, <a class="reference external" href="https://code.google.com/archive/p/mock/issues/105">한 사용자</a>가 <a class="reference external" href="https://twistedmatrix.com/documents/11.0.0/api/twisted.python.components.html">Twisted adaptor</a>를 만들기 위해 Mock을 서브 클래싱했습니다. 이것을 어트리뷰트에도 적용하면 실제로 에러가 발생합니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Mock</span></code>(이것의 모든 종류에서)은 <code class="docutils literal notranslate"><span class="pre">_get_child_mock</span></code>라는 메서드를 사용하여 어트리뷰트와 반환 값을 위한 이러한 &quot;서브 모의 객체&quot;를 만듭니다. 이 메서드를 재정의하여 서브 클래스가 어트리뷰트에 사용되지 않도록 할 수 있습니다. 서명은 모의 객체 생성자에 전달되는 임의의 키워드 인자(<code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>)를 취하는 것입니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Subclass</span><span class="p">(</span><span class="n">MagicMock</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">def</span> <span class="nf">_get_child_mock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="gp">... </span>        <span class="k">return</span> <span class="n">MagicMock</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -985,14 +920,12 @@ onto the mock constructor:</p>
 </div>
 <dl class="footnote brackets">
 <dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
-<dd><p>An exception to this rule are the non-callable mocks. Attributes use the
-callable variant because otherwise non-callable mocks couldn't have callable
-methods.</p>
+<dd><p>이 규칙의 예외는 콜러블이 아닌 모의 객체입니다. 어트리뷰트는 콜러블 변형을 사용하는데, 그렇지 않으면 콜러블이 아닌 모의 객체가 콜러블 메서드를 가질 수 없기 때문입니다.</p>
 </dd>
 </dl>
 </div>
 <div class="section" id="mocking-imports-with-patch-dict">
-<h3>Mocking imports with patch.dict<a class="headerlink" href="#mocking-imports-with-patch-dict" title="제목 주소">¶</a></h3>
+<h3>patch.dict로 임포트를 모킹하기<a class="headerlink" href="#mocking-imports-with-patch-dict" title="제목 주소">¶</a></h3>
 <p>One situation where mocking can be hard is where you have a local import inside
 a function. These are harder to mock because they aren't using an object from
 the module namespace that we can patch out.</p>
@@ -1232,12 +1165,12 @@ that may be useful here, in the form of its equality matcher
 <li><a class="reference internal" href="#mocking-a-generator-method">제너레이터 메서드 모킹하기</a></li>
 <li><a class="reference internal" href="#applying-the-same-patch-to-every-test-method">모든 테스트 메서드에 같은 패치 적용하기</a></li>
 <li><a class="reference internal" href="#mocking-unbound-methods">연결되지 않은 메서드 모킹하기</a></li>
-<li><a class="reference internal" href="#checking-multiple-calls-with-mock">Checking multiple calls with mock</a></li>
-<li><a class="reference internal" href="#coping-with-mutable-arguments">Coping with mutable arguments</a></li>
-<li><a class="reference internal" href="#nesting-patches">Nesting Patches</a></li>
-<li><a class="reference internal" href="#mocking-a-dictionary-with-magicmock">Mocking a dictionary with MagicMock</a></li>
-<li><a class="reference internal" href="#mock-subclasses-and-their-attributes">Mock subclasses and their attributes</a></li>
-<li><a class="reference internal" href="#mocking-imports-with-patch-dict">Mocking imports with patch.dict</a></li>
+<li><a class="reference internal" href="#checking-multiple-calls-with-mock">모의 객체로 여러 호출 확인하기</a></li>
+<li><a class="reference internal" href="#coping-with-mutable-arguments">가변 인자에 대처하기</a></li>
+<li><a class="reference internal" href="#nesting-patches">중첩 패치</a></li>
+<li><a class="reference internal" href="#mocking-a-dictionary-with-magicmock">MagicMock으로 딕셔너리 모킹하기</a></li>
+<li><a class="reference internal" href="#mock-subclasses-and-their-attributes">Mock 서브 클래스와 그 어트리뷰트</a></li>
+<li><a class="reference internal" href="#mocking-imports-with-patch-dict">patch.dict로 임포트를 모킹하기</a></li>
 <li><a class="reference internal" href="#tracking-order-of-calls-and-less-verbose-call-assertions">Tracking order of calls and less verbose call assertions</a></li>
 <li><a class="reference internal" href="#more-complex-argument-matching">More complex argument matching</a></li>
 </ul>
