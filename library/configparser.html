@@ -373,83 +373,44 @@
 <p><span class="versionmodified">버전 3.2에 추가.</span></p>
 </div>
 <p>매핑 프로토콜 액세스는 사용자 정의 객체를 딕셔너리처럼 사용하는 기능의 일반적인 이름입니다. <a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a>의 경우, 매핑 인터페이스 구현은 <code class="docutils literal notranslate"><span class="pre">parser['section']['option']</span></code> 표기법을 사용합니다.</p>
-<p><code class="docutils literal notranslate"><span class="pre">parser['section']</span></code> in particular returns a proxy for the section's data in
-the parser.  This means that the values are not copied but they are taken from
-the original parser on demand.  What's even more important is that when values
-are changed on a section proxy, they are actually mutated in the original
-parser.</p>
-<p><a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a> objects behave as close to actual dictionaries as possible.
-The mapping interface is complete and adheres to the
-<a class="reference internal" href="collections.abc.html#collections.abc.MutableMapping" title="collections.abc.MutableMapping"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a> ABC.
-However, there are a few differences that should be taken into account:</p>
+<p><code class="docutils literal notranslate"><span class="pre">parser['section']</span></code>은 특히 구문 분석기의 섹션 데이터에 대한 프락시를 반환합니다. 이는 값은 복사되지 않지만 필요할 때 원래 구문 분석기에서 가져옴을 뜻합니다. 더욱 중요한 것은 섹션 프락시에서 값이 변경되면, 실제로 원래 구문 분석기에서 변경된다는 것입니다.</p>
+<p><a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a> 객체는 가능한 한 실제 딕셔너리에 가깝게 동작합니다. 매핑 인터페이스가 완전하며 <a class="reference internal" href="collections.abc.html#collections.abc.MutableMapping" title="collections.abc.MutableMapping"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a> ABC를 준수합니다. 그러나, 고려해야 하는 몇 가지 차이점이 있습니다:</p>
 <ul>
-<li><p class="first">By default, all keys in sections are accessible in a case-insensitive manner
-<a class="footnote-reference" href="#id14" id="id10">[1]</a>.  E.g. <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">option</span> <span class="pre">in</span> <span class="pre">parser[&quot;section&quot;]</span></code> yields only <code class="docutils literal notranslate"><span class="pre">optionxform</span></code>'ed
-option key names.  This means lowercased keys by default.  At the same time,
-for a section that holds the key <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, both expressions return <code class="docutils literal notranslate"><span class="pre">True</span></code>:</p>
+<li><p class="first">기본적으로, 섹션의 모든 키는 대소 문자를 구분하지 않고 액세스 할 수 있습니다 <a class="footnote-reference" href="#id14" id="id10">[1]</a>. 예를 들어 <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">option</span> <span class="pre">in</span> <span class="pre">parser[&quot;section&quot;]</span></code>는 <code class="docutils literal notranslate"><span class="pre">optionxform</span></code> 변환된 옵션 키 이름만 산출합니다. 이것은 기본적으로 소문자 키를 의미합니다. 동시에, 키 <code class="docutils literal notranslate"><span class="pre">'a'</span></code>를 보유하는 섹션의 경우, 두 표현식 모두 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;a&quot;</span> <span class="ow">in</span> <span class="n">parser</span><span class="p">[</span><span class="s2">&quot;section&quot;</span><span class="p">]</span>
 <span class="s2">&quot;A&quot;</span> <span class="ow">in</span> <span class="n">parser</span><span class="p">[</span><span class="s2">&quot;section&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">All sections include <code class="docutils literal notranslate"><span class="pre">DEFAULTSECT</span></code> values as well which means that
-<code class="docutils literal notranslate"><span class="pre">.clear()</span></code> on a section may not leave the section visibly empty.  This is
-because default values cannot be deleted from the section (because technically
-they are not there).  If they are overridden in the section, deleting causes
-the default value to be visible again.  Trying to delete a default value
-causes a <a class="reference internal" href="exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a>.</p>
+<li><p class="first">모든 섹션에는 <code class="docutils literal notranslate"><span class="pre">DEFAULTSECT</span></code> 값도 포함되어 있는데, 섹션에 대한 <code class="docutils literal notranslate"><span class="pre">.clear()</span></code>가 섹션을 비어보이게 만들 수 없다는 뜻입니다. 이것은 섹션에서 기본값을 삭제할 수 없기 때문입니다 (기술적으로는 기본값이 거기 없기 때문입니다). 섹션에서 재정의되었으면, 삭제하면 기본값이 다시 보입니다. 기본값을 삭제하려고 하면 <a class="reference internal" href="exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a>가 발생합니다.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">DEFAULTSECT</span></code> cannot be removed from the parser:</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">DEFAULTSECT</span></code>는 구문 분석기에서 제거할 수 없습니다:</p>
 <ul class="simple">
-<li>trying to delete it raises <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>,</li>
-<li><code class="docutils literal notranslate"><span class="pre">parser.clear()</span></code> leaves it intact,</li>
-<li><code class="docutils literal notranslate"><span class="pre">parser.popitem()</span></code> never returns it.</li>
+<li>삭제하려고 하면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다,</li>
+<li><code class="docutils literal notranslate"><span class="pre">parser.clear()</span></code>는 이것을 그대로 남겨둡니다,</li>
+<li><code class="docutils literal notranslate"><span class="pre">parser.popitem()</span></code>은 이것을 절대 반환하지 않습니다.</li>
 </ul>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">parser.get(section,</span> <span class="pre">option,</span> <span class="pre">**kwargs)</span></code> - the second argument is <strong>not</strong>
-a fallback value.  Note however that the section-level <code class="docutils literal notranslate"><span class="pre">get()</span></code> methods are
-compatible both with the mapping protocol and the classic configparser API.</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">parser.get(section,</span> <span class="pre">option,</span> <span class="pre">**kwargs)</span></code> - 두 번째 인자는 대체 값이 <strong>아닙니다</strong>. 그러나 섹션 수준 <code class="docutils literal notranslate"><span class="pre">get()</span></code> 메서드는 매핑 프로토콜과 클래식 configparser API와 모두 호환됨에 유의하십시오.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">parser.items()</span></code> is compatible with the mapping protocol (returns a list of
-<em>section_name</em>, <em>section_proxy</em> pairs including the DEFAULTSECT).  However,
-this method can also be invoked with arguments: <code class="docutils literal notranslate"><span class="pre">parser.items(section,</span> <span class="pre">raw,</span>
-<span class="pre">vars)</span></code>.  The latter call returns a list of <em>option</em>, <em>value</em> pairs for
-a specified <code class="docutils literal notranslate"><span class="pre">section</span></code>, with all interpolations expanded (unless
-<code class="docutils literal notranslate"><span class="pre">raw=True</span></code> is provided).</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">parser.items()</span></code>는 매핑 프로토콜과 호환됩니다 (DEFAULTSECT를 포함하여 <em>section_name</em>, <em>section_proxy</em> 쌍의 리스트를 반환합니다). 그러나, 이 메서드는 인자와 함께 호출 할 수도 있습니다: <code class="docutils literal notranslate"><span class="pre">parser.items(section,</span> <span class="pre">raw,</span> <span class="pre">vars)</span></code>. 후자의 호출은 지정된 <code class="docutils literal notranslate"><span class="pre">section</span></code>에 대한 <em>option</em>, <em>value</em> 쌍의 리스트를 반환하며, 모든 보간이 확장됩니다 (<code class="docutils literal notranslate"><span class="pre">raw=True</span></code>가 제공되지 않는 한).</p>
 </li>
 </ul>
-<p>The mapping protocol is implemented on top of the existing legacy API so that
-subclasses overriding the original interface still should have mappings working
-as expected.</p>
+<p>매핑 프로토콜은 기존 레거시 API 위에 구현되므로 원래 인터페이스를 대정의하는 서브 클래스에서도 여전히 매핑이 작동해야합니다.</p>
 </div>
 <div class="section" id="customizing-parser-behaviour">
 <h2>구문 분석기 동작 사용자 정의<a class="headerlink" href="#customizing-parser-behaviour" title="제목 주소">¶</a></h2>
-<p>There are nearly as many INI format variants as there are applications using it.
-<a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a> goes a long way to provide support for the largest sensible
-set of INI styles available.  The default functionality is mainly dictated by
-historical background and it's very likely that you will want to customize some
-of the features.</p>
-<p>The most common way to change the way a specific config parser works is to use
-the <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> options:</p>
+<p>INI 형식을 사용하는 응용 프로그램만큼이나 많은 INI 형식 변형이 있습니다. <a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a>는 사용 가능한 가장 큰 INI 스타일 집합을 지원하기 위해 먼 길을 갔습니다. 기본 기능은 주로 역사적 배경에 의해 결정되며 일부 기능을 사용자 정의하고싶을 가능성이 큽니다.</p>
+<p>특정 구성 구문 분석기의 작동 방식을 변경하는 가장 흔한 방법은 <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> 옵션을 사용하는 것입니다:</p>
 <ul>
-<li><p class="first"><em>defaults</em>, default value: <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-<p>This option accepts a dictionary of key-value pairs which will be initially
-put in the <code class="docutils literal notranslate"><span class="pre">DEFAULT</span></code> section.  This makes for an elegant way to support
-concise configuration files that don't specify values which are the same as
-the documented default.</p>
-<p>Hint: if you want to specify default values for a specific section, use
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">read_dict()</span></code> before you read the actual file.</p>
+<li><p class="first"><em>defaults</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<p>이 옵션은 처음에 <code class="docutils literal notranslate"><span class="pre">DEFAULT</span></code> 섹션에 배치될 키-값 쌍의 딕셔너리를 받아들입니다. 이것은 지정하지 않으면 설명된 기본값과 같은 값이 되는 간결한 구성 파일을 지원하는 우아한 방법입니다.</p>
+<p>힌트: 특정 섹션에 대한 기본값을 지정하려면, 실제 파일을 읽기 전에 <code class="xref py py-meth docutils literal notranslate"><span class="pre">read_dict()</span></code>를 사용하십시오.</p>
 </li>
-<li><p class="first"><em>dict_type</em>, default value: <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
-<p>This option has a major impact on how the mapping protocol will behave and how
-the written configuration files look.  With the standard dictionary, every
-section is stored in the order they were added to the parser.  Same goes for
-options within sections.</p>
-<p>An alternative dictionary type can be used for example to sort sections and
-options on write-back.</p>
-<p>Please note: there are ways to add a set of key-value pairs in a single
-operation.  When you use a regular dictionary in those operations, the order
-of the keys will be ordered.  For example:</p>
+<li><p class="first"><em>dict_type</em>, 기본값: <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<p>이 옵션은 매핑 프로토콜의 작동 방식과 기록된 구성 파일의 꼴에 큰 영향을 미칩니다. 표준 딕셔너리를 사용하면, 모든 섹션이 구문 분석기에 추가된 순서대로 저장됩니다. 섹션 내의 옵션도 마찬가지입니다.</p>
+<p>대체 딕셔너리 형을 사용하여 예를 들어 다시 쓸 때 섹션과 옵션을 정렬할 수 있습니다.</p>
+<p>참고: 단일 연산에서 키-값 쌍의 집합을 추가하는 방법이 있습니다. 이러한 연산에서 일반 딕셔너리를 사용하면 키 순서가 유지됩니다. 예를 들면:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">read_dict</span><span class="p">({</span><span class="s1">&#39;section1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key1&#39;</span><span class="p">:</span> <span class="s1">&#39;value1&#39;</span><span class="p">,</span>
 <span class="gp">... </span>                               <span class="s1">&#39;key2&#39;</span><span class="p">:</span> <span class="s1">&#39;value2&#39;</span><span class="p">,</span>
@@ -468,11 +429,8 @@ of the keys will be ordered.  For example:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><em>allow_no_value</em>, default value: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
-<p>Some configuration files are known to include settings without values, but
-which otherwise conform to the syntax supported by <a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a>.  The
-<em>allow_no_value</em> parameter to the constructor can be used to
-indicate that such values should be accepted:</p>
+<li><p class="first"><em>allow_no_value</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+<p>일부 구성 파일에는 값이 없는 설정이 포함되어 있지만, 그 외에는 <a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a>에서 지원하는 구문을 준수하는 것으로 알려져 있습니다. 생성자에 대한 <em>allow_no_value</em> 매개 변수를 사용하여 이러한 값을 받아들여야 함을 표시할 수 있습니다:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">configparser</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sample_config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -488,14 +446,14 @@ indicate that such values should be accepted:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">allow_no_value</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">read_string</span><span class="p">(</span><span class="n">sample_config</span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Settings with values are treated as before:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 값이 있는 설정은 이전처럼 처리됩니다:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;mysqld&quot;</span><span class="p">][</span><span class="s2">&quot;user&quot;</span><span class="p">]</span>
 <span class="go">&#39;mysql&#39;</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Settings without values provide None:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 값이 없는 설정은 None을 제공합니다:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;mysqld&quot;</span><span class="p">][</span><span class="s2">&quot;skip-bdb&quot;</span><span class="p">]</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Settings which aren&#39;t specified still raise an error:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 지정되지 않은 설정은 여전히 에러를 발생시킵니다:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;mysqld&quot;</span><span class="p">][</span><span class="s2">&quot;does-not-exist&quot;</span><span class="p">]</span>
 <span class="gt">Traceback (most recent call last):</span>
   <span class="c">...</span>
@@ -503,35 +461,21 @@ indicate that such values should be accepted:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><em>delimiters</em>, default value: <code class="docutils literal notranslate"><span class="pre">('=',</span> <span class="pre">':')</span></code></p>
-<p>Delimiters are substrings that delimit keys from values within a section.
-The first occurrence of a delimiting substring on a line is considered
-a delimiter.  This means values (but not keys) can contain the delimiters.</p>
-<p>See also the <em>space_around_delimiters</em> argument to
-<a class="reference internal" href="#configparser.ConfigParser.write" title="configparser.ConfigParser.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ConfigParser.write()</span></code></a>.</p>
+<li><p class="first"><em>delimiters</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">('=',</span> <span class="pre">':')</span></code></p>
+<p>구분자(delimiters)는 섹션 내의 값에서 키를 구분하는 부분 문자열입니다. 줄에서 처음 나타나는 구분하는 부분 문자열을 구분자로 간주합니다. 이는 값에 (하지만 키는 아닙니다) 구분자가 포함될 수 있음을 의미합니다.</p>
+<p><a class="reference internal" href="#configparser.ConfigParser.write" title="configparser.ConfigParser.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ConfigParser.write()</span></code></a>에 대한 <em>space_around_delimiters</em> 인자도 참조하십시오.</p>
 </li>
-<li><p class="first"><em>comment_prefixes</em>, default value: <code class="docutils literal notranslate"><span class="pre">('#',</span> <span class="pre">';')</span></code></p>
+<li><p class="first"><em>comment_prefixes</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">('#',</span> <span class="pre">';')</span></code></p>
 </li>
 <li><p class="first"><em>inline_comment_prefixes</em>, default value: <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-<p>Comment prefixes are strings that indicate the start of a valid comment within
-a config file. <em>comment_prefixes</em> are used only on otherwise empty lines
-(optionally indented) whereas <em>inline_comment_prefixes</em> can be used after
-every valid value (e.g. section names, options and empty lines as well).  By
-default inline comments are disabled and <code class="docutils literal notranslate"><span class="pre">'#'</span></code> and <code class="docutils literal notranslate"><span class="pre">';'</span></code> are used as
-prefixes for whole line comments.</p>
+<p>주석 접두사는 구성 파일 내에서 유효한 주석의 시작을 나타내는 문자열입니다. <em>comment_prefixes</em>는 주석이 없으면 빈 줄일 때만 (선택적으로 들여쓰기됩니다) 사용되는 반면  <em>inline_comment_prefixes</em>는 모든 유효한 값 (예를 들어 섹션 이름, 옵션 및 빈 줄 역시) 뒤에 사용될 수 있습니다. 기본적으로 인라인 주석은 비활성화되어 있으며 <code class="docutils literal notranslate"><span class="pre">'#'</span></code>과 <code class="docutils literal notranslate"><span class="pre">';'</span></code>이 전체 줄 주석의 접두사로 사용됩니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.2으로 변경: </span>In previous versions of <a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a> behaviour matched
-<code class="docutils literal notranslate"><span class="pre">comment_prefixes=('#',';')</span></code> and <code class="docutils literal notranslate"><span class="pre">inline_comment_prefixes=(';',)</span></code>.</p>
+<p><span class="versionmodified">버전 3.2으로 변경: </span><a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a>의 이전 버전에서는 동작이 <code class="docutils literal notranslate"><span class="pre">comment_prefixes=('#',';')</span></code>와 <code class="docutils literal notranslate"><span class="pre">inline_comment_prefixes=(';',)</span></code>와 일치했습니다.</p>
 </div>
-<p>Please note that config parsers don't support escaping of comment prefixes so
-using <em>inline_comment_prefixes</em> may prevent users from specifying option
-values with characters used as comment prefixes.  When in doubt, avoid
-setting <em>inline_comment_prefixes</em>.  In any circumstances, the only way of
-storing comment prefix characters at the beginning of a line in multiline
-values is to interpolate the prefix, for example:</p>
+<p>구성 구문 분석기는 주석 접두사 이스케이프를 지원하지 않으므로 <em>inline_comment_prefixes</em>를 사용하면 사용자가 주석 접두사로 사용되는 문자로 옵션 값을 지정하지 못할 수 있습니다. 확실하지 않으면, <em>inline_comment_prefixes</em>를 설정하지 마십시오. 어떤 상황에서든, 여러 줄 값에서 줄의 시작 부분에 주석 접두사 문자를 저장하는 유일한 방법은 접두사를 보간하는 것입니다, 예를 들어:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">configparser</span> <span class="k">import</span> <span class="n">ConfigParser</span><span class="p">,</span> <span class="n">ExtendedInterpolation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="n">ExtendedInterpolation</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># the default BasicInterpolation could be used as well</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 기본 BasicInterpolation 도 사용될 수 있습니다</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">read_string</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="gp">... </span><span class="s2">[DEFAULT]</span>
 <span class="gp">... </span><span class="s2">hash = #</span>
@@ -570,23 +514,14 @@ values is to interpolate the prefix, for example:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><em>strict</em>, default value: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
-<p>When set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, the parser will not allow for any section or option
-duplicates while reading from a single source (using <code class="xref py py-meth docutils literal notranslate"><span class="pre">read_file()</span></code>,
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">read_string()</span></code> or <code class="xref py py-meth docutils literal notranslate"><span class="pre">read_dict()</span></code>).  It is recommended to use strict
-parsers in new applications.</p>
+<li><p class="first"><em>strict</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">True</span></code>로 설정하면, 구문 분석기는 단일 소스에서 읽는 (<code class="xref py py-meth docutils literal notranslate"><span class="pre">read_file()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">read_string()</span></code> 또는 <code class="xref py py-meth docutils literal notranslate"><span class="pre">read_dict()</span></code>를 사용해서) 동안 섹션이나 옵션 중복을 허용하지 않습니다. 새로운 응용 프로그램에서는 엄격한(strict) 구문 분석기를 사용하는 것이 좋습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified">버전 3.2으로 변경: </span>In previous versions of <a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a> behaviour matched
-<code class="docutils literal notranslate"><span class="pre">strict=False</span></code>.</p>
+<p><span class="versionmodified">버전 3.2으로 변경: </span><a class="reference internal" href="#module-configparser" title="configparser: Configuration file parser."><code class="xref py py-mod docutils literal notranslate"><span class="pre">configparser</span></code></a>의 이전 버전에서는 동작이 <code class="docutils literal notranslate"><span class="pre">strict=False</span></code>와 일치했습니다.</p>
 </div>
 </li>
-<li><p class="first"><em>empty_lines_in_values</em>, default value: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
-<p>In config parsers, values can span multiple lines as long as they are
-indented more than the key that holds them.  By default parsers also let
-empty lines to be parts of values.  At the same time, keys can be arbitrarily
-indented themselves to improve readability.  In consequence, when
-configuration files get big and complex, it is easy for the user to lose
-track of the file structure.  Take for instance:</p>
+<li><p class="first"><em>empty_lines_in_values</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+<p>구성 구문 분석기에서는, 값을 담는 키보다 많이 들여쓰기 만하면 값이 여러 줄에 걸쳐있을 수 있습니다. 기본적으로 구문 분석기는 빈 줄도 값의 일부가 되도록 합니다. 동시에, 가독성을 높이기 위해 키를 임의로 들여 쓸 수 있습니다. 결과적으로, 구성 파일이 커지고 복잡해지면, 사용자가 파일 구조를 쉽게 놓칠 수 있습니다. 예를 들어 봅시다:</p>
 <div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[Section]</span>
 <span class="na">key</span> <span class="o">=</span> <span class="s">multiline</span>
 <span class="s">  value with a gotcha</span>
@@ -594,26 +529,12 @@ track of the file structure.  Take for instance:</p>
  <span class="na">this</span> <span class="o">=</span> <span class="s">is still a part of the multiline value of &#39;key&#39;</span>
 </pre></div>
 </div>
-<p>This can be especially problematic for the user to see if she's using a
-proportional font to edit the file.  That is why when your application does
-not need values with empty lines, you should consider disallowing them.  This
-will make empty lines split keys every time.  In the example above, it would
-produce two keys, <code class="docutils literal notranslate"><span class="pre">key</span></code> and <code class="docutils literal notranslate"><span class="pre">this</span></code>.</p>
+<p>이것은 사용자가 가변폭 글꼴을 사용하여 파일을 편집하고 있다면 보는데 특히 문제가 될 수 있습니다. 따라서 응용 프로그램에 빈 줄이 있는 값이 필요하지 않으면, 허용하지 않는 것이 좋습니다. 이렇게하면 빈 줄이 매번 키를 분리합니다. 위의 예에서는, <code class="docutils literal notranslate"><span class="pre">key</span></code>와 <code class="docutils literal notranslate"><span class="pre">this</span></code>의 두 키를 생성합니다.</p>
 </li>
-<li><p class="first"><em>default_section</em>, default value: <code class="docutils literal notranslate"><span class="pre">configparser.DEFAULTSECT</span></code> (that is:
-<code class="docutils literal notranslate"><span class="pre">&quot;DEFAULT&quot;</span></code>)</p>
-<p>The convention of allowing a special section of default values for other
-sections or interpolation purposes is a powerful concept of this library,
-letting users create complex declarative configurations.  This section is
-normally called <code class="docutils literal notranslate"><span class="pre">&quot;DEFAULT&quot;</span></code> but this can be customized to point to any
-other valid section name.  Some typical values include: <code class="docutils literal notranslate"><span class="pre">&quot;general&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;common&quot;</span></code>.  The name provided is used for recognizing default sections
-when reading from any source and is used when writing configuration back to
-a file.  Its current value can be retrieved using the
-<code class="docutils literal notranslate"><span class="pre">parser_instance.default_section</span></code> attribute and may be modified at runtime
-(i.e. to convert files from one format to another).</p>
+<li><p class="first"><em>default_section</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">configparser.DEFAULTSECT</span></code> (즉: <code class="docutils literal notranslate"><span class="pre">&quot;DEFAULT&quot;</span></code>)</p>
+<p>다른 섹션이나 보간 목적으로 기본값의 특수한 섹션을 허용하는 규칙은 이 라이브러리의 강력한 개념으로, 사용자로 하여금 복잡한 선언적 구성을 만들 수 있도록 합니다. 이 섹션은 일반적으로 <code class="docutils literal notranslate"><span class="pre">&quot;DEFAULT&quot;</span></code>라고하지만 다른 유효한 섹션 이름을 가리키도록 사용자 정의할 수 있습니다. 몇가지 흔한 값은 이렇습니다: <code class="docutils literal notranslate"><span class="pre">&quot;general&quot;</span></code>이나 <code class="docutils literal notranslate"><span class="pre">&quot;common&quot;</span></code>. 제공된 이름은 모든 소스에서 읽을 때 기본값 섹션을 인식하는 데 사용되며 구성을 파일에 다시 쓸 때 사용됩니다. 현재 값은 <code class="docutils literal notranslate"><span class="pre">parser_instance.default_section</span></code> 어트리뷰트를 사용하여 꺼낼 수 있으며 실행 시간에 수정될 수 있습니다 (즉 파일을 한 형식에서 다른 형식으로 변환하기위해).</p>
 </li>
-<li><p class="first"><em>interpolation</em>, default value: <code class="docutils literal notranslate"><span class="pre">configparser.BasicInterpolation</span></code></p>
+<li><p class="first"><em>interpolation</em>, 기본값: <code class="docutils literal notranslate"><span class="pre">configparser.BasicInterpolation</span></code></p>
 <p>Interpolation behaviour may be customized by providing a custom handler
 through the <em>interpolation</em> argument. <code class="docutils literal notranslate"><span class="pre">None</span></code> can be used to turn off
 interpolation completely, <code class="docutils literal notranslate"><span class="pre">ExtendedInterpolation()</span></code> provides a more
