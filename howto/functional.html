@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>함수형 프로그래밍 HOWTO &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,6 +12,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
     
     <script type="text/javascript" src="../_static/sidebar.js"></script>
@@ -102,7 +101,7 @@
     <div class="inline-search" style="display: none" role="search">
         <form class="inline-search" action="../search.html" method="get">
           <input placeholder="빠른 검색" type="text" name="q" />
-          <input type="submit" value="바로 가기" />
+          <input type="submit" value="이동" />
           <input type="hidden" name="check_keywords" value="yes" />
           <input type="hidden" name="area" value="default" />
         </form>
@@ -122,29 +121,27 @@
   <div class="section" id="functional-programming-howto">
 <h1>함수형 프로그래밍 HOWTO<a class="headerlink" href="#functional-programming-howto" title="제목 주소">¶</a></h1>
 <div class="admonition-flowdas admonition">
-<p class="first admonition-title">flowdas</p>
-<p class="last">이 페이지는 <a class="reference external" href="https://github.com/iandmyhand">SeomGi, Han</a> 님의 번역입니다.</p>
+<p class="admonition-title">flowdas</p>
+<p>이 페이지는 <a class="reference external" href="https://github.com/iandmyhand">SeomGi, Han</a> 님의 번역입니다.</p>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">저자:</th><td class="field-body">A. M. Kuchling</td>
-</tr>
-<tr class="field-even field"><th class="field-name">버전:</th><td class="field-body">0.32</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">저자</dt>
+<dd class="field-odd"><p>A. M. Kuchling</p>
+</dd>
+<dt class="field-even">버전</dt>
+<dd class="field-even"><p>0.32</p>
+</dd>
+</dl>
 <p>이 문서에서는, 함수형 방식으로 프로그램을 구현하는데 적합한 파이썬의 특성에 대해 알아볼 것입니다. 함수형 프로그래밍의 개념을 소개한 뒤에, <a class="reference internal" href="../glossary.html#term-iterator"><span class="xref std std-term">이터레이터</span></a> , <a class="reference internal" href="../glossary.html#term-generator"><span class="xref std std-term">제너레이터</span></a> 와 같은 언어의 특성과 <a class="reference internal" href="../library/itertools.html#module-itertools" title="itertools: Functions creating iterators for efficient looping."><code class="xref py py-mod docutils literal notranslate"><span class="pre">itertools</span></code></a> , <a class="reference internal" href="../library/functools.html#module-functools" title="functools: Higher-order functions and operations on callable objects."><code class="xref py py-mod docutils literal notranslate"><span class="pre">functools</span></code></a> 와 같은 관련 라이브러리 모듈을 살펴볼 것입니다.</p>
 <div class="section" id="introduction">
 <h2>소개<a class="headerlink" href="#introduction" title="제목 주소">¶</a></h2>
 <p>이 절에서는 함수형 프로그래밍의 기본적인 개념을 설명합니다; 만약 단순히 파이썬의 언어적 특성에 관해서만 관심이 있으시다면, <a class="reference internal" href="#functional-howto-iterators"><span class="std std-ref">이터레이터</span></a> 절로 건너뛰세요.</p>
 <p>프로그래밍 언어들은 다음과 같이 각각 다른 방식으로 문제를 더 작은 부분으로 분할하는 방법을 지원합니다:</p>
 <ul class="simple">
-<li>대부분의 프로그래밍 언어들은 <strong>절차적</strong> 입니다: 프로그램은 컴퓨터에 프로그램의 입력을 어떻게 할지 알려주는 명령 목록입니다. C, 파스칼, 유닉스 셸과 같은 것들은 절차적 언어입니다.</li>
-<li><strong>선언적</strong> 언어에서는 해결해야 할 문제를 설명하는 명세서를 작성하고, 언어 구현은 계산을 효과적으로 수행하는 방법을 파악합니다. SQL은 가장 친숙한 선언적 언어입니다; SQL 질의는 검색하고 싶은 데이터 세트를 설명하고, SQL 엔진은 테이블을 스캔하거나 인덱스를 사용할 것인지, 어떤 하위 구문을 먼저 수행해야 하는지 등을 결정합니다.</li>
-<li><strong>객체지향</strong> 프로그램은 객체들의 컬렉션을 다룹니다. 객체는 내부적인 상태를 갖고 있으며 이 내부적인 상태를 어떤 방식으로 가져오거나 수정하는 메서드를 제공합니다. 스몰토크와 자바는 객체지향 언어입니다. C++ 와 파이썬은 객체지향 프로그래밍을 지원하는 언어이지만, 객체 지향적인 특성들을 사용하도록 강제하지는 않습니다.</li>
-<li><strong>함수형</strong> 프로그래밍은 함수들의 세트로 문제를 분해합니다. 이상적으로 말하면, 함수들은 입력을 받아서 출력을 만들어내기만 하며, 주어진 입력에 대해 생성된 출력에 영향을 끼칠만한 어떠한 내부적인 상태도 가지지 않습니다. 잘 알려진 함수형 언어로는 ML 계열(Standard ML, OCaml 및 다른 변형)과 하스켈이 있습니다.</li>
+<li><p>대부분의 프로그래밍 언어들은 <strong>절차적</strong> 입니다: 프로그램은 컴퓨터에 프로그램의 입력을 어떻게 할지 알려주는 명령 목록입니다. C, 파스칼, 유닉스 셸과 같은 것들은 절차적 언어입니다.</p></li>
+<li><p><strong>선언적</strong> 언어에서는 해결해야 할 문제를 설명하는 명세서를 작성하고, 언어 구현은 계산을 효과적으로 수행하는 방법을 파악합니다. SQL은 가장 친숙한 선언적 언어입니다; SQL 질의는 검색하고 싶은 데이터 세트를 설명하고, SQL 엔진은 테이블을 스캔하거나 인덱스를 사용할 것인지, 어떤 하위 구문을 먼저 수행해야 하는지 등을 결정합니다.</p></li>
+<li><p><strong>객체지향</strong> 프로그램은 객체들의 컬렉션을 다룹니다. 객체는 내부적인 상태를 갖고 있으며 이 내부적인 상태를 어떤 방식으로 가져오거나 수정하는 메서드를 제공합니다. 스몰토크와 자바는 객체지향 언어입니다. C++ 와 파이썬은 객체지향 프로그래밍을 지원하는 언어이지만, 객체 지향적인 특성들을 사용하도록 강제하지는 않습니다.</p></li>
+<li><p><strong>함수형</strong> 프로그래밍은 함수들의 세트로 문제를 분해합니다. 이상적으로 말하면, 함수들은 입력을 받아서 출력을 만들어내기만 하며, 주어진 입력에 대해 생성된 출력에 영향을 끼칠만한 어떠한 내부적인 상태도 가지지 않습니다. 잘 알려진 함수형 언어로는 ML 계열(Standard ML, OCaml 및 다른 변형)과 하스켈이 있습니다.</p></li>
 </ul>
 <p>일부 컴퓨터 언어의 설계자들은 프로그래밍에 대한 한 가지의 특별한 접근 방식을 강조합니다. 이것은 종종 다른 접근 방식으로 프로그램을 작성하는 것을 어렵게 만듭니다. 다른 언어들은 다양한 접근 방법을 지원하는 다중 패러다임 언어입니다. Lisp, C++, 파이썬 등은 다중 패러다임 언어입니다; 이러한 언어에서는 절차적, 객체 지향적 혹은 함수형으로 프로그램이나 라이브러리를 작성할 수 있습니다. 거대한 프로그램에서, 각 구역은 서로 다른 접근 방법을 사용하여 작성될 수 있습니다; 예를 들어 처리 로직이 절차적 혹은 함수형으로 작성되었을 때, GUI는 객체 지향적으로 작성될 수 있습니다.</p>
 <p>함수형 프로그램에서, 입력은 여러 함수의 세트를 통해 흘러 다닙니다. 각 함수는 입력으로부터 동작해서 출력을 만들어냅니다. 함수형 방식은 내부 상태를 수정하거나 함수의 반환 값에서 보이지 않는 다른 변경사항들을 만드는 부작용이 있는 함수를 사용하지 않습니다. 부작용이 전혀 없는 함수를 <strong>순수 함수</strong> 라고 합니다. 부작용을 피한다는 것은 프로그램이 실행될 때 수정될 수 있는 자료 구조를 사용하지 않는다는 의미입니다; 모든 함수의 출력은 입력에만 의존해야 합니다.</p>
@@ -153,10 +150,10 @@
 <p>함수형 프로그래밍은 객체 지향 프로그래밍의 반대라고 생각할 수 있습니다. 객체는 내부 상태들을 갖고 있으며 이 상태들을 수정할 수 있는 메서드의 호출 모음이 포함된 작은 캡슐이며, 프로그램은 올바른 상태 변경 집합을 구성합니다. 함수형 프로그래밍은 가능한 한 상태 변경을 피하고자 하며 함수 간의 데이터 흐름을 사용합니다. 파이썬에서는 응용 프로그램의 객체를 나타내는 인스턴스(전자 우편 메시지, 트랜잭션 등)를 가져와서 반환하는 함수를 작성함으로써 두 가지 접근 방식을 결합할 수 있습니다.</p>
 <p>함수형 설계는 동작 방식에 이상한 제약이 있는 것처럼 보일 수 있습니다. 왜 객체와 부작용을 피해야만 할까요? 함수형 방식은 이론적으로도, 실질적으로도 다음과 같은 장점이 있습니다:</p>
 <ul class="simple">
-<li>형식적 증명 가능성.</li>
-<li>모듈성.</li>
-<li>결합성.</li>
-<li>디버깅과 테스트 용이성.</li>
+<li><p>형식적 증명 가능성.</p></li>
+<li><p>모듈성.</p></li>
+<li><p>결합성.</p></li>
+<li><p>디버깅과 테스트 용이성.</p></li>
 </ul>
 <div class="section" id="formal-provability">
 <h3>형식적 증명 가능성<a class="headerlink" href="#formal-provability" title="제목 주소">¶</a></h3>
@@ -190,7 +187,7 @@
 <p>수동으로 이터레이션 인터페이스를 실험해볼 수 있습니다:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>  <span class="c1">#doctest: +ELLIPSIS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it</span>  
 <span class="go">&lt;...iterator object at ...&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">it</span><span class="o">.</span><span class="fm">__next__</span><span class="p">()</span>  <span class="c1"># next(it) 와 같습니다</span>
 <span class="go">1</span>
@@ -330,7 +327,7 @@
 <p>이것은 여러 개의 <code class="docutils literal notranslate"><span class="pre">for...in</span></code> 절이 있지만 <code class="docutils literal notranslate"><span class="pre">if</span></code> 절이 없을 때 결과 출력의 길이가 모든 시퀀스 길이의 곱과 같음을 의미합니다. 길이가 3인 두 개의 리스트가 있는 경우 출력 목록의 길이는 9개입니다:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seq1</span> <span class="o">=</span> <span class="s1">&#39;abc&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">seq1</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">seq2</span><span class="p">]</span>  <span class="c1">#doctest: +NORMALIZE_WHITESPACE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">seq1</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">seq2</span><span class="p">]</span>  
 <span class="go">[(&#39;a&#39;, 1), (&#39;a&#39;, 2), (&#39;a&#39;, 3),</span>
 <span class="go"> (&#39;b&#39;, 1), (&#39;b&#39;, 2), (&#39;b&#39;, 3),</span>
 <span class="go"> (&#39;c&#39;, 1), (&#39;c&#39;, 2), (&#39;c&#39;, 3)]</span>
@@ -358,7 +355,7 @@
 <p>제너레이터 함수를 호출하면 단일 값을 반환하지 않습니다; 대신 이터레이터 프로토콜을 지원하는 제너레이터 객체를 반환합니다. <code class="docutils literal notranslate"><span class="pre">yield</span></code> 표현식을 실행하면 제너레이터는 <code class="docutils literal notranslate"><span class="pre">return</span></code> 문과 비슷하게 <code class="docutils literal notranslate"><span class="pre">i</span></code> 의 값을 출력합니다. <code class="docutils literal notranslate"><span class="pre">yield</span></code> 와 <code class="docutils literal notranslate"><span class="pre">return</span></code> 의 큰 차이점은 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 에 도달하면 제너레이터의 실행 상태가 일시 중단되고 지역 변수가 보존된다는 것입니다. 제너레이터의 <a class="reference internal" href="../reference/expressions.html#generator.__next__" title="generator.__next__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__next__()</span></code></a> 메서드가 다음에 실행될 때, 함수가 다시 실행됩니다.</p>
 <p>다음은 <code class="docutils literal notranslate"><span class="pre">generate_ints()</span></code> 제너레이터의 사용 예입니다:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span> <span class="o">=</span> <span class="n">generate_ints</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span>  <span class="c1">#doctest: +ELLIPSIS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gen</span>  
 <span class="go">&lt;generator object generate_ints at ...&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
 <span class="go">0</span>
@@ -376,7 +373,7 @@
 <p>여러분은 똑같이 <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">i</span> <span class="pre">in</span> <span class="pre">generate_ints(5)</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">a,</span> <span class="pre">b,</span> <span class="pre">c</span> <span class="pre">=</span> <span class="pre">generate_ints(3)</span></code> 라고 쓸 수 있습니다.</p>
 <p>제너레이터 함수 내에서, <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">value</span></code> 는 <a class="reference internal" href="../reference/expressions.html#generator.__next__" title="generator.__next__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__next__()</span></code></a> 메서드에서 <code class="docutils literal notranslate"><span class="pre">StopIteration(value)</span></code> 를 발생시킵니다. 이런 일이 발생하거나 함수의 맨 아래에 도달하면 값의 행렬이 끝나고 제너레이터는 더는 값을 산출할 수 없습니다.</p>
 <p>직접 클래스를 작성하고 제너레이터의 모든 지역 변수를 인스턴스 변수로 저장하여 제너레이터의 효과를 수동으로 얻을 수 있습니다. 예를 들어, 정수 리스트를 반환하는 것은 <code class="docutils literal notranslate"><span class="pre">self.count</span></code> 를 0으로 설정하고 <a class="reference internal" href="../library/stdtypes.html#iterator.__next__" title="iterator.__next__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__next__()</span></code></a> 메서드로 <code class="docutils literal notranslate"><span class="pre">self.count</span></code> 를 증가시켜 반환하는 식으로 수행할 수 있습니다. 그러나, 다소 복잡한 제너레이터의 경우에는 해당 클래스를 작성하는 것이 훨씬 더 복잡할 수 있습니다.</p>
-<p>파이썬의 라이브러리인 <a class="reference external" href="https://github.com/python/cpython/tree/3.8/Lib/test/test_generators.py">Lib/test/test_generators.py</a> 에 포함된 테스트 묶음에는 더 많은 흥미로운 예제들이 있습니다. 제너레이터를 재귀적으로 사용하여 트리를 중위 순회하는 것을 구현하는 하나의 제너레이터가 있습니다.</p>
+<p>파이썬의 라이브러리인 <a class="reference external" href="https://github.com/python/cpython/tree/3.9/Lib/test/test_generators.py">Lib/test/test_generators.py</a> 에 포함된 테스트 묶음에는 더 많은 흥미로운 예제들이 있습니다. 제너레이터를 재귀적으로 사용하여 트리를 중위 순회하는 것을 구현하는 하나의 제너레이터가 있습니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 트리 노드를 중위(in-order) 순회 순으로 생성하는 재귀적 제너레이터</span>
 <span class="k">def</span> <span class="nf">inorder</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">t</span><span class="p">:</span>
@@ -401,28 +398,28 @@
 <p>(<span class="target" id="index-6"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0342"><strong>PEP 342</strong></a> 는 정확한 규칙을 설명합니다. 이것은 대입의 오른쪽에 있는 최상위 표현식에서 발생하는 경우를 제외하고 항상 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 표현식을 괄호로 묶어야 한다는 것입니다. <code class="docutils literal notranslate"><span class="pre">val</span> <span class="pre">=</span> <span class="pre">yield</span> <span class="pre">i</span></code> 라고 쓸 수도 있지만, <code class="docutils literal notranslate"><span class="pre">val</span> <span class="pre">=</span> <span class="pre">(yield</span> <span class="pre">i)</span> <span class="pre">+</span> <span class="pre">12</span></code> 처럼 연산이 있을 때는 괄호를 써야합니다.)</p>
 <p>값은 <a class="reference internal" href="../reference/expressions.html#generator.send" title="generator.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">send(value)</span></code></a> 메서드를 호출하여 제너레이터로 보내집니다. 이 메서드는 제너레이터의 코드를 다시 시작하고 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 표현식은 지정된 값을 반환합니다. 만약 정규 <a class="reference internal" href="../reference/expressions.html#generator.__next__" title="generator.__next__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__next__()</span></code></a> 메서드가 호출되면 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 는 <code class="docutils literal notranslate"><span class="pre">None</span></code> 을 반환합니다.</p>
 <p>다음은 1씩 증가하며 내부 카운터값을 변경할 수 있는 간단한 카운터입니다.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">counter</span><span class="p">(</span><span class="n">maximum</span><span class="p">):</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">counter</span><span class="p">(</span><span class="n">maximum</span><span class="p">):</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">maximum</span><span class="p">:</span>
         <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="k">yield</span> <span class="n">i</span><span class="p">)</span>
         <span class="c1"># If value provided, change counter</span>
-        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">val</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>다음은 카운터 변경의 예시입니다:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span> <span class="o">=</span> <span class="n">counter</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1">#doctest: +SKIP</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  <span class="c1">#doctest: +SKIP</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">it</span> <span class="o">=</span> <span class="n">counter</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  
 <span class="go">0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  <span class="c1">#doctest: +SKIP</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  
 <span class="go">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">it</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>  <span class="c1">#doctest: +SKIP</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">it</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>  
 <span class="go">8</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  <span class="c1">#doctest: +SKIP</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  
 <span class="go">9</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  <span class="c1">#doctest: +SKIP</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>  
 <span class="gt">Traceback (most recent call last):</span>
   File <span class="nb">&quot;t.py&quot;</span>, line <span class="m">15</span>, in <span class="n">&lt;module&gt;</span>
     <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
@@ -432,9 +429,8 @@
 <p><code class="docutils literal notranslate"><span class="pre">yield</span></code> 가 종종 <code class="docutils literal notranslate"><span class="pre">None</span></code> 을 반환할 것이므로, 항상 이 경우를 확인해야 합니다. <a class="reference internal" href="../reference/expressions.html#generator.send" title="generator.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">send()</span></code></a> 메서드가 제너레이터 함수를 다시 시작하는데 사용되는 유일한 메서드가 아니라면, 표현식의 결괏값을 확인없이 사용하지 마세요.</p>
 <p><a class="reference internal" href="../reference/expressions.html#generator.send" title="generator.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">send()</span></code></a> 외에도 제너레이터에 대한 두 가지 다른 메서드가 있습니다:</p>
 <ul>
-<li><p class="first"><a class="reference internal" href="../reference/expressions.html#generator.throw" title="generator.throw"><code class="xref py py-meth docutils literal notranslate"><span class="pre">throw(type,</span> <span class="pre">value=None,</span> <span class="pre">traceback=None)</span></code></a> 는 제너레이터 내에서 예외를 발생시키는 데 사용됩니다; 예외는 제너레이터의 실행이 일시 중지된 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 표현식에 의해 발생합니다.</p>
-</li>
-<li><p class="first"><a class="reference internal" href="../reference/expressions.html#generator.close" title="generator.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> 는 생성자 내에서 <a class="reference internal" href="../library/exceptions.html#GeneratorExit" title="GeneratorExit"><code class="xref py py-exc docutils literal notranslate"><span class="pre">GeneratorExit</span></code></a> 예외를 발생시켜 이터레이션을 종료합니다. 이 예외가 발생하면 제너레이터의 코드는 <a class="reference internal" href="../library/exceptions.html#GeneratorExit" title="GeneratorExit"><code class="xref py py-exc docutils literal notranslate"><span class="pre">GeneratorExit</span></code></a> 또는 <a class="reference internal" href="../library/exceptions.html#StopIteration" title="StopIteration"><code class="xref py py-exc docutils literal notranslate"><span class="pre">StopIteration</span></code></a> 을 발생시켜야 합니다; 예외를 받고도 다른 작업을 하는 것은 금지되어 있으며 <a class="reference internal" href="../library/exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> 를 촉발합니다. <a class="reference internal" href="../reference/expressions.html#generator.close" title="generator.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> 는 제너레이터가 가비지로 수거될 때 파이썬의 가비지 수거기에 의해 호출될 것입니다.</p>
+<li><p><a class="reference internal" href="../reference/expressions.html#generator.throw" title="generator.throw"><code class="xref py py-meth docutils literal notranslate"><span class="pre">throw(type,</span> <span class="pre">value=None,</span> <span class="pre">traceback=None)</span></code></a> 는 제너레이터 내에서 예외를 발생시키는 데 사용됩니다; 예외는 제너레이터의 실행이 일시 중지된 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 표현식에 의해 발생합니다.</p></li>
+<li><p><a class="reference internal" href="../reference/expressions.html#generator.close" title="generator.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> 는 생성자 내에서 <a class="reference internal" href="../library/exceptions.html#GeneratorExit" title="GeneratorExit"><code class="xref py py-exc docutils literal notranslate"><span class="pre">GeneratorExit</span></code></a> 예외를 발생시켜 이터레이션을 종료합니다. 이 예외가 발생하면 제너레이터의 코드는 <a class="reference internal" href="../library/exceptions.html#GeneratorExit" title="GeneratorExit"><code class="xref py py-exc docutils literal notranslate"><span class="pre">GeneratorExit</span></code></a> 또는 <a class="reference internal" href="../library/exceptions.html#StopIteration" title="StopIteration"><code class="xref py py-exc docutils literal notranslate"><span class="pre">StopIteration</span></code></a> 을 발생시켜야 합니다; 예외를 받고도 다른 작업을 하는 것은 금지되어 있으며 <a class="reference internal" href="../library/exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> 를 촉발합니다. <a class="reference internal" href="../reference/expressions.html#generator.close" title="generator.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> 는 제너레이터가 가비지로 수거될 때 파이썬의 가비지 수거기에 의해 호출될 것입니다.</p>
 <p><a class="reference internal" href="../library/exceptions.html#GeneratorExit" title="GeneratorExit"><code class="xref py py-exc docutils literal notranslate"><span class="pre">GeneratorExit</span></code></a> 이 발생할 때 정리 작업을 위한 코드를 실행해야 한다면 <a class="reference internal" href="../library/exceptions.html#GeneratorExit" title="GeneratorExit"><code class="xref py py-exc docutils literal notranslate"><span class="pre">GeneratorExit</span></code></a> 를 잡는 대신 <code class="docutils literal notranslate"><span class="pre">try:</span> <span class="pre">...</span> <span class="pre">finally:</span></code> 를 사용하는 것이 좋습니다.</p>
 </li>
 </ul>
@@ -446,14 +442,13 @@
 <h2>내장 함수<a class="headerlink" href="#built-in-functions" title="제목 주소">¶</a></h2>
 <p>이터레이터에서 자주 사용되는 내장 함수를 자세히 살펴보겠습니다.</p>
 <p>파이썬의 두 가지 내장 함수인 <a class="reference internal" href="../library/functions.html#map" title="map"><code class="xref py py-func docutils literal notranslate"><span class="pre">map()</span></code></a> 와 <a class="reference internal" href="../library/functions.html#filter" title="filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> 는 제너레이터 표현식의 기능을 복제합니다:</p>
-<dl class="docutils">
-<dt><a class="reference internal" href="../library/functions.html#map" title="map"><code class="xref py py-func docutils literal notranslate"><span class="pre">map(f,</span> <span class="pre">iterA,</span> <span class="pre">iterB,</span> <span class="pre">...)</span></code></a> 은 다음과 같은 시퀀스에 대한 이터레이터를 반환합니다.</dt>
-<dd><p class="first"><code class="docutils literal notranslate"><span class="pre">f(iterA[0],</span> <span class="pre">iterB[0]),</span> <span class="pre">f(iterA[1],</span> <span class="pre">iterB[1]),</span> <span class="pre">f(iterA[2],</span> <span class="pre">iterB[2]),</span> <span class="pre">...</span></code>.</p>
+<dl>
+<dt><a class="reference internal" href="../library/functions.html#map" title="map"><code class="xref py py-func docutils literal notranslate"><span class="pre">map(f,</span> <span class="pre">iterA,</span> <span class="pre">iterB,</span> <span class="pre">...)</span></code></a> 은 다음과 같은 시퀀스에 대한 이터레이터를 반환합니다.</dt><dd><p><code class="docutils literal notranslate"><span class="pre">f(iterA[0],</span> <span class="pre">iterB[0]),</span> <span class="pre">f(iterA[1],</span> <span class="pre">iterB[1]),</span> <span class="pre">f(iterA[2],</span> <span class="pre">iterB[2]),</span> <span class="pre">...</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">upper</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;sentence&#39;</span><span class="p">,</span> <span class="s1">&#39;fragment&#39;</span><span class="p">]))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;sentence&#39;</span><span class="p">,</span> <span class="s1">&#39;fragment&#39;</span><span class="p">]))</span>
 <span class="go">[&#39;SENTENCE&#39;, &#39;FRAGMENT&#39;]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">upper</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;sentence&#39;</span><span class="p">,</span> <span class="s1">&#39;fragment&#39;</span><span class="p">]]</span>
 <span class="go">[&#39;SENTENCE&#39;, &#39;FRAGMENT&#39;]</span>
@@ -537,10 +532,10 @@
 <p><a class="reference internal" href="../library/itertools.html#module-itertools" title="itertools: Functions creating iterators for efficient looping."><code class="xref py py-mod docutils literal notranslate"><span class="pre">itertools</span></code></a> 모듈은 공통적으로 사용되는 많은 이터레이터와 몇몇 이터레이터를 결합하기 위한 함수를 포함합니다. 이 절에서는 작은 예제를 보여줌으로써 모듈의 내용을 소개합니다.</p>
 <p>모듈의 기능은 몇 가지 광범위한 클래스로 분류됩니다:</p>
 <ul class="simple">
-<li>기존 이터레이터를 기반으로 새로운 이터레이터를 만드는 함수.</li>
-<li>이터레이터의 요소를 함수 인자로 처리하는 함수.</li>
-<li>이터레이터의 출력 부분을 선택하는 함수.</li>
-<li>이터레이터의 출력을 분류하는 함수.</li>
+<li><p>기존 이터레이터를 기반으로 새로운 이터레이터를 만드는 함수.</p></li>
+<li><p>이터레이터의 요소를 함수 인자로 처리하는 함수.</p></li>
+<li><p>이터레이터의 출력 부분을 선택하는 함수.</p></li>
+<li><p>이터레이터의 출력을 분류하는 함수.</p></li>
 </ul>
 <div class="section" id="creating-new-iterators">
 <h3>새로운 이터레이터 만들기<a class="headerlink" href="#creating-new-iterators" title="제목 주소">¶</a></h3>
@@ -778,11 +773,11 @@
 <p><a class="reference internal" href="../library/operator.html#module-operator" title="operator: Functions corresponding to the standard operators."><code class="xref py py-mod docutils literal notranslate"><span class="pre">operator</span></code></a> 모듈은 이전에 언급되었습니다. 여기에는 파이썬 연산자에 해당하는 함수 집합이 포함되어 있습니다. 단일 연산을 수행하는 사소한 함수를 작성하지 않아도 되므로 이러한 함수는 함수형 방식 코드에서 유용합니다.</p>
 <p>이 모듈의 몇몇 함수는 다음과 같습니다:</p>
 <ul class="simple">
-<li>수학 연산: <code class="docutils literal notranslate"><span class="pre">add()</span></code>, <code class="docutils literal notranslate"><span class="pre">sub()</span></code>, <code class="docutils literal notranslate"><span class="pre">mul()</span></code>, <code class="docutils literal notranslate"><span class="pre">floordiv()</span></code>, <code class="docutils literal notranslate"><span class="pre">abs()</span></code>, ...</li>
-<li>논리 연산: <code class="docutils literal notranslate"><span class="pre">not_()</span></code>, <code class="docutils literal notranslate"><span class="pre">truth()</span></code>.</li>
-<li>비트 연산: <code class="docutils literal notranslate"><span class="pre">and_()</span></code>, <code class="docutils literal notranslate"><span class="pre">or_()</span></code>, <code class="docutils literal notranslate"><span class="pre">invert()</span></code>.</li>
-<li>비교: <code class="docutils literal notranslate"><span class="pre">eq()</span></code>, <code class="docutils literal notranslate"><span class="pre">ne()</span></code>, <code class="docutils literal notranslate"><span class="pre">lt()</span></code>, <code class="docutils literal notranslate"><span class="pre">le()</span></code>, <code class="docutils literal notranslate"><span class="pre">gt()</span></code>, <code class="docutils literal notranslate"><span class="pre">ge()</span></code>.</li>
-<li>객체 아이덴티티: <code class="docutils literal notranslate"><span class="pre">is_()</span></code>, <code class="docutils literal notranslate"><span class="pre">is_not()</span></code>.</li>
+<li><p>수학 연산: <code class="docutils literal notranslate"><span class="pre">add()</span></code>, <code class="docutils literal notranslate"><span class="pre">sub()</span></code>, <code class="docutils literal notranslate"><span class="pre">mul()</span></code>, <code class="docutils literal notranslate"><span class="pre">floordiv()</span></code>, <code class="docutils literal notranslate"><span class="pre">abs()</span></code>, ...</p></li>
+<li><p>논리 연산: <code class="docutils literal notranslate"><span class="pre">not_()</span></code>, <code class="docutils literal notranslate"><span class="pre">truth()</span></code>.</p></li>
+<li><p>비트 연산: <code class="docutils literal notranslate"><span class="pre">and_()</span></code>, <code class="docutils literal notranslate"><span class="pre">or_()</span></code>, <code class="docutils literal notranslate"><span class="pre">invert()</span></code>.</p></li>
+<li><p>비교: <code class="docutils literal notranslate"><span class="pre">eq()</span></code>, <code class="docutils literal notranslate"><span class="pre">ne()</span></code>, <code class="docutils literal notranslate"><span class="pre">lt()</span></code>, <code class="docutils literal notranslate"><span class="pre">le()</span></code>, <code class="docutils literal notranslate"><span class="pre">gt()</span></code>, <code class="docutils literal notranslate"><span class="pre">ge()</span></code>.</p></li>
+<li><p>객체 아이덴티티: <code class="docutils literal notranslate"><span class="pre">is_()</span></code>, <code class="docutils literal notranslate"><span class="pre">is_not()</span></code>.</p></li>
 </ul>
 <p>전체 목록은 연산자 모듈의 문서를 참고하세요.</p>
 </div>
@@ -836,11 +831,11 @@
 <p><a class="reference internal" href="../library/functools.html#functools.reduce" title="functools.reduce"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.reduce()</span></code></a> 를 사용하는 많은 경우, <code class="docutils literal notranslate"><span class="pre">for</span></code> 루프로 작성했을 때 더 명확합니다.</p>
 <p>Fredrik Lundh는 한때 <code class="docutils literal notranslate"><span class="pre">lambda</span></code> 사용법의 리팩토링을 위해 다음과 같은 규칙 집합을 제안했습니다:</p>
 <ol class="arabic simple">
-<li>람다 함수를 작성하세요.</li>
-<li>람다가 하는 일에 관해 설명하는 글을 쓰세요.</li>
-<li>잠깐 설명을 검토하고 설명의 본질을 포착하는 이름을 생각해보세요.</li>
-<li>해당 이름을 사용하여 람다를 def 문으로 변환합니다.</li>
-<li>설명을 삭제하세요.</li>
+<li><p>람다 함수를 작성하세요.</p></li>
+<li><p>람다가 하는 일에 관해 설명하는 글을 쓰세요.</p></li>
+<li><p>잠깐 설명을 검토하고 설명의 본질을 포착하는 이름을 생각해보세요.</p></li>
+<li><p>해당 이름을 사용하여 람다를 def 문으로 변환합니다.</p></li>
+<li><p>설명을 삭제하세요.</p></li>
 </ol>
 <p>필자는 이 규칙을 정말 좋아하지만, 여러분은 이렇게 람다가 없는 방식이 더 나은지에 대해 동의하지 않을 수 있습니다.</p>
 </div>
@@ -885,7 +880,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="../contents.html">Table of Contents</a></h3>
+  <h3><a href="../contents.html">목차</a></h3>
   <ul>
 <li><a class="reference internal" href="#">함수형 프로그래밍 HOWTO</a><ul>
 <li><a class="reference internal" href="#introduction">소개</a><ul>
@@ -971,7 +966,7 @@
     <div class="inline-search" style="display: none" role="search">
         <form class="inline-search" action="../search.html" method="get">
           <input placeholder="빠른 검색" type="text" name="q" />
-          <input type="submit" value="바로 가기" />
+          <input type="submit" value="이동" />
           <input type="hidden" name="check_keywords" value="yes" />
           <input type="hidden" name="area" value="default" />
         </form>
