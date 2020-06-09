@@ -134,10 +134,11 @@
 <li><p><a class="reference internal" href="#shielding-from-cancellation" id="id7">취소로부터 보호하기</a></p></li>
 <li><p><a class="reference internal" href="#timeouts" id="id8">시간제한</a></p></li>
 <li><p><a class="reference internal" href="#waiting-primitives" id="id9">대기 프리미티브</a></p></li>
-<li><p><a class="reference internal" href="#scheduling-from-other-threads" id="id10">다른 스레드에서 예약하기</a></p></li>
-<li><p><a class="reference internal" href="#introspection" id="id11">인트로스펙션</a></p></li>
-<li><p><a class="reference internal" href="#task-object" id="id12">Task 객체</a></p></li>
-<li><p><a class="reference internal" href="#generator-based-coroutines" id="id13">제너레이터 기반 코루틴</a></p></li>
+<li><p><a class="reference internal" href="#running-in-threads" id="id10">Running in Threads</a></p></li>
+<li><p><a class="reference internal" href="#scheduling-from-other-threads" id="id11">다른 스레드에서 예약하기</a></p></li>
+<li><p><a class="reference internal" href="#introspection" id="id12">인트로스펙션</a></p></li>
+<li><p><a class="reference internal" href="#task-object" id="id13">Task 객체</a></p></li>
+<li><p><a class="reference internal" href="#generator-based-coroutines" id="id14">제너레이터 기반 코루틴</a></p></li>
 </ul>
 </div>
 <div class="section" id="coroutines">
@@ -580,22 +581,83 @@
 <dl class="function">
 <dt id="asyncio.as_completed">
 <code class="sig-prename descclassname">asyncio.</code><code class="sig-name descname">as_completed</code><span class="sig-paren">(</span><em class="sig-param">aws</em>, <em class="sig-param">*</em>, <em class="sig-param">loop=None</em>, <em class="sig-param">timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.as_completed" title="정의 주소">¶</a></dt>
-<dd><p><em>aws</em> 집합에 있는 <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">어웨이터블 객체</span></a>를 동시에 실행합니다. <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> 객체의 이터레이터를 반환합니다. 반환된 각 Future 객체는 남아있는 어웨이터블 집합의 가장 빠른 결과를 나타냅니다.</p>
+<dd><p>Run <a class="reference internal" href="#asyncio-awaitables"><span class="std std-ref">awaitable objects</span></a> in the <em>aws</em>
+set concurrently.  Return an iterator of coroutines.
+Each coroutine returned can be awaited to get the earliest next
+result from the set of the remaining awaitables.</p>
 <p>모든 퓨처가 완료되기 전에 시간 초과가 발생하면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.TimeoutError" title="asyncio.TimeoutError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">asyncio.TimeoutError</span></code></a>를 발생시킵니다.</p>
 <div class="deprecated-removed">
 <p><span class="versionmodified">Deprecated since version 3.8, will be removed in version 3.10: </span><em>loop</em> 매개 변수.</p>
 </div>
 <p>예:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">aws</span><span class="p">):</span>
-    <span class="n">earliest_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">f</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">coro</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">aws</span><span class="p">):</span>
+    <span class="n">earliest_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">coro</span>
     <span class="c1"># ...</span>
 </pre></div>
 </div>
 </dd></dl>
 
 </div>
+<div class="section" id="running-in-threads">
+<h2><a class="toc-backref" href="#id10">Running in Threads</a><a class="headerlink" href="#running-in-threads" title="제목 주소">¶</a></h2>
+<dl class="function">
+<dt id="asyncio.to_thread">
+<em class="property">coroutine </em><code class="sig-prename descclassname">asyncio.</code><code class="sig-name descname">to_thread</code><span class="sig-paren">(</span><em class="sig-param">func</em>, <em class="sig-param">/</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.to_thread" title="정의 주소">¶</a></dt>
+<dd><p>Asynchronously run function <em>func</em> in a separate thread.</p>
+<p>Any *args and **kwargs supplied for this function are directly passed
+to <em>func</em>. Also, the current <a class="reference internal" href="contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextvars.Context</span></code></a> is propogated,
+allowing context variables from the event loop thread to be accessed in the
+separate thread.</p>
+<p>Return a coroutine that can be awaited to get the eventual result of <em>func</em>.</p>
+<p>This coroutine function is primarily intended to be used for executing
+IO-bound functions/methods that would otherwise block the event loop if
+they were ran in the main thread. For example:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">blocking_io</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;start blocking_io at {time.strftime(&#39;</span><span class="si">%X</span><span class="s2">&#39;)}&quot;</span><span class="p">)</span>
+    <span class="c1"># Note that time.sleep() can be replaced with any blocking</span>
+    <span class="c1"># IO-bound operation, such as file operations.</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;blocking_io complete at {time.strftime(&#39;</span><span class="si">%X</span><span class="s2">&#39;)}&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;started main at {time.strftime(&#39;</span><span class="si">%X</span><span class="s2">&#39;)}&quot;</span><span class="p">)</span>
+
+    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">blocking_io</span><span class="p">),</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;finished main at {time.strftime(&#39;</span><span class="si">%X</span><span class="s2">&#39;)}&quot;</span><span class="p">)</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+
+<span class="c1"># Expected output:</span>
+<span class="c1">#</span>
+<span class="c1"># started main at 19:50:53</span>
+<span class="c1"># start blocking_io at 19:50:53</span>
+<span class="c1"># blocking_io complete at 19:50:54</span>
+<span class="c1"># finished main at 19:50:54</span>
+</pre></div>
+</div>
+<p>Directly calling <cite>blocking_io()</cite> in any coroutine would block the event loop
+for its duration, resulting in an additional 1 second of run time. Instead,
+by using <cite>asyncio.to_thread()</cite>, we can run it in a separate thread without
+blocking the event loop.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>Due to the <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>, <cite>asyncio.to_thread()</cite> can typically only be used
+to make IO-bound functions non-blocking. However, for extension modules
+that release the GIL or alternative Python implementations that don't
+have one, <cite>asyncio.to_thread()</cite> can also be used for CPU-bound functions.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">버전 3.9에 추가.</span></p>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="scheduling-from-other-threads">
-<h2><a class="toc-backref" href="#id10">다른 스레드에서 예약하기</a><a class="headerlink" href="#scheduling-from-other-threads" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id11">다른 스레드에서 예약하기</a><a class="headerlink" href="#scheduling-from-other-threads" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.run_coroutine_threadsafe">
 <code class="sig-prename descclassname">asyncio.</code><code class="sig-name descname">run_coroutine_threadsafe</code><span class="sig-paren">(</span><em class="sig-param">coro</em>, <em class="sig-param">loop</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.run_coroutine_threadsafe" title="정의 주소">¶</a></dt>
@@ -633,7 +695,7 @@
 
 </div>
 <div class="section" id="introspection">
-<h2><a class="toc-backref" href="#id11">인트로스펙션</a><a class="headerlink" href="#introspection" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">인트로스펙션</a><a class="headerlink" href="#introspection" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.current_task">
 <code class="sig-prename descclassname">asyncio.</code><code class="sig-name descname">current_task</code><span class="sig-paren">(</span><em class="sig-param">loop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.current_task" title="정의 주소">¶</a></dt>
@@ -656,7 +718,7 @@
 
 </div>
 <div class="section" id="task-object">
-<h2><a class="toc-backref" href="#id12">Task 객체</a><a class="headerlink" href="#task-object" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id13">Task 객체</a><a class="headerlink" href="#task-object" title="제목 주소">¶</a></h2>
 <dl class="class">
 <dt id="asyncio.Task">
 <em class="property">class </em><code class="sig-prename descclassname">asyncio.</code><code class="sig-name descname">Task</code><span class="sig-paren">(</span><em class="sig-param">coro</em>, <em class="sig-param">*</em>, <em class="sig-param">loop=None</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Task" title="정의 주소">¶</a></dt>
@@ -827,7 +889,7 @@
 <dd><p>이벤트 루프의 모든 태스크 집합을 돌려줍니다.</p>
 <p>기본적으로 현재 이벤트 루프에 대한 모든 태스크가 반환됩니다. <em>loop</em>가 <code class="docutils literal notranslate"><span class="pre">None</span></code>이면, 현재 루프를 가져오는 데 <a class="reference internal" href="asyncio-eventloop.html#asyncio.get_event_loop" title="asyncio.get_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_event_loop()</span></code></a> 함수가 사용됩니다.</p>
 <div class="deprecated-removed">
-<p><span class="versionmodified">Deprecated since version 3.7, will be removed in version 3.9: </span>이것을 태스크 메서드로 호출하지 마십시오. <a class="reference internal" href="#asyncio.all_tasks" title="asyncio.all_tasks"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.all_tasks()</span></code></a> 함수를 대신 사용하십시오.</p>
+<p><span class="versionmodified">Deprecated since version 3.7, removed in version 3.9: </span>이것을 태스크 메서드로 호출하지 마십시오. <a class="reference internal" href="#asyncio.all_tasks" title="asyncio.all_tasks"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.all_tasks()</span></code></a> 함수를 대신 사용하십시오.</p>
 </div>
 </dd></dl>
 
@@ -837,7 +899,7 @@
 <dd><p>현재 실행 중인 태스크나 <code class="docutils literal notranslate"><span class="pre">None</span></code>을 반환합니다.</p>
 <p><em>loop</em>가 <code class="docutils literal notranslate"><span class="pre">None</span></code>이면, 현재 루프를 가져오는 데 <a class="reference internal" href="asyncio-eventloop.html#asyncio.get_event_loop" title="asyncio.get_event_loop"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_event_loop()</span></code></a> 함수가 사용됩니다.</p>
 <div class="deprecated-removed">
-<p><span class="versionmodified">Deprecated since version 3.7, will be removed in version 3.9: </span>이것을 태스크 메서드로 호출하지 마십시오. <a class="reference internal" href="#asyncio.current_task" title="asyncio.current_task"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.current_task()</span></code></a> 함수를 대신 사용하십시오.</p>
+<p><span class="versionmodified">Deprecated since version 3.7, removed in version 3.9: </span>이것을 태스크 메서드로 호출하지 마십시오. <a class="reference internal" href="#asyncio.current_task" title="asyncio.current_task"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.current_task()</span></code></a> 함수를 대신 사용하십시오.</p>
 </div>
 </dd></dl>
 
@@ -845,7 +907,7 @@
 
 </div>
 <div class="section" id="generator-based-coroutines">
-<span id="asyncio-generator-based-coro"></span><h2><a class="toc-backref" href="#id13">제너레이터 기반 코루틴</a><a class="headerlink" href="#generator-based-coroutines" title="제목 주소">¶</a></h2>
+<span id="asyncio-generator-based-coro"></span><h2><a class="toc-backref" href="#id14">제너레이터 기반 코루틴</a><a class="headerlink" href="#generator-based-coroutines" title="제목 주소">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>제너레이터 기반 코루틴에 대한 지원은 <strong>폐지되었고</strong> 파이썬 3.10에서 삭제될 예정입니다.</p>
@@ -906,6 +968,7 @@
 <li><a class="reference internal" href="#shielding-from-cancellation">취소로부터 보호하기</a></li>
 <li><a class="reference internal" href="#timeouts">시간제한</a></li>
 <li><a class="reference internal" href="#waiting-primitives">대기 프리미티브</a></li>
+<li><a class="reference internal" href="#running-in-threads">Running in Threads</a></li>
 <li><a class="reference internal" href="#scheduling-from-other-threads">다른 스레드에서 예약하기</a></li>
 <li><a class="reference internal" href="#introspection">인트로스펙션</a></li>
 <li><a class="reference internal" href="#task-object">Task 객체</a></li>
