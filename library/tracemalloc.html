@@ -329,24 +329,20 @@
 </div>
 <p>추가 옵션은 <a class="reference internal" href="#tracemalloc.Snapshot.statistics" title="tracemalloc.Snapshot.statistics"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Snapshot.statistics()</span></code></a>를 참조하십시오.</p>
 <div class="section" id="record-the-current-and-peak-size-of-all-traced-memory-blocks">
-<h4>Record the current and peak size of all traced memory blocks<a class="headerlink" href="#record-the-current-and-peak-size-of-all-traced-memory-blocks" title="제목 주소">¶</a></h4>
-<p>The following code computes two sums like <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">...</span></code> inefficiently, by
-creating a list of those numbers. This list consumes a lot of memory
-temporarily. We can use <a class="reference internal" href="#tracemalloc.get_traced_memory" title="tracemalloc.get_traced_memory"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_traced_memory()</span></code></a> and <a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a> to
-observe the small memory usage after the sum is computed as well as the peak
-memory usage during the computations:</p>
+<h4>모든 추적한 메모리 블록의 현재 및 최대 크기를 기록<a class="headerlink" href="#record-the-current-and-peak-size-of-all-traced-memory-blocks" title="제목 주소">¶</a></h4>
+<p>다음 코드는 <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">...</span></code>와 같은 두 개의 합계를 비효율적으로 계산하는데, 이 숫자들의 리스트를 만듭니다. 이 리스트는 일시적으로 많은 메모리를 소비합니다. <a class="reference internal" href="#tracemalloc.get_traced_memory" title="tracemalloc.get_traced_memory"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_traced_memory()</span></code></a>와 <a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a>를 사용하여 계산 중 최대 메모리 사용량뿐만 아니라 합이 계산된 후의 작은 메모리 사용량도 관찰할 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tracemalloc</span>
 
 <span class="n">tracemalloc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-<span class="c1"># Example code: compute a sum with a large temporary list</span>
+<span class="c1"># 예제 코드: 커다란 임시 리스트로 합계를 계산합니다</span>
 <span class="n">large_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">100000</span><span class="p">)))</span>
 
 <span class="n">first_size</span><span class="p">,</span> <span class="n">first_peak</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
 
 <span class="n">tracemalloc</span><span class="o">.</span><span class="n">reset_peak</span><span class="p">()</span>
 
-<span class="c1"># Example code: compute a sum with a small temporary list</span>
+<span class="c1"># 예제 코드: 작은 임시 리스트로 합계를 계산합니다</span>
 <span class="n">small_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)))</span>
 
 <span class="n">second_size</span><span class="p">,</span> <span class="n">second_peak</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
@@ -360,14 +356,7 @@ memory usage during the computations:</p>
 <span class="n">second_size</span><span class="o">=</span><span class="mi">804</span><span class="p">,</span> <span class="n">second_peak</span><span class="o">=</span><span class="mi">29704</span>
 </pre></div>
 </div>
-<p>Using <a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a> ensured we could accurately record the peak during the
-computation of <code class="docutils literal notranslate"><span class="pre">small_sum</span></code>, even though it is much smaller than the overall
-peak size of memory blocks since the <a class="reference internal" href="#tracemalloc.start" title="tracemalloc.start"><code class="xref py py-func docutils literal notranslate"><span class="pre">start()</span></code></a> call. Without the call to
-<a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">second_peak</span></code> would still be the peak from the
-computation <code class="docutils literal notranslate"><span class="pre">large_sum</span></code> (that is, equal to <code class="docutils literal notranslate"><span class="pre">first_peak</span></code>). In this case,
-both peaks are much higher than the final memory usage, and which suggests we
-could optimise (by removing the unnecessary call to <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>, and writing
-<code class="docutils literal notranslate"><span class="pre">sum(range(...))</span></code>).</p>
+<p><a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a>를 사용하면 <code class="docutils literal notranslate"><span class="pre">small_sum</span></code>을 계산하는 동안의 최대 사용량을 <a class="reference internal" href="#tracemalloc.start" title="tracemalloc.start"><code class="xref py py-func docutils literal notranslate"><span class="pre">start()</span></code></a> 호출 이후 메모리 블록의 전체 최대 크기보다 훨씬 작더라도 정확하게 기록 할 수 있습니다. <a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a>를 호출하지 않으면, <code class="docutils literal notranslate"><span class="pre">second_peak</span></code>는 여전히 <code class="docutils literal notranslate"><span class="pre">large_sum</span></code> 계산의 최대가 됩니다 (즉, <code class="docutils literal notranslate"><span class="pre">first_peak</span></code>와 같습니다). 이 경우, 두 최댓값은 모두 최종 메모리 사용량보다 훨씬 높아서, 최적화할 수 있음을 제안합니다 (<a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>에 대한 불필요한 호출을 제거하고, <code class="docutils literal notranslate"><span class="pre">sum(range(...))</span></code>이라고 작성하여).</p>
 </div>
 </div>
 </div>
@@ -408,10 +397,7 @@ could optimise (by removing the unnecessary call to <a class="reference internal
 <code class="sig-prename descclassname">tracemalloc.</code><code class="sig-name descname">reset_peak</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracemalloc.reset_peak" title="정의 주소">¶</a></dt>
 <dd><p><a class="reference internal" href="#module-tracemalloc" title="tracemalloc: Trace memory allocations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">tracemalloc</span></code></a> 모듈이 추적하는 메모리 블록의 최대 크기를 현재 크기로 설정합니다.</p>
 <p><a class="reference internal" href="#module-tracemalloc" title="tracemalloc: Trace memory allocations."><code class="xref py py-mod docutils literal notranslate"><span class="pre">tracemalloc</span></code></a> 모듈이 파이썬 메모리 할당을 추적하고 있지 않으면 아무것도 하지 않습니다.</p>
-<p>This function only modifies the recorded peak size, and does not modify or
-clear any traces, unlike <a class="reference internal" href="#tracemalloc.clear_traces" title="tracemalloc.clear_traces"><code class="xref py py-func docutils literal notranslate"><span class="pre">clear_traces()</span></code></a>. Snapshots taken with
-<a class="reference internal" href="#tracemalloc.take_snapshot" title="tracemalloc.take_snapshot"><code class="xref py py-func docutils literal notranslate"><span class="pre">take_snapshot()</span></code></a> before a call to <a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a> can be
-meaningfully compared to snapshots taken after the call.</p>
+<p>이 함수는 기록된 최대 크기만 수정하며, <a class="reference internal" href="#tracemalloc.clear_traces" title="tracemalloc.clear_traces"><code class="xref py py-func docutils literal notranslate"><span class="pre">clear_traces()</span></code></a>와 달리 어떤 추적도 수정하거나 지우지 않습니다. <a class="reference internal" href="#tracemalloc.reset_peak" title="tracemalloc.reset_peak"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_peak()</span></code></a>를 호출하기 전에 <a class="reference internal" href="#tracemalloc.take_snapshot" title="tracemalloc.take_snapshot"><code class="xref py py-func docutils literal notranslate"><span class="pre">take_snapshot()</span></code></a>로 찍은 스냅숏은 호출 후 찍은 스냅숏과 의미 있게 비교할 수 있습니다.</p>
 <p><a class="reference internal" href="#tracemalloc.get_traced_memory" title="tracemalloc.get_traced_memory"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_traced_memory()</span></code></a>도 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
@@ -811,7 +797,7 @@ meaningfully compared to snapshots taken after the call.</p>
 <li><a class="reference internal" href="#compute-differences">차이 계산</a></li>
 <li><a class="reference internal" href="#get-the-traceback-of-a-memory-block">메모리 블록의 트레이스백 얻기</a></li>
 <li><a class="reference internal" href="#pretty-top">예쁜 탑(top)</a><ul>
-<li><a class="reference internal" href="#record-the-current-and-peak-size-of-all-traced-memory-blocks">Record the current and peak size of all traced memory blocks</a></li>
+<li><a class="reference internal" href="#record-the-current-and-peak-size-of-all-traced-memory-blocks">모든 추적한 메모리 블록의 현재 및 최대 크기를 기록</a></li>
 </ul>
 </li>
 </ul>

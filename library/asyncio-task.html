@@ -134,7 +134,7 @@
 <li><p><a class="reference internal" href="#shielding-from-cancellation" id="id7">취소로부터 보호하기</a></p></li>
 <li><p><a class="reference internal" href="#timeouts" id="id8">시간제한</a></p></li>
 <li><p><a class="reference internal" href="#waiting-primitives" id="id9">대기 프리미티브</a></p></li>
-<li><p><a class="reference internal" href="#running-in-threads" id="id10">Running in Threads</a></p></li>
+<li><p><a class="reference internal" href="#running-in-threads" id="id10">스레드에서 실행하기</a></p></li>
 <li><p><a class="reference internal" href="#scheduling-from-other-threads" id="id11">다른 스레드에서 예약하기</a></p></li>
 <li><p><a class="reference internal" href="#introspection" id="id12">인트로스펙션</a></p></li>
 <li><p><a class="reference internal" href="#task-object" id="id13">Task 객체</a></p></li>
@@ -414,7 +414,7 @@
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 
-<span class="c1"># 기대되는 출력:</span>
+<span class="c1"># 예상 출력:</span>
 <span class="c1">#</span>
 <span class="c1">#     Task A: Compute factorial(2)...</span>
 <span class="c1">#     Task B: Compute factorial(2)...</span>
@@ -493,7 +493,7 @@
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 
-<span class="c1"># 기대되는 출력:</span>
+<span class="c1"># 예상 출력:</span>
 <span class="c1">#</span>
 <span class="c1">#     timeout!</span>
 </pre></div>
@@ -596,23 +596,18 @@
 
 </div>
 <div class="section" id="running-in-threads">
-<h2><a class="toc-backref" href="#id10">Running in Threads</a><a class="headerlink" href="#running-in-threads" title="제목 주소">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">스레드에서 실행하기</a><a class="headerlink" href="#running-in-threads" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="asyncio.to_thread">
 <em class="property">coroutine </em><code class="sig-prename descclassname">asyncio.</code><code class="sig-name descname">to_thread</code><span class="sig-paren">(</span><em class="sig-param">func</em>, <em class="sig-param">/</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.to_thread" title="정의 주소">¶</a></dt>
-<dd><p>Asynchronously run function <em>func</em> in a separate thread.</p>
-<p>Any *args and **kwargs supplied for this function are directly passed
-to <em>func</em>. Also, the current <a class="reference internal" href="contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextvars.Context</span></code></a> is propogated,
-allowing context variables from the event loop thread to be accessed in the
-separate thread.</p>
-<p>Return a coroutine that can be awaited to get the eventual result of <em>func</em>.</p>
-<p>This coroutine function is primarily intended to be used for executing
-IO-bound functions/methods that would otherwise block the event loop if
-they were ran in the main thread. For example:</p>
+<dd><p>별도의 스레드에서 <em>func</em> 함수를 비동기적으로 실행합니다.</p>
+<p>이 함수에 제공된 모든 *args 와 **kwargs 는 <em>func</em>로 직접 전달됩니다. 또한, 현재 <a class="reference internal" href="contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextvars.Context</span></code></a>가 전파되어, 이벤트 루프 스레드의 컨텍스트 변수가 별도의 스레드에서 액세스 될 수 있습니다.</p>
+<p><em>func</em>의 최종 결과를 얻기 위해 어웨이트 할 수 있는 코루틴을 반환합니다.</p>
+<p>이 코루틴 함수는 메인 스레드에서 실행된다면 이벤트 루프를 블록할 IO 병목 함수/메서드를 실행하는 데 주로 사용됩니다. 예를 들면:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">blocking_io</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;start blocking_io at {time.strftime(&#39;</span><span class="si">%X</span><span class="s2">&#39;)}&quot;</span><span class="p">)</span>
-    <span class="c1"># Note that time.sleep() can be replaced with any blocking</span>
-    <span class="c1"># IO-bound operation, such as file operations.</span>
+    <span class="c1"># time.sleep()은 파일 연산과 같은 임의의 블로킹 IO 병목 연산으로 대체될</span>
+    <span class="c1"># 수 있음에 유의하십시오.</span>
     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;blocking_io complete at {time.strftime(&#39;</span><span class="si">%X</span><span class="s2">&#39;)}&quot;</span><span class="p">)</span>
 
@@ -628,7 +623,7 @@ they were ran in the main thread. For example:</p>
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 
-<span class="c1"># Expected output:</span>
+<span class="c1"># 예상 출력:</span>
 <span class="c1">#</span>
 <span class="c1"># started main at 19:50:53</span>
 <span class="c1"># start blocking_io at 19:50:53</span>
@@ -636,16 +631,10 @@ they were ran in the main thread. For example:</p>
 <span class="c1"># finished main at 19:50:54</span>
 </pre></div>
 </div>
-<p>Directly calling <cite>blocking_io()</cite> in any coroutine would block the event loop
-for its duration, resulting in an additional 1 second of run time. Instead,
-by using <cite>asyncio.to_thread()</cite>, we can run it in a separate thread without
-blocking the event loop.</p>
+<p>코루틴에서 <cite>blocking_io()</cite>를 직접 호출하면 그동안 이벤트 루프가 블록 되어 추가 1초의 실행 시간이 발생합니다. 대신, <cite>asyncio.to_thread()</cite>를 사용하면, 이벤트 루프를 블록하지 않고 별도의 스레드에서 실행할 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Due to the <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>, <cite>asyncio.to_thread()</cite> can typically only be used
-to make IO-bound functions non-blocking. However, for extension modules
-that release the GIL or alternative Python implementations that don't
-have one, <cite>asyncio.to_thread()</cite> can also be used for CPU-bound functions.</p>
+<p><a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>로 인해, <cite>asyncio.to_thread()</cite>는 일반적으로 IO 병목 함수를 비 블로킹으로 만드는 데만 사용할 수 있습니다. 그러나, GIL을 반납하는 확장 모듈이나 GIL이 없는 대체 파이썬 구현의 경우, <cite>asyncio.to_thread()</cite>를 CPU 병목 함수에도 사용할 수 있습니다.</p>
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
@@ -773,7 +762,7 @@ have one, <cite>asyncio.to_thread()</cite> can also be used for CPU-bound functi
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 
-<span class="c1"># 기대되는 출력:</span>
+<span class="c1"># 예상 출력:</span>
 <span class="c1">#</span>
 <span class="c1">#     cancel_me(): before sleep</span>
 <span class="c1">#     cancel_me(): cancel sleep</span>
@@ -965,7 +954,7 @@ have one, <cite>asyncio.to_thread()</cite> can also be used for CPU-bound functi
 <li><a class="reference internal" href="#shielding-from-cancellation">취소로부터 보호하기</a></li>
 <li><a class="reference internal" href="#timeouts">시간제한</a></li>
 <li><a class="reference internal" href="#waiting-primitives">대기 프리미티브</a></li>
-<li><a class="reference internal" href="#running-in-threads">Running in Threads</a></li>
+<li><a class="reference internal" href="#running-in-threads">스레드에서 실행하기</a></li>
 <li><a class="reference internal" href="#scheduling-from-other-threads">다른 스레드에서 예약하기</a></li>
 <li><a class="reference internal" href="#introspection">인트로스펙션</a></li>
 <li><a class="reference internal" href="#task-object">Task 객체</a></li>
