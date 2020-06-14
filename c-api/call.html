@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>Call Protocol &#8212; 파이썬 설명서 주석판</title>
+    <title>호출 프로토콜 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -120,84 +120,50 @@
           <div class="body" role="main">
             
   <div class="section" id="call-protocol">
-<span id="call"></span><h1>Call Protocol<a class="headerlink" href="#call-protocol" title="제목 주소">¶</a></h1>
-<p>CPython supports two different calling protocols:
-<em>tp_call</em> and vectorcall.</p>
+<span id="call"></span><h1>호출 프로토콜<a class="headerlink" href="#call-protocol" title="제목 주소">¶</a></h1>
+<p>CPython은 두 가지 호출 프로토콜을 지원합니다: <em>tp_call</em>과 벡터콜(vectorcall).</p>
 <div class="section" id="the-tp-call-protocol">
-<h2>The <em>tp_call</em> Protocol<a class="headerlink" href="#the-tp-call-protocol" title="제목 주소">¶</a></h2>
-<p>Instances of classes that set <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> are callable.
-The signature of the slot is:</p>
+<h2><em>tp_call</em> 프로토콜<a class="headerlink" href="#the-tp-call-protocol" title="제목 주소">¶</a></h2>
+<p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>을 설정하는 클래스의 인스턴스는 콜러블입니다. 슬롯의 서명은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span><span class="nf">tp_call</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">callable</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">kwargs</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>A call is made using a tuple for the positional arguments
-and a dict for the keyword arguments, similarly to
-<code class="docutils literal notranslate"><span class="pre">callable(*args,</span> <span class="pre">**kwargs)</span></code> in Python code.
-<em>args</em> must be non-NULL (use an empty tuple if there are no arguments)
-but <em>kwargs</em> may be <em>NULL</em> if there are no keyword arguments.</p>
-<p>This convention is not only used by <em>tp_call</em>:
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> and <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a>
-also pass arguments this way.</p>
-<p>To call an object, use <a class="reference internal" href="#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call()</span></code></a> or other
-<a class="reference internal" href="#capi-call"><span class="std std-ref">call API</span></a>.</p>
+<p>파이썬 코드의 <code class="docutils literal notranslate"><span class="pre">callable(*args,</span> <span class="pre">**kwargs)</span></code>와 유사하게, 위치 인자를 위한 튜플과 키워드 인자를 위한 딕셔너리를 사용하여 호출합니다. <em>args</em>는 NULL이 아니어야합니다 (인자가 없으면 빈 튜플을 사용하십시오). 하지만 키워드 인자가 없으면 <em>kwargs</em>는 <em>NULL</em>일 수 있습니다.</p>
+<p>이 규칙은 <em>tp_call</em>에서만 사용되는 것이 아닙니다: <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a>와 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a>도 인자를 이런 식으로 전달합니다.</p>
+<p>객체를 호출하려면, <a class="reference internal" href="#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call()</span></code></a>이나 다른 <a class="reference internal" href="#capi-call"><span class="std std-ref">호출 API</span></a>를 사용하십시오.</p>
 </div>
 <div class="section" id="the-vectorcall-protocol">
-<span id="vectorcall"></span><h2>The Vectorcall Protocol<a class="headerlink" href="#the-vectorcall-protocol" title="제목 주소">¶</a></h2>
+<span id="vectorcall"></span><h2>벡터콜(Vectorcall) 프로토콜<a class="headerlink" href="#the-vectorcall-protocol" title="제목 주소">¶</a></h2>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
-<p>The vectorcall protocol was introduced in <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0590"><strong>PEP 590</strong></a> as an additional protocol
-for making calls more efficient.</p>
-<p>As rule of thumb, CPython will prefer the vectorcall for internal calls
-if the callable supports it. However, this is not a hard rule.
-Additionally, some third-party extensions use <em>tp_call</em> directly
-(rather than using <a class="reference internal" href="#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call()</span></code></a>).
-Therefore, a class supporting vectorcall must also implement
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>.
-Moreover, the callable must behave the same
-regardless of which protocol is used.
-The recommended way to achieve this is by setting
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> to <a class="reference internal" href="#c.PyVectorcall_Call" title="PyVectorcall_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyVectorcall_Call()</span></code></a>.
-This bears repeating:</p>
+<p>벡터콜 프로토콜은 <span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0590"><strong>PEP 590</strong></a>에서 호출 효율을 높이기 위한 추가 프로토콜로 도입되었습니다.</p>
+<p>경험 규칙으로, CPython은 콜러블이 지원하면 내부 호출에 대해 벡터콜을 선호합니다. 그러나 이것은 엄격한 규칙이 아닙니다. 또한, 일부 제삼자 확장은 (<code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_call()</span></code>을 사용하지 않고) <em>tp_call</em>을 직접 사용합니다. 따라서, 벡터콜을 지원하는 클래스도 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>을 구현해야합니다. 또한, 어떤 프로토콜을 사용하는지에 관계없이 콜러블은 동일하게 작동해야합니다. 이를 위해 권장되는 방법은 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>을 <a class="reference internal" href="#c.PyVectorcall_Call" title="PyVectorcall_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyVectorcall_Call()</span></code></a>로 설정하는 것입니다. 이것이 반복을 처리합니다:</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>A class supporting vectorcall <strong>must</strong> also implement
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> with the same semantics.</p>
+<p>벡터콜을 지원하는 클래스도 같은 의미를 갖도록 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a>을 <strong>반드시</strong> 구현해야합니다.</p>
 </div>
-<p>A class should not implement vectorcall if that would be slower
-than <em>tp_call</em>. For example, if the callee needs to convert
-the arguments to an args tuple and kwargs dict anyway, then there is no point
-in implementing vectorcall.</p>
-<p>Classes can implement the vectorcall protocol by enabling the
-<a class="reference internal" href="typeobj.html#Py_TPFLAGS_HAVE_VECTORCALL" title="Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> flag and setting
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_vectorcall_offset" title="PyTypeObject.tp_vectorcall_offset"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_vectorcall_offset</span></code></a> to the offset inside the
-object structure where a <em>vectorcallfunc</em> appears.
-This is a pointer to a function with the following signature:</p>
+<p><em>tp_call</em>보다 느려진다면 클래스는 벡터콜을 구현해서는 안됩니다. 예를 들어, 피호출자가 어차피 인자를 인자 튜플과 kwargs 딕셔너리로 변환 해야하면, 벡터콜을 구현할 이유가 없습니다.</p>
+<p>클래스는 <a class="reference internal" href="typeobj.html#Py_TPFLAGS_HAVE_VECTORCALL" title="Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> 플래그를 활성화하고 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_vectorcall_offset" title="PyTypeObject.tp_vectorcall_offset"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_vectorcall_offset</span></code></a>을 <em>vectorcallfunc</em>가 등장하는 객체 구조체 내부의 오프셋으로 설정하여 벡터콜 프로토콜을 구현할 수 있습니다. 이것은 다음과 같은 서명을 갖는 함수를 가리키는 포인터입니다:</p>
 <dl class="type">
 <dt id="c.vectorcallfunc">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a> *<code class="sig-name descname">(*vectorcallfunc)</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a> *const<em> *args</em>, size_t<em> nargsf</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *kwnames</em><span class="sig-paren">)</span><a class="headerlink" href="#c.vectorcallfunc" title="정의 주소">¶</a></dt>
 <dd></dd></dl>
 
 <ul class="simple">
-<li><p><em>callable</em> is the object being called.</p></li>
+<li><p><em>callable</em>은 호출되는 객체입니다.</p></li>
 <li><dl class="simple">
-<dt><em>args</em> is a C array consisting of the positional arguments followed by the</dt><dd><p>values of the keyword arguments.
-This can be <em>NULL</em> if there are no arguments.</p>
+<dt><em>args</em>는 위치 인자와 그 뒤를 따르는 키워드 인자의 값으로 구성된 C 배열입니다.</dt><dd><p>인자가 없으면 <em>NULL</em>일 수 있습니다.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><em>nargsf</em> is the number of positional arguments plus possibly the</dt><dd><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PY_VECTORCALL_ARGUMENTS_OFFSET</span></code> flag.
-To get the actual number of positional arguments from <em>nargsf</em>,
-use <a class="reference internal" href="#c.PyVectorcall_NARGS" title="PyVectorcall_NARGS"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyVectorcall_NARGS()</span></code></a>.</p>
+<dt><em>nargsf</em>는 위치 인자의 수에</dt><dd><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PY_VECTORCALL_ARGUMENTS_OFFSET</span></code> 플래그를 더한 것입니다. <em>nargsf</em>에서 실제 위치 인자 수를 얻으려면, <a class="reference internal" href="#c.PyVectorcall_NARGS" title="PyVectorcall_NARGS"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyVectorcall_NARGS()</span></code></a>를 사용하십시오.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><em>kwnames</em> is a tuple containing the names of the keyword arguments;</dt><dd><p>in other words, the keys of the kwargs dict.
-These names must be strings (instances of <code class="docutils literal notranslate"><span class="pre">str</span></code> or a subclass)
-and they must be unique.
-If there are no keyword arguments, then <em>kwnames</em> can instead be <em>NULL</em>.</p>
+<dt><em>kwnames</em>는 키워드 인자의 이름을 포함하는 튜플입니다;</dt><dd><p>다시 말해, kwargs 딕셔너리의 키. 이 이름들은 문자열(<code class="docutils literal notranslate"><span class="pre">str</span></code>이나 서브 클래스의 인스턴스)이어야하며 고유해야합니다. 키워드 인자가 없으면, <em>kwnames</em>는 대신 <em>NULL</em>일 수 있습니다.</p>
 </dd>
 </dl>
 </li>
@@ -205,57 +171,32 @@ If there are no keyword arguments, then <em>kwnames</em> can instead be <em>NULL
 <dl class="var">
 <dt id="c.PY_VECTORCALL_ARGUMENTS_OFFSET">
 <code class="sig-name descname">PY_VECTORCALL_ARGUMENTS_OFFSET</code><a class="headerlink" href="#c.PY_VECTORCALL_ARGUMENTS_OFFSET" title="정의 주소">¶</a></dt>
-<dd><p>If this flag is set in a vectorcall <em>nargsf</em> argument, the callee is allowed
-to temporarily change <code class="docutils literal notranslate"><span class="pre">args[-1]</span></code>. In other words, <em>args</em> points to
-argument 1 (not 0) in the allocated vector.
-The callee must restore the value of <code class="docutils literal notranslate"><span class="pre">args[-1]</span></code> before returning.</p>
-<p>For <a class="reference internal" href="#c.PyObject_VectorcallMethod" title="PyObject_VectorcallMethod"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VectorcallMethod()</span></code></a>, this flag means instead that
-<code class="docutils literal notranslate"><span class="pre">args[0]</span></code> may be changed.</p>
-<p>Whenever they can do so cheaply (without additional allocation), callers
-are encouraged to use <code class="xref py py-const docutils literal notranslate"><span class="pre">PY_VECTORCALL_ARGUMENTS_OFFSET</span></code>.
-Doing so will allow callables such as bound methods to make their onward
-calls (which include a prepended <em>self</em> argument) very efficiently.</p>
+<dd><p>이 플래그가 벡터콜 <em>nargsf</em> 인자에 설정되면, 피호출자는 일시적으로 <code class="docutils literal notranslate"><span class="pre">args[-1]</span></code>를 변경할 수 있습니다. 즉, <em>args</em>는 할당된 벡터에서 인자 1(0이 아닙니다)을 가리킵니다. 피호출자는 반환하기 전에 <code class="docutils literal notranslate"><span class="pre">args[-1]</span></code> 값을 복원해야합니다.</p>
+<p><a class="reference internal" href="#c.PyObject_VectorcallMethod" title="PyObject_VectorcallMethod"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VectorcallMethod()</span></code></a>의 경우, 이 플래그는 대신 <code class="docutils literal notranslate"><span class="pre">args[0]</span></code>이 변경될 수 있음을 의미합니다.</p>
+<p>(추가 할당 없이) 저렴하게 할 수 있을 때마다, 호출자는 <code class="xref py py-const docutils literal notranslate"><span class="pre">PY_VECTORCALL_ARGUMENTS_OFFSET</span></code>을 사용하는 것이 좋습니다. 이렇게하면 연결된 메서드와 같은 콜러블이 후속 호출(앞에 <em>self</em> 인자를 포함하는)을 매우 효율적으로 만들 수 있습니다.</p>
 </dd></dl>
 
-<p>To call an object that implements vectorcall, use a <a class="reference internal" href="#capi-call"><span class="std std-ref">call API</span></a>
-function as with any other callable.
-<a class="reference internal" href="#c.PyObject_Vectorcall" title="PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Vectorcall()</span></code></a> will usually be most efficient.</p>
+<p>벡터콜을 구현하는 객체를 호출하려면, 다른 콜러블과 마찬가지로 <a class="reference internal" href="#capi-call"><span class="std std-ref">호출 API</span></a> 함수를 사용하십시오. <a class="reference internal" href="#c.PyObject_Vectorcall" title="PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Vectorcall()</span></code></a>은 일반적으로 가장 효율적입니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>In CPython 3.8, the vectorcall API and related functions were available
-provisionally under names with a leading underscore:
-<code class="docutils literal notranslate"><span class="pre">_PyObject_Vectorcall</span></code>, <code class="docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code>,
-<code class="docutils literal notranslate"><span class="pre">_PyObject_VectorcallMethod</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyVectorcall_Function</span></code>,
-<code class="docutils literal notranslate"><span class="pre">_PyObject_CallOneArg</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyObject_CallMethodNoArgs</span></code>,
-<code class="docutils literal notranslate"><span class="pre">_PyObject_CallMethodOneArg</span></code>.
-Additionally, <code class="docutils literal notranslate"><span class="pre">PyObject_VectorcallDict</span></code> was available as
-<code class="docutils literal notranslate"><span class="pre">_PyObject_FastCallDict</span></code>.
-The old names are still defined as aliases of the new, non-underscored names.</p>
+<p>CPython 3.8에서 벡터콜 API와 관련 함수는 앞에 밑줄이 붙은 이름으로 잠정적으로 사용할 수 있었습니다: <code class="docutils literal notranslate"><span class="pre">_PyObject_Vectorcall</span></code>, <code class="docutils literal notranslate"><span class="pre">_Py_TPFLAGS_HAVE_VECTORCALL</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyObject_VectorcallMethod</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyVectorcall_Function</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyObject_CallOneArg</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyObject_CallMethodNoArgs</span></code>, <code class="docutils literal notranslate"><span class="pre">_PyObject_CallMethodOneArg</span></code>. 또한, <code class="docutils literal notranslate"><span class="pre">PyObject_VectorcallDict</span></code>는 <code class="docutils literal notranslate"><span class="pre">_PyObject_FastCallDict</span></code>로 제공되었습니다. 이전 이름은 여전히 밑줄이 없는 새로운 이름의 별칭으로 정의됩니다.</p>
 </div>
 <div class="section" id="recursion-control">
-<h3>Recursion Control<a class="headerlink" href="#recursion-control" title="제목 주소">¶</a></h3>
-<p>When using <em>tp_call</em>, callees do not need to worry about
-<a class="reference internal" href="exceptions.html#recursion"><span class="std std-ref">recursion</span></a>: CPython uses
-<a class="reference internal" href="exceptions.html#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a> and <a class="reference internal" href="exceptions.html#c.Py_LeaveRecursiveCall" title="Py_LeaveRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_LeaveRecursiveCall()</span></code></a>
-for calls made using <em>tp_call</em>.</p>
-<p>For efficiency, this is not the case for calls done using vectorcall:
-the callee should use <em>Py_EnterRecursiveCall</em> and <em>Py_LeaveRecursiveCall</em>
-if needed.</p>
+<h3>재귀 제어<a class="headerlink" href="#recursion-control" title="제목 주소">¶</a></h3>
+<p><em>tp_call</em>을 사용할 때, 피호출자는 <a class="reference internal" href="exceptions.html#recursion"><span class="std std-ref">재귀</span></a>에 대해 걱정할 필요가 없습니다: CPython은 <em>tp_call</em>을 사용하여 호출한 경우 <a class="reference internal" href="exceptions.html#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a>과 <a class="reference internal" href="exceptions.html#c.Py_LeaveRecursiveCall" title="Py_LeaveRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_LeaveRecursiveCall()</span></code></a>을 사용합니다.</p>
+<p>효율성을 위해, 벡터콜을 사용하여 호출한 경우에는 그렇지 않습니다: 피호출자는 필요하면 <em>Py_EnterRecursiveCall</em>과 <em>Py_LeaveRecursiveCall</em>을 사용해야합니다.</p>
 </div>
 <div class="section" id="vectorcall-support-api">
-<h3>Vectorcall Support API<a class="headerlink" href="#vectorcall-support-api" title="제목 주소">¶</a></h3>
+<h3>벡터콜 지원 API<a class="headerlink" href="#vectorcall-support-api" title="제목 주소">¶</a></h3>
 <dl class="function">
 <dt id="c.PyVectorcall_NARGS">
 Py_ssize_t <code class="sig-name descname">PyVectorcall_NARGS</code><span class="sig-paren">(</span>size_t<em> nargsf</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyVectorcall_NARGS" title="정의 주소">¶</a></dt>
-<dd><p>Given a vectorcall <em>nargsf</em> argument, return the actual number of
-arguments.
-Currently equivalent to:</p>
+<dd><p>벡터콜 <em>nargsf</em> 인자가 주어지면, 실제 인자 수를 반환합니다. 현재 다음과 동등합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">Py_ssize_t</span><span class="p">)(</span><span class="n">nargsf</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">PY_VECTORCALL_ARGUMENTS_OFFSET</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>However, the function <code class="docutils literal notranslate"><span class="pre">PyVectorcall_NARGS</span></code> should be used to allow
-for future extensions.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>그러나, 향후 확장을 위해 <code class="docutils literal notranslate"><span class="pre">PyVectorcall_NARGS</span></code> 함수를 사용해야합니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
@@ -264,13 +205,9 @@ for future extensions.</p>
 <dl class="function">
 <dt id="c.PyVectorcall_Function">
 <a class="reference internal" href="#c.vectorcallfunc" title="vectorcallfunc">vectorcallfunc</a> <code class="sig-name descname">PyVectorcall_Function</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *op</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyVectorcall_Function" title="정의 주소">¶</a></dt>
-<dd><p>If <em>op</em> does not support the vectorcall protocol (either because the type
-does not or because the specific instance does not), return <em>NULL</em>.
-Otherwise, return the vectorcall function pointer stored in <em>op</em>.
-This function never raises an exception.</p>
-<p>This is mostly useful to check whether or not <em>op</em> supports vectorcall,
-which can be done by checking <code class="docutils literal notranslate"><span class="pre">PyVectorcall_Function(op)</span> <span class="pre">!=</span> <span class="pre">NULL</span></code>.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<dd><p><em>op</em>가 벡터콜 프로토콜을 지원하지 않으면 (형이 지워하지 않거나 인스턴스가 지원하지 않기 때문에), <em>NULL</em>을 반환합니다. 그렇지 않으면, <em>op</em>에 저장된 벡터콜 함수 포인터를 반환합니다. 이 함수는 예외를 발생시키지 않습니다.</p>
+<p>이것은 <em>op</em>가 벡터콜을 지원하는지를 확인하는 데 주로 유용하며, <code class="docutils literal notranslate"><span class="pre">PyVectorcall_Function(op)</span> <span class="pre">!=</span> <span class="pre">NULL</span></code>을 확인하여 수행 할 수 있습니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
@@ -279,13 +216,9 @@ which can be done by checking <code class="docutils literal notranslate"><span c
 <dl class="function">
 <dt id="c.PyVectorcall_Call">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyVectorcall_Call</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *tuple</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *dict</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyVectorcall_Call" title="정의 주소">¶</a></dt>
-<dd><p>Call <em>callable</em>'s <a class="reference internal" href="#c.vectorcallfunc" title="vectorcallfunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">vectorcallfunc</span></code></a> with positional and keyword
-arguments given in a tuple and dict, respectively.</p>
-<p>This is a specialized function, intended to be put in the
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> slot or be used in an implementation of <code class="docutils literal notranslate"><span class="pre">tp_call</span></code>.
-It does not check the <a class="reference internal" href="typeobj.html#Py_TPFLAGS_HAVE_VECTORCALL" title="Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> flag
-and it does not fall back to <code class="docutils literal notranslate"><span class="pre">tp_call</span></code>.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<dd><p>튜플과 딕셔너리에 각각 주어진 위치와 키워드 인자로 <em>callable</em>의 <a class="reference internal" href="#c.vectorcallfunc" title="vectorcallfunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">vectorcallfunc</span></code></a>를 호출합니다.</p>
+<p>이것은 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_call" title="PyTypeObject.tp_call"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_call</span></code></a> 슬롯에 넣거나 <code class="docutils literal notranslate"><span class="pre">tp_call</span></code> 구현에 사용하기 위한 특수 함수입니다. <a class="reference internal" href="typeobj.html#Py_TPFLAGS_HAVE_VECTORCALL" title="Py_TPFLAGS_HAVE_VECTORCALL"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_VECTORCALL</span></code></a> 플래그를 확인하지 않고 <code class="docutils literal notranslate"><span class="pre">tp_call</span></code>로 폴 백하지 않습니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.8에 추가.</span></p>
 </div>
@@ -294,14 +227,9 @@ and it does not fall back to <code class="docutils literal notranslate"><span cl
 </div>
 </div>
 <div class="section" id="object-calling-api">
-<span id="capi-call"></span><h2>Object Calling API<a class="headerlink" href="#object-calling-api" title="제목 주소">¶</a></h2>
-<p>Various functions are available for calling a Python object.
-Each converts its arguments to a convention supported by the called object –
-either <em>tp_call</em> or vectorcall.
-In order to do as litle conversion as possible, pick one that best fits
-the format of data you have available.</p>
-<p>The following table summarizes the available functions;
-please see individual documentation for details.</p>
+<span id="capi-call"></span><h2>객체 호출 API<a class="headerlink" href="#object-calling-api" title="제목 주소">¶</a></h2>
+<p>파이썬 객체를 호출하기 위해 다양한 함수를 사용할 수 있습니다. 각각은 인자를 호출된 객체가 지원하는 규칙으로 변환합니다 - <em>tp_call</em> 또는 벡터콜. 가능한 한 적은 변환을 수행하려면, 사용 가능한 데이터 형식에 가장 적합한 것을 선택하십시오.</p>
+<p>다음 표는 사용 가능한 함수를 요약한 것입니다; 자세한 내용은 개별 설명서를 참조하십시오.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 44%" />
@@ -310,8 +238,8 @@ please see individual documentation for details.</p>
 <col style="width: 16%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Function</p></th>
-<th class="head"><p>callable</p></th>
+<tr class="row-odd"><th class="head"><p>함수</p></th>
+<th class="head"><p>콜러블</p></th>
 <th class="head"><p>args</p></th>
 <th class="head"><p>kwargs</p></th>
 </tr>
@@ -319,8 +247,8 @@ please see individual documentation for details.</p>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_Call" title="PyObject_Call"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Call()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>tuple</p></td>
-<td><p>dict/<code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p>튜플</p></td>
+<td><p>딕셔너리/<code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#c.PyObject_CallNoArgs" title="PyObject_CallNoArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallNoArgs()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
@@ -329,32 +257,32 @@ please see individual documentation for details.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_CallOneArg" title="PyObject_CallOneArg"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallOneArg()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>1 object</p></td>
+<td><p>1 객체</p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#c.PyObject_CallObject" title="PyObject_CallObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallObject()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>tuple/<code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p>튜플/<code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_CallFunction" title="PyObject_CallFunction"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFunction()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>format</p></td>
+<td><p>포맷(format)</p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#c.PyObject_CallMethod" title="PyObject_CallMethod"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallMethod()</span></code></a></p></td>
 <td><p>obj + <code class="docutils literal notranslate"><span class="pre">char*</span></code></p></td>
-<td><p>format</p></td>
+<td><p>포맷(format)</p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_CallFunctionObjArgs" title="PyObject_CallFunctionObjArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFunctionObjArgs()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>variadic</p></td>
+<td><p>가변(variadic)</p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#c.PyObject_CallMethodObjArgs" title="PyObject_CallMethodObjArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallMethodObjArgs()</span></code></a></p></td>
 <td><p>obj + name</p></td>
-<td><p>variadic</p></td>
+<td><p>가변(variadic)</p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_CallMethodNoArgs" title="PyObject_CallMethodNoArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallMethodNoArgs()</span></code></a></p></td>
@@ -364,37 +292,33 @@ please see individual documentation for details.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#c.PyObject_CallMethodOneArg" title="PyObject_CallMethodOneArg"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallMethodOneArg()</span></code></a></p></td>
 <td><p>obj + name</p></td>
-<td><p>1 object</p></td>
+<td><p>1 객체</p></td>
 <td><p>---</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_Vectorcall" title="PyObject_Vectorcall"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Vectorcall()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>vectorcall</p></td>
-<td><p>vectorcall</p></td>
+<td><p>벡터콜</p></td>
+<td><p>벡터콜</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#c.PyObject_VectorcallDict" title="PyObject_VectorcallDict"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VectorcallDict()</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></p></td>
-<td><p>vectorcall</p></td>
-<td><p>dict/<code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p>벡터콜</p></td>
+<td><p>딕셔너리/<code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#c.PyObject_VectorcallMethod" title="PyObject_VectorcallMethod"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VectorcallMethod()</span></code></a></p></td>
 <td><p>arg + name</p></td>
-<td><p>vectorcall</p></td>
-<td><p>vectorcall</p></td>
+<td><p>벡터콜</p></td>
+<td><p>벡터콜</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="function">
 <dt id="c.PyObject_Call">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyObject_Call</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *args</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_Call" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: New reference.</em><p>Call a callable Python object <em>callable</em>, with arguments given by the
-tuple <em>args</em>, and named arguments given by the dictionary <em>kwargs</em>.</p>
-<p><em>args</em> must not be <em>NULL</em>; use an empty tuple if no arguments are needed.
-If no named arguments are needed, <em>kwargs</em> can be <em>NULL</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
-<p>This is the equivalent of the Python expression:
-<code class="docutils literal notranslate"><span class="pre">callable(*args,</span> <span class="pre">**kwargs)</span></code>.</p>
+<dd><em class="refcount">Return value: New reference.</em><p>튜플 <em>args</em>로 주어진 인자와 딕셔너리 <em>kwargs</em>로 주어진 이름있는 인자로 콜러블 파이썬 객체 <em>callable</em>을 호출합니다.</p>
+<p><em>args</em>는 <em>NULL</em>이 아니어야 합니다ㅣ 인자가 필요 없으면 빈 튜플을 사용하십시오. 이름있는 인자가 필요하지 않으면, <em>kwargs</em>는 <em>NULL</em>일 수 있습니다.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
+<p>이것은 파이썬 표현식 <code class="docutils literal notranslate"><span class="pre">callable(*args,</span> <span class="pre">**kwargs)</span></code>와 동등합니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -402,8 +326,7 @@ If no named arguments are needed, <em>kwargs</em> can be <em>NULL</em>.</p>
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyObject_CallNoArgs</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_CallNoArgs" title="정의 주소">¶</a></dt>
 <dd><p>Call a callable Python object <em>callable</em> without any arguments. It is the
 most efficient way to call a callable Python object without any argument.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -414,9 +337,8 @@ most efficient way to call a callable Python object without any argument.</p>
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyObject_CallOneArg</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *arg</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_CallOneArg" title="정의 주소">¶</a></dt>
 <dd><p>Call a callable Python object <em>callable</em> with exactly 1 positional argument
 <em>arg</em> and no keyword arguments.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -427,8 +349,7 @@ most efficient way to call a callable Python object without any argument.</p>
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyObject_CallObject</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *callable</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *args</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_CallObject" title="정의 주소">¶</a></dt>
 <dd><em class="refcount">Return value: New reference.</em><p>Call a callable Python object <em>callable</em>, with arguments given by the
 tuple <em>args</em>.  If no arguments are needed, then <em>args</em> can be <em>NULL</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
 <p>This is the equivalent of the Python expression: <code class="docutils literal notranslate"><span class="pre">callable(*args)</span></code>.</p>
 </dd></dl>
 
@@ -438,8 +359,7 @@ tuple <em>args</em>.  If no arguments are needed, then <em>args</em> can be <em>
 <dd><em class="refcount">Return value: New reference.</em><p>Call a callable Python object <em>callable</em>, with a variable number of C arguments.
 The C arguments are described using a <a class="reference internal" href="arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a> style format
 string.  The format can be <em>NULL</em>, indicating that no arguments are provided.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
 <p>This is the equivalent of the Python expression: <code class="docutils literal notranslate"><span class="pre">callable(*args)</span></code>.</p>
 <p>Note that if you only pass <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></a> args,
 <a class="reference internal" href="#c.PyObject_CallFunctionObjArgs" title="PyObject_CallFunctionObjArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFunctionObjArgs()</span></code></a> is a faster alternative.</p>
@@ -455,8 +375,7 @@ string.  The format can be <em>NULL</em>, indicating that no arguments are provi
 arguments.  The C arguments are described by a <a class="reference internal" href="arg.html#c.Py_BuildValue" title="Py_BuildValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_BuildValue()</span></code></a> format
 string that should produce a tuple.</p>
 <p>The format can be <em>NULL</em>, indicating that no arguments are provided.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
 <p>This is the equivalent of the Python expression:
 <code class="docutils literal notranslate"><span class="pre">obj.name(arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code>.</p>
 <p>Note that if you only pass <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></a> args,
@@ -472,8 +391,7 @@ string that should produce a tuple.</p>
 <dd><em class="refcount">Return value: New reference.</em><p>Call a callable Python object <em>callable</em>, with a variable number of
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></a> arguments.  The arguments are provided as a variable number
 of parameters followed by <em>NULL</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
 <p>This is the equivalent of the Python expression:
 <code class="docutils literal notranslate"><span class="pre">callable(arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code>.</p>
 </dd></dl>
@@ -485,8 +403,7 @@ of parameters followed by <em>NULL</em>.</p>
 Python string object in <em>name</em>.  It is called with a variable number of
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code></a> arguments.  The arguments are provided as a variable number
 of parameters followed by <em>NULL</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -494,9 +411,8 @@ of parameters followed by <em>NULL</em>.</p>
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyObject_CallMethodNoArgs</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *obj</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *name</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_CallMethodNoArgs" title="정의 주소">¶</a></dt>
 <dd><p>Call a method of the Python object <em>obj</em> without arguments,
 where the name of the method is given as a Python string object in <em>name</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -508,9 +424,8 @@ where the name of the method is given as a Python string object in <em>name</em>
 <dd><p>Call a method of the Python object <em>obj</em> with a single positional argument
 <em>arg</em>, where the name of the method is given as a Python string object in
 <em>name</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -523,9 +438,8 @@ where the name of the method is given as a Python string object in <em>name</em>
 The arguments are the same as for <a class="reference internal" href="#c.vectorcallfunc" title="vectorcallfunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">vectorcallfunc</span></code></a>.
 If <em>callable</em> supports <a class="reference internal" href="#vectorcall">vectorcall</a>, this directly calls
 the vectorcall function stored in <em>callable</em>.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -542,7 +456,7 @@ a conversion of arguments needs to be done.
 Therefore, this function should only be used if the caller
 already has a dictionary ready to use for the keyword arguments,
 but not a tuple for the positional arguments.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -562,9 +476,8 @@ temporarily be changed. Keyword arguments can be passed just like in
 <p>If the object has the <a class="reference internal" href="typeobj.html#Py_TPFLAGS_METHOD_DESCRIPTOR" title="Py_TPFLAGS_METHOD_DESCRIPTOR"><code class="xref py py-const docutils literal notranslate"><span class="pre">Py_TPFLAGS_METHOD_DESCRIPTOR</span></code></a> feature,
 this will call the unbound method object with the full
 <em>args</em> vector as arguments.</p>
-<p>Return the result of the call on success, or raise an exception and return
-<em>NULL</em> on failure.</p>
-<p>This function is not part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">limited API</span></a>.</p>
+<p>성공하면 호출 결과를 반환하고, 실패하면 예외를 발생시키고 <em>NULL</em>을 반환합니다.</p>
+<p>이 함수는 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">제한된 API</span></a>의 일부가 아닙니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.9에 추가.</span></p>
 </div>
@@ -591,14 +504,14 @@ and <code class="docutils literal notranslate"><span class="pre">0</span></code>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Call Protocol</a><ul>
-<li><a class="reference internal" href="#the-tp-call-protocol">The <em>tp_call</em> Protocol</a></li>
-<li><a class="reference internal" href="#the-vectorcall-protocol">The Vectorcall Protocol</a><ul>
-<li><a class="reference internal" href="#recursion-control">Recursion Control</a></li>
-<li><a class="reference internal" href="#vectorcall-support-api">Vectorcall Support API</a></li>
+<li><a class="reference internal" href="#">호출 프로토콜</a><ul>
+<li><a class="reference internal" href="#the-tp-call-protocol"><em>tp_call</em> 프로토콜</a></li>
+<li><a class="reference internal" href="#the-vectorcall-protocol">벡터콜(Vectorcall) 프로토콜</a><ul>
+<li><a class="reference internal" href="#recursion-control">재귀 제어</a></li>
+<li><a class="reference internal" href="#vectorcall-support-api">벡터콜 지원 API</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#object-calling-api">Object Calling API</a></li>
+<li><a class="reference internal" href="#object-calling-api">객체 호출 API</a></li>
 <li><a class="reference internal" href="#call-support-api">Call Support API</a></li>
 </ul>
 </li>
