@@ -669,46 +669,16 @@ utf-32-be, utf-32-le</p></td>
 <p>문자열은 <code class="docutils literal notranslate"><span class="pre">0x0</span></code>--<code class="docutils literal notranslate"><span class="pre">0x10FFFF</span></code> 범위의 코드 포인트 시퀀스로 내부적으로 저장됩니다. (구현에 대한 자세한 내용은 <span class="target" id="index-14"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0393"><strong>PEP 393</strong></a>을 참조하십시오.) 일단 문자열 객체가 CPU와 메모리 외부에서 사용되면, 엔디안(endianness)과 이러한 배열이 바이트열로 저장되는 방식이 문제가 됩니다. 다른 코덱과 마찬가지로, 문자열을 바이트 시퀀스로 직렬화하는 것을 <em>인코딩</em>이라고 하며, 바이트 시퀀스에서 문자열을 다시 만드는 것을 <em>디코딩</em>이라고합니다. 다양한 텍스트 직렬화 코덱이 있으며, 이를 집합적으로 <a class="reference internal" href="../glossary.html#term-text-encoding"><span class="xref std std-term">텍스트 인코딩</span></a>이라고 합니다.</p>
 <p>가장 간단한 텍스트 인코딩(<code class="docutils literal notranslate"><span class="pre">'latin-1'</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">'iso-8859-1'</span></code>이라고 합니다)은 코드 포인트 0--255 를 바이트 <code class="docutils literal notranslate"><span class="pre">0x0</span></code>--<code class="docutils literal notranslate"><span class="pre">0xff</span></code>로 매핑합니다. 이것은 <code class="docutils literal notranslate"><span class="pre">U+00FF</span></code> 위의 코드 포인트를 포함하는 문자열 객체는 이 코덱으로 인코딩 할 수 없음을 뜻합니다. 그렇게 하면 다음과 유사한 <a class="reference internal" href="exceptions.html#UnicodeEncodeError" title="UnicodeEncodeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">UnicodeEncodeError</span></code></a>가 발생합니다 (에러 메시지의 세부 사항은 다를 수 있습니다): <code class="docutils literal notranslate"><span class="pre">UnicodeEncodeError:</span> <span class="pre">'latin-1'</span> <span class="pre">codec</span> <span class="pre">can't</span> <span class="pre">encode</span> <span class="pre">character</span> <span class="pre">'\u1234'</span> <span class="pre">in</span> <span class="pre">position</span> <span class="pre">3:</span> <span class="pre">ordinal</span> <span class="pre">not</span> <span class="pre">in</span> <span class="pre">range(256)</span></code>.</p>
 <p>모든 유니코드 코드 포인트의 다른 부분 집합과 이러한 코드 포인트가 바이트 <code class="docutils literal notranslate"><span class="pre">0x0</span></code>--<code class="docutils literal notranslate"><span class="pre">0xff</span></code>에 매핑되는 방식을 선택하는 또 다른 인코딩 그룹(소위 charmap 인코딩)이 있습니다. 이 작업을 수행하는 방법을 보려면 간단히 예를 들어 <code class="file docutils literal notranslate"><span class="pre">encodings/cp1252.py</span></code>(윈도우에서 주로 사용되는 인코딩)를 열어보십시오. 어떤 문자가 어떤 바이트 값에 매핑되는지를 나타내는 256개의 문자로 구성된 문자열 상수가 있습니다.</p>
-<p>All of these encodings can only encode 256 of the 1114112 code points
-defined in Unicode. A simple and straightforward way that can store each Unicode
-code point, is to store each code point as four consecutive bytes. There are two
-possibilities: store the bytes in big endian or in little endian order. These
-two encodings are called <code class="docutils literal notranslate"><span class="pre">UTF-32-BE</span></code> and <code class="docutils literal notranslate"><span class="pre">UTF-32-LE</span></code> respectively. Their
-disadvantage is that if e.g. you use <code class="docutils literal notranslate"><span class="pre">UTF-32-BE</span></code> on a little endian machine you
-will always have to swap bytes on encoding and decoding. <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code> avoids this
-problem: bytes will always be in natural endianness. When these bytes are read
-by a CPU with a different endianness, then bytes have to be swapped though. To
-be able to detect the endianness of a <code class="docutils literal notranslate"><span class="pre">UTF-16</span></code> or <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code> byte sequence,
-there's the so called BOM (&quot;Byte Order Mark&quot;). This is the Unicode character
-<code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code>. This character can be prepended to every <code class="docutils literal notranslate"><span class="pre">UTF-16</span></code> or <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code>
-byte sequence. The byte swapped version of this character (<code class="docutils literal notranslate"><span class="pre">0xFFFE</span></code>) is an
-illegal character that may not appear in a Unicode text. So when the
-first character in an <code class="docutils literal notranslate"><span class="pre">UTF-16</span></code> or <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code> byte sequence
-appears to be a <code class="docutils literal notranslate"><span class="pre">U+FFFE</span></code> the bytes have to be swapped on decoding.
-Unfortunately the character <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code> had a second purpose as
-a <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code>: a character that has no width and doesn't allow
-a word to be split. It can e.g. be used to give hints to a ligature algorithm.
-With Unicode 4.0 using <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code> as a <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code> has been
-deprecated (with <code class="docutils literal notranslate"><span class="pre">U+2060</span></code> (<code class="docutils literal notranslate"><span class="pre">WORD</span> <span class="pre">JOINER</span></code>) assuming this role). Nevertheless
-Unicode software still must be able to handle <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code> in both roles: as a BOM
-it's a device to determine the storage layout of the encoded bytes, and vanishes
-once the byte sequence has been decoded into a string; as a <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span>
-<span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code> it's a normal character that will be decoded like any other.</p>
-<p>There's another encoding that is able to encoding the full range of Unicode
-characters: UTF-8. UTF-8 is an 8-bit encoding, which means there are no issues
-with byte order in UTF-8. Each byte in a UTF-8 byte sequence consists of two
-parts: marker bits (the most significant bits) and payload bits. The marker bits
-are a sequence of zero to four <code class="docutils literal notranslate"><span class="pre">1</span></code> bits followed by a <code class="docutils literal notranslate"><span class="pre">0</span></code> bit. Unicode characters are
-encoded like this (with x being payload bits, which when concatenated give the
-Unicode character):</p>
+<p>이러한 모든 인코딩은 유니코드로 정의된 1114112 코드 포인트 중 256 개만 인코딩 할 수 있습니다. 각 유니코드 코드 포인트를 저장할 수있는 간단하고 간단한 방법은 각 코드 포인트를 4 개의 연속 바이트로 저장하는 것입니다. 두 가지 가능성이 있습니다: 바이트를 빅 엔디안이나 리틀 엔디안 순서로 저장합니다. 이 두 가지 인코딩을 각각 <code class="docutils literal notranslate"><span class="pre">UTF-32-BE</span></code>와 <code class="docutils literal notranslate"><span class="pre">UTF-32-LE</span></code>라고합니다. 단점은, 예를 들어 리틀 엔디안 기계에서 <code class="docutils literal notranslate"><span class="pre">UTF-32-BE</span></code>를 사용하면 인코딩과 디코딩 시 항상 바이트를 스와프해야 한다는 것입니다. <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code>는 이 문제를 피합니다: 바이트는 항상 자연 엔디안입니다. 이 바이트를 엔디안이 다른 CPU에서 읽을 때는, 바이트를 스와프해야 합니다. <code class="docutils literal notranslate"><span class="pre">UTF-16</span></code>이나 <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code> 바이트 시퀀스의 엔디안을 감지할 수 있도록, BOM(&quot;Byte Order Mark -- 바이트 순서 마크&quot;)이 있습니다. 이것은 유니코드 문자 <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code>입니다. 이 문자는 모든 <code class="docutils literal notranslate"><span class="pre">UTF-16</span></code>이나 <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code> 바이트 시퀀스 앞에 붙일 수 있습니다. 이 문자의 바이트 스와프된 버전(<code class="docutils literal notranslate"><span class="pre">0xFFFE</span></code>)은 유니코드 텍스트에 나타날 수 없는 잘못된 문자입니다. 따라서 <code class="docutils literal notranslate"><span class="pre">UTF-16</span></code>이나 <code class="docutils literal notranslate"><span class="pre">UTF-32</span></code> 바이트 시퀀스의 첫 번째 문자가 <code class="docutils literal notranslate"><span class="pre">U+FFFE</span></code>이면, 디코딩시 바이트를 스와프해야 합니다. 불행히도 <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code> 문자는 <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code>라는 두 번째 목적을 가지고 있었습니다: 너비가 없고 단어를 나눌 수 없도록하는 문자입니다. 예를 들어 합자(ligature) 알고리즘에 힌트를 주기 위해 사용될 수 있습니다. 유니코드 4.0에서는 <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code>를 <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code>로 사용하는 것이 폐지되었습니다 (<code class="docutils literal notranslate"><span class="pre">U+2060</span></code>(<code class="docutils literal notranslate"><span class="pre">WORD</span> <span class="pre">JOINER</span></code>)가 이 역할을 맡습니다). 그럼에도 불구하고 유니코드 소프트웨어는 여전히 두 가지 역할 모두로 <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code>를 처리할 수 있어야 합니다: 인코딩 된 바이트의 스토리지 배치를 결정하는 장치이며, 바이트 시퀀스가 문자열로 디코딩되면 사라지는 BOM으로서의 역할, 다른 문자처럼 디코드되는 일반 문자 <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code>로서의 역할.</p>
+<p>유니코드 문자의 전체 범위를 인코딩 할 수 있는 또 다른 인코딩이 있습니다: UTF-8. UTF-8은 8비트 인코딩입니다. UTF-8에서는 바이트 순서에 관한 문제가 없음을 의미합니다. UTF-8 바이트 시퀀스의 각 바이트는 두 부분으로 구성됩니다: 마커 비트(최 상위 비트)와 페이로드 비트. 마커 비트는 0에서 4개의 <code class="docutils literal notranslate"><span class="pre">1</span></code> 비트와 그 뒤에 <code class="docutils literal notranslate"><span class="pre">0</span></code> 비트가 오는 시퀀스입니다. 유니코드 문자는 다음과 같이 인코딩됩니다 (x는 페이로드 비트이며, 이어 붙이면 유니코드 문자가 됩니다):</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 43%" />
 <col style="width: 57%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Range</p></th>
-<th class="head"><p>Encoding</p></th>
+<tr class="row-odd"><th class="head"><p>범위</p></th>
+<th class="head"><p>인코딩</p></th>
 </tr>
 </thead>
 <tbody>
@@ -726,21 +696,9 @@ Unicode character):</p>
 </tr>
 </tbody>
 </table>
-<p>The least significant bit of the Unicode character is the rightmost x bit.</p>
-<p>As UTF-8 is an 8-bit encoding no BOM is required and any <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code> character in
-the decoded string (even if it's the first character) is treated as a <code class="docutils literal notranslate"><span class="pre">ZERO</span>
-<span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code>.</p>
-<p>Without external information it's impossible to reliably determine which
-encoding was used for encoding a string. Each charmap encoding can
-decode any random byte sequence. However that's not possible with UTF-8, as
-UTF-8 byte sequences have a structure that doesn't allow arbitrary byte
-sequences. To increase the reliability with which a UTF-8 encoding can be
-detected, Microsoft invented a variant of UTF-8 (that Python 2.5 calls
-<code class="docutils literal notranslate"><span class="pre">&quot;utf-8-sig&quot;</span></code>) for its Notepad program: Before any of the Unicode characters
-is written to the file, a UTF-8 encoded BOM (which looks like this as a byte
-sequence: <code class="docutils literal notranslate"><span class="pre">0xef</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbb</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbf</span></code>) is written. As it's rather improbable
-that any charmap encoded file starts with these byte values (which would e.g.
-map to</p>
+<p>유니코드 문자의 최하위 비트는 가장 오른쪽에 있는 x 비트입니다.</p>
+<p>UTF-8은 8비트 인코딩이라서 BOM이 필요하지 않으며 디코딩 된 문자열의 모든 <code class="docutils literal notranslate"><span class="pre">U+FEFF</span></code> 문자(첫 번째 문자라 할지라도)는 <code class="docutils literal notranslate"><span class="pre">ZERO</span> <span class="pre">WIDTH</span> <span class="pre">NO-BREAK</span> <span class="pre">SPACE</span></code>로 처리됩니다.</p>
+<p>외부 정보 없이 문자열 인코딩에 사용된 인코딩을 신뢰성있게 결정하는 것은 불가능합니다. 각 charmap 인코딩은 모든 임의의 바이트 시퀀스를 디코딩 할 수 있습니다. 그러나 UTF-8에서는 그렇지 않습니다, UTF-8 바이트 시퀀스는 임의의 바이트 시퀀스를 허용하지 않는 구조를 갖기 때문입니다. UTF-8 인코딩 감지의 신뢰성을 높이기 위해, Microsoft는 메모장(Notepad) 프로그램을 위해 UTF-8의 변형을 발명했습니다 (파이썬 2.5에서 <code class="docutils literal notranslate"><span class="pre">&quot;utf-8-sig&quot;</span></code>라고 부릅니다): 유니코드 문자를 파일에 쓰기 전에, UTF-8 인코딩 된 BOM(다음과 같은 바이트 시퀀스로 표시됩니다: <code class="docutils literal notranslate"><span class="pre">0xef</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbb</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbf</span></code>)이 기록됩니다. 모든 charmap 인코딩된 파일이 이러한 바이트 값으로 시작한다는 것은 다소 불가능하기 때문에 (예를 들어 iso-8859-1 에서 다음과 같은 것으로 매핑됩니다</p>
 <blockquote>
 <div><div class="line-block">
 <div class="line">LATIN SMALL LETTER I WITH DIAERESIS</div>
@@ -748,46 +706,23 @@ map to</p>
 <div class="line">INVERTED QUESTION MARK</div>
 </div>
 </div></blockquote>
-<p>in iso-8859-1), this increases the probability that a <code class="docutils literal notranslate"><span class="pre">utf-8-sig</span></code> encoding can be
-correctly guessed from the byte sequence. So here the BOM is not used to be able
-to determine the byte order used for generating the byte sequence, but as a
-signature that helps in guessing the encoding. On encoding the utf-8-sig codec
-will write <code class="docutils literal notranslate"><span class="pre">0xef</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbb</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbf</span></code> as the first three bytes to the file. On
-decoding <code class="docutils literal notranslate"><span class="pre">utf-8-sig</span></code> will skip those three bytes if they appear as the first
-three bytes in the file. In UTF-8, the use of the BOM is discouraged and
-should generally be avoided.</p>
+<p>), 바이트 시퀀스에서 <code class="docutils literal notranslate"><span class="pre">utf-8-sig</span></code> 인코딩을 정확하게 추측할 수 있는 가능성을 높입니다. 따라서 여기서 BOM은 바이트 시퀀스를 생성하는 데 사용되는 바이트 순서를 결정할 수 있도록 하는데 사용되지믄 않지만, 인코딩을 추측하는 데 도움이되는 서명으로 사용됩니다. 인코딩할 때 utf-8-sig 코덱은 <code class="docutils literal notranslate"><span class="pre">0xef</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbb</span></code>, <code class="docutils literal notranslate"><span class="pre">0xbf</span></code>를 파일의 처음 3바이트로 기록합니다. 디코딩할 때 <code class="docutils literal notranslate"><span class="pre">utf-8-sig</span></code>는 파일에서 처음 3바이트에 등장하면 이 3바이트를 건너 뜁니다. UTF-8에서는, BOM 사용을 권장하지 않으며 일반적으로 피해야합니다.</p>
 </div>
 <div class="section" id="standard-encodings">
-<span id="id3"></span><h2>Standard Encodings<a class="headerlink" href="#standard-encodings" title="제목 주소">¶</a></h2>
-<p>Python comes with a number of codecs built-in, either implemented as C functions
-or with dictionaries as mapping tables. The following table lists the codecs by
-name, together with a few common aliases, and the languages for which the
-encoding is likely used. Neither the list of aliases nor the list of languages
-is meant to be exhaustive. Notice that spelling alternatives that only differ in
-case or use a hyphen instead of an underscore are also valid aliases; therefore,
-e.g. <code class="docutils literal notranslate"><span class="pre">'utf-8'</span></code> is a valid alias for the <code class="docutils literal notranslate"><span class="pre">'utf_8'</span></code> codec.</p>
+<span id="id3"></span><h2>표준 인코딩<a class="headerlink" href="#standard-encodings" title="제목 주소">¶</a></h2>
+<p>파이썬에는 C 함수로 구현되거나 딕셔너리를 매핑 테이블로 사용하는 많은 코덱이 내장되어 있습니다. 다음 표는 몇 가지 공통 별칭과 인코딩이 사용되는 언어와 함께 이름별로 코덱을 나열합니다. 별칭 목록이나 언어 목록이 모두 철저하지는 않습니다. 대소 문자 만 다르거나 밑줄 대신 하이픈을 사용하는 철자 대안도 유효한 별칭임에 유의하십시오; 따라서, 예를 들어 <code class="docutils literal notranslate"><span class="pre">'utf-8'</span></code>은 <code class="docutils literal notranslate"><span class="pre">'utf_8'</span></code> 코덱의 유효한 별칭입니다.</p>
 <div class="impl-detail compound">
-<p class="compound-first"><strong>CPython implementation detail:</strong> Some common encodings can bypass the codecs lookup machinery to
-improve performance. These optimization opportunities are only
-recognized by CPython for a limited set of (case insensitive)
-aliases: utf-8, utf8, latin-1, latin1, iso-8859-1, iso8859-1, mbcs
-(Windows only), ascii, us-ascii, utf-16, utf16, utf-32, utf32, and
-the same using underscores instead of dashes. Using alternative
-aliases for these encodings may result in slower execution.</p>
+<p class="compound-first"><strong>CPython implementation detail:</strong> 일부 공통 인코딩은 코덱 조회 메커니즘을 우회하여 성능을 향상시킬 수 있습니다. 이러한 최적화 기회는 CPython에서만 제한된 (대소 문자를 구분하는) 별칭 집합에 대해서 인식됩니다:  utf-8, utf8, latin-1, latin1, iso-8859-1, iso8859-1, mbcs (윈도우 전용), ascii, us-ascii, utf-16, utf16, utf-32, utf32 및 대시 대신 밑줄을 사용한 것들. 이러한 인코딩에 대체 대안 별칭을 사용하면 실행 속도가 느려질 수 있습니다.</p>
 <div class="compound-last versionchanged">
-<p><span class="versionmodified changed">버전 3.6에서 변경: </span>Optimization opportunity recognized for us-ascii.</p>
+<p><span class="versionmodified changed">버전 3.6에서 변경: </span>us-ascii에서 최적화 기회가 인식됩니다.</p>
 </div>
 </div>
-<p>Many of the character sets support the same languages. They vary in individual
-characters (e.g. whether the EURO SIGN is supported or not), and in the
-assignment of characters to code positions. For the European languages in
-particular, the following variants typically exist:</p>
+<p>많은 문자 집합이 같은 언어를 지원합니다. 개별 문자(예를 들어 EURO SIGN 지원 여부)와 코드 위치에 문자를 대입하는 것에서 다릅니다. 특히 유럽 언어의 경우, 일반적으로 다음과 같은 변형이 있습니다:</p>
 <ul class="simple">
-<li><p>an ISO 8859 codeset</p></li>
-<li><p>a Microsoft Windows code page, which is typically derived from an 8859 codeset,
-but replaces control characters with additional graphic characters</p></li>
-<li><p>an IBM EBCDIC code page</p></li>
-<li><p>an IBM PC code page, which is ASCII compatible</p></li>
+<li><p>ISO 8859 코드 집합</p></li>
+<li><p>Microsoft 윈도우 코드 페이지, 일반적으로 8859 코드 집합에서 파생되지만, 제어 문자를 추가 그래픽 문자로 대체합니다</p></li>
+<li><p>IBM EBCDIC 코드 페이지</p></li>
+<li><p>IBM PC 코드 페이지, ASCII와 호환됩니다</p></li>
 </ul>
 <table class="docutils align-default">
 <colgroup>
@@ -796,9 +731,9 @@ but replaces control characters with additional graphic characters</p></li>
 <col style="width: 40%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Codec</p></th>
-<th class="head"><p>Aliases</p></th>
-<th class="head"><p>Languages</p></th>
+<tr class="row-odd"><th class="head"><p>코덱</p></th>
+<th class="head"><p>별칭</p></th>
+<th class="head"><p>언어</p></th>
 </tr>
 </thead>
 <tbody>
@@ -1192,39 +1127,39 @@ s_jisx0213</p></td>
 </tr>
 <tr class="row-even"><td><p>utf_32</p></td>
 <td><p>U32, utf32</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-odd"><td><p>utf_32_be</p></td>
 <td><p>UTF-32BE</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-even"><td><p>utf_32_le</p></td>
 <td><p>UTF-32LE</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-odd"><td><p>utf_16</p></td>
 <td><p>U16, utf16</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-even"><td><p>utf_16_be</p></td>
 <td><p>UTF-16BE</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-odd"><td><p>utf_16_le</p></td>
 <td><p>UTF-16LE</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-even"><td><p>utf_7</p></td>
 <td><p>U7, unicode-1-1-utf-7</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-odd"><td><p>utf_8</p></td>
 <td><p>U8, UTF, utf8, cp65001</p></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 <tr class="row-even"><td><p>utf_8_sig</p></td>
 <td></td>
-<td><p>all languages</p></td>
+<td><p>모든 언어</p></td>
 </tr>
 </tbody>
 </table>
@@ -1258,8 +1193,8 @@ encodings.</p>
 <col style="width: 48%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Codec</p></th>
-<th class="head"><p>Aliases</p></th>
+<tr class="row-odd"><th class="head"><p>코덱</p></th>
+<th class="head"><p>별칭</p></th>
 <th class="head"><p>의미</p></th>
 </tr>
 </thead>
@@ -1349,8 +1284,8 @@ to <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code 
 <col style="width: 30%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Codec</p></th>
-<th class="head"><p>Aliases</p></th>
+<tr class="row-odd"><th class="head"><p>코덱</p></th>
+<th class="head"><p>별칭</p></th>
 <th class="head"><p>의미</p></th>
 <th class="head"><p>Encoder / decoder</p></th>
 </tr>
@@ -1440,8 +1375,8 @@ mapping. It is not supported by <a class="reference internal" href="stdtypes.htm
 <col style="width: 48%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Codec</p></th>
-<th class="head"><p>Aliases</p></th>
+<tr class="row-odd"><th class="head"><p>코덱</p></th>
+<th class="head"><p>별칭</p></th>
 <th class="head"><p>의미</p></th>
 </tr>
 </thead>
@@ -1566,7 +1501,7 @@ optional UTF-8 encoded BOM at the start of the data will be skipped.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#encodings-and-unicode">인코딩과 유니코드</a></li>
-<li><a class="reference internal" href="#standard-encodings">Standard Encodings</a></li>
+<li><a class="reference internal" href="#standard-encodings">표준 인코딩</a></li>
 <li><a class="reference internal" href="#python-specific-encodings">Python Specific Encodings</a><ul>
 <li><a class="reference internal" href="#text-encodings">Text Encodings</a></li>
 <li><a class="reference internal" href="#binary-transforms">Binary Transforms</a></li>
