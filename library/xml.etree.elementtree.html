@@ -209,10 +209,7 @@
 <div class="section" id="pull-api-for-non-blocking-parsing">
 <span id="elementtree-pull-parsing"></span><h3>비 블로킹 구문 분석을 위한 풀(pull) API<a class="headerlink" href="#pull-api-for-non-blocking-parsing" title="제목 주소">¶</a></h3>
 <p>이 모듈이 제공하는 대부분의 구문 분석 함수는 결과를 반환하기 전에 전체 문서를 한 번에 읽도록 요구합니다. <a class="reference internal" href="#xml.etree.ElementTree.XMLParser" title="xml.etree.ElementTree.XMLParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">XMLParser</span></code></a>를 사용하고 점진적으로 데이터를 공급하는 것이 가능하지만, 콜백 대상에 메서드를 호출하는 푸시(push) API로, 대부분의 경우 너무 저수준이고 불편합니다. 때로 사용자가 실제로 원하는 것은 완전히 구성된 <a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> 객체의 편리함을 즐기면서 연산을 블로킹하지 않고 XML을 점진적으로 구문 분석할 수 있는 것입니다.</p>
-<p>The most powerful tool for doing this is <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser" title="xml.etree.ElementTree.XMLPullParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">XMLPullParser</span></code></a>.  It does not
-require a blocking read to obtain the XML data, and is instead fed with data
-incrementally with <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser.feed" title="xml.etree.ElementTree.XMLPullParser.feed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">XMLPullParser.feed()</span></code></a> calls.  To get the parsed XML
-elements, call <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser.read_events" title="xml.etree.ElementTree.XMLPullParser.read_events"><code class="xref py py-meth docutils literal notranslate"><span class="pre">XMLPullParser.read_events()</span></code></a>.  Here is an example:</p>
+<p>이를 위한 가장 강력한 도구는 <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser" title="xml.etree.ElementTree.XMLPullParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">XMLPullParser</span></code></a>입니다. XML 데이터를 얻기 위해 블로킹 읽기가 필요하지 않으며, 대신 <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser.feed" title="xml.etree.ElementTree.XMLPullParser.feed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">XMLPullParser.feed()</span></code></a> 호출을 통해 점진적으로 데이터가 제공됩니다. 구문 분석된 XML 엘리먼트를 얻으려면, <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser.read_events" title="xml.etree.ElementTree.XMLPullParser.read_events"><code class="xref py py-meth docutils literal notranslate"><span class="pre">XMLPullParser.read_events()</span></code></a>를 호출하십시오. 예를 들면 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">XMLPullParser</span><span class="p">([</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="s1">&#39;&lt;mytag&gt;sometext&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">read_events</span><span class="p">())</span>
@@ -225,20 +222,19 @@ elements, call <a class="reference internal" href="#xml.etree.ElementTree.XMLPul
 <span class="go">end</span>
 </pre></div>
 </div>
-<p>The obvious use case is applications that operate in a non-blocking fashion
-where the XML data is being received from a socket or read incrementally from
-some storage device.  In such cases, blocking reads are unacceptable.</p>
-<p>Because it's so flexible, <a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser" title="xml.etree.ElementTree.XMLPullParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">XMLPullParser</span></code></a> can be inconvenient to use for
-simpler use-cases.  If you don't mind your application blocking on reading XML
-data but would still like to have incremental parsing capabilities, take a look
-at <a class="reference internal" href="#xml.etree.ElementTree.iterparse" title="xml.etree.ElementTree.iterparse"><code class="xref py py-func docutils literal notranslate"><span class="pre">iterparse()</span></code></a>.  It can be useful when you're reading a large XML document
-and don't want to hold it wholly in memory.</p>
+<div class="admonition-flowdas admonition">
+<p class="admonition-title">flowdas</p>
+<p>출력의 마지막 줄이 빠져있습니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">mytag</span> <span class="n">text</span><span class="o">=</span> <span class="n">sometext</span> <span class="n">more</span> <span class="n">text</span>
+</pre></div>
+</div>
+</div>
+<p>명백한 사용 사례는 XML 데이터가 소켓에서 수신되거나 일부 저장 장치에서 점진적으로 읽히는 비 블로킹 방식으로 작동하는 응용 프로그램입니다. 이러한 경우, 블로킹 읽기는 허용되지 않습니다.</p>
+<p><a class="reference internal" href="#xml.etree.ElementTree.XMLPullParser" title="xml.etree.ElementTree.XMLPullParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">XMLPullParser</span></code></a>는 매우 유연하기 때문에 더 단순한 사용 사례에 사용하기 불편할 수 있습니다. 응용 프로그램이 XML 데이터 읽기를 블로킹해도 상관없지만, 여전히 점진적인 구문 분석 기능이 필요하면, <a class="reference internal" href="#xml.etree.ElementTree.iterparse" title="xml.etree.ElementTree.iterparse"><code class="xref py py-func docutils literal notranslate"><span class="pre">iterparse()</span></code></a>를 살펴보십시오. 큰 XML 문서를 읽을 때 메모리에 전체를 저장하지 않으려는 경우 유용할 수 있습니다.</p>
 </div>
 <div class="section" id="finding-interesting-elements">
-<h3>Finding interesting elements<a class="headerlink" href="#finding-interesting-elements" title="제목 주소">¶</a></h3>
-<p><a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> has some useful methods that help iterate recursively over all
-the sub-tree below it (its children, their children, and so on).  For example,
-<a class="reference internal" href="#xml.etree.ElementTree.Element.iter" title="xml.etree.ElementTree.Element.iter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.iter()</span></code></a>:</p>
+<h3>흥미로운 엘리먼트 찾기<a class="headerlink" href="#finding-interesting-elements" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>에는 그 아래의 모든 서브 트리(자식, 자식의 자식 등)를 재귀적으로 이터레이트하는 데 도움을 주는 유용한 메서드가 있습니다. 예를 들어, <a class="reference internal" href="#xml.etree.ElementTree.Element.iter" title="xml.etree.ElementTree.Element.iter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.iter()</span></code></a>:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s1">&#39;neighbor&#39;</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">attrib</span><span class="p">)</span>
 <span class="gp">...</span>
@@ -249,10 +245,7 @@ the sub-tree below it (its children, their children, and so on).  For example,
 <span class="go">{&#39;name&#39;: &#39;Colombia&#39;, &#39;direction&#39;: &#39;E&#39;}</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="#xml.etree.ElementTree.Element.findall" title="xml.etree.ElementTree.Element.findall"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.findall()</span></code></a> finds only elements with a tag which are direct
-children of the current element.  <a class="reference internal" href="#xml.etree.ElementTree.Element.find" title="xml.etree.ElementTree.Element.find"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.find()</span></code></a> finds the <em>first</em> child
-with a particular tag, and <a class="reference internal" href="#xml.etree.ElementTree.Element.text" title="xml.etree.ElementTree.Element.text"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Element.text</span></code></a> accesses the element's text
-content.  <a class="reference internal" href="#xml.etree.ElementTree.Element.get" title="xml.etree.ElementTree.Element.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.get()</span></code></a> accesses the element's attributes:</p>
+<p><a class="reference internal" href="#xml.etree.ElementTree.Element.findall" title="xml.etree.ElementTree.Element.findall"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.findall()</span></code></a>은 현재 엘리먼트의 직접적인 자식인 태그가 있는 엘리먼트 만 찾습니다. <a class="reference internal" href="#xml.etree.ElementTree.Element.find" title="xml.etree.ElementTree.Element.find"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.find()</span></code></a>는 특정 태그가 있는 <em>첫번째</em> 자식을 찾고, <a class="reference internal" href="#xml.etree.ElementTree.Element.text" title="xml.etree.ElementTree.Element.text"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Element.text</span></code></a>는 엘리먼트의 텍스트 내용에 액세스합니다. <a class="reference internal" href="#xml.etree.ElementTree.Element.get" title="xml.etree.ElementTree.Element.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.get()</span></code></a>은 엘리먼트의 어트리뷰트에 액세스합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;country&#39;</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">rank</span> <span class="o">=</span> <span class="n">country</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;rank&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
 <span class="gp">... </span>    <span class="n">name</span> <span class="o">=</span> <span class="n">country</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
@@ -263,19 +256,13 @@ content.  <a class="reference internal" href="#xml.etree.ElementTree.Element.get
 <span class="go">Panama 68</span>
 </pre></div>
 </div>
-<p>More sophisticated specification of which elements to look for is possible by
-using <a class="reference internal" href="#elementtree-xpath"><span class="std std-ref">XPath</span></a>.</p>
+<p><a class="reference internal" href="#elementtree-xpath"><span class="std std-ref">XPath</span></a>를 사용하면 찾을 엘리먼트를 더 정교하게 지정할 수 있습니다.</p>
 </div>
 <div class="section" id="modifying-an-xml-file">
-<h3>Modifying an XML File<a class="headerlink" href="#modifying-an-xml-file" title="제목 주소">¶</a></h3>
-<p><a class="reference internal" href="#xml.etree.ElementTree.ElementTree" title="xml.etree.ElementTree.ElementTree"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementTree</span></code></a> provides a simple way to build XML documents and write them to files.
-The <a class="reference internal" href="#xml.etree.ElementTree.ElementTree.write" title="xml.etree.ElementTree.ElementTree.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ElementTree.write()</span></code></a> method serves this purpose.</p>
-<p>Once created, an <a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> object may be manipulated by directly changing
-its fields (such as <a class="reference internal" href="#xml.etree.ElementTree.Element.text" title="xml.etree.ElementTree.Element.text"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Element.text</span></code></a>), adding and modifying attributes
-(<a class="reference internal" href="#xml.etree.ElementTree.Element.set" title="xml.etree.ElementTree.Element.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.set()</span></code></a> method), as well as adding new children (for example
-with <a class="reference internal" href="#xml.etree.ElementTree.Element.append" title="xml.etree.ElementTree.Element.append"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.append()</span></code></a>).</p>
-<p>Let's say we want to add one to each country's rank, and add an <code class="docutils literal notranslate"><span class="pre">updated</span></code>
-attribute to the rank element:</p>
+<h3>XML 파일 수정하기<a class="headerlink" href="#modifying-an-xml-file" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#xml.etree.ElementTree.ElementTree" title="xml.etree.ElementTree.ElementTree"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementTree</span></code></a>는 XML 문서를 구축하고 파일에 쓰는 간단한 방법을 제공합니다. <a class="reference internal" href="#xml.etree.ElementTree.ElementTree.write" title="xml.etree.ElementTree.ElementTree.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ElementTree.write()</span></code></a> 메서드가 이 용도입니다.</p>
+<p>일단 만들어지면, <a class="reference internal" href="#xml.etree.ElementTree.Element" title="xml.etree.ElementTree.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> 객체는 필드(가령 <a class="reference internal" href="#xml.etree.ElementTree.Element.text" title="xml.etree.ElementTree.Element.text"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Element.text</span></code></a>)를 직접 변경하고, 어트리뷰트를 추가하고 수정(<a class="reference internal" href="#xml.etree.ElementTree.Element.set" title="xml.etree.ElementTree.Element.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.set()</span></code></a> 메서드)하는 것 뿐만 아니라 새로운 자식을 추가하여 (예를 들어 <a class="reference internal" href="#xml.etree.ElementTree.Element.append" title="xml.etree.ElementTree.Element.append"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.append()</span></code></a>) 조작 할 수 있습니다.</p>
+<p>각 국가(country)의 순위(rank)에 1을 더하고, rank 엘리먼트에 <code class="docutils literal notranslate"><span class="pre">updated</span></code> 어트리뷰트를 추가하고 싶다고 합시다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s1">&#39;rank&#39;</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">new_rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rank</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 <span class="gp">... </span>    <span class="n">rank</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_rank</span><span class="p">)</span>
@@ -284,7 +271,7 @@ attribute to the rank element:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;output.xml&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Our XML now looks like this:</p>
+<p>우리의 XML은 이제 다음과 같습니다:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
 <span class="nt">&lt;data&gt;</span>
     <span class="nt">&lt;country</span> <span class="na">name=</span><span class="s">&quot;Liechtenstein&quot;</span><span class="nt">&gt;</span>
@@ -310,8 +297,7 @@ attribute to the rank element:</p>
 <span class="nt">&lt;/data&gt;</span>
 </pre></div>
 </div>
-<p>We can remove elements using <a class="reference internal" href="#xml.etree.ElementTree.Element.remove" title="xml.etree.ElementTree.Element.remove"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.remove()</span></code></a>.  Let's say we want to
-remove all countries with a rank higher than 50:</p>
+<p><a class="reference internal" href="#xml.etree.ElementTree.Element.remove" title="xml.etree.ElementTree.Element.remove"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Element.remove()</span></code></a>를 사용하여 엘리먼트를 제거할 수 있습니다. rank가 50보다 큰 모든 국가를 제거하려고 한다고 합시다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;country&#39;</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">country</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;rank&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="k">if</span> <span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span>
@@ -320,7 +306,7 @@ remove all countries with a rank higher than 50:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;output.xml&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Our XML now looks like this:</p>
+<p>우리의 XML은 이제 다음과 같습니다:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
 <span class="nt">&lt;data&gt;</span>
     <span class="nt">&lt;country</span> <span class="na">name=</span><span class="s">&quot;Liechtenstein&quot;</span><span class="nt">&gt;</span>
@@ -341,9 +327,8 @@ remove all countries with a rank higher than 50:</p>
 </div>
 </div>
 <div class="section" id="building-xml-documents">
-<h3>Building XML documents<a class="headerlink" href="#building-xml-documents" title="제목 주소">¶</a></h3>
-<p>The <a class="reference internal" href="#xml.etree.ElementTree.SubElement" title="xml.etree.ElementTree.SubElement"><code class="xref py py-func docutils literal notranslate"><span class="pre">SubElement()</span></code></a> function also provides a convenient way to create new
-sub-elements for a given element:</p>
+<h3>XML 문서 구축하기<a class="headerlink" href="#building-xml-documents" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#xml.etree.ElementTree.SubElement" title="xml.etree.ElementTree.SubElement"><code class="xref py py-func docutils literal notranslate"><span class="pre">SubElement()</span></code></a> 함수는 주어진 엘리먼트에 대해 새로운 서브 엘리먼트를 만드는 편리한 방법을 제공합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">)</span>
@@ -354,14 +339,9 @@ sub-elements for a given element:</p>
 </div>
 </div>
 <div class="section" id="parsing-xml-with-namespaces">
-<h3>Parsing XML with Namespaces<a class="headerlink" href="#parsing-xml-with-namespaces" title="제목 주소">¶</a></h3>
-<p>If the XML input has <a class="reference external" href="https://en.wikipedia.org/wiki/XML_namespace">namespaces</a>, tags and attributes
-with prefixes in the form <code class="docutils literal notranslate"><span class="pre">prefix:sometag</span></code> get expanded to
-<code class="docutils literal notranslate"><span class="pre">{uri}sometag</span></code> where the <em>prefix</em> is replaced by the full <em>URI</em>.
-Also, if there is a <a class="reference external" href="https://www.w3.org/TR/xml-names/#defaulting">default namespace</a>,
-that full URI gets prepended to all of the non-prefixed tags.</p>
-<p>Here is an XML example that incorporates two namespaces, one with the
-prefix &quot;fictional&quot; and the other serving as the default namespace:</p>
+<h3>이름 공간이 있는 XML 구문 분석하기<a class="headerlink" href="#parsing-xml-with-namespaces" title="제목 주소">¶</a></h3>
+<p>XML 입력에 <a class="reference external" href="https://en.wikipedia.org/wiki/XML_namespace">이름 공간(namespaces)</a>이 있으면, <code class="docutils literal notranslate"><span class="pre">prefix:sometag</span></code> 형식의 접두사가있는 태그와 어트리뷰트는 <code class="docutils literal notranslate"><span class="pre">{uri}sometag</span></code>로 확장되는데, 여기서 <em>prefix</em>는 전체 <em>URI</em>로 대체됩니다. 또한 <a class="reference external" href="https://www.w3.org/TR/xml-names/#defaulting">기본 이름 공간(default namespace)</a>이 있으면, 그 전체 URI가 접두사가 없는 모든 태그 앞에 추가됩니다.</p>
+<p>다음은 두 개의 이름 공간을 통합한 XML 예제입니다, 하나는 접두사가 &quot;fictional&quot;이고 다른 하나는 기본 이름 공간으로 사용됩니다:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
 <span class="nt">&lt;actors</span> <span class="na">xmlns:fictional=</span><span class="s">&quot;http://characters.example.com&quot;</span>
         <span class="na">xmlns=</span><span class="s">&quot;http://people.example.com&quot;</span><span class="nt">&gt;</span>
@@ -379,9 +359,7 @@ prefix &quot;fictional&quot; and the other serving as the default namespace:</p>
 <span class="nt">&lt;/actors&gt;</span>
 </pre></div>
 </div>
-<p>One way to search and explore this XML example is to manually add the
-URI to every tag or attribute in the xpath of a
-<a class="reference internal" href="#xml.etree.ElementTree.Element.find" title="xml.etree.ElementTree.Element.find"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find()</span></code></a> or <a class="reference internal" href="#xml.etree.ElementTree.Element.findall" title="xml.etree.ElementTree.Element.findall"><code class="xref py py-meth docutils literal notranslate"><span class="pre">findall()</span></code></a>:</p>
+<p>이 XML 예제를 검색하고 탐색하는 한 가지 방법은 <a class="reference internal" href="#xml.etree.ElementTree.Element.find" title="xml.etree.ElementTree.Element.find"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find()</span></code></a>나 <a class="reference internal" href="#xml.etree.ElementTree.Element.findall" title="xml.etree.ElementTree.Element.findall"><code class="xref py py-meth docutils literal notranslate"><span class="pre">findall()</span></code></a>의 xpath에 있는 모든 태그나 어트리뷰트에 URI를 수동으로 추가하는 것입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">root</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">xml_text</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">actor</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;{http://people.example.com}actor&#39;</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;{http://people.example.com}name&#39;</span><span class="p">)</span>
@@ -390,8 +368,7 @@ URI to every tag or attribute in the xpath of a
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; |--&gt;&#39;</span><span class="p">,</span> <span class="n">char</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>A better way to search the namespaced XML example is to create a
-dictionary with your own prefixes and use those in the search functions:</p>
+<p>이름 공간이 있는 XML 예제를 검색하는 더 좋은 방법은 여러분 자신의 접두사가 담긴 딕셔너리를 만들고 검색 함수에서 사용하는 것입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ns</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;real_person&#39;</span><span class="p">:</span> <span class="s1">&#39;http://people.example.com&#39;</span><span class="p">,</span>
       <span class="s1">&#39;role&#39;</span><span class="p">:</span> <span class="s1">&#39;http://characters.example.com&#39;</span><span class="p">}</span>
 
@@ -402,7 +379,7 @@ dictionary with your own prefixes and use those in the search functions:</p>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; |--&gt;&#39;</span><span class="p">,</span> <span class="n">char</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>These two approaches both output:</p>
+<p>이 두 가지 방법 모두 다음과 같이 출력합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">John</span> <span class="n">Cleese</span>
  <span class="o">|--&gt;</span> <span class="n">Lancelot</span>
  <span class="o">|--&gt;</span> <span class="n">Archie</span> <span class="n">Leach</span>
@@ -414,143 +391,109 @@ dictionary with your own prefixes and use those in the search functions:</p>
 </div>
 </div>
 <div class="section" id="additional-resources">
-<h3>Additional resources<a class="headerlink" href="#additional-resources" title="제목 주소">¶</a></h3>
-<p>See <a class="reference external" href="http://effbot.org/zone/element-index.htm">http://effbot.org/zone/element-index.htm</a> for tutorials and links to other
-docs.</p>
+<h3>추가 자료<a class="headerlink" href="#additional-resources" title="제목 주소">¶</a></h3>
+<p>자습서와 다른 문서에 대한 링크는 <a class="reference external" href="http://effbot.org/zone/element-index.htm">http://effbot.org/zone/element-index.htm</a> 을 참조하십시오.</p>
 </div>
 </div>
 <div class="section" id="xpath-support">
-<span id="elementtree-xpath"></span><h2>XPath support<a class="headerlink" href="#xpath-support" title="제목 주소">¶</a></h2>
-<p>This module provides limited support for
-<a class="reference external" href="https://www.w3.org/TR/xpath">XPath expressions</a> for locating elements in a
-tree.  The goal is to support a small subset of the abbreviated syntax; a full
-XPath engine is outside the scope of the module.</p>
+<span id="elementtree-xpath"></span><h2>XPath 지원<a class="headerlink" href="#xpath-support" title="제목 주소">¶</a></h2>
+<p>이 모듈은 트리에서 엘리먼트를 찾기 위해 <a class="reference external" href="https://www.w3.org/TR/xpath">XPath 표현식</a>을 제한적으로 지원합니다. 목표는 축약된 문법의 작은 부분 집합을 지원하는 것입니다; 완전한 XPath 엔진은 이 모듈의 범위를 벗어납니다.</p>
 <div class="section" id="example">
-<h3>Example<a class="headerlink" href="#example" title="제목 주소">¶</a></h3>
-<p>Here's an example that demonstrates some of the XPath capabilities of the
-module.  We'll be using the <code class="docutils literal notranslate"><span class="pre">countrydata</span></code> XML document from the
-<a class="reference internal" href="#elementtree-parsing-xml"><span class="std std-ref">Parsing XML</span></a> section:</p>
+<h3>예<a class="headerlink" href="#example" title="제목 주소">¶</a></h3>
+<p>다음은 모듈의 일부 XPath 기능을 보여주는 예입니다. <a class="reference internal" href="#elementtree-parsing-xml"><span class="std std-ref">XML 구문 분석하기</span></a> 섹션의 <code class="docutils literal notranslate"><span class="pre">countrydata</span></code> XML 문서를 사용할 것입니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
 
 <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">countrydata</span><span class="p">)</span>
 
-<span class="c1"># Top-level elements</span>
+<span class="c1"># 최상위 엘리먼트</span>
 <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
 
-<span class="c1"># All &#39;neighbor&#39; grand-children of &#39;country&#39; children of the top-level</span>
-<span class="c1"># elements</span>
+<span class="c1"># 최상위 엘리먼트의 모든 &#39;country&#39; 자식의 &#39;neighbor&#39; 손자</span>
 <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;./country/neighbor&quot;</span><span class="p">)</span>
 
-<span class="c1"># Nodes with name=&#39;Singapore&#39; that have a &#39;year&#39; child</span>
+<span class="c1"># &#39;year&#39; 자식이 있고 name=&#39;Singapore&#39;인 노드</span>
 <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;.//year/..[@name=&#39;Singapore&#39;]&quot;</span><span class="p">)</span>
 
-<span class="c1"># &#39;year&#39; nodes that are children of nodes with name=&#39;Singapore&#39;</span>
+<span class="c1"># name=&#39;Singapore&#39;인 노드의 자식인 &#39;year&#39; 노드</span>
 <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;.//*[@name=&#39;Singapore&#39;]/year&quot;</span><span class="p">)</span>
 
-<span class="c1"># All &#39;neighbor&#39; nodes that are the second child of their parent</span>
+<span class="c1"># 부모의 두 번째 자식인 모든 &#39;neighbor&#39; 노드</span>
 <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;.//neighbor[2]&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>For XML with namespaces, use the usual qualified <code class="docutils literal notranslate"><span class="pre">{namespace}tag</span></code> notation:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># All dublin-core &quot;title&quot; tags in the document</span>
+<p>이름 공간이 있는 XML의 경우, 일반적인 정규화된 <code class="docutils literal notranslate"><span class="pre">{namespace}tag</span></code> 표기법을 사용하십시오:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 문서의 모든 더블린 코어(dublin-core) &quot;title&quot; 태그</span>
 <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;.//{http://purl.org/dc/elements/1.1/}title&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="supported-xpath-syntax">
-<h3>Supported XPath syntax<a class="headerlink" href="#supported-xpath-syntax" title="제목 주소">¶</a></h3>
+<h3>지원되는 XPath 문법<a class="headerlink" href="#supported-xpath-syntax" title="제목 주소">¶</a></h3>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 30%" />
 <col style="width: 70%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Syntax</p></th>
-<th class="head"><p>Meaning</p></th>
+<tr class="row-odd"><th class="head"><p>문법</p></th>
+<th class="head"><p>의미</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tag</span></code></p></td>
-<td><p>Selects all child elements with the given tag.
-For example, <code class="docutils literal notranslate"><span class="pre">spam</span></code> selects all child elements
-named <code class="docutils literal notranslate"><span class="pre">spam</span></code>, and <code class="docutils literal notranslate"><span class="pre">spam/egg</span></code> selects all
-grandchildren named <code class="docutils literal notranslate"><span class="pre">egg</span></code> in all children named
-<code class="docutils literal notranslate"><span class="pre">spam</span></code>.  <code class="docutils literal notranslate"><span class="pre">{namespace}*</span></code> selects all tags in the
-given namespace, <code class="docutils literal notranslate"><span class="pre">{*}spam</span></code> selects tags named
-<code class="docutils literal notranslate"><span class="pre">spam</span></code> in any (or no) namespace, and <code class="docutils literal notranslate"><span class="pre">{}*</span></code>
-only selects tags that are not in a namespace.</p>
+<td><p>주어진 태그를 가진 모든 자식 엘리먼트를 선택합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">spam</span></code>은 <code class="docutils literal notranslate"><span class="pre">spam</span></code>이라는 모든 자식 엘리먼트를 선택하고, <code class="docutils literal notranslate"><span class="pre">spam/egg</span></code>는 <code class="docutils literal notranslate"><span class="pre">spam</span></code>이라는 모든 자식의 <code class="docutils literal notranslate"><span class="pre">egg</span></code>라는 모든 손자를 선택합니다. <code class="docutils literal notranslate"><span class="pre">{namespace}*</span></code>는 지정된 이름 공간의 모든 태그를 선택하고, <code class="docutils literal notranslate"><span class="pre">{*}spam</span></code>은 모든 이름 공간의 (또는 이름 공간이 없는) <code class="docutils literal notranslate"><span class="pre">spam</span></code>이라는 태그를 선택하고, <code class="docutils literal notranslate"><span class="pre">{}*</span></code>은 이름 공간이 없는 태그 만 선택합니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Support for star-wildcards was added.</p>
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>애스터리스크 와일드 카드 지원이 추가되었습니다.</p>
 </div>
 </td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code></p></td>
-<td><p>Selects all child elements, including comments and
-processing instructions.  For example, <code class="docutils literal notranslate"><span class="pre">*/egg</span></code>
-selects all grandchildren named <code class="docutils literal notranslate"><span class="pre">egg</span></code>.</p></td>
+<td><p>주석과 처리 명령을 포함한 모든 자식 엘리먼트를 선택합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">*/egg</span></code>는 <code class="docutils literal notranslate"><span class="pre">egg</span></code>라는 모든 손자를 선택합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.</span></code></p></td>
-<td><p>Selects the current node.  This is mostly useful
-at the beginning of the path, to indicate that it's
-a relative path.</p></td>
+<td><p>현재 노드를 선택합니다. 상대 경로임을 나타 내기 위해 경로의 시작 부분에서 주로 유용합니다.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">//</span></code></p></td>
-<td><p>Selects all subelements, on all levels beneath the
-current  element.  For example, <code class="docutils literal notranslate"><span class="pre">.//egg</span></code> selects
-all <code class="docutils literal notranslate"><span class="pre">egg</span></code> elements in the entire tree.</p></td>
+<td><p>현재 엘리먼트 아래의 모든 수준에서 모든 서브 엘리먼트를 선택합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">.//egg</span></code>는 전체 트리에서 모든 <code class="docutils literal notranslate"><span class="pre">egg</span></code> 엘리먼트를 선택합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">..</span></code></p></td>
-<td><p>Selects the parent element.  Returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if the
-path attempts to reach the ancestors of the start
-element (the element <code class="docutils literal notranslate"><span class="pre">find</span></code> was called on).</p></td>
+<td><p>부모 엘리먼트를 선택합니다. 경로가 (엘리먼트 <code class="docutils literal notranslate"><span class="pre">find</span></code>가 호출된) 시작 엘리먼트의 조상에 도달하려고 하면 <code class="docutils literal notranslate"><span class="pre">None</span></code>을 반환합니다.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[&#64;attrib]</span></code></p></td>
-<td><p>Selects all elements that have the given attribute.</p></td>
+<td><p>주어진 어트리뷰트를 가진 모든 엘리먼트를 선택합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[&#64;attrib='value']</span></code></p></td>
-<td><p>Selects all elements for which the given attribute
-has the given value.  The value cannot contain
-quotes.</p></td>
+<td><p>주어진 어트리뷰트가 주어진 값을 갖는 모든 엘리먼트를 선택합니다. 값은 따옴표를 포함할 수 없습니다.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[tag]</span></code></p></td>
-<td><p>Selects all elements that have a child named
-<code class="docutils literal notranslate"><span class="pre">tag</span></code>.  Only immediate children are supported.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tag</span></code>라는 자식이 있는 모든 엘리먼트를 선택합니다. 직계 자식만 지원됩니다.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[.='text']</span></code></p></td>
-<td><p>Selects all elements whose complete text content,
-including descendants, equals the given <code class="docutils literal notranslate"><span class="pre">text</span></code>.</p>
+<td><p>자손을 포함한 전체 텍스트 내용이 주어진 <code class="docutils literal notranslate"><span class="pre">text</span></code>와 같은 모든 엘리먼트를 선택합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.7에 추가.</span></p>
 </div>
 </td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[tag='text']</span></code></p></td>
-<td><p>Selects all elements that have a child named
-<code class="docutils literal notranslate"><span class="pre">tag</span></code> whose complete text content, including
-descendants, equals the given <code class="docutils literal notranslate"><span class="pre">text</span></code>.</p></td>
+<td><p>자손을 포함한 전체 텍스트 내용이 지정된 <code class="docutils literal notranslate"><span class="pre">text</span></code>와 같은 이름이 <code class="docutils literal notranslate"><span class="pre">tag</span></code>인 자식이 있는 모든 엘리먼트를 선택합니다.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[position]</span></code></p></td>
-<td><p>Selects all elements that are located at the given
-position.  The position can be either an integer
-(1 is the first position), the expression <code class="docutils literal notranslate"><span class="pre">last()</span></code>
-(for the last position), or a position relative to
-the last position (e.g. <code class="docutils literal notranslate"><span class="pre">last()-1</span></code>).</p></td>
+<td><p>주어진 위치(position)에 있는 모든 엘리먼트를 선택합니다. 위치(position)는 정수(1이 첫 번째 위치입니다), 표현식 <code class="docutils literal notranslate"><span class="pre">last()</span></code> (마지막 위치) 또는 마지막 위치에 상대적인 위치(예를 들어 <code class="docutils literal notranslate"><span class="pre">last()-1</span></code>)일 수 있습니다.</p></td>
 </tr>
 </tbody>
 </table>
-<p>Predicates (expressions within square brackets) must be preceded by a tag
-name, an asterisk, or another predicate.  <code class="docutils literal notranslate"><span class="pre">position</span></code> predicates must be
-preceded by a tag name.</p>
+<p>술어 (대괄호 안에있는 표현식) 앞에는 태그 이름, 애스터리스크 또는 다른 술어가 와야 합니다. <code class="docutils literal notranslate"><span class="pre">position</span></code> 술어 앞에는 태그 이름이 와야 합니다.</p>
 </div>
 </div>
 <div class="section" id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="제목 주소">¶</a></h2>
+<h2>레퍼런스<a class="headerlink" href="#reference" title="제목 주소">¶</a></h2>
 <div class="section" id="functions">
-<span id="elementtree-functions"></span><h3>Functions<a class="headerlink" href="#functions" title="제목 주소">¶</a></h3>
+<span id="elementtree-functions"></span><h3>함수<a class="headerlink" href="#functions" title="제목 주소">¶</a></h3>
 <dl class="function">
 <dt id="xml.etree.ElementTree.canonicalize">
 <code class="sig-prename descclassname">xml.etree.ElementTree.</code><code class="sig-name descname">canonicalize</code><span class="sig-paren">(</span><em class="sig-param">xml_data=None</em>, <em class="sig-param">*</em>, <em class="sig-param">out=None</em>, <em class="sig-param">from_file=None</em>, <em class="sig-param">**options</em><span class="sig-paren">)</span><a class="headerlink" href="#xml.etree.ElementTree.canonicalize" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference external" href="https://www.w3.org/TR/xml-c14n2/">C14N 2.0</a> transformation function.</p>
+<dd><p><a class="reference external" href="https://www.w3.org/TR/xml-c14n2/">C14N 2.0</a> 변환 함수.</p>
 <p>Canonicalization is a way to normalise XML output in a way that allows
 byte-by-byte comparisons and digital signatures.  It reduced the freedom
 that XML serializers have and instead generates a more constrained XML
@@ -835,7 +778,7 @@ data.  <em>parser</em> is an optional parser instance.  If not given, the standa
 <p>This module provides limited support for
 <a class="reference external" href="https://www.w3.org/TR/xinclude/">XInclude directives</a>, via the <code class="xref py py-mod docutils literal notranslate"><span class="pre">xml.etree.ElementInclude</span></code> helper module.  This module can be used to insert subtrees and text strings into element trees, based on information in the tree.</p>
 <div class="section" id="id3">
-<h3>Example<a class="headerlink" href="#id3" title="제목 주소">¶</a></h3>
+<h3>예<a class="headerlink" href="#id3" title="제목 주소">¶</a></h3>
 <p>Here's an example that demonstrates use of the XInclude module. To include an XML document in the current document, use the <code class="docutils literal notranslate"><span class="pre">{http://www.w3.org/2001/XInclude}include</span></code> element and set the <strong>parse</strong> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;xml&quot;</span></code>, and use the <strong>href</strong> attribute to specify the document to include.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
 <span class="nt">&lt;document</span> <span class="na">xmlns:xi=</span><span class="s">&quot;http://www.w3.org/2001/XInclude&quot;</span><span class="nt">&gt;</span>
@@ -876,9 +819,9 @@ data.  <em>parser</em> is an optional parser instance.  If not given, the standa
 </div>
 </div>
 <div class="section" id="id4">
-<h2>Reference<a class="headerlink" href="#id4" title="제목 주소">¶</a></h2>
+<h2>레퍼런스<a class="headerlink" href="#id4" title="제목 주소">¶</a></h2>
 <div class="section" id="elementinclude-functions">
-<span id="id5"></span><h3>Functions<a class="headerlink" href="#elementinclude-functions" title="제목 주소">¶</a></h3>
+<span id="id5"></span><h3>함수<a class="headerlink" href="#elementinclude-functions" title="제목 주소">¶</a></h3>
 <dl class="function">
 <dt id="xml.etree.ElementTree.xml.etree.ElementInclude.default_loader">
 <code class="sig-prename descclassname">xml.etree.ElementInclude.</code><code class="sig-name descname">default_loader</code><span class="sig-paren">(</span><em class="sig-param">href</em>, <em class="sig-param">parse</em>, <em class="sig-param">encoding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#xml.etree.ElementTree.xml.etree.ElementInclude.default_loader" title="정의 주소">¶</a></dt>
@@ -1603,28 +1546,28 @@ and <a class="reference external" href="https://www.iana.org/assignments/charact
 <li><a class="reference internal" href="#xml-tree-and-elements">XML 트리와 엘리먼트</a></li>
 <li><a class="reference internal" href="#parsing-xml">XML 구문 분석하기</a></li>
 <li><a class="reference internal" href="#pull-api-for-non-blocking-parsing">비 블로킹 구문 분석을 위한 풀(pull) API</a></li>
-<li><a class="reference internal" href="#finding-interesting-elements">Finding interesting elements</a></li>
-<li><a class="reference internal" href="#modifying-an-xml-file">Modifying an XML File</a></li>
-<li><a class="reference internal" href="#building-xml-documents">Building XML documents</a></li>
-<li><a class="reference internal" href="#parsing-xml-with-namespaces">Parsing XML with Namespaces</a></li>
-<li><a class="reference internal" href="#additional-resources">Additional resources</a></li>
+<li><a class="reference internal" href="#finding-interesting-elements">흥미로운 엘리먼트 찾기</a></li>
+<li><a class="reference internal" href="#modifying-an-xml-file">XML 파일 수정하기</a></li>
+<li><a class="reference internal" href="#building-xml-documents">XML 문서 구축하기</a></li>
+<li><a class="reference internal" href="#parsing-xml-with-namespaces">이름 공간이 있는 XML 구문 분석하기</a></li>
+<li><a class="reference internal" href="#additional-resources">추가 자료</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#xpath-support">XPath support</a><ul>
-<li><a class="reference internal" href="#example">Example</a></li>
-<li><a class="reference internal" href="#supported-xpath-syntax">Supported XPath syntax</a></li>
+<li><a class="reference internal" href="#xpath-support">XPath 지원</a><ul>
+<li><a class="reference internal" href="#example">예</a></li>
+<li><a class="reference internal" href="#supported-xpath-syntax">지원되는 XPath 문법</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#reference">Reference</a><ul>
-<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#reference">레퍼런스</a><ul>
+<li><a class="reference internal" href="#functions">함수</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#xinclude-support">XInclude support</a><ul>
-<li><a class="reference internal" href="#id3">Example</a></li>
+<li><a class="reference internal" href="#id3">예</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id4">Reference</a><ul>
-<li><a class="reference internal" href="#elementinclude-functions">Functions</a></li>
+<li><a class="reference internal" href="#id4">레퍼런스</a><ul>
+<li><a class="reference internal" href="#elementinclude-functions">함수</a></li>
 <li><a class="reference internal" href="#element-objects">Element Objects</a></li>
 <li><a class="reference internal" href="#elementtree-objects">ElementTree Objects</a></li>
 <li><a class="reference internal" href="#qname-objects">QName Objects</a></li>
