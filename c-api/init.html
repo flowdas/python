@@ -517,8 +517,7 @@ w_char* <code class="sig-name descname">Py_GetPythonHome</code><span class="sig-
 <p id="index-35">파이썬 인터프리터는 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a>라는 데이터 구조체 내에 스레드 별 부기(bookkeeping) 정보를 보관합니다. 현재 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a>를 가리키는 하나의 전역 변수도 있습니다: <a class="reference internal" href="#c.PyThreadState_Get" title="PyThreadState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Get()</span></code></a>를 사용하여 얻을 수 있습니다.</p>
 <div class="section" id="releasing-the-gil-from-extension-code">
 <h3>확장 코드에서 GIL 해제하기<a class="headerlink" href="#releasing-the-gil-from-extension-code" title="제목 주소">¶</a></h3>
-<p>Most extension code manipulating the <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a> has the following simple
-structure:</p>
+<p><a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>을 조작하는 대부분의 확장 코드는 다음과 같은 간단한 구조를 가지고 있습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Save</span> <span class="n">the</span> <span class="kr">thread</span> <span class="n">state</span> <span class="n">in</span> <span class="n">a</span> <span class="n">local</span> <span class="n">variable</span><span class="p">.</span>
 <span class="n">Release</span> <span class="n">the</span> <span class="n">global</span> <span class="n">interpreter</span> <span class="n">lock</span><span class="p">.</span>
 <span class="p">...</span> <span class="n">Do</span> <span class="n">some</span> <span class="n">blocking</span> <span class="n">I</span><span class="o">/</span><span class="n">O</span> <span class="n">operation</span> <span class="p">...</span>
@@ -526,16 +525,14 @@ structure:</p>
 <span class="n">Restore</span> <span class="n">the</span> <span class="kr">thread</span> <span class="n">state</span> <span class="n">from</span> <span class="n">the</span> <span class="n">local</span> <span class="n">variable</span><span class="p">.</span>
 </pre></div>
 </div>
-<p>This is so common that a pair of macros exists to simplify it:</p>
+<p>이것은 매우 일반적이어서 이를 단순화하기 위해 한 쌍의 매크로가 존재합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_BEGIN_ALLOW_THREADS</span>
 <span class="p">...</span> <span class="n">Do</span> <span class="n">some</span> <span class="n">blocking</span> <span class="n">I</span><span class="o">/</span><span class="n">O</span> <span class="n">operation</span> <span class="p">...</span>
 <span class="n">Py_END_ALLOW_THREADS</span>
 </pre></div>
 </div>
-<p id="index-36">The <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> macro opens a new block and declares a
-hidden local variable; the <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> macro closes the
-block.</p>
-<p>The block above expands to the following code:</p>
+<p id="index-36"><a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> 매크로는 새 블록을 열고 숨겨진 지역 변수를 선언합니다; <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> 매크로는 블록을 닫습니다.</p>
+<p>위의 블록은 다음 코드로 확장됩니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyThreadState</span> <span class="o">*</span><span class="n">_save</span><span class="p">;</span>
 
 <span class="n">_save</span> <span class="o">=</span> <span class="n">PyEval_SaveThread</span><span class="p">();</span>
@@ -543,129 +540,65 @@ block.</p>
 <span class="n">PyEval_RestoreThread</span><span class="p">(</span><span class="n">_save</span><span class="p">);</span>
 </pre></div>
 </div>
-<p id="index-37">Here is how these functions work: the global interpreter lock is used to protect the pointer to the
-current thread state.  When releasing the lock and saving the thread state,
-the current thread state pointer must be retrieved before the lock is released
-(since another thread could immediately acquire the lock and store its own thread
-state in the global variable). Conversely, when acquiring the lock and restoring
-the thread state, the lock must be acquired before storing the thread state
-pointer.</p>
+<p id="index-37">이 함수들의 작동 방식은 다음과 같습니다: 전역 인터프리터 록이 현재 스레드 상태에 대한 포인터를 보호하는 데 사용됩니다. 록을 해제하고 스레드 상태를 저장할 때, 록이 해제되기 전에 현재 스레드 상태 포인터를 가져와야합니다 (다른 스레드가 즉시 록을 획득하고 전역 변수에 자신의 스레드 상태를 저장할 수 있기 때문입니다). 반대로, 록을 획득하고 스레드 상태를 복원할 때, 스레드 상태 포인터를 저장하기 전에 록을 획득해야합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Calling system I/O functions is the most common use case for releasing
-the GIL, but it can also be useful before calling long-running computations
-which don't need access to Python objects, such as compression or
-cryptographic functions operating over memory buffers.  For example, the
-standard <a class="reference internal" href="../library/zlib.html#module-zlib" title="zlib: Low-level interface to compression and decompression routines compatible with gzip."><code class="xref py py-mod docutils literal notranslate"><span class="pre">zlib</span></code></a> and <a class="reference internal" href="../library/hashlib.html#module-hashlib" title="hashlib: Secure hash and message digest algorithms."><code class="xref py py-mod docutils literal notranslate"><span class="pre">hashlib</span></code></a> modules release the GIL when
-compressing or hashing data.</p>
+<p>시스템 I/O 함수 호출은 GIL을 릴리스하는 가장 일반적인 사용 사례이지만, 메모리 버퍼를 통해 작동하는 압축이나 암호화 함수와 같이, 파이썬 객체에 액세스 할 필요가 없는 장기 실행 계산을 호출하기 전에도 유용할 수 있습니다. 예를 들어, 표준 <a class="reference internal" href="../library/zlib.html#module-zlib" title="zlib: Low-level interface to compression and decompression routines compatible with gzip."><code class="xref py py-mod docutils literal notranslate"><span class="pre">zlib</span></code></a>와 <a class="reference internal" href="../library/hashlib.html#module-hashlib" title="hashlib: Secure hash and message digest algorithms."><code class="xref py py-mod docutils literal notranslate"><span class="pre">hashlib</span></code></a> 모듈은 데이터를 압축하거나 해싱할 때 GIL을 해제합니다.</p>
 </div>
 </div>
 <div class="section" id="non-python-created-threads">
-<span id="gilstate"></span><h3>Non-Python created threads<a class="headerlink" href="#non-python-created-threads" title="제목 주소">¶</a></h3>
-<p>When threads are created using the dedicated Python APIs (such as the
-<a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module), a thread state is automatically associated to them
-and the code showed above is therefore correct.  However, when threads are
-created from C (for example by a third-party library with its own thread
-management), they don't hold the GIL, nor is there a thread state structure
-for them.</p>
-<p>If you need to call Python code from these threads (often this will be part
-of a callback API provided by the aforementioned third-party library),
-you must first register these threads with the interpreter by
-creating a thread state data structure, then acquiring the GIL, and finally
-storing their thread state pointer, before you can start using the Python/C
-API.  When you are done, you should reset the thread state pointer, release
-the GIL, and finally free the thread state data structure.</p>
-<p>The <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> and <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> functions do
-all of the above automatically.  The typical idiom for calling into Python
-from a C thread is:</p>
+<span id="gilstate"></span><h3>파이썬이 만들지 않은 스레드<a class="headerlink" href="#non-python-created-threads" title="제목 주소">¶</a></h3>
+<p>전용 파이썬 API(가령 <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈)를 사용하여 스레드를 만들면, 스레드 상태가 자동으로 연결되므로 위에 표시된 코드가 올바릅니다. 그러나, 스레드가 C에서 만들어질 때 (예를 들어 자체 스레드 관리 기능이 있는 제삼자 라이브러리에 의해), GIL을 보유하지 않고, 그들을 위한 스레드 상태 구조도 없습니다.</p>
+<p>이러한 스레드에서 파이썬 코드를 호출해야하면 (종종 앞서 언급한 제삼자 라이브러리에서 제공하는 콜백 API의 일부가 됩니다), 먼저 스레드 상태 자료 구조를 만들어서 인터프리터에 이러한 스레드를 등록한 다음, GIL을 획득하고, 마지막으로 파이썬/C API 사용을 시작하기 전에 스레드 상태 포인터를 저장합니다. 완료되면, 스레드 상태 포인터를 재설정하고, GIL을 해제한 다음, 마지막으로 스레드 상태 자료 구조를 해제해야 합니다.</p>
+<p><a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>와 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> 함수는 위의 모든 작업을 자동으로 수행합니다. C 스레드에서 파이썬을 호출하는 일반적인 관용구는 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyGILState_STATE</span> <span class="n">gstate</span><span class="p">;</span>
 <span class="n">gstate</span> <span class="o">=</span> <span class="n">PyGILState_Ensure</span><span class="p">();</span>
 
-<span class="cm">/* Perform Python actions here. */</span>
+<span class="cm">/* 여기에서 파이썬 작업을 수행합니다. */</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">CallSomeFunction</span><span class="p">();</span>
-<span class="cm">/* evaluate result or handle exception */</span>
+<span class="cm">/* result를 평가하거나 예외를 처리합니다 */</span>
 
-<span class="cm">/* Release the thread. No Python API allowed beyond this point. */</span>
+<span class="cm">/* 스레드를 해제합니다. 이 시점 이후로는 파이썬 API가 허용되지 않습니다. */</span>
 <span class="n">PyGILState_Release</span><span class="p">(</span><span class="n">gstate</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Note that the <code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_*()</span></code> functions assume there is only one global
-interpreter (created automatically by <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>).  Python
-supports the creation of additional interpreters (using
-<a class="reference internal" href="#c.Py_NewInterpreter" title="Py_NewInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreter()</span></code></a>), but mixing multiple interpreters and the
-<code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_*()</span></code> API is unsupported.</p>
+<p><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_*()</span></code> 함수는 (<a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>에 의해 자동으로 만들어진) 전역 인터프리터 하나만 있다고 가정함에 유의하십시오. 파이썬은 추가 인터프리터를 만드는 것을 지원하지만 (<a class="reference internal" href="#c.Py_NewInterpreter" title="Py_NewInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreter()</span></code></a>를 사용해서), 다중 인터프리터와 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_*()</span></code> API를 혼합하는 것은 지원되지 않습니다.</p>
 </div>
 <div class="section" id="cautions-about-fork">
-<span id="fork-and-threads"></span><h3>Cautions about fork()<a class="headerlink" href="#cautions-about-fork" title="제목 주소">¶</a></h3>
-<p>Another important thing to note about threads is their behaviour in the face
-of the C <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> call. On most systems with <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>, after a
-process forks only the thread that issued the fork will exist.  This has a
-concrete impact both on how locks must be handled and on all stored state
-in CPython's runtime.</p>
-<p>The fact that only the &quot;current&quot; thread remains
-means any locks held by other threads will never be released. Python solves
-this for <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> by acquiring the locks it uses internally before
-the fork, and releasing them afterwards. In addition, it resets any
-<a class="reference internal" href="../library/threading.html#lock-objects"><span class="std std-ref">Lock 객체</span></a> in the child. When extending or embedding Python, there
-is no way to inform Python of additional (non-Python) locks that need to be
-acquired before or reset after a fork. OS facilities such as
-<code class="xref c c-func docutils literal notranslate"><span class="pre">pthread_atfork()</span></code> would need to be used to accomplish the same thing.
-Additionally, when extending or embedding Python, calling <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>
-directly rather than through <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> (and returning to or calling
-into Python) may result in a deadlock by one of Python's internal locks
-being held by a thread that is defunct after the fork.
-<a class="reference internal" href="sys.html#c.PyOS_AfterFork_Child" title="PyOS_AfterFork_Child"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyOS_AfterFork_Child()</span></code></a> tries to reset the necessary locks, but is not
-always able to.</p>
-<p>The fact that all other threads go away also means that CPython's
-runtime state there must be cleaned up properly, which <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a>
-does.  This means finalizing all other <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> objects
-belonging to the current interpreter and all other
-<a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> objects.  Due to this and the special
-nature of the <a class="reference internal" href="#sub-interpreter-support"><span class="std std-ref">&quot;main&quot; interpreter</span></a>,
-<code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> should only be called in that interpreter's &quot;main&quot;
-thread, where the CPython global runtime was originally initialized.
-The only exception is if <code class="xref c c-func docutils literal notranslate"><span class="pre">exec()</span></code> will be called immediately
-after.</p>
+<span id="fork-and-threads"></span><h3>fork()에 대한 주의 사항<a class="headerlink" href="#cautions-about-fork" title="제목 주소">¶</a></h3>
+<p>스레드에 대해 주목해야 할 또 다른 중요한 점은 C <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> 호출 시 스레드의 동작입니다. <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>를 사용하는 대부분의 시스템에서는, 프로세스가 포크한 후에 포크를 발행한 스레드 만 존재합니다. 이는 록을 처리해야하는 방법과 CPython 런타임에 저장된 모든 상태 모두에 구체적인 영향을 미칩니다.</p>
+<p>&quot;현재&quot; 스레드만 남아 있다는 사실은 다른 스레드가 보유한 록이 해제되지 않음을 의미합니다. 파이썬은 포크 전에 내부적으로 사용하는 록을 획득하고 나중에 해제하여 <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a>에 대해 이 문제를 해결합니다. 또한, 자식의 모든 <a class="reference internal" href="../library/threading.html#lock-objects"><span class="std std-ref">Lock 객체</span></a>를 재설정합니다. 파이썬을 확장하거나 내장할 때, 포크 이전에 획득하거나 이후에 재설정해야 하는 추가(비 파이썬) 록을 파이썬에 알릴 방법이 없습니다. <code class="xref c c-func docutils literal notranslate"><span class="pre">pthread_atfork()</span></code>와 같은 OS 기능을 사용하여 같은 작업을 수행해야합니다. 또한, 파이썬을 확장하거나 내장할 때, <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a>를 통하지 않고 직접 <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>를 호출하면 (그리고 파이썬으로 반환하거나 파이썬을 호출하면), 포크 이후에 사라지는 스레드가 보유하는 파이썬의 내부 록중 하나에 의해 교착 상태가 발생할 수 있습니다. <a class="reference internal" href="sys.html#c.PyOS_AfterFork_Child" title="PyOS_AfterFork_Child"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyOS_AfterFork_Child()</span></code></a>는 필요한 록을 재설정하려고 하지만, 항상 할 수 있는 것은 아닙니다.</p>
+<p>다른 모든 스레드가 사라진다는 사실은 또한 CPython의 런타임 상태가 <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a>와 마찬가지로 적절하게 정리되어야 함을 의미합니다. 이것은 현재 인터프리터와 다른 모든 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> 객체에 속하는 다른 모든 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> 객체를 파이널리제이션 하는 것을 의미합니다. 이것과 <a class="reference internal" href="#sub-interpreter-support"><span class="std std-ref">&quot;메인&quot; 인터프리터</span></a>의 특수한 특성으로 인해, <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>는 CPython 전역 런타임이 원래 초기화 된 인터프리터의 &quot;메인&quot; 스레드에서만 호출되어야 합니다. 유일한 예외는 <code class="xref c c-func docutils literal notranslate"><span class="pre">exec()</span></code>가 그 후에 즉시 호출되는 경우입니다.</p>
 </div>
 <div class="section" id="high-level-api">
-<h3>High-level API<a class="headerlink" href="#high-level-api" title="제목 주소">¶</a></h3>
-<p>These are the most commonly used types and functions when writing C extension
-code, or when embedding the Python interpreter:</p>
+<h3>고수준 API<a class="headerlink" href="#high-level-api" title="제목 주소">¶</a></h3>
+<p>다음은 C 확장 코드를 작성하거나 파이썬 인터프리터를 내장할 때 가장 일반적으로 사용되는 형과 함수입니다:</p>
 <dl class="type">
 <dt id="c.PyInterpreterState">
 <code class="sig-name descname">PyInterpreterState</code><a class="headerlink" href="#c.PyInterpreterState" title="정의 주소">¶</a></dt>
-<dd><p>This data structure represents the state shared by a number of cooperating
-threads.  Threads belonging to the same interpreter share their module
-administration and a few other internal items. There are no public members in
-this structure.</p>
-<p>Threads belonging to different interpreters initially share nothing, except
-process state like available memory, open file descriptors and such.  The global
-interpreter lock is also shared by all threads, regardless of to which
-interpreter they belong.</p>
+<dd><p>이 자료 구조는 여러 협력 스레드가 공유하는 상태를 나타냅니다. 같은 인터프리터에 속하는 스레드는 모듈 관리와 몇 가지 다른 내부 항목을 공유합니다. 이 구조체에는 공개 멤버가 없습니다.</p>
+<p>다른 인터프리터에 속한 스레드는 사용 가능한 메모리, 열린 파일 기술자 등과 같은 프로세스 상태를 제외하고는, 처음에는 아무것도 공유하지 않습니다. 전역 인터프리터 록은 어떤 인터프리터에 속해 있는지에 관계없이 모든 스레드에서 공유됩니다.</p>
 </dd></dl>
 
 <dl class="type">
 <dt id="c.PyThreadState">
 <code class="sig-name descname">PyThreadState</code><a class="headerlink" href="#c.PyThreadState" title="정의 주소">¶</a></dt>
-<dd><p>This data structure represents the state of a single thread.  The only public
-data member is <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span> <span class="pre">*</span></code></a><code class="xref py py-attr docutils literal notranslate"><span class="pre">interp</span></code>, which points to
-this thread's interpreter state.</p>
+<dd><p>이 자료 구조는 단일 스레드의 상태를 나타냅니다. 유일한 공용 데이터 멤버는 이 스레드의 인터프리터 상태를 가리키는 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span> <span class="pre">*</span></code></a><code class="xref py py-attr docutils literal notranslate"><span class="pre">interp</span></code>입니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyEval_InitThreads">
 void <code class="sig-name descname">PyEval_InitThreads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_InitThreads" title="정의 주소">¶</a></dt>
-<dd><p id="index-38">Deprecated function which does nothing.</p>
-<p>In Python 3.6 and older, this function created the GIL if it didn't exist.</p>
+<dd><p id="index-38">아무것도하지 않는 폐지된 함수.</p>
+<p>파이썬 3.6과 이전 버전에서는, 이 함수가 존재하지 않으면 GIL을 만들었습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.9에서 변경: </span>The function now does nothing.</p>
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>이제 이 함수는 아무 작업도 수행하지 않습니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.7에서 변경: </span>This function is now called by <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>, so you don't
-have to call it yourself anymore.</p>
+<p><span class="versionmodified changed">버전 3.7에서 변경: </span>이 함수는 이제 <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>에 의해 호출되어서, 여러분은 더는 직접 호출할 필요가 없습니다.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.2에서 변경: </span>This function cannot be called before <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a> anymore.</p>
+<p><span class="versionmodified changed">버전 3.2에서 변경: </span>이 함수는 더는 <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a> 전에 호출할 수 없습니다.</p>
 </div>
 <div class="deprecated-removed">
 <p><span class="versionmodified">Deprecated since version 3.9, will be removed in version 3.11.</span></p>
@@ -675,11 +608,9 @@ have to call it yourself anymore.</p>
 <dl class="function">
 <dt id="c.PyEval_ThreadsInitialized">
 int <code class="sig-name descname">PyEval_ThreadsInitialized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_ThreadsInitialized" title="정의 주소">¶</a></dt>
-<dd><p>Returns a non-zero value if <a class="reference internal" href="#c.PyEval_InitThreads" title="PyEval_InitThreads"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_InitThreads()</span></code></a> has been called.  This
-function can be called without holding the GIL, and therefore can be used to
-avoid calls to the locking API when running single-threaded.</p>
+<dd><p><a class="reference internal" href="#c.PyEval_InitThreads" title="PyEval_InitThreads"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_InitThreads()</span></code></a>가 호출되었으면, 0이 아닌 값을 반환합니다. 이 함수는 GIL을 보유하지 않고 호출할 수 있어서, 단일 스레드를 실행할 때 록 API 호출을 회피하는 데 사용할 수 있습니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.7에서 변경: </span>The <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a> is now initialized by <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>.</p>
+<p><span class="versionmodified changed">버전 3.7에서 변경: </span><a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>은 이제 <a class="reference internal" href="#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>에 의해 초기화됩니다.</p>
 </div>
 <div class="deprecated-removed">
 <p><span class="versionmodified">Deprecated since version 3.9, will be removed in version 3.11.</span></p>
@@ -689,26 +620,16 @@ avoid calls to the locking API when running single-threaded.</p>
 <dl class="function">
 <dt id="c.PyEval_SaveThread">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a>* <code class="sig-name descname">PyEval_SaveThread</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_SaveThread" title="정의 주소">¶</a></dt>
-<dd><p>Release the global interpreter lock (if it has been created) and reset the
-thread state to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, returning the previous thread state (which is not
-<code class="docutils literal notranslate"><span class="pre">NULL</span></code>).  If the lock has been created, the current thread must have
-acquired it.</p>
+<dd><p>(만들었다면) 전역 인터프리터 록을 해제하고 스레드 상태를 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>로 재설정하고, 이전 스레드 상태(<code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닙니다)를 반환합니다. 록이 만들어졌다면, 현재 스레드가 록을 획득 했어야합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyEval_RestoreThread">
 void <code class="sig-name descname">PyEval_RestoreThread</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_RestoreThread" title="정의 주소">¶</a></dt>
-<dd><p>Acquire the global interpreter lock (if it has been created) and set the
-thread state to <em>tstate</em>, which must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  If the lock has been
-created, the current thread must not have acquired it, otherwise deadlock
-ensues.</p>
+<dd><p>(만들었다면) 전역 인터프리터 록을 획득하고 스레드 상태를 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니어야하는 <em>tstate</em>로 설정합니다. 록이 만들어졌다면, 현재 스레드가 이를 획득하지 않았어야 합니다, 그렇지 않으면 교착 상태가 발생합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Calling this function from a thread when the runtime is finalizing
-will terminate the thread, even if the thread was not created by Python.
-You can use <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code> or <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a> to
-check if the interpreter is in process of being finalized before calling
-this function to avoid unwanted termination.</p>
+<p>런타임이 파이널리제이션 될 때 스레드에서이 함수를 호출하면, 스레드가 파이썬에 의해 만들어지지 않았더라도 스레드가 종료됩니다. 원치 않는 종료를 방지하려면 <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code>이나 <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a>을 사용하여 이 함수를 호출하기 전에 인터프리터가 파이널리제이션 되고 있는지 확인할 수 있습니다.</p>
 </div>
 </dd></dl>
 
@@ -752,11 +673,7 @@ to <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_
 to call arbitrary Python code.  Failure is a fatal error.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Calling this function from a thread when the runtime is finalizing
-will terminate the thread, even if the thread was not created by Python.
-You can use <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code> or <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a> to
-check if the interpreter is in process of being finalized before calling
-this function to avoid unwanted termination.</p>
+<p>런타임이 파이널리제이션 될 때 스레드에서이 함수를 호출하면, 스레드가 파이썬에 의해 만들어지지 않았더라도 스레드가 종료됩니다. 원치 않는 종료를 방지하려면 <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code>이나 <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a>을 사용하여 이 함수를 호출하기 전에 인터프리터가 파이널리제이션 되고 있는지 확인할 수 있습니다.</p>
 </div>
 </dd></dl>
 
@@ -1033,11 +950,7 @@ void <code class="sig-name descname">PyEval_AcquireThread</code><span class="sig
 If this thread already has the lock, deadlock ensues.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Calling this function from a thread when the runtime is finalizing
-will terminate the thread, even if the thread was not created by Python.
-You can use <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code> or <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a> to
-check if the interpreter is in process of being finalized before calling
-this function to avoid unwanted termination.</p>
+<p>런타임이 파이널리제이션 될 때 스레드에서이 함수를 호출하면, 스레드가 파이썬에 의해 만들어지지 않았더라도 스레드가 종료됩니다. 원치 않는 종료를 방지하려면 <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code>이나 <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a>을 사용하여 이 함수를 호출하기 전에 인터프리터가 파이널리제이션 되고 있는지 확인할 수 있습니다.</p>
 </div>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.8에서 변경: </span>Updated to be consistent with <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a>,
@@ -1072,11 +985,7 @@ instead.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Calling this function from a thread when the runtime is finalizing
-will terminate the thread, even if the thread was not created by Python.
-You can use <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code> or <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a> to
-check if the interpreter is in process of being finalized before calling
-this function to avoid unwanted termination.</p>
+<p>런타임이 파이널리제이션 될 때 스레드에서이 함수를 호출하면, 스레드가 파이썬에 의해 만들어지지 않았더라도 스레드가 종료됩니다. 원치 않는 종료를 방지하려면 <code class="xref c c-func docutils literal notranslate"><span class="pre">_Py_IsFinalizing()</span></code>이나 <a class="reference internal" href="../library/sys.html#sys.is_finalizing" title="sys.is_finalizing"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.is_finalizing()</span></code></a>을 사용하여 이 함수를 호출하기 전에 인터프리터가 파이널리제이션 되고 있는지 확인할 수 있습니다.</p>
 </div>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.8에서 변경: </span>Updated to be consistent with <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a>,
@@ -1632,9 +1541,9 @@ void <code class="sig-name descname">PyThread_ReInitTLS</code><span class="sig-p
 <li><a class="reference internal" href="#process-wide-parameters">프로세스 전체 매개 변수</a></li>
 <li><a class="reference internal" href="#thread-state-and-the-global-interpreter-lock">스레드 상태와 전역 인터프리터 록</a><ul>
 <li><a class="reference internal" href="#releasing-the-gil-from-extension-code">확장 코드에서 GIL 해제하기</a></li>
-<li><a class="reference internal" href="#non-python-created-threads">Non-Python created threads</a></li>
-<li><a class="reference internal" href="#cautions-about-fork">Cautions about fork()</a></li>
-<li><a class="reference internal" href="#high-level-api">High-level API</a></li>
+<li><a class="reference internal" href="#non-python-created-threads">파이썬이 만들지 않은 스레드</a></li>
+<li><a class="reference internal" href="#cautions-about-fork">fork()에 대한 주의 사항</a></li>
+<li><a class="reference internal" href="#high-level-api">고수준 API</a></li>
 <li><a class="reference internal" href="#low-level-api">Low-level API</a></li>
 </ul>
 </li>
