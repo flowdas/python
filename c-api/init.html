@@ -949,47 +949,25 @@ void <code class="sig-name descname">Py_EndInterpreter</code><span class="sig-pa
 </div>
 <div class="section" id="asynchronous-notifications">
 <h2>비동기 알림<a class="headerlink" href="#asynchronous-notifications" title="제목 주소">¶</a></h2>
-<p>A mechanism is provided to make asynchronous notifications to the main
-interpreter thread.  These notifications take the form of a function
-pointer and a void pointer argument.</p>
+<p>메인 인터프리터 스레드에 비동기 알림을 보내는 메커니즘이 제공됩니다. 이러한 알림은 함수 포인터와 void 포인터 인자의 형태를 취합니다.</p>
 <dl class="function">
 <dt id="c.Py_AddPendingCall">
 int <code class="sig-name descname">Py_AddPendingCall</code><span class="sig-paren">(</span>int (<em>*func</em>)(void *), void<em> *arg</em><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_AddPendingCall" title="정의 주소">¶</a></dt>
-<dd><p id="index-46">Schedule a function to be called from the main interpreter thread.  On
-success, <code class="docutils literal notranslate"><span class="pre">0</span></code> is returned and <em>func</em> is queued for being called in the
-main thread.  On failure, <code class="docutils literal notranslate"><span class="pre">-1</span></code> is returned without setting any exception.</p>
-<p>When successfully queued, <em>func</em> will be <em>eventually</em> called from the
-main interpreter thread with the argument <em>arg</em>.  It will be called
-asynchronously with respect to normally running Python code, but with
-both these conditions met:</p>
+<dd><p id="index-46">메인 인터프리터 스레드에서 호출할 함수를 예약합니다. 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>이 반환되고 <em>func</em>는 메인 스레드에서 호출되기 위해 큐에 추가됩니다. 실패시, 예외 설정없이 <code class="docutils literal notranslate"><span class="pre">-1</span></code>이 반환됩니다.</p>
+<p>성공적으로 큐에 넣으면, <em>func</em>는 <em>arg</em> 인자를 사용하여 <em>결국</em> 메인 인터프리터 스레드에서 호출됩니다. 정상적으로 실행되는 파이썬 코드와 비교할 때 비동기 적으로 호출되지만, 다음 두 조건이 모두 충족됩니다:</p>
 <ul class="simple">
-<li><p>on a <a class="reference internal" href="../glossary.html#term-bytecode"><span class="xref std std-term">bytecode</span></a> boundary;</p></li>
-<li><p>with the main thread holding the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global interpreter lock</span></a>
-(<em>func</em> can therefore use the full C API).</p></li>
+<li><p><a class="reference internal" href="../glossary.html#term-bytecode"><span class="xref std std-term">바이트 코드</span></a> 경계에서;</p></li>
+<li><p>메인 스레드가 <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">전역 인터프리터 록</span></a>을 보유하면서 (따라서 <em>func</em>는 전체 C API를 사용할 수 있습니다).</p></li>
 </ul>
-<p><em>func</em> must return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, or <code class="docutils literal notranslate"><span class="pre">-1</span></code> on failure with an exception
-set.  <em>func</em> won't be interrupted to perform another asynchronous
-notification recursively, but it can still be interrupted to switch
-threads if the global interpreter lock is released.</p>
-<p>This function doesn't need a current thread state to run, and it doesn't
-need the global interpreter lock.</p>
-<p>To call this function in a subinterpreter, the caller must hold the GIL.
-Otherwise, the function <em>func</em> can be scheduled to be called from the wrong
-interpreter.</p>
+<p><em>func</em>는 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을, 실패하면 예외 설정과 함께 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환해야합니다. <em>func</em>는 다른 비동기 알림을 재귀 적으로 수행하기 위해 중단되지 않지만, 전역 인터프리터 록이 해제되면 스레드를 전환하기 위해 여전히 중단될 수 있습니다.</p>
+<p>이 함수는 실행하는 데 현재 스레드 상태가 필요하지 않으며, 전역 인터프리터 록이 필요하지 않습니다.</p>
+<p>서브 인터프리터에서 이 함수를 호출하려면 호출자가 GIL을 보유해야합니다. 그렇지 않으면, 함수 <em>func</em>가 잘못된 인터프리터에서 호출되도록 예약될 수 있습니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>This is a low-level function, only useful for very special cases.
-There is no guarantee that <em>func</em> will be called as quick as
-possible.  If the main thread is busy executing a system call,
-<em>func</em> won't be called before the system call returns.  This
-function is generally <strong>not</strong> suitable for calling Python code from
-arbitrary C threads.  Instead, use the <a class="reference internal" href="#gilstate"><span class="std std-ref">PyGILState API</span></a>.</p>
+<p>이것은 매우 특별한 경우에만 유용한, 저수준 함수입니다. <em>func</em>가 가능한 한 빨리 호출된다는 보장은 없습니다. 메인 스레드가 시스템 호출을 실행 중이라 바쁘면, 시스템 호출이 반환되기 전에 <em>func</em>가 호출되지 않습니다. 이 함수는 일반적으로 임의의 C 스레드에서 파이썬 코드를 호출하는 데 적합하지 <strong>않습니다</strong>. 대신, <a class="reference internal" href="#gilstate"><span class="std std-ref">PyGILState API</span></a>를 사용하십시오.</p>
 </div>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.9에서 변경: </span>If this function is called in a subinterpreter, the function <em>func</em> is
-now scheduled to be called from the subinterpreter, rather than being
-called from the main interpreter. Each subinterpreter now has its own
-list of scheduled calls.</p>
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>이 함수가 서브 인터프리터에서 호출되면, <em>func</em> 함수는 이제 메인 인터프리터에서 호출되지 않고 서브 인터프리터에서 호출되도록 예약됩니다. 이제 각 서브 인터프리터는 자체 예약된 호출 목록을 갖습니다.</p>
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.1에 추가.</span></p>
@@ -998,62 +976,47 @@ list of scheduled calls.</p>
 
 </div>
 <div class="section" id="profiling-and-tracing">
-<span id="profiling"></span><h2>Profiling and Tracing<a class="headerlink" href="#profiling-and-tracing" title="제목 주소">¶</a></h2>
-<p>The Python interpreter provides some low-level support for attaching profiling
-and execution tracing facilities.  These are used for profiling, debugging, and
-coverage analysis tools.</p>
-<p>This C interface allows the profiling or tracing code to avoid the overhead of
-calling through Python-level callable objects, making a direct C function call
-instead.  The essential attributes of the facility have not changed; the
-interface allows trace functions to be installed per-thread, and the basic
-events reported to the trace function are the same as had been reported to the
-Python-level trace functions in previous versions.</p>
+<span id="profiling"></span><h2>프로파일링과 추적<a class="headerlink" href="#profiling-and-tracing" title="제목 주소">¶</a></h2>
+<p>파이썬 인터프리터는 프로파일링과 실행 추적 기능을 연결하기위한 몇 가지 저수준 지원을 제공합니다. 프로파일링, 디버깅 및 커버리지 분석 도구에 사용됩니다.</p>
+<p>이 C 인터페이스를 사용하면 프로파일링이나 추적 코드가 파이썬 수준의 콜러블 객체를 통해 호출하는 오버 헤드를 피하고, 대신 직접 C 함수를 호출할 수 있습니다. 시설의 필수 어트리뷰트는 변경되지 않았습니다; 인터페이스는 추적 함수를 스레드별로 설치할 수 있도록하며, 추적 함수에 보고되는 기본 이벤트는 이전 버전의 파이썬 수준 추적 함수에 보고된 것과 같습니다.</p>
 <dl class="type">
 <dt id="c.Py_tracefunc">
 int <code class="sig-name descname">(*Py_tracefunc)</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *obj</em>, <a class="reference internal" href="veryhigh.html#c.PyFrameObject" title="PyFrameObject">PyFrameObject</a><em> *frame</em>, int<em> what</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *arg</em><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_tracefunc" title="정의 주소">¶</a></dt>
-<dd><p>The type of the trace function registered using <a class="reference internal" href="#c.PyEval_SetProfile" title="PyEval_SetProfile"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetProfile()</span></code></a> and
-<a class="reference internal" href="#c.PyEval_SetTrace" title="PyEval_SetTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetTrace()</span></code></a>. The first parameter is the object passed to the
-registration function as <em>obj</em>, <em>frame</em> is the frame object to which the event
-pertains, <em>what</em> is one of the constants <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_CALL</span></code>,
-<code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_EXCEPTION</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_LINE</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_RETURN</span></code>,
-<code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_CALL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_EXCEPTION</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_RETURN</span></code>,
-or <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_OPCODE</span></code>, and <em>arg</em> depends on the value of <em>what</em>:</p>
+<dd><p><a class="reference internal" href="#c.PyEval_SetProfile" title="PyEval_SetProfile"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetProfile()</span></code></a>과 <a class="reference internal" href="#c.PyEval_SetTrace" title="PyEval_SetTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetTrace()</span></code></a>를 사용하여 등록된 추적 함수의 형입니다. 첫 번째 매개 변수는 등록 함수에 <em>obj</em>로 전달된 객체이고, <em>frame</em>은 이벤트가 관련된 프레임 객체이고, <em>what</em>은 상수 <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_CALL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_EXCEPTION</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_LINE</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_RETURN</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_CALL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_EXCEPTION</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_RETURN</span></code> 또는 <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_OPCODE</span></code>중 하나이고, <em>arg</em>는 <em>what</em>의 값에 따라 다릅니다:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 43%" />
 <col style="width: 57%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Value of <em>what</em></p></th>
-<th class="head"><p>Meaning of <em>arg</em></p></th>
+<tr class="row-odd"><th class="head"><p><em>what</em>의 값</p></th>
+<th class="head"><p><em>arg</em>의 의미</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_CALL</span></code></p></td>
-<td><p>Always <a class="reference internal" href="none.html#c.Py_None" title="Py_None"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_None</span></code></a>.</p></td>
+<td><p>항상 <a class="reference internal" href="none.html#c.Py_None" title="Py_None"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_None</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_EXCEPTION</span></code></p></td>
-<td><p>Exception information as returned by
-<a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a>.</p></td>
+<td><p><a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a>에서 반환된 예외 정보.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_LINE</span></code></p></td>
-<td><p>Always <a class="reference internal" href="none.html#c.Py_None" title="Py_None"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_None</span></code></a>.</p></td>
+<td><p>항상 <a class="reference internal" href="none.html#c.Py_None" title="Py_None"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_None</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_RETURN</span></code></p></td>
-<td><p>Value being returned to the caller,
-or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if caused by an exception.</p></td>
+<td><p>호출자에게 반환되는 값, 또는 예외로 인한 것이면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_CALL</span></code></p></td>
-<td><p>Function object being called.</p></td>
+<td><p>호출되는 함수 객체.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_EXCEPTION</span></code></p></td>
-<td><p>Function object being called.</p></td>
+<td><p>호출되는 함수 객체.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_RETURN</span></code></p></td>
-<td><p>Function object being called.</p></td>
+<td><p>호출되는 함수 객체.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_OPCODE</span></code></p></td>
-<td><p>Always <a class="reference internal" href="none.html#c.Py_None" title="Py_None"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_None</span></code></a>.</p></td>
+<td><p>항상 <a class="reference internal" href="none.html#c.Py_None" title="Py_None"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_None</span></code></a>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1062,134 +1025,102 @@ or <code class="docutils literal notranslate"><span class="pre">NULL</span></cod
 <dl class="var">
 <dt id="c.PyTrace_CALL">
 int <code class="sig-name descname">PyTrace_CALL</code><a class="headerlink" href="#c.PyTrace_CALL" title="정의 주소">¶</a></dt>
-<dd><p>The value of the <em>what</em> parameter to a <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> function when a new
-call to a function or method is being reported, or a new entry into a generator.
-Note that the creation of the iterator for a generator function is not reported
-as there is no control transfer to the Python bytecode in the corresponding
-frame.</p>
+<dd><p>함수나 메서드에 대한 새 호출이 보고되거나, 제너레이터에 대한 새 항목이 보고될 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수에 대한 <em>what</em> 매개 변수의 값. 제너레이터 함수에 대한 이터레이터의 생성은 해당 프레임의 파이썬 바이트 코드로의 제어 전송이 없기 때문에보고되지 않음에 유의하십시오.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_EXCEPTION">
 int <code class="sig-name descname">PyTrace_EXCEPTION</code><a class="headerlink" href="#c.PyTrace_EXCEPTION" title="정의 주소">¶</a></dt>
-<dd><p>The value of the <em>what</em> parameter to a <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> function when an
-exception has been raised.  The callback function is called with this value for
-<em>what</em> when after any bytecode is processed after which the exception becomes
-set within the frame being executed.  The effect of this is that as exception
-propagation causes the Python stack to unwind, the callback is called upon
-return to each frame as the exception propagates.  Only trace functions receives
-these events; they are not needed by the profiler.</p>
+<dd><p>예외가 발생했을 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수에 대한 <em>what</em> 매개 변수의 값. 콜백 함수는 실행되는 프레임 내에서 바이트 코드가 처리된 후 예외가 설정될 때 <em>what</em>에 대해 이 값으로 호출됩니다. 이것의 효과는 예외 전파로 인해 파이썬 스택이 되감기는 것입니다, 예외가 전파되어 각 프레임으로 반환할 때 콜백이 호출됩니다. 추적 함수 만 이러한 이벤트를 수신합니다; 프로파일러에는 필요하지 않습니다.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_LINE">
 int <code class="sig-name descname">PyTrace_LINE</code><a class="headerlink" href="#c.PyTrace_LINE" title="정의 주소">¶</a></dt>
-<dd><p>The value passed as the <em>what</em> parameter to a <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> function
-(but not a profiling function) when a line-number event is being reported.
-It may be disabled for a frame by setting <code class="xref py py-attr docutils literal notranslate"><span class="pre">f_trace_lines</span></code> to <em>0</em> on that frame.</p>
+<dd><p>줄 번호 이벤트가 보고될 때 <em>what</em> 매개 변수로 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수(하지만 프로파일링 함수는 아닙니다)에 전달되는 값. 해당 프레임의 <code class="xref py py-attr docutils literal notranslate"><span class="pre">f_trace_lines</span></code>를 <em>0</em>으로 설정하여 해당 프레임에 대해 비활성화 할 수 있습니다.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_RETURN">
 int <code class="sig-name descname">PyTrace_RETURN</code><a class="headerlink" href="#c.PyTrace_RETURN" title="정의 주소">¶</a></dt>
-<dd><p>The value for the <em>what</em> parameter to <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> functions when a
-call is about to return.</p>
+<dd><p>호출이 반환 되려고 할 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수에 대한 <em>what</em> 매개 변수의 값.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_C_CALL">
 int <code class="sig-name descname">PyTrace_C_CALL</code><a class="headerlink" href="#c.PyTrace_C_CALL" title="정의 주소">¶</a></dt>
-<dd><p>The value for the <em>what</em> parameter to <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> functions when a C
-function is about to be called.</p>
+<dd><p>C 함수가 호출되려고 할 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수에 대한 <em>what</em> 매개 변수의 값.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_C_EXCEPTION">
 int <code class="sig-name descname">PyTrace_C_EXCEPTION</code><a class="headerlink" href="#c.PyTrace_C_EXCEPTION" title="정의 주소">¶</a></dt>
-<dd><p>The value for the <em>what</em> parameter to <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> functions when a C
-function has raised an exception.</p>
+<dd><p>C 함수에서 예외가 발생했을 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수에 대한 <em>what</em> 매개 변수의 값.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_C_RETURN">
 int <code class="sig-name descname">PyTrace_C_RETURN</code><a class="headerlink" href="#c.PyTrace_C_RETURN" title="정의 주소">¶</a></dt>
-<dd><p>The value for the <em>what</em> parameter to <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> functions when a C
-function has returned.</p>
+<dd><p>C 함수가 반환했을 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수에 대한 <em>what</em> 매개 변수의 값.</p>
 </dd></dl>
 
 <dl class="var">
 <dt id="c.PyTrace_OPCODE">
 int <code class="sig-name descname">PyTrace_OPCODE</code><a class="headerlink" href="#c.PyTrace_OPCODE" title="정의 주소">¶</a></dt>
-<dd><p>The value for the <em>what</em> parameter to <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> functions (but not
-profiling functions) when a new opcode is about to be executed.  This event is
-not emitted by default: it must be explicitly requested by setting
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">f_trace_opcodes</span></code> to <em>1</em> on the frame.</p>
+<dd><p>새 옵코드가 실행 되려고 할 때 <a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tracefunc</span></code></a> 함수(하지만 프로파일링 함수는 아닙니다)에 대한 <em>what</em> 매개 변수의 값. 이 이벤트는 기본적으로 방출되지 않습니다: 프레임의 <code class="xref py py-attr docutils literal notranslate"><span class="pre">f_trace_opcodes</span></code>를 <em>1</em>로 설정하여 명시적으로 요청해야합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyEval_SetProfile">
 void <code class="sig-name descname">PyEval_SetProfile</code><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc">Py_tracefunc</a><em> func</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *obj</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_SetProfile" title="정의 주소">¶</a></dt>
-<dd><p>Set the profiler function to <em>func</em>.  The <em>obj</em> parameter is passed to the
-function as its first parameter, and may be any Python object, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  If
-the profile function needs to maintain state, using a different value for <em>obj</em>
-for each thread provides a convenient and thread-safe place to store it.  The
-profile function is called for all monitored events except <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_LINE</span></code>
-<code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_OPCODE</span></code> and <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_EXCEPTION</span></code>.</p>
-<p>The caller must hold the <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>.</p>
+<dd><p>프로파일러 함수를 <em>func</em>로 설정합니다. <em>obj</em> 매개 변수는 첫 번째 매개 변수로 함수에 전달되며, 임의의 파이썬 객체나 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>일 수 있습니다. 프로파일 함수가 상태를 유지해야하면, 각 스레드 마다 <em>obj</em>에 다른 값을 사용하면 저장하기에 편리하고 스레드 안전한 위치를 제공합니다. 프로파일 함수는 <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_LINE</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_OPCODE</span></code> 및 <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_EXCEPTION</span></code>을 제외한 모든 관찰되는 이벤트에 대해 호출됩니다.</p>
+<p>호출자는 <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>을 보유하고 있어야합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyEval_SetTrace">
 void <code class="sig-name descname">PyEval_SetTrace</code><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tracefunc" title="Py_tracefunc">Py_tracefunc</a><em> func</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *obj</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_SetTrace" title="정의 주소">¶</a></dt>
-<dd><p>Set the tracing function to <em>func</em>.  This is similar to
-<a class="reference internal" href="#c.PyEval_SetProfile" title="PyEval_SetProfile"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetProfile()</span></code></a>, except the tracing function does receive line-number
-events and per-opcode events, but does not receive any event related to C function
-objects being called.  Any trace function registered using <a class="reference internal" href="#c.PyEval_SetTrace" title="PyEval_SetTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetTrace()</span></code></a>
-will not receive <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_CALL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_EXCEPTION</span></code> or
-<code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_RETURN</span></code> as a value for the <em>what</em> parameter.</p>
-<p>The caller must hold the <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>.</p>
+<dd><p>추적 함수를 <em>func</em>로 설정합니다. 추적 함수가 줄 번호 이벤트와 옵코드별 이벤트를 수신하지만, 호출되는 C 함수 객체와 관련된 이벤트를 수신하지 않는다는 점을 제외하면, <a class="reference internal" href="#c.PyEval_SetProfile" title="PyEval_SetProfile"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetProfile()</span></code></a>과 유사합니다. <a class="reference internal" href="#c.PyEval_SetTrace" title="PyEval_SetTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetTrace()</span></code></a>를 사용하여 등록된 모든 추적 함수는 <em>what</em> 매개 변수의 값으로 <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_CALL</span></code>, <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_EXCEPTION</span></code> 또는 <code class="xref py py-const docutils literal notranslate"><span class="pre">PyTrace_C_RETURN</span></code>을 수신하지 않습니다.</p>
+<p>호출자는 <a class="reference internal" href="../glossary.html#term-gil"><span class="xref std std-term">GIL</span></a>을 보유하고 있어야합니다.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="advanced-debugger-support">
-<span id="advanced-debugging"></span><h2>Advanced Debugger Support<a class="headerlink" href="#advanced-debugger-support" title="제목 주소">¶</a></h2>
-<p>These functions are only intended to be used by advanced debugging tools.</p>
+<span id="advanced-debugging"></span><h2>고급 디버거 지원<a class="headerlink" href="#advanced-debugger-support" title="제목 주소">¶</a></h2>
+<p>이 함수들은 고급 디버깅 도구에서만 사용하기위한 것입니다.</p>
 <dl class="function">
 <dt id="c.PyInterpreterState_Head">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState">PyInterpreterState</a>* <code class="sig-name descname">PyInterpreterState_Head</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Head" title="정의 주소">¶</a></dt>
-<dd><p>Return the interpreter state object at the head of the list of all such objects.</p>
+<dd><p>인터프리터 상태 객체들의 리스트의 머리에 있는 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyInterpreterState_Main">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState">PyInterpreterState</a>* <code class="sig-name descname">PyInterpreterState_Main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Main" title="정의 주소">¶</a></dt>
-<dd><p>Return the main interpreter state object.</p>
+<dd><p>메인 인터프리터 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyInterpreterState_Next">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState">PyInterpreterState</a>* <code class="sig-name descname">PyInterpreterState_Next</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState">PyInterpreterState</a><em> *interp</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Next" title="정의 주소">¶</a></dt>
-<dd><p>Return the next interpreter state object after <em>interp</em> from the list of all
-such objects.</p>
+<dd><p>인터프리터 상태 객체들의 리스트에서 <em>interp</em> 이후의 다음 인터프리터 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyInterpreterState_ThreadHead">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a> * <code class="sig-name descname">PyInterpreterState_ThreadHead</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState">PyInterpreterState</a><em> *interp</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_ThreadHead" title="정의 주소">¶</a></dt>
-<dd><p>Return the pointer to the first <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> object in the list of
-threads associated with the interpreter <em>interp</em>.</p>
+<dd><p>인터프리터 <em>interp</em>와 관련된 스레드 리스트에서 첫 번째 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> 객체에 대한 포인터를 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyThreadState_Next">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a>* <code class="sig-name descname">PyThreadState_Next</code><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState">PyThreadState</a><em> *tstate</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Next" title="정의 주소">¶</a></dt>
-<dd><p>Return the next thread state object after <em>tstate</em> from the list of all such
-objects belonging to the same <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> object.</p>
+<dd><p>같은 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> 객체에 속하는 모든 스레드 객체 리스트에서 <em>tstate</em> 이후의 다음 스레드 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="thread-local-storage-support">
-<span id="thread-local-storage"></span><h2>Thread Local Storage Support<a class="headerlink" href="#thread-local-storage-support" title="제목 주소">¶</a></h2>
+<span id="thread-local-storage"></span><h2>스레드 로컬 저장소 지원<a class="headerlink" href="#thread-local-storage-support" title="제목 주소">¶</a></h2>
 <p>The Python interpreter provides low-level support for thread-local storage
 (TLS) which wraps the underlying native TLS implementation to support the
 Python-level thread local storage API (<a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a>).  The
@@ -1391,9 +1322,9 @@ void <code class="sig-name descname">PyThread_ReInitTLS</code><span class="sig-p
 </ul>
 </li>
 <li><a class="reference internal" href="#asynchronous-notifications">비동기 알림</a></li>
-<li><a class="reference internal" href="#profiling-and-tracing">Profiling and Tracing</a></li>
-<li><a class="reference internal" href="#advanced-debugger-support">Advanced Debugger Support</a></li>
-<li><a class="reference internal" href="#thread-local-storage-support">Thread Local Storage Support</a><ul>
+<li><a class="reference internal" href="#profiling-and-tracing">프로파일링과 추적</a></li>
+<li><a class="reference internal" href="#advanced-debugger-support">고급 디버거 지원</a></li>
+<li><a class="reference internal" href="#thread-local-storage-support">스레드 로컬 저장소 지원</a><ul>
 <li><a class="reference internal" href="#thread-specific-storage-tss-api">Thread Specific Storage (TSS) API</a><ul>
 <li><a class="reference internal" href="#dynamic-allocation">Dynamic Allocation</a></li>
 <li><a class="reference internal" href="#methods">Methods</a></li>
