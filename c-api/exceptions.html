@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>Exception Handling &#8212; 파이썬 설명서 주석판</title>
+    <title>예외 처리 &#8212; 파이썬 설명서 주석판</title>
     <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -119,39 +119,16 @@
           <div class="body" role="main">
             
   <div class="section" id="exception-handling">
-<span id="exceptionhandling"></span><h1>Exception Handling<a class="headerlink" href="#exception-handling" title="제목 주소">¶</a></h1>
-<p>The functions described in this chapter will let you handle and raise Python
-exceptions.  It is important to understand some of the basics of Python
-exception handling.  It works somewhat like the POSIX <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> variable:
-there is a global indicator (per thread) of the last error that occurred.  Most
-C API functions don't clear this on success, but will set it to indicate the
-cause of the error on failure.  Most C API functions also return an error
-indicator, usually <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if they are supposed to return a pointer, or <code class="docutils literal notranslate"><span class="pre">-1</span></code>
-if they return an integer (exception: the <code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_*()</span></code> functions
-return <code class="docutils literal notranslate"><span class="pre">1</span></code> for success and <code class="docutils literal notranslate"><span class="pre">0</span></code> for failure).</p>
-<p>Concretely, the error indicator consists of three object pointers: the
-exception's type, the exception's value, and the traceback object.  Any
-of those pointers can be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if non-set (although some combinations are
-forbidden, for example you can't have a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> traceback if the exception
-type is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>).</p>
-<p>When a function must fail because some function it called failed, it generally
-doesn't set the error indicator; the function it called already set it.  It is
-responsible for either handling the error and clearing the exception or
-returning after cleaning up any resources it holds (such as object references or
-memory allocations); it should <em>not</em> continue normally if it is not prepared to
-handle the error.  If returning due to an error, it is important to indicate to
-the caller that an error has been set.  If the error is not handled or carefully
-propagated, additional calls into the Python/C API may not behave as intended
-and may fail in mysterious ways.</p>
+<span id="exceptionhandling"></span><h1>예외 처리<a class="headerlink" href="#exception-handling" title="제목 주소">¶</a></h1>
+<p>이 장에서 설명하는 함수를 사용하면 파이썬 예외를 처리하고 발생시킬 수 있습니다. 파이썬 예외 처리의 기본 사항을 이해하는 것이 중요합니다. POSIX <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 변수와 비슷하게 작동합니다: 발생한 마지막 에러에 대한 전역 표시기(스레드 당)가 있습니다. 대부분 C API 함수는 성공 시 이를 지우지 않지만, 실패시 에러의 원인을 나타내도록 설정합니다. 대부분 C API 함수는 에러 표시기도 반환합니다, 일반적으로 포인터를 반환해야하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, 정수를 반환하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다 (예외: <code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_*()</span></code> 함수는 성공하면 <code class="docutils literal notranslate"><span class="pre">1</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을 반환합니다).</p>
+<p>구체적으로, 에러 표시기는 세 가지 객체 포인터로 구성됩니다: 예외 형, 예외 값 및 트레이스백 객체. 이러한 포인터들은 설정되지 않으면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 될 수 있습니다 (하지만 일부 조합은 금지되어 있습니다, 예를 들어 예외 형이 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 트레이스백을 가질 수 없습니다).</p>
+<p>호출한 일부 함수가 실패하여 함수가 실패해야할 때, 일반적으로 에러 표시기를 설정하지 않습니다; 호출된 함수가 이미 설정했습니다. 에러를 처리하고 예외를 지우거나 보유한 모든 리소스(가령 객체 참조나 메모리 할당)를 정리한 후 반환해야할 책임이 있습니다; 에러를 처리할 준비가 되지 않았을 때 정상적으로 계속되지 <em>않아야</em> 합니다. 에러로 인해 반환하면, 호출자에게 에러가 설정되었음을 알리는 것이 중요합니다. 에러를 처리하지 않거나 신중하게 전파하지 않으면, 파이썬/C API에 대한 추가 호출이 의도한 대로 작동하지 않을 수 있으며 알 수 없는 방식으로 실패할 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The error indicator is <strong>not</strong> the result of <a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a>.
-The former corresponds to an exception that is not yet caught (and is
-therefore still propagating), while the latter returns an exception after
-it is caught (and has therefore stopped propagating).</p>
+<p>에러 표시기는 <a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a>의 결과가 <strong>아닙니다</strong>. 전자는 아직 포착되지 않은 (따라서 여전히 전파 중인) 예외에 해당하는 반면, 후자는 포착된 후 (따라서 전파가 중단된) 예외를 반환합니다.</p>
 </div>
 <div class="section" id="printing-and-clearing">
-<h2>Printing and clearing<a class="headerlink" href="#printing-and-clearing" title="제목 주소">¶</a></h2>
+<h2>인쇄와 지우기<a class="headerlink" href="#printing-and-clearing" title="제목 주소">¶</a></h2>
 <dl class="function">
 <dt id="c.PyErr_Clear">
 void <code class="sig-name descname">PyErr_Clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_Clear" title="정의 주소">¶</a></dt>
@@ -1315,8 +1292,8 @@ the variables:</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../contents.html">목차</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Exception Handling</a><ul>
-<li><a class="reference internal" href="#printing-and-clearing">Printing and clearing</a></li>
+<li><a class="reference internal" href="#">예외 처리</a><ul>
+<li><a class="reference internal" href="#printing-and-clearing">인쇄와 지우기</a></li>
 <li><a class="reference internal" href="#raising-exceptions">Raising exceptions</a></li>
 <li><a class="reference internal" href="#issuing-warnings">Issuing warnings</a></li>
 <li><a class="reference internal" href="#querying-the-error-indicator">Querying the error indicator</a></li>
