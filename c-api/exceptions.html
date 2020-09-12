@@ -120,9 +120,9 @@
             
   <div class="section" id="exception-handling">
 <span id="exceptionhandling"></span><h1>예외 처리<a class="headerlink" href="#exception-handling" title="제목 주소">¶</a></h1>
-<p>이 장에서 설명하는 함수를 사용하면 파이썬 예외를 처리하고 발생시킬 수 있습니다. 파이썬 예외 처리의 기본 사항을 이해하는 것이 중요합니다. POSIX <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 변수와 비슷하게 작동합니다: 발생한 마지막 에러에 대한 전역 표시기(스레드 당)가 있습니다. 대부분 C API 함수는 성공 시 이를 지우지 않지만, 실패시 에러의 원인을 나타내도록 설정합니다. 대부분 C API 함수는 에러 표시기도 반환합니다, 일반적으로 포인터를 반환해야하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, 정수를 반환하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다 (예외: <code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_*()</span></code> 함수는 성공하면 <code class="docutils literal notranslate"><span class="pre">1</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을 반환합니다).</p>
+<p>이 장에서 설명하는 함수를 사용하면 파이썬 예외를 처리하고 발생시킬 수 있습니다. 파이썬 예외 처리의 기본 사항을 이해하는 것이 중요합니다. POSIX <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 변수와 비슷하게 작동합니다: 발생한 마지막 에러에 대한 전역 표시기(스레드 당)가 있습니다. 대부분 C API 함수는 성공 시 이를 지우지 않지만, 실패 시 에러의 원인을 나타내도록 설정합니다. 대부분 C API 함수는 에러 표시기도 반환합니다, 일반적으로 포인터를 반환해야 하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, 정수를 반환하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다 (예외: <code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_*()</span></code> 함수는 성공하면 <code class="docutils literal notranslate"><span class="pre">1</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을 반환합니다).</p>
 <p>구체적으로, 에러 표시기는 세 가지 객체 포인터로 구성됩니다: 예외 형, 예외 값 및 트레이스백 객체. 이러한 포인터들은 설정되지 않으면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 될 수 있습니다 (하지만 일부 조합은 금지되어 있습니다, 예를 들어 예외 형이 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 트레이스백을 가질 수 없습니다).</p>
-<p>호출한 일부 함수가 실패하여 함수가 실패해야할 때, 일반적으로 에러 표시기를 설정하지 않습니다; 호출된 함수가 이미 설정했습니다. 에러를 처리하고 예외를 지우거나 보유한 모든 리소스(가령 객체 참조나 메모리 할당)를 정리한 후 반환해야할 책임이 있습니다; 에러를 처리할 준비가 되지 않았을 때 정상적으로 계속되지 <em>않아야</em> 합니다. 에러로 인해 반환하면, 호출자에게 에러가 설정되었음을 알리는 것이 중요합니다. 에러를 처리하지 않거나 신중하게 전파하지 않으면, 파이썬/C API에 대한 추가 호출이 의도한 대로 작동하지 않을 수 있으며 알 수 없는 방식으로 실패할 수 있습니다.</p>
+<p>호출한 일부 함수가 실패하여 함수가 실패해야 할 때, 일반적으로 에러 표시기를 설정하지 않습니다; 호출된 함수가 이미 설정했습니다. 에러를 처리하고 예외를 지우거나 보유한 모든 리소스(가령 객체 참조나 메모리 할당)를 정리한 후 반환해야 할 책임이 있습니다; 에러를 처리할 준비가 되지 않았을 때 정상적으로 계속되지 <em>않아야</em> 합니다. 에러로 인해 반환하면, 호출자에게 에러가 설정되었음을 알리는 것이 중요합니다. 에러를 처리하지 않거나 신중하게 전파하지 않으면, 파이썬/C API에 대한 추가 호출이 의도한 대로 작동하지 않을 수 있으며 알 수 없는 방식으로 실패할 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>에러 표시기는 <a class="reference internal" href="../library/sys.html#sys.exc_info" title="sys.exc_info"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.exc_info()</span></code></a>의 결과가 <strong>아닙니다</strong>. 전자는 아직 포착되지 않은 (따라서 여전히 전파 중인) 예외에 해당하는 반면, 후자는 포착된 후 (따라서 전파가 중단된) 예외를 반환합니다.</p>
@@ -138,9 +138,9 @@ void <code class="sig-name descname">PyErr_Clear</code><span class="sig-paren">(
 <dl class="function">
 <dt id="c.PyErr_PrintEx">
 void <code class="sig-name descname">PyErr_PrintEx</code><span class="sig-paren">(</span>int<em> set_sys_last_vars</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_PrintEx" title="정의 주소">¶</a></dt>
-<dd><p>표준 트레이스백을 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code>로 인쇄하고 에러 표시기를 지웁니다. 에러가 <code class="docutils literal notranslate"><span class="pre">SystemExit</span></code>가 <strong>아닌한</strong>, 이 경우에는 트레이스백이 인쇄되지 않고 파이썬 프로세스는 <code class="docutils literal notranslate"><span class="pre">SystemExit</span></code> 인스턴스에 의해 지정된 에러 코드로 종료됩니다.</p>
+<dd><p>표준 트레이스백을 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code>로 인쇄하고 에러 표시기를 지웁니다. 에러가 <code class="docutils literal notranslate"><span class="pre">SystemExit</span></code>가 <strong>아닌 한</strong>, 이 경우에는 트레이스백이 인쇄되지 않고 파이썬 프로세스는 <code class="docutils literal notranslate"><span class="pre">SystemExit</span></code> 인스턴스에 의해 지정된 에러 코드로 종료됩니다.</p>
 <p>에러 표시기가 설정된 경우**에만** 이 함수를 호출하십시오. 그렇지 않으면 치명적인 에러가 발생합니다!</p>
-<p><em>set_sys_last_vars</em>가 0이 아니면, 변수 <a class="reference internal" href="../library/sys.html#sys.last_type" title="sys.last_type"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.last_type</span></code></a>, <a class="reference internal" href="../library/sys.html#sys.last_value" title="sys.last_value"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.last_value</span></code></a> 및 <a class="reference internal" href="../library/sys.html#sys.last_traceback" title="sys.last_traceback"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.last_traceback</span></code></a>은 각각 인쇄되는 예외의 형, 값 및 트레이스백으로 설정됩니다.</p>
+<p><em>set_sys_last_vars</em>가 0이 아니면, 변수 <a class="reference internal" href="../library/sys.html#sys.last_type" title="sys.last_type"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.last_type</span></code></a>, <a class="reference internal" href="../library/sys.html#sys.last_value" title="sys.last_value"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.last_value</span></code></a> 및 <a class="reference internal" href="../library/sys.html#sys.last_traceback" title="sys.last_traceback"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.last_traceback</span></code></a> 은 각각 인쇄되는 예외의 형, 값 및 트레이스백으로 설정됩니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -152,8 +152,8 @@ void <code class="sig-name descname">PyErr_Print</code><span class="sig-paren">(
 <dl class="function">
 <dt id="c.PyErr_WriteUnraisable">
 void <code class="sig-name descname">PyErr_WriteUnraisable</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *obj</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_WriteUnraisable" title="정의 주소">¶</a></dt>
-<dd><p>현재 예외와 <em>obj</em> 인자를 사용하여 <a class="reference internal" href="../library/sys.html#sys.unraisablehook" title="sys.unraisablehook"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.unraisablehook()</span></code></a>을 호출합니다.</p>
-<p>이 유틸리티 함수는 예외가 설정되었지만 인터프리터가 실제로 예외를 발생시킬 수 없을 때 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code>에 경고 메시지를 인쇄합니다. 예를 들어, <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> 메서드에서 예외가 발생할 때 사용됩니다.</p>
+<dd><p>현재 예외와 <em>obj</em> 인자를 사용하여 <a class="reference internal" href="../library/sys.html#sys.unraisablehook" title="sys.unraisablehook"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.unraisablehook()</span></code></a> 을 호출합니다.</p>
+<p>이 유틸리티 함수는 예외가 설정되었지만, 인터프리터가 실제로 예외를 발생시킬 수 없을 때 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code>에 경고 메시지를 인쇄합니다. 예를 들어, <a class="reference internal" href="../reference/datamodel.html#object.__del__" title="object.__del__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__del__()</span></code></a> 메서드에서 예외가 발생할 때 사용됩니다.</p>
 <p>이 함수는 발생시킬 수 없는 예외가 발생한 문맥을 식별하는 단일 인자 <em>obj</em>로 호출됩니다. 가능하면, <em>obj</em>의 repr이 경고 메시지에 인쇄됩니다.</p>
 <p>이 함수를 호출할 때 예외를 설정되어 있어야 합니다.</p>
 </dd></dl>
@@ -161,7 +161,7 @@ void <code class="sig-name descname">PyErr_WriteUnraisable</code><span class="si
 </div>
 <div class="section" id="raising-exceptions">
 <h2>예외 발생시키기<a class="headerlink" href="#raising-exceptions" title="제목 주소">¶</a></h2>
-<p>이 함수들은 현재 스레드의 에러 표시기를 설정하는 데 도움이됩니다. 편의를 위해, 이러한 함수 중 일부는 항상 <code class="docutils literal notranslate"><span class="pre">return</span></code> 문에서 사용할 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 포인터를 반환합니다.</p>
+<p>이 함수들은 현재 스레드의 에러 표시기를 설정하는 데 도움이 됩니다. 편의를 위해, 이러한 함수 중 일부는 항상 <code class="docutils literal notranslate"><span class="pre">return</span></code> 문에서 사용할 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 포인터를 반환합니다.</p>
 <dl class="function">
 <dt id="c.PyErr_SetString">
 void <code class="sig-name descname">PyErr_SetString</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *type</em>, const char<em> *message</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SetString" title="정의 주소">¶</a></dt>
@@ -171,19 +171,19 @@ void <code class="sig-name descname">PyErr_SetString</code><span class="sig-pare
 <dl class="function">
 <dt id="c.PyErr_SetObject">
 void <code class="sig-name descname">PyErr_SetObject</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *type</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *value</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SetObject" title="정의 주소">¶</a></dt>
-<dd><p>이 함수는 <a class="reference internal" href="#c.PyErr_SetString" title="PyErr_SetString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetString()</span></code></a>과 유사하지만 예외의 &quot;값&quot;에 대해 임의의 파이썬 객체를 지정할 수 있습니다.</p>
+<dd><p>이 함수는 <a class="reference internal" href="#c.PyErr_SetString" title="PyErr_SetString"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetString()</span></code></a>과 유사하지만, 예외의 &quot;값&quot;에 대해 임의의 파이썬 객체를 지정할 수 있습니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_Format">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_Format</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exception</em>, const char<em> *format</em>, ...<span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_Format" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Always NULL.</em><p>이 함수는 에러 표시기를 설정하고 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. <em>exception</em>은 파이썬 예외 클래스여야 합니다. <em>format</em>과 후속 매개 변수는 에러 메시지를 포맷하는 데 도움이됩니다; <a class="reference internal" href="unicode.html#c.PyUnicode_FromFormat" title="PyUnicode_FromFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnicode_FromFormat()</span></code></a>에서와 같은 의미와 값을 갖습니다. <em>format</em>은 ASCII 인코딩된 문자열입니다.</p>
+<dd><em class="refcount">Return value: Always NULL.</em><p>이 함수는 에러 표시기를 설정하고 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. <em>exception</em>은 파이썬 예외 클래스여야 합니다. <em>format</em>과 후속 매개 변수는 에러 메시지를 포맷하는 데 도움이 됩니다; <a class="reference internal" href="unicode.html#c.PyUnicode_FromFormat" title="PyUnicode_FromFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnicode_FromFormat()</span></code></a>에서와 같은 의미와 값을 갖습니다. <em>format</em>은 ASCII 인코딩된 문자열입니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_FormatV">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_FormatV</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exception</em>, const char<em> *format</em>, va_list<em> vargs</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_FormatV" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Always NULL.</em><p><a class="reference internal" href="#c.PyErr_Format" title="PyErr_Format"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Format()</span></code></a>와 같지만, 가변 개수의 인자 대신 <code class="xref c c-type docutils literal notranslate"><span class="pre">va_list</span></code> 인자를 취합니다.</p>
+<dd><em class="refcount">Return value: Always NULL.</em><p><a class="reference internal" href="#c.PyErr_Format" title="PyErr_Format"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Format()</span></code></a>과 같지만, 가변 개수의 인자 대신 <code class="xref c c-type docutils literal notranslate"><span class="pre">va_list</span></code> 인자를 취합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.5에 추가.</span></p>
 </div>
@@ -204,13 +204,13 @@ int <code class="sig-name descname">PyErr_BadArgument</code><span class="sig-par
 <dl class="function">
 <dt id="c.PyErr_NoMemory">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_NoMemory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_NoMemory" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Always NULL.</em><p>이것은 <code class="docutils literal notranslate"><span class="pre">PyErr_SetNone(PyExc_MemoryError)</span></code>의 줄임 표현입니다; <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환해서 객체 할당 함수는 메모리가 부족할 때 <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">PyErr_NoMemory();</span></code>라고 쓸 수 있습니다.</p>
+<dd><em class="refcount">Return value: Always NULL.</em><p>이것은 <code class="docutils literal notranslate"><span class="pre">PyErr_SetNone(PyExc_MemoryError)</span></code>의 줄임 표현입니다; <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환해서 객체 할당 함수는 메모리가 부족할 때 <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">PyErr_NoMemory();</span></code> 라고 쓸 수 있습니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_SetFromErrno">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_SetFromErrno</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *type</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SetFromErrno" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Always NULL.</em><p id="index-0">C 라이브러리 함수가 에러를 반환하고 C 변수 <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code>를 설정했을 때 예외를 발생시키는 편의 함수입니다. 첫 번째 항목이 정수 <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 값이고 두 번째 항목이 (<code class="xref c c-func docutils literal notranslate"><span class="pre">strerror()</span></code>에서 얻은) 해당 에러 메시지인 튜플 객체를 만든 다음, <code class="docutils literal notranslate"><span class="pre">PyErr_SetObject(type,</span> <span class="pre">object)</span></code>를 호출합니다. 유닉스에서, <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 값이 시스템 호출이 중단되었음을 나타내는 <code class="xref py py-const docutils literal notranslate"><span class="pre">EINTR</span></code>이면, <a class="reference internal" href="#c.PyErr_CheckSignals" title="PyErr_CheckSignals"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_CheckSignals()</span></code></a>를 호출하고 이것이 에러 표시기를 설정하면, 설정된 그대로 둡니다. 이 함수는 항상 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환해서, 시스템 호출에 대한 래퍼 함수는 시스템 호출이 에러를 반환할 때 <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">PyErr_SetFromErrno(type);</span></code>이라고 쓸 수 있습니다.</p>
+<dd><em class="refcount">Return value: Always NULL.</em><p id="index-0">C 라이브러리 함수가 에러를 반환하고 C 변수 <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code>를 설정했을 때 예외를 발생시키는 편의 함수입니다. 첫 번째 항목이 정수 <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 값이고 두 번째 항목이 (<code class="xref c c-func docutils literal notranslate"><span class="pre">strerror()</span></code>에서 얻은) 해당 에러 메시지인 튜플 객체를 만든 다음, <code class="docutils literal notranslate"><span class="pre">PyErr_SetObject(type,</span> <span class="pre">object)</span></code>를 호출합니다. 유닉스에서, <code class="xref c c-data docutils literal notranslate"><span class="pre">errno</span></code> 값이 시스템 호출이 중단되었음을 나타내는 <code class="xref py py-const docutils literal notranslate"><span class="pre">EINTR</span></code>이면, <a class="reference internal" href="#c.PyErr_CheckSignals" title="PyErr_CheckSignals"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_CheckSignals()</span></code></a>를 호출하고 이것이 에러 표시기를 설정하면, 설정된 그대로 둡니다. 이 함수는 항상 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환해서, 시스템 호출에 대한 래퍼 함수는 시스템 호출이 에러를 반환할 때 <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">PyErr_SetFromErrno(type);</span></code> 이라고 쓸 수 있습니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -244,7 +244,7 @@ int <code class="sig-name descname">PyErr_BadArgument</code><span class="sig-par
 <dl class="function">
 <dt id="c.PyErr_SetExcFromWindowsErr">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_SetExcFromWindowsErr</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *type</em>, int<em> ierr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SetExcFromWindowsErr" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Always NULL.</em><p><a class="reference internal" href="#c.PyErr_SetFromWindowsErr" title="PyErr_SetFromWindowsErr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetFromWindowsErr()</span></code></a>와 유사하며, 발생시킬 예외 형을 지정하는 추가 매개 변수가 있습니다.</p>
+<dd><em class="refcount">Return value: Always NULL.</em><p><a class="reference internal" href="#c.PyErr_SetFromWindowsErr" title="PyErr_SetFromWindowsErr"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetFromWindowsErr()</span></code></a> 와 유사하며, 발생시킬 예외 형을 지정하는 추가 매개 변수가 있습니다.</p>
 <p class="availability"><a class="reference internal" href="../library/intro.html#availability"><span class="std std-ref">가용성</span></a>: 윈도우.</p>
 </dd></dl>
 
@@ -291,7 +291,7 @@ int <code class="sig-name descname">PyErr_BadArgument</code><span class="sig-par
 <dl class="function">
 <dt id="c.PyErr_SyntaxLocationObject">
 void <code class="sig-name descname">PyErr_SyntaxLocationObject</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *filename</em>, int<em> lineno</em>, int<em> col_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SyntaxLocationObject" title="정의 주소">¶</a></dt>
-<dd><p>현재 예외에 대한 파일(file), 줄(line) 및 오프셋(offset) 정보를 설정합니다. 현재 예외가 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>가 아니면, 추가 어트리뷰트를 설정하여, 예외 인쇄 하위 시스템이 예외가 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>라고 생각하게합니다.</p>
+<dd><p>현재 예외에 대한 파일(file), 줄(line) 및 오프셋(offset) 정보를 설정합니다. 현재 예외가 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>가 아니면, 추가 어트리뷰트를 설정하여, 예외 인쇄 하위 시스템이 예외가 <a class="reference internal" href="../library/exceptions.html#SyntaxError" title="SyntaxError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">SyntaxError</span></code></a>라고 생각하게 합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.4에 추가.</span></p>
 </div>
@@ -300,7 +300,7 @@ void <code class="sig-name descname">PyErr_SyntaxLocationObject</code><span clas
 <dl class="function">
 <dt id="c.PyErr_SyntaxLocationEx">
 void <code class="sig-name descname">PyErr_SyntaxLocationEx</code><span class="sig-paren">(</span>const char<em> *filename</em>, int<em> lineno</em>, int<em> col_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SyntaxLocationEx" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference internal" href="#c.PyErr_SyntaxLocationObject" title="PyErr_SyntaxLocationObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SyntaxLocationObject()</span></code></a>와 비슷하지만, <em>filename</em>은 파일 시스템 인코딩(<a class="reference internal" href="../library/os.html#os.fsdecode" title="os.fsdecode"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fsdecode()</span></code></a>)에서 디코딩되는 바이트 문자열입니다.</p>
+<dd><p><a class="reference internal" href="#c.PyErr_SyntaxLocationObject" title="PyErr_SyntaxLocationObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SyntaxLocationObject()</span></code></a> 와 비슷하지만, <em>filename</em>은 파일 시스템 인코딩(<a class="reference internal" href="../library/os.html#os.fsdecode" title="os.fsdecode"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fsdecode()</span></code></a>)에서 디코딩되는 바이트 문자열입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.2에 추가.</span></p>
 </div>
@@ -309,7 +309,7 @@ void <code class="sig-name descname">PyErr_SyntaxLocationEx</code><span class="s
 <dl class="function">
 <dt id="c.PyErr_SyntaxLocation">
 void <code class="sig-name descname">PyErr_SyntaxLocation</code><span class="sig-paren">(</span>const char<em> *filename</em>, int<em> lineno</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SyntaxLocation" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference internal" href="#c.PyErr_SyntaxLocationEx" title="PyErr_SyntaxLocationEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SyntaxLocationEx()</span></code></a>와 비슷하지만, col_offset 매개 변수는 생략됩니다.</p>
+<dd><p><a class="reference internal" href="#c.PyErr_SyntaxLocationEx" title="PyErr_SyntaxLocationEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SyntaxLocationEx()</span></code></a> 와 비슷하지만, col_offset 매개 변수는 생략됩니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -321,19 +321,19 @@ void <code class="sig-name descname">PyErr_BadInternalCall</code><span class="si
 </div>
 <div class="section" id="issuing-warnings">
 <h2>경고 발행하기<a class="headerlink" href="#issuing-warnings" title="제목 주소">¶</a></h2>
-<p>이 함수를 사용하여 C 코드에서 경고를 발행하십시오. 파이썬 <a class="reference internal" href="../library/warnings.html#module-warnings" title="warnings: Issue warning messages and control their disposition."><code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code></a> 모듈에서 내보낸 유사한 함수를 미러링합니다. 일반적으로 <em>sys.stderr</em>에 경고 메시지를 인쇄합니다; 그러나, 사용자가 경고를 에러로 전환하도록 지정했을 수도 있으며, 이 경우 예외가 발생합니다. 경고 장치의 문제로 인해 이 함수가 예외를 발생시키는 것도 가능합니다. 예외가 발생하지 않으면 반환 값은 <code class="docutils literal notranslate"><span class="pre">0</span></code>이고, 예외가 발생하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>입니다. (경고 메시지가 실제로 인쇄되는지나 예외의 이유를 확인할 수 없습니다; 이것은 의도적인 것입니다.) 예외가 발생하면, 호출자는 정상적인 예외 처리를 수행해야합니다 (예를 들어, 소유한 참조를 <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>하고 에러 값을 반환합니다).</p>
+<p>이 함수를 사용하여 C 코드에서 경고를 발행하십시오. 파이썬 <a class="reference internal" href="../library/warnings.html#module-warnings" title="warnings: Issue warning messages and control their disposition."><code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code></a> 모듈에서 내보낸 유사한 함수를 미러링합니다. 일반적으로 <em>sys.stderr</em>에 경고 메시지를 인쇄합니다; 그러나, 사용자가 경고를 에러로 전환하도록 지정했을 수도 있으며, 이 경우 예외가 발생합니다. 경고 장치의 문제로 인해 이 함수가 예외를 발생시키는 것도 가능합니다. 예외가 발생하지 않으면 반환 값은 <code class="docutils literal notranslate"><span class="pre">0</span></code>이고, 예외가 발생하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>입니다. (경고 메시지가 실제로 인쇄되는지나 예외의 이유를 확인할 수 없습니다; 이것은 의도적입니다.) 예외가 발생하면, 호출자는 정상적인 예외 처리를 수행해야 합니다 (예를 들어, 소유한 참조를 <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>하고 에러값을 반환합니다).</p>
 <dl class="function">
 <dt id="c.PyErr_WarnEx">
 int <code class="sig-name descname">PyErr_WarnEx</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *category</em>, const char<em> *message</em>, Py_ssize_t<em> stack_level</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_WarnEx" title="정의 주소">¶</a></dt>
-<dd><p>경고 메시지를 발행합니다. <em>category</em> 인자는 경고 범주(아래를 참조하십시오)나 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>입니다; <em>message</em> 인자는 UTF-8로 인코딩된 문자열입니다. <em>stack_level</em>은 스택 프레임 수를 제공하는 양수입니다; 해당 스택 프레임에서 현재 실행중인 코드 줄에서 경고가 발생합니다. <em>stack_level</em>이 1이면 <a class="reference internal" href="#c.PyErr_WarnEx" title="PyErr_WarnEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnEx()</span></code></a>를 호출하는 함수, 2는 그 위의 함수, 등등.</p>
-<p>경고 범주는 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Warning</span></code>의 서브 클래스여야 합니다. <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Warning</span></code>는 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Exception</span></code>의 서브 클래스입니다; 기본 경고 범주는 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_RuntimeWarning</span></code>입니다. 표준 파이썬 경고 범주는 이름이 <a class="reference internal" href="#standardwarningcategories"><span class="std std-ref">표준 경고 범주</span></a>에 열거된 전역 변수로 제공됩니다.</p>
+<dd><p>경고 메시지를 발행합니다. <em>category</em> 인자는 경고 범주(아래를 참조하십시오)나 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>입니다; <em>message</em> 인자는 UTF-8로 인코딩된 문자열입니다. <em>stack_level</em>은 스택 프레임 수를 제공하는 양수입니다; 해당 스택 프레임에서 현재 실행 중인 코드 줄에서 경고가 발생합니다. <em>stack_level</em>이 1이면 <a class="reference internal" href="#c.PyErr_WarnEx" title="PyErr_WarnEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnEx()</span></code></a>를 호출하는 함수, 2는 그 위의 함수, 등등.</p>
+<p>경고 범주는 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Warning</span></code>의 서브 클래스여야 합니다. <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Warning</span></code>은 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Exception</span></code>의 서브 클래스입니다; 기본 경고 범주는 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_RuntimeWarning</span></code>입니다. 표준 파이썬 경고 범주는 이름이 <a class="reference internal" href="#standardwarningcategories"><span class="std std-ref">표준 경고 범주</span></a> 에 열거된 전역 변수로 제공됩니다.</p>
 <p>경고 제어에 대한 자세한 내용은, <a class="reference internal" href="../library/warnings.html#module-warnings" title="warnings: Issue warning messages and control their disposition."><code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code></a> 모듈 설명서와 명령 줄 설명서에서 <a class="reference internal" href="../using/cmdline.html#cmdoption-w"><code class="xref std std-option docutils literal notranslate"><span class="pre">-W</span></code></a> 옵션을 참조하십시오. 경고 제어를 위한 C API는 없습니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_SetImportErrorSubclass">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_SetImportErrorSubclass</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exception</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *msg</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *name</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *path</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SetImportErrorSubclass" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Always NULL.</em><p><a class="reference internal" href="#c.PyErr_SetImportError" title="PyErr_SetImportError"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetImportError()</span></code></a>와 매우 비슷하지만, 이 함수는 발생시킬 <a class="reference internal" href="../library/exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>의 서브 클래스를 지정할 수 있습니다.</p>
+<dd><em class="refcount">Return value: Always NULL.</em><p><a class="reference internal" href="#c.PyErr_SetImportError" title="PyErr_SetImportError"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetImportError()</span></code></a> 와 매우 비슷하지만, 이 함수는 발생시킬 <a class="reference internal" href="../library/exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>의 서브 클래스를 지정할 수 있습니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.6에 추가.</span></p>
 </div>
@@ -351,13 +351,13 @@ int <code class="sig-name descname">PyErr_WarnExplicitObject</code><span class="
 <dl class="function">
 <dt id="c.PyErr_WarnExplicit">
 int <code class="sig-name descname">PyErr_WarnExplicit</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *category</em>, const char<em> *message</em>, const char<em> *filename</em>, int<em> lineno</em>, const char<em> *module</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *registry</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_WarnExplicit" title="정의 주소">¶</a></dt>
-<dd><p><em>message</em>와 <em>module</em>이 UTF-8 인코딩된 문자열이고, <em>filename</em>은 파일 시스템 인코딩(<a class="reference internal" href="../library/os.html#os.fsdecode" title="os.fsdecode"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fsdecode()</span></code></a>)으로 디코딩된다는 점을 제외하면 <a class="reference internal" href="#c.PyErr_WarnExplicitObject" title="PyErr_WarnExplicitObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnExplicitObject()</span></code></a>와 유사합니다.</p>
+<dd><p><em>message</em>와 <em>module</em>이 UTF-8 인코딩된 문자열이고, <em>filename</em>은 파일 시스템 인코딩(<a class="reference internal" href="../library/os.html#os.fsdecode" title="os.fsdecode"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fsdecode()</span></code></a>)으로 디코딩된다는 점을 제외하면 <a class="reference internal" href="#c.PyErr_WarnExplicitObject" title="PyErr_WarnExplicitObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnExplicitObject()</span></code></a> 와 유사합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_WarnFormat">
 int <code class="sig-name descname">PyErr_WarnFormat</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *category</em>, Py_ssize_t<em> stack_level</em>, const char<em> *format</em>, ...<span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_WarnFormat" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference internal" href="#c.PyErr_WarnEx" title="PyErr_WarnEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnEx()</span></code></a>와 유사한 함수지만, <a class="reference internal" href="unicode.html#c.PyUnicode_FromFormat" title="PyUnicode_FromFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnicode_FromFormat()</span></code></a>를 사용하여 경고 메시지를 포맷합니다. <em>format</em>은 ASCII 인코딩된 문자열입니다.</p>
+<dd><p><a class="reference internal" href="#c.PyErr_WarnEx" title="PyErr_WarnEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnEx()</span></code></a>와 유사한 함수지만, <a class="reference internal" href="unicode.html#c.PyUnicode_FromFormat" title="PyUnicode_FromFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnicode_FromFormat()</span></code></a>을 사용하여 경고 메시지를 포맷합니다. <em>format</em>은 ASCII 인코딩된 문자열입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.2에 추가.</span></p>
 </div>
@@ -366,7 +366,7 @@ int <code class="sig-name descname">PyErr_WarnFormat</code><span class="sig-pare
 <dl class="function">
 <dt id="c.PyErr_ResourceWarning">
 int <code class="sig-name descname">PyErr_ResourceWarning</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *source</em>, Py_ssize_t<em> stack_level</em>, const char<em> *format</em>, ...<span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_ResourceWarning" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference internal" href="#c.PyErr_WarnFormat" title="PyErr_WarnFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnFormat()</span></code></a>와 유사한 함수지만, <em>category</em>는 <a class="reference internal" href="../library/exceptions.html#ResourceWarning" title="ResourceWarning"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ResourceWarning</span></code></a>이고 <em>source</em>를 <code class="xref py py-func docutils literal notranslate"><span class="pre">warnings.WarningMessage()</span></code>로 전달합니다.</p>
+<dd><p><a class="reference internal" href="#c.PyErr_WarnFormat" title="PyErr_WarnFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_WarnFormat()</span></code></a>과 유사한 함수지만, <em>category</em>는 <a class="reference internal" href="../library/exceptions.html#ResourceWarning" title="ResourceWarning"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ResourceWarning</span></code></a>이고 <em>source</em>를 <code class="xref py py-func docutils literal notranslate"><span class="pre">warnings.WarningMessage()</span></code>로 전달합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.6에 추가.</span></p>
 </div>
@@ -378,8 +378,8 @@ int <code class="sig-name descname">PyErr_ResourceWarning</code><span class="sig
 <dl class="function">
 <dt id="c.PyErr_Occurred">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_Occurred</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_Occurred" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: Borrowed reference.</em><p>에러 표시기가 설정되었는지 테스트합니다. 설정되었으면, 예외 <em>type</em>(<code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Set*()</span></code> 함수나 <a class="reference internal" href="#c.PyErr_Restore" title="PyErr_Restore"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Restore()</span></code></a>에 대한 마지막 호출의 첫 번째 인자)을 반환합니다. 설정되지 않았으면, <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. 여러분이 반환 값에 대한 참조를 소유하지 않으므로, <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> 할 필요가 없습니다.</p>
-<p>호출자는 GIL을 보유해야합니다.</p>
+<dd><em class="refcount">Return value: Borrowed reference.</em><p>에러 표시기가 설정되었는지 테스트합니다. 설정되었으면, 예외 <em>type</em>(<code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Set*()</span></code> 함수나 <a class="reference internal" href="#c.PyErr_Restore" title="PyErr_Restore"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Restore()</span></code></a>에 대한 마지막 호출의 첫 번째 인자)을 반환합니다. 설정되지 않았으면, <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. 여러분이 반환 값에 대한 참조를 소유하지 않아서, <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a> 할 필요가 없습니다.</p>
+<p>호출자는 GIL을 보유해야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>반환 값을 특정 예외와 비교하지 마십시오; 대신 <a class="reference internal" href="#c.PyErr_ExceptionMatches" title="PyErr_ExceptionMatches"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_ExceptionMatches()</span></code></a>를 사용하십시오, 아래를 참조하십시오. (클래스 예외의 경우 예외가 클래스 대신 인스턴스이거나, 예상하는 예외의 서브 클래스일 수 있어서 비교는 실패하기 쉽습니다.)</p>
@@ -389,13 +389,13 @@ int <code class="sig-name descname">PyErr_ResourceWarning</code><span class="sig
 <dl class="function">
 <dt id="c.PyErr_ExceptionMatches">
 int <code class="sig-name descname">PyErr_ExceptionMatches</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exc</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_ExceptionMatches" title="정의 주소">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">PyErr_GivenExceptionMatches(PyErr_Occurred(),</span> <span class="pre">exc)</span></code>와 동등합니다. 예외가 실제로 설정되었을 때만 호출해야합니다; 예외가 발생하지 않았으면 메모리 액세스 위반이 발생합니다.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">PyErr_GivenExceptionMatches(PyErr_Occurred(),</span> <span class="pre">exc)</span></code>와 동등합니다. 예외가 실제로 설정되었을 때만 호출해야 합니다; 예외가 발생하지 않았으면 메모리 액세스 위반이 발생합니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_GivenExceptionMatches">
 int <code class="sig-name descname">PyErr_GivenExceptionMatches</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *given</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exc</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_GivenExceptionMatches" title="정의 주소">¶</a></dt>
-<dd><p><em>given</em> 예외가 <em>exc</em>의 예외 형과 일치하면 참을 반환합니다. <em>exc</em>가 클래스 객체이면, <em>given</em>이 서브 클래스의 인스턴스 일 때도 참을 반환합니다. <em>exc</em>가 튜플이면, 튜플에 있는 모든 예외 형(그리고 서브 튜플도 재귀적으로)을 일치를 위해 검색합니다.</p>
+<dd><p><em>given</em> 예외가 <em>exc</em>의 예외 형과 일치하면 참을 반환합니다. <em>exc</em>가 클래스 객체이면, <em>given</em>이 서브 클래스의 인스턴스일 때도 참을 반환합니다. <em>exc</em>가 튜플이면, 튜플에 있는 모든 예외 형(그리고 서브 튜플도 재귀적으로)을 일치를 위해 검색합니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -404,7 +404,7 @@ void <code class="sig-name descname">PyErr_Fetch</code><span class="sig-paren">(
 <dd><p>주소가 전달된 세 개의 변수로 에러 표시기를 꺼냅니다. 에러 표시기가 설정되지 않았으면, 세 변수를 모두 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>로 설정합니다. 설정되었으면, 지워지고 꺼낸 각 객체에 대한 참조를 여러분이 소유합니다. 값과 트레이스백 객체는 형 객체가 그렇지 않을 때도 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>일 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>이 함수는 일반적으로 예외를 포착해야하는 코드나 에러 표시기를 일시적으로 저장하고 복원해야하는 코드에서만 사용됩니다. 예를 들어:</p>
+<p>이 함수는 일반적으로 예외를 포착해야 하는 코드나 에러 표시기를 일시적으로 저장하고 복원해야 하는 코드에서만 사용됩니다. 예를 들어:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
    <span class="n">PyObject</span> <span class="o">*</span><span class="n">type</span><span class="p">,</span> <span class="o">*</span><span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">traceback</span><span class="p">;</span>
    <span class="n">PyErr_Fetch</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">value</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">traceback</span><span class="p">);</span>
@@ -421,17 +421,17 @@ void <code class="sig-name descname">PyErr_Fetch</code><span class="sig-paren">(
 <dl class="function">
 <dt id="c.PyErr_Restore">
 void <code class="sig-name descname">PyErr_Restore</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *type</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *value</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *traceback</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_Restore" title="정의 주소">¶</a></dt>
-<dd><p>세 객체로 에러 표시기를 설정합니다. 에러 표시기가 이미 설정되어 있으면, 먼저 지워집니다. 객체가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이면, 에러 표시기가 지워집니다. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> type과 함께 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 value나 traceback을 전달하지 마십시오. 예외 형은 클래스여야 합니다. 잘못된 예외 형이나 값을 전달하지 마십시오. (이러한 규칙을 위반하면 나중에 미묘한 문제가 발생합니다.) 이 호출은 각 객체에 대한 참조를 제거합니다: 호출 전에 각 객체에 대한 참조를 소유해야하며 호출 후에는 더는 이러한 참조를 소유하지 않습니다. (이것을 이해할 수 없다면, 이 함수를 사용하지 마십시오. 경고했습니다.)</p>
+<dd><p>세 객체로 에러 표시기를 설정합니다. 에러 표시기가 이미 설정되어 있으면, 먼저 지워집니다. 객체가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이면, 에러 표시기가 지워집니다. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> type과 함께 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 value나 traceback 을 전달하지 마십시오. 예외 형은 클래스여야 합니다. 잘못된 예외 형이나 값을 전달하지 마십시오. (이러한 규칙을 위반하면 나중에 미묘한 문제가 발생합니다.) 이 호출은 각 객체에 대한 참조를 제거합니다: 호출 전에 각 객체에 대한 참조를 소유해야 하며 호출 후에는 더는 이러한 참조를 소유하지 않습니다. (이것을 이해할 수 없다면, 이 함수를 사용하지 마십시오. 경고했습니다.)</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>이 함수는 일반적으로 에러 표시기를 일시적으로 저장하고 복원해야하는 코드에서만 사용됩니다. 현재 에러 표시기를 저장하려면 <a class="reference internal" href="#c.PyErr_Fetch" title="PyErr_Fetch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Fetch()</span></code></a>를 사용하십시오.</p>
+<p>이 함수는 일반적으로 에러 표시기를 일시적으로 저장하고 복원해야 하는 코드에서만 사용됩니다. 현재 에러 표시기를 저장하려면 <a class="reference internal" href="#c.PyErr_Fetch" title="PyErr_Fetch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Fetch()</span></code></a>를 사용하십시오.</p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_NormalizeException">
 void <code class="sig-name descname">PyErr_NormalizeException</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>**exc, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>**val, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>**tb<span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_NormalizeException" title="정의 주소">¶</a></dt>
-<dd><p>특정 상황에서, 아래의 <a class="reference internal" href="#c.PyErr_Fetch" title="PyErr_Fetch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Fetch()</span></code></a>가 반환하는 값은 &quot;비정규화&quot;되었을 수 있습니다. 즉, <code class="docutils literal notranslate"><span class="pre">*exc</span></code>는 클래스 객체이지만 <code class="docutils literal notranslate"><span class="pre">*val</span></code>은 같은 클래스의 인스턴스가 아닙니다. 이 함수는 이 경우 클래스를 인스턴스화하는 데 사용할 수 있습니다. 값이 이미 정규화되어 있으면, 아무 일도 일어나지 않습니다. 지연된 정규화는 성능 향상을 위해 구현됩니다.</p>
+<dd><p>특정 상황에서, 아래의 <a class="reference internal" href="#c.PyErr_Fetch" title="PyErr_Fetch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Fetch()</span></code></a>가 반환하는 값은 &quot;비 정규화&quot;되었을 수 있습니다. 즉, <code class="docutils literal notranslate"><span class="pre">*exc</span></code>는 클래스 객체이지만 <code class="docutils literal notranslate"><span class="pre">*val</span></code>은 같은 클래스의 인스턴스가 아닙니다. 이 함수는 이 경우 클래스를 인스턴스 화하는 데 사용할 수 있습니다. 값이 이미 정규화되어 있으면, 아무 일도 일어나지 않습니다. 지연된 정규화는 성능 향상을 위해 구현됩니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>이 함수 예외 값에 <code class="docutils literal notranslate"><span class="pre">__traceback__</span></code> 어트리뷰트를 묵시적으로 설정하지 <em>않습니다</em>. 트레이스백을 적절하게 설정해야 하면, 다음과 같은 추가 스니펫이 필요합니다:</p>
@@ -446,7 +446,7 @@ void <code class="sig-name descname">PyErr_NormalizeException</code><span class=
 <dl class="function">
 <dt id="c.PyErr_GetExcInfo">
 void <code class="sig-name descname">PyErr_GetExcInfo</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> **ptype</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> **pvalue</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> **ptraceback</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_GetExcInfo" title="정의 주소">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">sys.exc_info()</span></code>로 알려진 것과 같은, 예외 정보를 꺼냅니다. 이것은 새로 발생한 예외가 아니라, <em>이미 포착된</em> 예외를 가리킵니다. 세 객체에 대한 새 참조를 반환합니다. 이 중 어느것이든 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>일 수 있습니다. 예외 정보 상태를 수정하지 않습니다.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">sys.exc_info()</span></code>로 알려진 것과 같은, 예외 정보를 꺼냅니다. 이것은 새로 발생한 예외가 아니라, <em>이미 포착된</em> 예외를 가리킵니다. 세 객체에 대한 새 참조를 반환합니다. 이 중 어느 것이든 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>일 수 있습니다. 예외 정보 상태를 수정하지 않습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>이 함수는 일반적으로 예외를 처리하려는 코드에서 사용되지 않습니다. 오히려, 코드가 예외 상태를 임시로 저장하고 복원해야 할 때 사용할 수 있습니다. 예외 상태를 복원하거나 지우려면 <a class="reference internal" href="#c.PyErr_SetExcInfo" title="PyErr_SetExcInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_SetExcInfo()</span></code></a>를 사용하십시오.</p>
@@ -482,14 +482,14 @@ int <code class="sig-name descname">PyErr_CheckSignals</code><span class="sig-pa
 <dt id="c.PyErr_SetInterrupt">
 void <code class="sig-name descname">PyErr_SetInterrupt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_SetInterrupt" title="정의 주소">¶</a></dt>
 <dd><p id="index-2"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code> 시그널 도착의 효과를 시뮬레이션합니다. 다음에 <a class="reference internal" href="#c.PyErr_CheckSignals" title="PyErr_CheckSignals"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_CheckSignals()</span></code></a>가 호출되면, <code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>에 대한 파이썬 시그널 처리기가 호출됩니다.</p>
-<p><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>가 파이썬에서 처리되지 않으면 (<a class="reference internal" href="../library/signal.html#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-data docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a>이나 <a class="reference internal" href="../library/signal.html#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-data docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>로 설정되어서), 이 함수는 아무 작업도 수행하지 않습니다.</p>
+<p><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code>가 파이썬에서 처리되지 않으면 (<a class="reference internal" href="../library/signal.html#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-data docutils literal notranslate"><span class="pre">signal.SIG_DFL</span></code></a>이나 <a class="reference internal" href="../library/signal.html#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-data docutils literal notranslate"><span class="pre">signal.SIG_IGN</span></code></a>으로 설정되어서), 이 함수는 아무 작업도 수행하지 않습니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PySignal_SetWakeupFd">
 int <code class="sig-name descname">PySignal_SetWakeupFd</code><span class="sig-paren">(</span>int<em> fd</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PySignal_SetWakeupFd" title="정의 주소">¶</a></dt>
 <dd><p>이 유틸리티 함수는 시그널이 수신될 때마다 시그널 번호가 단일 바이트로 기록되는 파일 기술자를 지정합니다. <em>fd</em>는 비 블로킹이어야 합니다. 이전의 파일 기술자를 반환합니다.</p>
-<p>값 <code class="docutils literal notranslate"><span class="pre">-1</span></code>은 기능을 비활성화합니다; 이것이 초기 상태입니다. 이것은 파이썬의 <a class="reference internal" href="../library/signal.html#signal.set_wakeup_fd" title="signal.set_wakeup_fd"><code class="xref py py-func docutils literal notranslate"><span class="pre">signal.set_wakeup_fd()</span></code></a>와 동등하지만, 에러 검사는 없습니다. <em>fd</em>는 유효한 파일 기술자여야 합니다. 함수는 메인 스레드에서만 호출되어야합니다.</p>
+<p>값 <code class="docutils literal notranslate"><span class="pre">-1</span></code>은 기능을 비활성화합니다; 이것이 초기 상태입니다. 이것은 파이썬의 <a class="reference internal" href="../library/signal.html#signal.set_wakeup_fd" title="signal.set_wakeup_fd"><code class="xref py py-func docutils literal notranslate"><span class="pre">signal.set_wakeup_fd()</span></code></a>와 동등하지만, 에러 검사는 없습니다. <em>fd</em>는 유효한 파일 기술자여야 합니다. 함수는 메인 스레드에서만 호출되어야 합니다.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span>윈도우에서, 함수는 이제 소켓 핸들도 지원합니다.</p>
 </div>
@@ -501,14 +501,14 @@ int <code class="sig-name descname">PySignal_SetWakeupFd</code><span class="sig-
 <dl class="function">
 <dt id="c.PyErr_NewException">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_NewException</code><span class="sig-paren">(</span>const char<em> *name</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *base</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *dict</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_NewException" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: New reference.</em><p>이 유틸리티 함수는 새 예외 클래스를 만들고 반환합니다. <em>name</em> 인자는 새 예외의 이름, <code class="docutils literal notranslate"><span class="pre">module.classname</span></code> 형식의 C 문자열이어야합니다. <em>base</em>와 <em>dict</em> 인자는 일반적으로 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>입니다. 이렇게하면 <a class="reference internal" href="../library/exceptions.html#Exception" title="Exception"><code class="xref py py-exc docutils literal notranslate"><span class="pre">Exception</span></code></a>(C에서 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Exception</span></code>로 액세스할 수 있습니다)에서 파생된 클래스 객체가 만들어집니다.</p>
+<dd><em class="refcount">Return value: New reference.</em><p>이 유틸리티 함수는 새 예외 클래스를 만들고 반환합니다. <em>name</em> 인자는 새 예외의 이름, <code class="docutils literal notranslate"><span class="pre">module.classname</span></code> 형식의 C 문자열이어야 합니다. <em>base</em>와 <em>dict</em> 인자는 일반적으로 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>입니다. 이렇게 하면 <a class="reference internal" href="../library/exceptions.html#Exception" title="Exception"><code class="xref py py-exc docutils literal notranslate"><span class="pre">Exception</span></code></a>(C에서 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_Exception</span></code>으로 액세스할 수 있습니다)에서 파생된 클래스 객체가 만들어집니다.</p>
 <p>새 클래스의 <code class="xref py py-attr docutils literal notranslate"><span class="pre">__module__</span></code> 어트리뷰트는 <em>name</em> 인자의 첫 번째 부분(마지막 점까지)으로 설정되고, 클래스 이름은 마지막 부분(마지막 점 뒤)으로 설정됩니다. <em>base</em> 인자는 대체 베이스 클래스를 지정하는 데 사용할 수 있습니다; 하나의 클래스나 클래스의 튜플일 수 있습니다. <em>dict</em> 인자는 클래스 변수와 메서드의 딕셔너리를 지정하는 데 사용할 수 있습니다.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="c.PyErr_NewExceptionWithDoc">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a>* <code class="sig-name descname">PyErr_NewExceptionWithDoc</code><span class="sig-paren">(</span>const char<em> *name</em>, const char<em> *doc</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *base</em>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *dict</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyErr_NewExceptionWithDoc" title="정의 주소">¶</a></dt>
-<dd><em class="refcount">Return value: New reference.</em><p>새로운 예외 클래스에 독스트링을 쉽게 부여할 수 있다는 점을 제외하면 <a class="reference internal" href="#c.PyErr_NewException" title="PyErr_NewException"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_NewException()</span></code></a>와 같습니다: <em>doc</em>이 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니면, 예외 클래스에 대한 독스트링으로 사용됩니다.</p>
+<dd><em class="refcount">Return value: New reference.</em><p>새로운 예외 클래스에 독스트링을 쉽게 부여할 수 있다는 점을 제외하면 <a class="reference internal" href="#c.PyErr_NewException" title="PyErr_NewException"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_NewException()</span></code></a>과 같습니다: <em>doc</em>이 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니면, 예외 클래스에 대한 독스트링으로 사용됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.2에 추가.</span></p>
 </div>
@@ -609,7 +609,7 @@ int <code class="sig-name descname">PyUnicodeDecodeError_GetStart</code><span cl
 int <code class="sig-name descname">PyUnicodeEncodeError_GetStart</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exc</em>, Py_ssize_t<em> *start</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnicodeEncodeError_GetStart" title="정의 주소">¶</a></dt>
 <dt id="c.PyUnicodeTranslateError_GetStart">
 int <code class="sig-name descname">PyUnicodeTranslateError_GetStart</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exc</em>, Py_ssize_t<em> *start</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnicodeTranslateError_GetStart" title="정의 주소">¶</a></dt>
-<dd><p>주어진 예외 객체의 <em>start</em> 어트리뷰트를 가져 와서 <em>*start</em>에 배치합니다. <em>start</em>는 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니어야 합니다. 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다.</p>
+<dd><p>주어진 예외 객체의 <em>start</em> 어트리뷰트를 가져와서 <em>*start</em>에 배치합니다. <em>start</em>는 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니어야 합니다. 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -629,7 +629,7 @@ int <code class="sig-name descname">PyUnicodeDecodeError_GetEnd</code><span clas
 int <code class="sig-name descname">PyUnicodeEncodeError_GetEnd</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exc</em>, Py_ssize_t<em> *end</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnicodeEncodeError_GetEnd" title="정의 주소">¶</a></dt>
 <dt id="c.PyUnicodeTranslateError_GetEnd">
 int <code class="sig-name descname">PyUnicodeTranslateError_GetEnd</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *exc</em>, Py_ssize_t<em> *end</em><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnicodeTranslateError_GetEnd" title="정의 주소">¶</a></dt>
-<dd><p>주어진 예외 객체의 <em>end</em> 어트리뷰트를 가져 와서 <em>*end</em>에 배치합니다. <em>end</em>는 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니어야 합니다. 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다.</p>
+<dd><p>주어진 예외 객체의 <em>end</em> 어트리뷰트를 가져와서 <em>*end</em>에 배치합니다. <em>end</em>는 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아니어야 합니다. 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code>을, 실패하면 <code class="docutils literal notranslate"><span class="pre">-1</span></code>을 반환합니다.</p>
 </dd></dl>
 
 <dl class="function">
@@ -670,7 +670,7 @@ int <code class="sig-name descname">PyUnicodeTranslateError_SetReason</code><spa
 <dt id="c.Py_EnterRecursiveCall">
 int <code class="sig-name descname">Py_EnterRecursiveCall</code><span class="sig-paren">(</span>const char<em> *where</em><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_EnterRecursiveCall" title="정의 주소">¶</a></dt>
 <dd><p>재귀적 C 수준 호출이 막 수행되려고 하는 지점을 표시합니다.</p>
-<p><code class="xref py py-const docutils literal notranslate"><span class="pre">USE_STACKCHECK</span></code>가 정의되었으면, 이 함수는 <a class="reference internal" href="sys.html#c.PyOS_CheckStack" title="PyOS_CheckStack"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyOS_CheckStack()</span></code></a>을 사용하여 OS 스택이 오버플로되었는지 확인합니다. 이 경우, <a class="reference internal" href="../library/exceptions.html#MemoryError" title="MemoryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">MemoryError</span></code></a>를 설정하고 0이 아닌 값을 반환합니다.</p>
+<p><code class="xref py py-const docutils literal notranslate"><span class="pre">USE_STACKCHECK</span></code>가 정의되었으면, 이 함수는 <a class="reference internal" href="sys.html#c.PyOS_CheckStack" title="PyOS_CheckStack"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyOS_CheckStack()</span></code></a>을 사용하여 OS 스택이 오버플로 되었는지 확인합니다. 이 경우, <a class="reference internal" href="../library/exceptions.html#MemoryError" title="MemoryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">MemoryError</span></code></a>를 설정하고 0이 아닌 값을 반환합니다.</p>
 <p>그런 다음 함수는 재귀 제한에 도달했는지 확인합니다. 이 경우, <a class="reference internal" href="../library/exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RecursionError</span></code></a>가 설정되고 0이 아닌 값이 반환됩니다. 그렇지 않으면, 0이 반환됩니다.</p>
 <p><em>where</em>는 재귀 깊이 제한으로 인한 <a class="reference internal" href="../library/exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RecursionError</span></code></a> 메시지에 이어붙일 <code class="docutils literal notranslate"><span class="pre">&quot;</span> <span class="pre">in</span> <span class="pre">instance</span> <span class="pre">check&quot;</span></code>와 같은 UTF-8 인코딩된 문자열이어야 합니다.</p>
 <div class="versionchanged">
@@ -681,19 +681,19 @@ int <code class="sig-name descname">Py_EnterRecursiveCall</code><span class="sig
 <dl class="function">
 <dt id="c.Py_LeaveRecursiveCall">
 void <code class="sig-name descname">Py_LeaveRecursiveCall</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.Py_LeaveRecursiveCall" title="정의 주소">¶</a></dt>
-<dd><p><a class="reference internal" href="#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a>을 종료합니다. <a class="reference internal" href="#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a>의 각 <em>성공적인</em> 호출마다 한 번씩 호출되어야합니다.</p>
+<dd><p><a class="reference internal" href="#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a> 을 종료합니다. <a class="reference internal" href="#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a> 의 각 <em>성공적인</em> 호출마다 한 번씩 호출되어야 합니다.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.9에서 변경: </span>이 함수는 이제 제한된 API에서도 사용할 수 있습니다.</p>
 </div>
 </dd></dl>
 
-<p>컨테이너 형에 대해 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a>을 올바르게 구현하려면 특별한 재귀 처리가 필요합니다. 스택을 보호하는 것 외에도, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a>은 순환을 방지하기 위해 객체를 추적해야 합니다. 다음 두 함수는 이 기능을 용이하게 합니다. 사실상, 이들은 <a class="reference internal" href="../library/reprlib.html#reprlib.recursive_repr" title="reprlib.recursive_repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">reprlib.recursive_repr()</span></code></a>에 대한 C 동등물입니다.</p>
+<p>컨테이너형에 대해 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a>을 올바르게 구현하려면 특별한 재귀 처리가 필요합니다. 스택을 보호하는 것 외에도, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a>은 순환을 방지하기 위해 객체를 추적해야 합니다. 다음 두 함수는 이 기능을 쉽게 만듭니다. 사실상, 이들은 <a class="reference internal" href="../library/reprlib.html#reprlib.recursive_repr" title="reprlib.recursive_repr"><code class="xref py py-func docutils literal notranslate"><span class="pre">reprlib.recursive_repr()</span></code></a>에 대한 C 동등물입니다.</p>
 <dl class="function">
 <dt id="c.Py_ReprEnter">
 int <code class="sig-name descname">Py_ReprEnter</code><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject">PyObject</a><em> *object</em><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_ReprEnter" title="정의 주소">¶</a></dt>
 <dd><p>순환을 감지하기 위해 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 구현 시작 시 호출됩니다.</p>
-<p>객체가 이미 처리되었으면, 함수는 양의 정수를 반환합니다. 이 경우 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 구현은 순환을 나타내는 문자열 객체를 반환해야합니다. 예를 들어, <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> 객체는 <code class="docutils literal notranslate"><span class="pre">{...}</span></code>를 반환하고 <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> 객체는 <code class="docutils literal notranslate"><span class="pre">[...]</span></code>를 반환합니다.</p>
-<p>재귀 제한에 도달하면 함수는 음의 정수를 반환합니다. 이 경우 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 구현은 일반적으로 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환해야합니다.</p>
+<p>객체가 이미 처리되었으면, 함수는 양의 정수를 반환합니다. 이 경우 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 구현은 순환을 나타내는 문자열 객체를 반환해야 합니다. 예를 들어, <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> 객체는 <code class="docutils literal notranslate"><span class="pre">{...}</span></code>를 반환하고 <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> 객체는 <code class="docutils literal notranslate"><span class="pre">[...]</span></code>를 반환합니다.</p>
+<p>재귀 제한에 도달하면 함수는 음의 정수를 반환합니다. 이 경우 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 구현은 일반적으로 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환해야 합니다.</p>
 <p>그렇지 않으면, 함수는 0을 반환하고 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_repr" title="PyTypeObject.tp_repr"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_repr</span></code></a> 구현은 정상적으로 계속될 수 있습니다.</p>
 </dd></dl>
 
@@ -938,12 +938,12 @@ void <code class="sig-name descname">Py_ReprLeave</code><span class="sig-paren">
 <p><span class="versionmodified added">버전 3.3에 추가: </span><code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_BlockingIOError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_BrokenPipeError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ChildProcessError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ConnectionError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ConnectionAbortedError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ConnectionRefusedError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ConnectionResetError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_FileExistsError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_FileNotFoundError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_InterruptedError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_IsADirectoryError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_NotADirectoryError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_PermissionError</span></code>, <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ProcessLookupError</span></code> 및 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_TimeoutError</span></code>는 <span class="target" id="index-8"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3151"><strong>PEP 3151</strong></a>을 따라 도입되었습니다.</p>
 </div>
 <div class="versionadded">
-<p><span class="versionmodified added">버전 3.5에 추가: </span><code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_StopAsyncIteration</span></code>과 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_RecursionError</span></code>.</p>
+<p><span class="versionmodified added">버전 3.5에 추가: </span><code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_StopAsyncIteration</span></code> 과 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_RecursionError</span></code>.</p>
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.6에 추가: </span><code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ModuleNotFoundError</span></code>.</p>
 </div>
-<p>These are compatibility aliases to <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_OSError</span></code>:</p>
+<p>다음은 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_OSError</span></code>에 대한 호환성 별칭입니다:</p>
 <table class="docutils align-default" id="index-5">
 <colgroup>
 <col style="width: 79%" />
@@ -967,21 +967,17 @@ void <code class="sig-name descname">Py_ReprLeave</code><span class="sig-paren">
 </tbody>
 </table>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.3에서 변경: </span>These aliases used to be separate exception types.</p>
+<p><span class="versionmodified changed">버전 3.3에서 변경: </span>이러한 별칭은 별도의 예외 형이었습니다.</p>
 </div>
-<p>Notes:</p>
+<p>노트:</p>
 <ol class="arabic simple">
-<li><p>This is a base class for other standard exceptions.</p></li>
-<li><p>Only defined on Windows; protect code that uses this by testing that the
-preprocessor macro <code class="docutils literal notranslate"><span class="pre">MS_WINDOWS</span></code> is defined.</p></li>
+<li><p>이것은 다른 표준 예외에 대한 베이스 클래스입니다.</p></li>
+<li><p>윈도우에서만 정의됩니다; 전 처리기 매크로 <code class="docutils literal notranslate"><span class="pre">MS_WINDOWS</span></code>가 정의되었는지 테스트하여 이를 사용하는 코드를 보호하십시오.</p></li>
 </ol>
 </div>
 <div class="section" id="standard-warning-categories">
 <span id="standardwarningcategories"></span><h2>표준 경고 범주<a class="headerlink" href="#standard-warning-categories" title="제목 주소">¶</a></h2>
-<p>All standard Python warning categories are available as global variables whose
-names are <code class="docutils literal notranslate"><span class="pre">PyExc_</span></code> followed by the Python exception name. These have the type
-<a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a>; they are all class objects. For completeness, here are all
-the variables:</p>
+<p>모든 표준 파이썬 경고 범주는 <code class="docutils literal notranslate"><span class="pre">PyExc_</span></code> 뒤에 파이썬 예외 이름이 오는 이름의 전역 변수로 제공됩니다. <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject*</span></code></a> 형입니다; 모두 클래스 객체입니다. 완전성을 위해, 다음은 모든 변수입니다:</p>
 <table class="docutils align-default" id="index-6">
 <colgroup>
 <col style="width: 49%" />
@@ -1044,9 +1040,9 @@ the variables:</p>
 <div class="versionadded">
 <p><span class="versionmodified added">버전 3.2에 추가: </span><code class="xref c c-data docutils literal notranslate"><span class="pre">PyExc_ResourceWarning</span></code>.</p>
 </div>
-<p>Notes:</p>
+<p>노트:</p>
 <ol class="arabic simple">
-<li><p>This is a base class for other standard warning categories.</p></li>
+<li><p>이것은 다른 표준 경고 범주의 베이스 클래스입니다.</p></li>
 </ol>
 </div>
 </div>
