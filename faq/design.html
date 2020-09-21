@@ -140,12 +140,12 @@
 <li><p><a class="reference internal" href="#can-python-be-compiled-to-machine-code-c-or-some-other-language" id="id15">파이썬을 기계 코드, C 또는 다른 언어로 컴파일 할 수 있습니까?</a></p></li>
 <li><p><a class="reference internal" href="#how-does-python-manage-memory" id="id16">파이썬은 메모리를 어떻게 관리합니까?</a></p></li>
 <li><p><a class="reference internal" href="#why-doesn-t-cpython-use-a-more-traditional-garbage-collection-scheme" id="id17">CPython이 더 전통적인 가비지 수거 체계를 사용하지 않는 이유는 무엇입니까?</a></p></li>
-<li><p><a class="reference internal" href="#why-isn-t-all-memory-freed-when-cpython-exits" id="id18">Why isn't all memory freed when CPython exits?</a></p></li>
-<li><p><a class="reference internal" href="#why-are-there-separate-tuple-and-list-data-types" id="id19">Why are there separate tuple and list data types?</a></p></li>
-<li><p><a class="reference internal" href="#how-are-lists-implemented-in-cpython" id="id20">How are lists implemented in CPython?</a></p></li>
-<li><p><a class="reference internal" href="#how-are-dictionaries-implemented-in-cpython" id="id21">How are dictionaries implemented in CPython?</a></p></li>
-<li><p><a class="reference internal" href="#why-must-dictionary-keys-be-immutable" id="id22">Why must dictionary keys be immutable?</a></p></li>
-<li><p><a class="reference internal" href="#why-doesn-t-list-sort-return-the-sorted-list" id="id23">Why doesn't list.sort() return the sorted list?</a></p></li>
+<li><p><a class="reference internal" href="#why-isn-t-all-memory-freed-when-cpython-exits" id="id18">CPython이 종료될 때 모든 메모리가 해제되지 않는 이유는 무엇입니까?</a></p></li>
+<li><p><a class="reference internal" href="#why-are-there-separate-tuple-and-list-data-types" id="id19">별도의 튜플과 리스트 데이터 형이 있는 이유는 무엇입니까?</a></p></li>
+<li><p><a class="reference internal" href="#how-are-lists-implemented-in-cpython" id="id20">CPython에서 리스트는 어떻게 구현됩니까?</a></p></li>
+<li><p><a class="reference internal" href="#how-are-dictionaries-implemented-in-cpython" id="id21">CPython에서 딕셔너리는 어떻게 구현됩니까?</a></p></li>
+<li><p><a class="reference internal" href="#why-must-dictionary-keys-be-immutable" id="id22">딕셔너리 키가 불변어이야 하는 이유는 무엇입니까?</a></p></li>
+<li><p><a class="reference internal" href="#why-doesn-t-list-sort-return-the-sorted-list" id="id23">list.sort()가 정렬된 리스트를 반환하지 않는 이유는 무엇입니까?</a></p></li>
 <li><p><a class="reference internal" href="#how-do-you-specify-and-enforce-an-interface-spec-in-python" id="id24">How do you specify and enforce an interface spec in Python?</a></p></li>
 <li><p><a class="reference internal" href="#why-is-there-no-goto" id="id25">Why is there no goto?</a></p></li>
 <li><p><a class="reference internal" href="#why-can-t-raw-strings-r-strings-end-with-a-backslash" id="id26">Why can't raw strings (r-strings) end with a backslash?</a></p></li>
@@ -334,105 +334,45 @@
 <p>전통적인 GC는 파이썬이 다른 응용 프로그램에 내장될 때도 문제가됩니다. 독립형 파이썬에서는 표준 malloc()과 free()를 GC 라이브러리에서 제공하는 버전으로 대체해도 상관없지만, 파이썬을 내장하는 응용 프로그램은 malloc()과 free()에 대한 <em>자신만의</em> 대체를 원할 수 있습니다, 그리고 파이썬의 것을 원하지 않을 수 있습니다. 현재, CPython은 malloc()과 free()를 올바르게 구현하는 모든 것과 동작합니다.</p>
 </div>
 <div class="section" id="why-isn-t-all-memory-freed-when-cpython-exits">
-<h2><a class="toc-backref" href="#id18">Why isn't all memory freed when CPython exits?</a><a class="headerlink" href="#why-isn-t-all-memory-freed-when-cpython-exits" title="제목 주소">¶</a></h2>
-<p>Objects referenced from the global namespaces of Python modules are not always
-deallocated when Python exits.  This may happen if there are circular
-references.  There are also certain bits of memory that are allocated by the C
-library that are impossible to free (e.g. a tool like Purify will complain about
-these).  Python is, however, aggressive about cleaning up memory on exit and
-does try to destroy every single object.</p>
-<p>If you want to force Python to delete certain things on deallocation use the
-<a class="reference internal" href="../library/atexit.html#module-atexit" title="atexit: Register and execute cleanup functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code></a> module to run a function that will force those deletions.</p>
+<h2><a class="toc-backref" href="#id18">CPython이 종료될 때 모든 메모리가 해제되지 않는 이유는 무엇입니까?</a><a class="headerlink" href="#why-isn-t-all-memory-freed-when-cpython-exits" title="제목 주소">¶</a></h2>
+<p>파이썬 모듈의 전역 이름 공간에서 참조된 객체는 파이썬이 종료될 때 항상 할당 해제되지는 않습니다. 순환 참조가 있으면 발생할 수 있습니다. C 라이브러리에 의해 할당된 해제가 불가능한 특정 메모리도 있습니다 (예를 들어 Purify와 같은 도구는 이에 대해 불평합니다). 그러나, 파이썬은 종료 시 메모리 정리에 적극적이며 모든 단일 객체를 파괴하려고 시도합니다.</p>
+<p>할당 해제 시 파이썬이 특정 항목을 삭제하도록 강제하려면 <a class="reference internal" href="../library/atexit.html#module-atexit" title="atexit: Register and execute cleanup functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code></a> 모듈을 사용하여 해당 삭제를 강제하는 함수를 실행하십시오.</p>
 </div>
 <div class="section" id="why-are-there-separate-tuple-and-list-data-types">
-<h2><a class="toc-backref" href="#id19">Why are there separate tuple and list data types?</a><a class="headerlink" href="#why-are-there-separate-tuple-and-list-data-types" title="제목 주소">¶</a></h2>
-<p>Lists and tuples, while similar in many respects, are generally used in
-fundamentally different ways.  Tuples can be thought of as being similar to
-Pascal records or C structs; they're small collections of related data which may
-be of different types which are operated on as a group.  For example, a
-Cartesian coordinate is appropriately represented as a tuple of two or three
-numbers.</p>
-<p>Lists, on the other hand, are more like arrays in other languages.  They tend to
-hold a varying number of objects all of which have the same type and which are
-operated on one-by-one.  For example, <code class="docutils literal notranslate"><span class="pre">os.listdir('.')</span></code> returns a list of
-strings representing the files in the current directory.  Functions which
-operate on this output would generally not break if you added another file or
-two to the directory.</p>
-<p>Tuples are immutable, meaning that once a tuple has been created, you can't
-replace any of its elements with a new value.  Lists are mutable, meaning that
-you can always change a list's elements.  Only immutable elements can be used as
-dictionary keys, and hence only tuples and not lists can be used as keys.</p>
+<h2><a class="toc-backref" href="#id19">별도의 튜플과 리스트 데이터 형이 있는 이유는 무엇입니까?</a><a class="headerlink" href="#why-are-there-separate-tuple-and-list-data-types" title="제목 주소">¶</a></h2>
+<p>리스트와 튜플은, 여러면에서 비슷하지만, 일반적으로 근본적으로 다른 방식으로 사용됩니다. 튜플은 파스칼 레코드나 C 구조체와 유사하다고 생각할 수 있습니다; 그룹으로 다뤄지는 다양한 형을 갖는 관련 데이터의 작은 모음입니다. 예를 들어, 직교 좌표는 2개나 3개의 숫자로 구성된 튜플로 적절하게 표시됩니다.</p>
+<p>반면에, 리스트는 다른 언어의 배열과 더 비슷합니다. 이들은 모두 같은 형을 가지고 하나씩 다뤄지는 다양한 수의 객체를 보유하는 경향이 있습니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">os.listdir('.')</span></code>은 현재 디렉터리의 파일을 나타내는 문자열 리스트를 반환합니다. 이 출력에 작동하는 함수는 디렉터리에 다른 파일 한두 개를 추가해도 일반적으로 오동작하지 않습니다.</p>
+<p>튜플은 불변입니다. 즉, 일단 튜플이 만들어지면, 어느 요소도 새 값으로 바꿀 수 없습니다. 리스트는 가변이라서, 언제든지 리스트의 요소를 변경할 수 있습니다. 불변인 요소만 딕셔너리 키로 사용할 수 있어서, 리스트가 아니라 튜플 만 키로 사용할 수 있습니다.</p>
 </div>
 <div class="section" id="how-are-lists-implemented-in-cpython">
-<h2><a class="toc-backref" href="#id20">How are lists implemented in CPython?</a><a class="headerlink" href="#how-are-lists-implemented-in-cpython" title="제목 주소">¶</a></h2>
-<p>CPython's lists are really variable-length arrays, not Lisp-style linked lists.
-The implementation uses a contiguous array of references to other objects, and
-keeps a pointer to this array and the array's length in a list head structure.</p>
-<p>This makes indexing a list <code class="docutils literal notranslate"><span class="pre">a[i]</span></code> an operation whose cost is independent of
-the size of the list or the value of the index.</p>
-<p>When items are appended or inserted, the array of references is resized.  Some
-cleverness is applied to improve the performance of appending items repeatedly;
-when the array must be grown, some extra space is allocated so the next few
-times don't require an actual resize.</p>
+<h2><a class="toc-backref" href="#id20">CPython에서 리스트는 어떻게 구현됩니까?</a><a class="headerlink" href="#how-are-lists-implemented-in-cpython" title="제목 주소">¶</a></h2>
+<p>CPython의 리스트는 실제로는 가변 길이 배열입니다, Lisp 스타일의 연결 리스트(linked lists)가 아닙니다. 구현은 다른 객체에 대한 참조의 연속적인 배열을 사용하고, 이 배열에 대한 포인터와 배열의 길이를 리스트 헤드 구조체에 유지합니다.</p>
+<p>이것은 리스트 인덱싱 <code class="docutils literal notranslate"><span class="pre">a[i]</span></code>의 비용이 리스트의 크기나 인덱스의 값과 무관한 연산으로 만듭니다.</p>
+<p>항목이 추가되거나 삽입되면, 참조 배열의 크기가 조정됩니다. 항목을 반복적으로 추가하는 성능을 향상시키기 위해 약간 영리하게 처리합니다; 배열을 확장해야 할 때, 추가 공간이 할당되어 다음 몇 번에는 실제 크기 조정이 필요하지 않습니다.</p>
 </div>
 <div class="section" id="how-are-dictionaries-implemented-in-cpython">
-<h2><a class="toc-backref" href="#id21">How are dictionaries implemented in CPython?</a><a class="headerlink" href="#how-are-dictionaries-implemented-in-cpython" title="제목 주소">¶</a></h2>
-<p>CPython's dictionaries are implemented as resizable hash tables.  Compared to
-B-trees, this gives better performance for lookup (the most common operation by
-far) under most circumstances, and the implementation is simpler.</p>
-<p>Dictionaries work by computing a hash code for each key stored in the dictionary
-using the <a class="reference internal" href="../library/functions.html#hash" title="hash"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash()</span></code></a> built-in function.  The hash code varies widely depending
-on the key and a per-process seed; for example, &quot;Python&quot; could hash to
--539294296 while &quot;python&quot;, a string that differs by a single bit, could hash
-to 1142331976.  The hash code is then used to calculate a location in an
-internal array where the value will be stored.  Assuming that you're storing
-keys that all have different hash values, this means that dictionaries take
-constant time -- O(1), in Big-O notation -- to retrieve a key.</p>
+<h2><a class="toc-backref" href="#id21">CPython에서 딕셔너리는 어떻게 구현됩니까?</a><a class="headerlink" href="#how-are-dictionaries-implemented-in-cpython" title="제목 주소">¶</a></h2>
+<p>CPython의 딕셔너리는 크기 조정 가능한 해시 테이블로 구현됩니다. B-트리에 비해, 대부분의 상황에서 조회(지금까지 가장 흔한 연산) 성능이 향상되고, 구현이 더 간단합니다.</p>
+<p>딕셔너리는 <a class="reference internal" href="../library/functions.html#hash" title="hash"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash()</span></code></a> 내장 함수를 사용하여 딕셔너리에 저장된 각 키에 대한 해시 코드를 계산하여 작동합니다. 해시 코드는 키와 프로세스 별 시드에 따라 크게 다릅니다; 예를 들어, &quot;Python&quot;은 -539294296으로 해시 할 수 있는 반면, 한 글자만 다른 문자열인 &quot;python&quot;은 1142331976로 해시 할 수 있습니다. 그런 다음 해시 코드는 값이 저장될 내부 배열의 위치를 계산하는 데 사용됩니다. 모든 해시 값이 다른 키를 저장한다고 가정하면, 딕셔너리가 키를 검색하는 데 상수 시간이 걸린다는 뜻입니다 -- Big-O 표기법으로 O(1).</p>
 </div>
 <div class="section" id="why-must-dictionary-keys-be-immutable">
-<h2><a class="toc-backref" href="#id22">Why must dictionary keys be immutable?</a><a class="headerlink" href="#why-must-dictionary-keys-be-immutable" title="제목 주소">¶</a></h2>
-<p>The hash table implementation of dictionaries uses a hash value calculated from
-the key value to find the key.  If the key were a mutable object, its value
-could change, and thus its hash could also change.  But since whoever changes
-the key object can't tell that it was being used as a dictionary key, it can't
-move the entry around in the dictionary.  Then, when you try to look up the same
-object in the dictionary it won't be found because its hash value is different.
-If you tried to look up the old value it wouldn't be found either, because the
-value of the object found in that hash bin would be different.</p>
-<p>If you want a dictionary indexed with a list, simply convert the list to a tuple
-first; the function <code class="docutils literal notranslate"><span class="pre">tuple(L)</span></code> creates a tuple with the same entries as the
-list <code class="docutils literal notranslate"><span class="pre">L</span></code>.  Tuples are immutable and can therefore be used as dictionary keys.</p>
-<p>Some unacceptable solutions that have been proposed:</p>
+<h2><a class="toc-backref" href="#id22">딕셔너리 키가 불변어이야 하는 이유는 무엇입니까?</a><a class="headerlink" href="#why-must-dictionary-keys-be-immutable" title="제목 주소">¶</a></h2>
+<p>딕셔너리의 해시 테이블 구현은 키 값에서 계산된 해시 값을 사용하여 키를 찾습니다. 키가 가변 객체이면, 값이 변경될 수 있어서, 해시도 변경될 수 있습니다. 그러나 키 객체를 변경하는 주체는 그것이 딕셔너리 키로 사용되고 있음을 알 수 없기 때문에, 딕셔너리에서 항목을 이동할 수 없습니다. 그런 다음, 딕셔너리에서 같은 객체를 찾으려고 하면 해시 값이 다르기 때문에 찾을 수 없습니다. 이전 값을 찾으려고해도 해당 해시 저장소에서 발견된 객체의 값이 다르기 때문에 역시 찾을 수 없습니다.</p>
+<p>딕셔너리를 리스트로 인덱싱하려면, 먼저 리스트를 튜플로 변환하십시오; <code class="docutils literal notranslate"><span class="pre">tuple(L)</span></code> 함수는 리스트 <code class="docutils literal notranslate"><span class="pre">L</span></code>과 같은 항목을 가진 튜플을 만듭니다. 튜플은 불변이므로 딕셔너리 키로 사용할 수 있습니다.</p>
+<p>제안되었지만 받아들여지지 않은 몇가지 해법:</p>
 <ul>
-<li><p>Hash lists by their address (object ID).  This doesn't work because if you
-construct a new list with the same value it won't be found; e.g.:</p>
+<li><p>주소(객체 ID)로 리스트를 해시합니다. 같은 값으로 새 리스트를 생성하면 찾을 수 없기 때문에 작동하지 않습니다; 예를 들어:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">mydict</span> <span class="o">=</span> <span class="p">{[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span> <span class="s1">&#39;12&#39;</span><span class="p">}</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">mydict</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
 </pre></div>
 </div>
-<p>would raise a <a class="reference internal" href="../library/exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a> exception because the id of the <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2]</span></code> used in the
-second line differs from that in the first line.  In other words, dictionary
-keys should be compared using <code class="docutils literal notranslate"><span class="pre">==</span></code>, not using <a class="reference internal" href="../reference/expressions.html#is"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">is</span></code></a>.</p>
+<p>는 두 번째 줄에 사용된 <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2]</span></code>의 id가 첫 번째 줄의 것과 다르기 때문에 <a class="reference internal" href="../library/exceptions.html#KeyError" title="KeyError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code></a> 예외가 발생합니다. 즉, 딕셔너리 키는 <a class="reference internal" href="../reference/expressions.html#is"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">is</span></code></a>가 아니라 <code class="docutils literal notranslate"><span class="pre">==</span></code>를 사용하여 비교해야합니다.</p>
 </li>
-<li><p>Make a copy when using a list as a key.  This doesn't work because the list,
-being a mutable object, could contain a reference to itself, and then the
-copying code would run into an infinite loop.</p></li>
-<li><p>Allow lists as keys but tell the user not to modify them.  This would allow a
-class of hard-to-track bugs in programs when you forgot or modified a list by
-accident. It also invalidates an important invariant of dictionaries: every
-value in <code class="docutils literal notranslate"><span class="pre">d.keys()</span></code> is usable as a key of the dictionary.</p></li>
-<li><p>Mark lists as read-only once they are used as a dictionary key.  The problem
-is that it's not just the top-level object that could change its value; you
-could use a tuple containing a list as a key.  Entering anything as a key into
-a dictionary would require marking all objects reachable from there as
-read-only -- and again, self-referential objects could cause an infinite loop.</p></li>
+<li><p>리스트를 키로 사용할 때 사본을 만듭니다. 가변 객체인 리스트가 자신에 대한 참조를 포함할 수 있고, 복사 코드가 무한 루프에 빠질 수 있기 때문에 작동하지 않습니다.</p></li>
+<li><p>리스트를 키로 허용하지만 사용자에게 수정하지 않도록 지시합니다. 이것은 잊거나 실수로 리스트를 수정했을 때 프로그램에 추적하기 어려운 버그를 만듭니다. 또한 딕셔너리의 중요한 불변성을 깨뜨립니다; <code class="docutils literal notranslate"><span class="pre">d.keys()</span></code>의 모든 값은 딕셔너리의 키로 사용할 수 있다.</p></li>
+<li><p>딕셔너리 키로 사용되면 리스트를 읽기 전용으로 표시합니다. 문제는 그 값을 변경할 수 있는 것은 최상위 객체 만이 아니라는 것입니다; 리스트를 포함하는 튜플을 키로 사용할 수 있습니다. 무엇이든 키로 딕셔너리에 입력하면 거기에서 도달할 수 있는 모든 객체를 읽기 전용으로 표시해야합니다 -- 그리고 다시, 자기 참조 객체는 무한 루프를 일으킬 수 있습니다.</p></li>
 </ul>
-<p>There is a trick to get around this if you need to, but use it at your own risk:
-You can wrap a mutable structure inside a class instance which has both a
-<a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a> and a <a class="reference internal" href="../reference/datamodel.html#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__hash__()</span></code></a> method.  You must then make sure that the
-hash value for all such wrapper objects that reside in a dictionary (or other
-hash based structure), remain fixed while the object is in the dictionary (or
-other structure).</p>
+<p>필요하면 이 문제를 회피하는 트릭이 있지만, 위험을 감수하고 사용하십시오: <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>와 <a class="reference internal" href="../reference/datamodel.html#object.__hash__" title="object.__hash__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__hash__()</span></code></a> 메서드를 모두 가진 클래스 인스턴스 내부에 가변 구조를 래핑할 수 있습니다. 그런 다음 딕셔너리(또는 다른 해시 기반 구조)에 상주하는 모든 래퍼 객체의 해시 값이 객체가 딕셔너리(또는 다른 구조)에 있는 동안 고정되도록 해야 합니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ListWrapper</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">the_list</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">the_list</span> <span class="o">=</span> <span class="n">the_list</span>
@@ -451,31 +391,16 @@ other structure).</p>
         <span class="k">return</span> <span class="n">result</span>
 </pre></div>
 </div>
-<p>Note that the hash computation is complicated by the possibility that some
-members of the list may be unhashable and also by the possibility of arithmetic
-overflow.</p>
-<p>Furthermore it must always be the case that if <code class="docutils literal notranslate"><span class="pre">o1</span> <span class="pre">==</span> <span class="pre">o2</span></code> (ie <code class="docutils literal notranslate"><span class="pre">o1.__eq__(o2)</span>
-<span class="pre">is</span> <span class="pre">True</span></code>) then <code class="docutils literal notranslate"><span class="pre">hash(o1)</span> <span class="pre">==</span> <span class="pre">hash(o2)</span></code> (ie, <code class="docutils literal notranslate"><span class="pre">o1.__hash__()</span> <span class="pre">==</span> <span class="pre">o2.__hash__()</span></code>),
-regardless of whether the object is in a dictionary or not.  If you fail to meet
-these restrictions dictionaries and other hash based structures will misbehave.</p>
-<p>In the case of ListWrapper, whenever the wrapper object is in a dictionary the
-wrapped list must not change to avoid anomalies.  Don't do this unless you are
-prepared to think hard about the requirements and the consequences of not
-meeting them correctly.  Consider yourself warned.</p>
+<p>해시 계산은 리스트의 일부 멤버가 해시불가능할 가능성과 산술 오버플로의 가능성으로 인해 복잡함에 유의하십시오.</p>
+<p>또한 객체가 딕셔너리에 있는지에 관계없이, 항상 <code class="docutils literal notranslate"><span class="pre">o1</span> <span class="pre">==</span> <span class="pre">o2</span></code>(즉 <code class="docutils literal notranslate"><span class="pre">o1.__eq__(o2)</span> <span class="pre">is</span> <span class="pre">True</span></code>)이면 <code class="docutils literal notranslate"><span class="pre">hash(o1)</span> <span class="pre">==</span> <span class="pre">hash(o2)</span></code>(즉 <code class="docutils literal notranslate"><span class="pre">o1.__hash__()</span> <span class="pre">==</span> <span class="pre">o2.__hash__()</span></code>)여야 합니다. 이러한 제한 사항을 충족하지 못하면 딕셔너리와 다른 해시 기반 구조가 오작동합니다.</p>
+<p>ListWrapper의 경우, 래퍼 객체가 딕셔너리에 있을 때마다 래핑된 리스트는 이상 동작을 피하기 위해 변경되지 않아야합니다. 요구 사항과 이를 올바르게 충족하지 못한 결과에 대해 출분히 생각할 준비가되어 있지 않는 한 이 작업을 수행하지 마십시오. 경고 받았다고 생각하십시오.</p>
 </div>
 <div class="section" id="why-doesn-t-list-sort-return-the-sorted-list">
-<h2><a class="toc-backref" href="#id23">Why doesn't list.sort() return the sorted list?</a><a class="headerlink" href="#why-doesn-t-list-sort-return-the-sorted-list" title="제목 주소">¶</a></h2>
-<p>In situations where performance matters, making a copy of the list just to sort
-it would be wasteful. Therefore, <a class="reference internal" href="../library/stdtypes.html#list.sort" title="list.sort"><code class="xref py py-meth docutils literal notranslate"><span class="pre">list.sort()</span></code></a> sorts the list in place. In
-order to remind you of that fact, it does not return the sorted list.  This way,
-you won't be fooled into accidentally overwriting a list when you need a sorted
-copy but also need to keep the unsorted version around.</p>
-<p>If you want to return a new list, use the built-in <a class="reference internal" href="../library/functions.html#sorted" title="sorted"><code class="xref py py-func docutils literal notranslate"><span class="pre">sorted()</span></code></a> function
-instead.  This function creates a new list from a provided iterable, sorts
-it and returns it.  For example, here's how to iterate over the keys of a
-dictionary in sorted order:</p>
+<h2><a class="toc-backref" href="#id23">list.sort()가 정렬된 리스트를 반환하지 않는 이유는 무엇입니까?</a><a class="headerlink" href="#why-doesn-t-list-sort-return-the-sorted-list" title="제목 주소">¶</a></h2>
+<p>성능이 중요한 상황에서, 단지 정렬하기 위해 리스트를 복사하는 것은 낭비입니다. 따라서, <a class="reference internal" href="../library/stdtypes.html#list.sort" title="list.sort"><code class="xref py py-meth docutils literal notranslate"><span class="pre">list.sort()</span></code></a>는 리스트를 제자리에서 정렬합니다. 이 사실을 상기시키기 위해, 정렬된 리스트를 반환하지 않습니다. 이렇게하면, 정렬된 복사본이 필요하지만 정렬되지 않은 버전을 유지해야할 때 실수로 리스트를 덮어 쓰지 않도록 합니다.</p>
+<p>새 리스트를 반환하려면, 대신 내장 <a class="reference internal" href="../library/functions.html#sorted" title="sorted"><code class="xref py py-func docutils literal notranslate"><span class="pre">sorted()</span></code></a> 함수를 사용하십시오. 이 함수는 제공된 이터러블에서 새 리스트를 만들고, 정렬한 다음 반환합니다. 예를 들어, 정렬된 순서로 딕셔너리의 키를 이터레이트하는 방법은 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mydict</span><span class="p">):</span>
-    <span class="o">...</span>  <span class="c1"># do whatever with mydict[key]...</span>
+    <span class="o">...</span>  <span class="c1"># mydict[key]로 뭔가 합니다...</span>
 </pre></div>
 </div>
 </div>
@@ -681,12 +606,12 @@ For example:</p>
 <li><a class="reference internal" href="#can-python-be-compiled-to-machine-code-c-or-some-other-language">파이썬을 기계 코드, C 또는 다른 언어로 컴파일 할 수 있습니까?</a></li>
 <li><a class="reference internal" href="#how-does-python-manage-memory">파이썬은 메모리를 어떻게 관리합니까?</a></li>
 <li><a class="reference internal" href="#why-doesn-t-cpython-use-a-more-traditional-garbage-collection-scheme">CPython이 더 전통적인 가비지 수거 체계를 사용하지 않는 이유는 무엇입니까?</a></li>
-<li><a class="reference internal" href="#why-isn-t-all-memory-freed-when-cpython-exits">Why isn't all memory freed when CPython exits?</a></li>
-<li><a class="reference internal" href="#why-are-there-separate-tuple-and-list-data-types">Why are there separate tuple and list data types?</a></li>
-<li><a class="reference internal" href="#how-are-lists-implemented-in-cpython">How are lists implemented in CPython?</a></li>
-<li><a class="reference internal" href="#how-are-dictionaries-implemented-in-cpython">How are dictionaries implemented in CPython?</a></li>
-<li><a class="reference internal" href="#why-must-dictionary-keys-be-immutable">Why must dictionary keys be immutable?</a></li>
-<li><a class="reference internal" href="#why-doesn-t-list-sort-return-the-sorted-list">Why doesn't list.sort() return the sorted list?</a></li>
+<li><a class="reference internal" href="#why-isn-t-all-memory-freed-when-cpython-exits">CPython이 종료될 때 모든 메모리가 해제되지 않는 이유는 무엇입니까?</a></li>
+<li><a class="reference internal" href="#why-are-there-separate-tuple-and-list-data-types">별도의 튜플과 리스트 데이터 형이 있는 이유는 무엇입니까?</a></li>
+<li><a class="reference internal" href="#how-are-lists-implemented-in-cpython">CPython에서 리스트는 어떻게 구현됩니까?</a></li>
+<li><a class="reference internal" href="#how-are-dictionaries-implemented-in-cpython">CPython에서 딕셔너리는 어떻게 구현됩니까?</a></li>
+<li><a class="reference internal" href="#why-must-dictionary-keys-be-immutable">딕셔너리 키가 불변어이야 하는 이유는 무엇입니까?</a></li>
+<li><a class="reference internal" href="#why-doesn-t-list-sort-return-the-sorted-list">list.sort()가 정렬된 리스트를 반환하지 않는 이유는 무엇입니까?</a></li>
 <li><a class="reference internal" href="#how-do-you-specify-and-enforce-an-interface-spec-in-python">How do you specify and enforce an interface spec in Python?</a></li>
 <li><a class="reference internal" href="#why-is-there-no-goto">Why is there no goto?</a></li>
 <li><a class="reference internal" href="#why-can-t-raw-strings-r-strings-end-with-a-backslash">Why can't raw strings (r-strings) end with a backslash?</a></li>
