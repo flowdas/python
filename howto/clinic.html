@@ -348,8 +348,7 @@ et#
 <p>이러한 항목 중 <em>어떤 식으로</em>건 다른 항목이 있으면, 인자 클리닉 함수 명세를 조정하고 같아질 때 까지 <code class="docutils literal notranslate"><span class="pre">Tools/clinic/clinic.py</span></code>를 다시 실행합니다.</p>
 </li>
 <li><p>출력의 마지막 줄은 &quot;impl&quot; 함수의 선언임에 유의하십시오. 여기가 내장 구현이 들어가는 곳입니다. 수정중인 함수의 기존 프로토타입을 삭제하십시오, 하지만 여는 중괄호는 그대로 둡니다. 이제 인자 구문 분석 코드와 인자를 덤프하는 모든 변수의 선언을 삭제합니다. 이제 어떤 식으로 파이썬 인자가 이 impl 함수에 대한 인자가 되는지 주목하십시오; 구현에서 이러한 변수에 다른 이름을 사용했다면, 수정하십시오.</p>
-<p>Let's reiterate, just because it's kind of weird.  Your code should now
-look like this:</p>
+<p>좀 괴상하니, 반복합시다. 이제 코드는 다음과 같아야합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="n">return_type</span>
 <span class="nf">your_function_impl</span><span class="p">(...)</span>
 <span class="cm">/*[clinic end generated code: checksum=...]*/</span>
@@ -357,9 +356,7 @@ look like this:</p>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p>Argument Clinic generated the checksum line and the function prototype just
-above it.  You should write the opening (and closing) curly braces for the
-function, and the implementation inside.</p>
+<p>인자 클리닉은 체크섬 줄과 그 바로 위에 함수 프로토타입을 생성했습니다. 함수와 내부 구현에 대한 여는 (그리고 닫는) 중괄호를 작성해야합니다.</p>
 <p>샘플:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[clinic input]</span>
 <span class="cm">module _pickle</span>
@@ -402,15 +399,8 @@ function, and the implementation inside.</p>
 </pre></div>
 </div>
 </li>
-<li><p>Remember the macro with the <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> structure for this
-function?  Find the existing <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> structure for this
-function and replace it with a reference to the macro.  (If the builtin
-is at module scope, this will probably be very near the end of the file;
-if the builtin is a class method, this will probably be below but relatively
-near to the implementation.)</p>
-<p>Note that the body of the macro contains a trailing comma.  So when you
-replace the existing static <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> structure with the macro,
-<em>don't</em> add a comma to the end.</p>
+<li><p>이 함수에 대한 <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> 구조체의 매크로를 기억하십니까? 이 함수에 대한 기존 <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> 구조체를 찾아 매크로에 대한 참조로 바꿉니다. (내장이 모듈 스코프에 있으면, 아마도 파일의 끝 부분에 가까울 것입니다; 내장이 클래스 메서드이면, 아마도 아래에 있지만 상대적으로 구현에 가까울 것입니다.)</p>
+<p>매크로 본문에는 후행 쉼표가 포함되어 있음에 유의하십시오. 따라서 기존의 정적 <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMethodDef</span></code></a> 구조체를 매크로로 바꿀 때, 끝에 쉼표를 추가하지 <em>마십시오</em>.</p>
 <p>샘플:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="n">PyMethodDef</span> <span class="n">Pickler_methods</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">__PICKLE_PICKLER_DUMP_METHODDEF</span>
@@ -420,58 +410,39 @@ replace the existing static <a class="reference internal" href="../c-api/structu
 </pre></div>
 </div>
 </li>
-<li><p>Compile, then run the relevant portions of the regression-test suite.
-This change should not introduce any new compile-time warnings or errors,
-and there should be no externally-visible change to Python's behavior.</p>
-<p>Well, except for one difference: <code class="docutils literal notranslate"><span class="pre">inspect.signature()</span></code> run on your function
-should now provide a valid signature!</p>
-<p>Congratulations, you've ported your first function to work with Argument Clinic!</p>
+<li><p>컴파일 한 다음, 회귀 테스트 스위트의 관련 부분을 실행합니다. 이 변경으로 인해 새로운 컴파일 시간 경고나 에러가 발생해서는 안되며, 파이썬의 동작에 대해 외부에서 볼 수있는 변경 사항이 없어야합니다.</p>
+<p>한 가지 차이점이 있습니다: 함수에대해 실행되는 <code class="docutils literal notranslate"><span class="pre">inspect.signature()</span></code>는 이제 유효한 서명을 제공해야합니다!</p>
+<p>축하합니다, 인자 클리닉과 함께 작동하는 첫 번째 함수를 이식했습니다!</p>
 </li>
 </ol>
 </div>
 <div class="section" id="advanced-topics">
-<h2>Advanced Topics<a class="headerlink" href="#advanced-topics" title="제목 주소">¶</a></h2>
-<p>Now that you've had some experience working with Argument Clinic, it's time
-for some advanced topics.</p>
+<h2>고급 주제<a class="headerlink" href="#advanced-topics" title="제목 주소">¶</a></h2>
+<p>이제 인자 클리닉으로 작업한 경험이 있고, 몇 가지 고급 주제를 살펴볼 시간입니다.</p>
 <div class="section" id="symbolic-default-values">
-<h3>Symbolic default values<a class="headerlink" href="#symbolic-default-values" title="제목 주소">¶</a></h3>
-<p>The default value you provide for a parameter can't be any arbitrary
-expression.  Currently the following are explicitly supported:</p>
+<h3>기호 기본값<a class="headerlink" href="#symbolic-default-values" title="제목 주소">¶</a></h3>
+<p>매개 변수에 제공하는 기본값은 임의의 표현식이 될 수 없습니다. 현재 다음이 명시 적으로 지원됩니다:</p>
 <ul class="simple">
-<li><p>Numeric constants (integer and float)</p></li>
-<li><p>String constants</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">False</span></code>, and <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
-<li><p>Simple symbolic constants like <code class="docutils literal notranslate"><span class="pre">sys.maxsize</span></code>, which must
-start with the name of the module</p></li>
+<li><p>숫자 상수 (정수와 부동 소수점)</p></li>
+<li><p>문자열 상수</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">False</span></code> 및 <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sys.maxsize</span></code>와 같은 간단한 기호 상수, 모듈 이름으로 시작해야합니다</p></li>
 </ul>
-<p>In case you're curious, this is implemented in  <code class="docutils literal notranslate"><span class="pre">from_builtin()</span></code>
-in <code class="docutils literal notranslate"><span class="pre">Lib/inspect.py</span></code>.</p>
-<p>(In the future, this may need to get even more elaborate,
-to allow full expressions like <code class="docutils literal notranslate"><span class="pre">CONSTANT</span> <span class="pre">-</span> <span class="pre">1</span></code>.)</p>
+<p>궁금한 점이 있을 때를 위해, 이것은 <code class="docutils literal notranslate"><span class="pre">Lib/inspect.py</span></code>의 <code class="docutils literal notranslate"><span class="pre">from_builtin()</span></code>에서 구현됩니다.</p>
+<p>(미래에는, <code class="docutils literal notranslate"><span class="pre">CONSTANT</span> <span class="pre">-</span> <span class="pre">1</span></code>와 같은 완전한 표현식을 허용하기 위해, 더 정교해질 필요가 있습니다.)</p>
 </div>
 <div class="section" id="renaming-the-c-functions-and-variables-generated-by-argument-clinic">
-<h3>Renaming the C functions and variables generated by Argument Clinic<a class="headerlink" href="#renaming-the-c-functions-and-variables-generated-by-argument-clinic" title="제목 주소">¶</a></h3>
-<p>Argument Clinic automatically names the functions it generates for you.
-Occasionally this may cause a problem, if the generated name collides with
-the name of an existing C function.  There's an easy solution: override the names
-used for the C functions.  Just add the keyword <code class="docutils literal notranslate"><span class="pre">&quot;as&quot;</span></code>
-to your function declaration line, followed by the function name you wish to use.
-Argument Clinic will use that function name for the base (generated) function,
-then add <code class="docutils literal notranslate"><span class="pre">&quot;_impl&quot;</span></code> to the end and use that for the name of the impl function.</p>
-<p>For example, if we wanted to rename the C function names generated for
-<code class="docutils literal notranslate"><span class="pre">pickle.Pickler.dump</span></code>, it'd look like this:</p>
+<h3>인자 클리닉에서 생성한 C 함수와 변수 이름 변경하기<a class="headerlink" href="#renaming-the-c-functions-and-variables-generated-by-argument-clinic" title="제목 주소">¶</a></h3>
+<p>인자 클리닉은 자동으로 생성되는 함수의 이름을 지정합니다. 생성된 이름이 기존 C 함수의 이름과 충돌하면, 때때로 이로 인해 문제가 발생할 수 있습니다. 쉬운 해결책이 있습니다: C 함수에 사용되는 이름을 재정의하는 것입니다. 함수 선언 줄에 키워드 <code class="docutils literal notranslate"><span class="pre">&quot;as&quot;</span></code>를 추가 한 다음 사용하려는 함수 이름을 추가하면됩니다. 인자 클리닉은 기본 (생성된) 함수에 해당 함수 이름을 사용한 다음, 끝에 <code class="docutils literal notranslate"><span class="pre">&quot;_impl&quot;</span></code>를 추가하고 이를 impl 함수의 이름에 사용합니다.</p>
+<p>예를 들어, <code class="docutils literal notranslate"><span class="pre">pickle.Pickler.dump</span></code>에 대해 생성된 C 함수 이름을 바꾸려면, 다음과 같이됩니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[clinic input]</span>
 <span class="cm">pickle.Pickler.dump as pickler_dumper</span>
 
 <span class="cm">...</span>
 </pre></div>
 </div>
-<p>The base function would now be named <code class="docutils literal notranslate"><span class="pre">pickler_dumper()</span></code>,
-and the impl function would now be named <code class="docutils literal notranslate"><span class="pre">pickler_dumper_impl()</span></code>.</p>
-<p>Similarly, you may have a problem where you want to give a parameter
-a specific Python name, but that name may be inconvenient in C.  Argument
-Clinic allows you to give a parameter different names in Python and in C,
-using the same <code class="docutils literal notranslate"><span class="pre">&quot;as&quot;</span></code> syntax:</p>
+<p>이제 기본 함수의 이름은 <code class="docutils literal notranslate"><span class="pre">pickler_dumper()</span></code>이고 impl 함수의 이름은 <code class="docutils literal notranslate"><span class="pre">pickler_dumper_impl()</span></code>이 됩니다.</p>
+<p>마찬가지로, 매개 변수에 특정 파이썬 이름을 지정하려고 하지만, 해당 이름이 C에서 불편할 수 있는 경우 문제가 있을 수 있습니다. 인자 클리닉에서는 같은 <code class="docutils literal notranslate"><span class="pre">&quot;as&quot;</span></code> 문법을 사용하여, 파이썬과 C에서 매개 변수에 다른 이름을 지정할 수 있도록 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[clinic input]</span>
 <span class="cm">pickle.Pickler.dump</span>
 
@@ -482,62 +453,24 @@ using the same <code class="docutils literal notranslate"><span class="pre">&quo
 <span class="cm">    fix_imports: bool = True</span>
 </pre></div>
 </div>
-<p>Here, the name used in Python (in the signature and the <code class="docutils literal notranslate"><span class="pre">keywords</span></code>
-array) would be <code class="docutils literal notranslate"><span class="pre">file</span></code>, but the C variable would be named <code class="docutils literal notranslate"><span class="pre">file_obj</span></code>.</p>
-<p>You can use this to rename the <code class="docutils literal notranslate"><span class="pre">self</span></code> parameter too!</p>
+<p>여기서, 파이썬에서 사용되는 이름(서명과 <code class="docutils literal notranslate"><span class="pre">keywords</span></code> 배열에서)은 <code class="docutils literal notranslate"><span class="pre">file</span></code>이지만, C 변수의 이름은 <code class="docutils literal notranslate"><span class="pre">file_obj</span></code>입니다.</p>
+<p>이것을 사용하여 <code class="docutils literal notranslate"><span class="pre">self</span></code> 매개 변수의 이름도 바꿀 수 있습니다!</p>
 </div>
 <div class="section" id="converting-functions-using-pyarg-unpacktuple">
-<h3>Converting functions using PyArg_UnpackTuple<a class="headerlink" href="#converting-functions-using-pyarg-unpacktuple" title="제목 주소">¶</a></h3>
-<p>To convert a function parsing its arguments with <a class="reference internal" href="../c-api/arg.html#c.PyArg_UnpackTuple" title="PyArg_UnpackTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_UnpackTuple()</span></code></a>,
-simply write out all the arguments, specifying each as an <code class="docutils literal notranslate"><span class="pre">object</span></code>.  You
-may specify the <code class="docutils literal notranslate"><span class="pre">type</span></code> argument to cast the type as appropriate.  All
-arguments should be marked positional-only (add a <code class="docutils literal notranslate"><span class="pre">/</span></code> on a line by itself
-after the last argument).</p>
-<p>Currently the generated code will use <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>, but this
-will change soon.</p>
+<h3>PyArg_UnpackTuple을 사용하여 함수 변환하기<a class="headerlink" href="#converting-functions-using-pyarg-unpacktuple" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="../c-api/arg.html#c.PyArg_UnpackTuple" title="PyArg_UnpackTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_UnpackTuple()</span></code></a>로 인자를 구문 분석하는 함수를 변환하려면, 각 인자를 <code class="docutils literal notranslate"><span class="pre">object</span></code>로 지정하여 모든 인자를 작성하면됩니다. <code class="docutils literal notranslate"><span class="pre">type</span></code> 인자를 지정하여 형을 적절하게 캐스트 할 수 있습니다. 모든 인자는 위치 전용으로 표시되어야합니다 (마지막 인자 뒤에 <code class="docutils literal notranslate"><span class="pre">/</span></code>를 자체 줄로 추가하십시오).</p>
+<p>현재 생성된 코드는 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>를 사용하지만, 곧 변경됩니다.</p>
 </div>
 <div class="section" id="optional-groups">
-<h3>Optional Groups<a class="headerlink" href="#optional-groups" title="제목 주소">¶</a></h3>
-<p>Some legacy functions have a tricky approach to parsing their arguments:
-they count the number of positional arguments, then use a <code class="docutils literal notranslate"><span class="pre">switch</span></code> statement
-to call one of several different <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> calls depending on
-how many positional arguments there are.  (These functions cannot accept
-keyword-only arguments.)  This approach was used to simulate optional
-arguments back before <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a> was created.</p>
-<p>While functions using this approach can often be converted to
-use <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a>, optional arguments, and default values,
-it's not always possible.  Some of these legacy functions have
-behaviors <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a> doesn't directly support.
-The most obvious example is the builtin function <code class="docutils literal notranslate"><span class="pre">range()</span></code>, which has
-an optional argument on the <em>left</em> side of its required argument!
-Another example is <code class="docutils literal notranslate"><span class="pre">curses.window.addch()</span></code>, which has a group of two
-arguments that must always be specified together.  (The arguments are
-called <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>; if you call the function passing in <code class="docutils literal notranslate"><span class="pre">x</span></code>,
-you must also pass in <code class="docutils literal notranslate"><span class="pre">y</span></code>—and if you don't pass in <code class="docutils literal notranslate"><span class="pre">x</span></code> you may not
-pass in <code class="docutils literal notranslate"><span class="pre">y</span></code> either.)</p>
-<p>In any case, the goal of Argument Clinic is to support argument parsing
-for all existing CPython builtins without changing their semantics.
-Therefore Argument Clinic supports
-this alternate approach to parsing, using what are called <em>optional groups</em>.
-Optional groups are groups of arguments that must all be passed in together.
-They can be to the left or the right of the required arguments.  They
-can <em>only</em> be used with positional-only parameters.</p>
+<h3>선택적 그룹<a class="headerlink" href="#optional-groups" title="제목 주소">¶</a></h3>
+<p>일부 레거시 함수는 인자를 구문 분석하는 데 까다로운 접근 방식을 사용합니다: 위치 인자의 수를 계산한 다음 <code class="docutils literal notranslate"><span class="pre">switch</span></code> 문을 사용하여 위치 인자의 수에 따라 여러 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> 호출 중 하나를 호출합니다. (이러한 함수는 키워드 전용 인자를 받아들일 수 없습니다.) 이 접근 방식은 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a>가 만들어지기 전에 선택적 인자를 시뮬레이션하는 데 사용되었습니다.</p>
+<p>이 접근 방식을 사용하는 함수는 종종 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a>, 선택적 인자 및 기본값을 사용하도록 변환될 수 있지만, 항상 가능한 것은 아닙니다. 이러한 레거시 함수 중 일부에는 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTupleAndKeywords" title="PyArg_ParseTupleAndKeywords"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTupleAndKeywords()</span></code></a>가 직접 지원하지 않는 동작이 있습니다. 가장 명백한 예는 필수 인자의 <em>좌</em> 측에 선택적 인자가 있는 내장 함수 <code class="docutils literal notranslate"><span class="pre">range()</span></code>입니다! 또 다른 예는 항상 함께 지정되어야 하는 두 개의 인자 그룹이있는 <code class="docutils literal notranslate"><span class="pre">curses.window.addch()</span></code>입니다. (인자는 <code class="docutils literal notranslate"><span class="pre">x</span></code>와 <code class="docutils literal notranslate"><span class="pre">y</span></code>라고 합니다; 함수를 호출할 때 <code class="docutils literal notranslate"><span class="pre">x</span></code>를 전달하면 <code class="docutils literal notranslate"><span class="pre">y</span></code>도 전달해야 합니다 - 그리고 <code class="docutils literal notranslate"><span class="pre">x</span></code>를 전달하지 않으면 <code class="docutils literal notranslate"><span class="pre">y</span></code>도 전달할 수 없습니다.)</p>
+<p>어쨌든, 인자 클리닉의 목표는 의미를 변경하지 않고 기존의 모든 CPython 내장에 대한 인자 구문 분석을 지원하는 것입니다. 따라서 인자 클리닉은 <em>선택적 그룹(optional groups)</em>이라는 것을 사용하여, 구문 분석에 대한 이러한 대체 접근 방식을 지원합니다. 선택적 그룹은 모두 함께 전달되어야 하는 인자 그룹입니다. 필수 인자의 왼쪽 또는 오른쪽에 있을 수 있습니다. 위치 전용 매개 변수에만 사용할 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Optional groups are <em>only</em> intended for use when converting
-functions that make multiple calls to <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>!
-Functions that use <em>any</em> other approach for parsing arguments
-should <em>almost never</em> be converted to Argument Clinic using
-optional groups.  Functions using optional groups currently
-cannot have accurate signatures in Python, because Python just
-doesn't understand the concept.  Please avoid using optional
-groups wherever possible.</p>
+<p>선택적 그룹은 <em>오직</em> <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>를 여러 번 호출하는 함수를 변환 할 때 사용하려는 것입니다! 인자를 구문 분석하기 위해 <em>다른</em> 접근 방식을 사용하는 함수는 <em>거의 절대</em> 선택적 그룹을 사용하여 인자 클리닉으로 변환되지 않습니다. 선택적 그룹을 사용하는 함수는 현재 파이썬에서 정확한 서명을 가질 수 없습니다, 파이썬이 개념을 이해하지 못하기 때문입니다. 가능한 한 선택적 그룹을 사용하지 마십시오.</p>
 </div>
-<p>To specify an optional group, add a <code class="docutils literal notranslate"><span class="pre">[</span></code> on a line by itself before
-the parameters you wish to group together, and a <code class="docutils literal notranslate"><span class="pre">]</span></code> on a line by itself
-after these parameters.  As an example, here's how <code class="docutils literal notranslate"><span class="pre">curses.window.addch</span></code>
-uses optional groups to make the first two parameters and the last
-parameter optional:</p>
+<p>선택적 그룹을 지정하려면, 함께 그룹화하려는 매개 변수 앞에 <code class="docutils literal notranslate"><span class="pre">[</span></code>를 단독 줄로 추가하고, 이러한 매개 변수 뒤에 단독 줄로 <code class="docutils literal notranslate"><span class="pre">]</span></code>를 추가합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">curses.window.addch</span></code>가 선택적 그룹을 사용하여 처음 두 매개 변수와 마지막 매개 변수를 선택적으로 만드는 방법은 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[clinic input]</span>
 
 <span class="cm">curses.window.addch</span>
@@ -561,25 +494,13 @@ parameter optional:</p>
 <span class="cm">...</span>
 </pre></div>
 </div>
-<p>Notes:</p>
+<p>노트:</p>
 <ul class="simple">
-<li><p>For every optional group, one additional parameter will be passed into the
-impl function representing the group.  The parameter will be an int named
-<code class="docutils literal notranslate"><span class="pre">group_{direction}_{number}</span></code>,
-where <code class="docutils literal notranslate"><span class="pre">{direction}</span></code> is either <code class="docutils literal notranslate"><span class="pre">right</span></code> or <code class="docutils literal notranslate"><span class="pre">left</span></code> depending on whether the group
-is before or after the required parameters, and <code class="docutils literal notranslate"><span class="pre">{number}</span></code> is a monotonically
-increasing number (starting at 1) indicating how far away the group is from
-the required parameters.  When the impl is called, this parameter will be set
-to zero if this group was unused, and set to non-zero if this group was used.
-(By used or unused, I mean whether or not the parameters received arguments
-in this invocation.)</p></li>
-<li><p>If there are no required arguments, the optional groups will behave
-as if they're to the right of the required arguments.</p></li>
-<li><p>In the case of ambiguity, the argument parsing code
-favors parameters on the left (before the required parameters).</p></li>
-<li><p>Optional groups can only contain positional-only parameters.</p></li>
-<li><p>Optional groups are <em>only</em> intended for legacy code.  Please do not
-use optional groups for new code.</p></li>
+<li><p>모든 선택적 그룹에 대해, 하나의 추가 매개 변수가 impl 함수로 전달되어 그룹을 나타냅니다. 매개 변수는 <code class="docutils literal notranslate"><span class="pre">group_{direction}_{number}</span></code>라는 이름의 정수입니다. 여기서 <code class="docutils literal notranslate"><span class="pre">{direction}</span></code>은 그룹이 필수 매개 변수 앞인지 뒤인지에 따라 <code class="docutils literal notranslate"><span class="pre">right</span></code>나 <code class="docutils literal notranslate"><span class="pre">left</span></code>이고, <code class="docutils literal notranslate"><span class="pre">{number}</span></code>는 그룹이 필수 매개 변수에서 얼마나 멀리 떨어져 있는지를 나타내는 단조 증가하는 숫자(1에서 시작)입니다. impl이 호출 될 때, 이 그룹이 사용되지 않았으면 이 매개 변수는 0으로 설정되고, 이 그룹이 사용 되면 0이 아닌 값으로 설정됩니다. (사용했다는 표현은, 매개 변수가 이 호출에서 인자를 받았는지를 의미합니다.)</p></li>
+<li><p>필수 인자가 없으면, 선택적 그룹은 필수 인자의 오른쪽에 있는 것처럼 작동합니다.</p></li>
+<li><p>모호한 경우, 인자 구문 분석 코드는 왼쪽(필수 매개 변수 앞)의 매개 변수를 선호합니다.</p></li>
+<li><p>선택적 그룹은 위치 전용 매개 변수 만 포함할 수 있습니다.</p></li>
+<li><p>선택적 그룹은 <em>오직</em> 레거시 코드를 위한 것입니다. 새 코드에 선택적 그룹을 사용하지 마십시오.</p></li>
 </ul>
 </div>
 <div class="section" id="using-real-argument-clinic-converters-instead-of-legacy-converters">
@@ -1551,11 +1472,11 @@ blocks embedded in Python files look slightly different.  They look like this:</
 <li><a class="reference internal" href="#the-goals-of-argument-clinic">인자 클리닉의 목표</a></li>
 <li><a class="reference internal" href="#basic-concepts-and-usage">기본 개념과 사용법</a></li>
 <li><a class="reference internal" href="#converting-your-first-function">첫 번째 함수 변환하기</a></li>
-<li><a class="reference internal" href="#advanced-topics">Advanced Topics</a><ul>
-<li><a class="reference internal" href="#symbolic-default-values">Symbolic default values</a></li>
-<li><a class="reference internal" href="#renaming-the-c-functions-and-variables-generated-by-argument-clinic">Renaming the C functions and variables generated by Argument Clinic</a></li>
-<li><a class="reference internal" href="#converting-functions-using-pyarg-unpacktuple">Converting functions using PyArg_UnpackTuple</a></li>
-<li><a class="reference internal" href="#optional-groups">Optional Groups</a></li>
+<li><a class="reference internal" href="#advanced-topics">고급 주제</a><ul>
+<li><a class="reference internal" href="#symbolic-default-values">기호 기본값</a></li>
+<li><a class="reference internal" href="#renaming-the-c-functions-and-variables-generated-by-argument-clinic">인자 클리닉에서 생성한 C 함수와 변수 이름 변경하기</a></li>
+<li><a class="reference internal" href="#converting-functions-using-pyarg-unpacktuple">PyArg_UnpackTuple을 사용하여 함수 변환하기</a></li>
+<li><a class="reference internal" href="#optional-groups">선택적 그룹</a></li>
 <li><a class="reference internal" href="#using-real-argument-clinic-converters-instead-of-legacy-converters">Using real Argument Clinic converters, instead of &quot;legacy converters&quot;</a></li>
 <li><a class="reference internal" href="#py-buffer">Py_buffer</a></li>
 <li><a class="reference internal" href="#advanced-converters">Advanced converters</a></li>
