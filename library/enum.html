@@ -854,6 +854,33 @@
 <span class="go">2</span>
 </pre></div>
 </div>
+<p>To make a more general purpose <code class="docutils literal notranslate"><span class="pre">AutoNumber</span></code>, add <code class="docutils literal notranslate"><span class="pre">*args</span></code> to the signature:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">AutoNumber</span><span class="p">(</span><span class="n">NoValue</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>      <span class="c1"># this is the only change from above</span>
+<span class="gp">... </span>        <span class="n">value</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__members__</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="gp">... </span>        <span class="n">obj</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">obj</span><span class="o">.</span><span class="n">_value_</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">obj</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Then when you inherit from <code class="docutils literal notranslate"><span class="pre">AutoNumber</span></code> you can write your own <code class="docutils literal notranslate"><span class="pre">__init__</span></code>
+to handle any extra arguments:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Swatch</span><span class="p">(</span><span class="n">AutoNumber</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pantone</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">pantone</span> <span class="o">=</span> <span class="n">pantone</span>
+<span class="gp">... </span>    <span class="n">AUBURN</span> <span class="o">=</span> <span class="s1">&#39;3497&#39;</span>
+<span class="gp">... </span>    <span class="n">SEA_GREEN</span> <span class="o">=</span> <span class="s1">&#39;1246&#39;</span>
+<span class="gp">... </span>    <span class="n">BLEACHED_CORAL</span> <span class="o">=</span> <span class="p">()</span> <span class="c1"># New color, no Pantone code yet!</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Swatch</span><span class="o">.</span><span class="n">SEA_GREEN</span>
+<span class="go">&lt;Swatch.SEA_GREEN: 2&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Swatch</span><span class="o">.</span><span class="n">SEA_GREEN</span><span class="o">.</span><span class="n">pantone</span>
+<span class="go">&#39;1246&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Swatch</span><span class="o">.</span><span class="n">BLEACHED_CORAL</span><span class="o">.</span><span class="n">pantone</span>
+<span class="go">&#39;unknown&#39;</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>정의되면, <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__new__()</span></code></a> 메서드는 Enum 멤버 생성 중에 사용됩니다; 그런 다음 Enum의 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__new__()</span></code></a>로 대체되는데, 이것이 클래스 생성 후에 기존 멤버를 조회하기 위해 사용됩니다.</p>
