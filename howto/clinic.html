@@ -826,21 +826,10 @@ DecodeFSDefault
 </div>
 </div>
 <div class="section" id="using-a-self-converter">
-<h3>Using a &quot;self converter&quot;<a class="headerlink" href="#using-a-self-converter" title="제목 주소">¶</a></h3>
-<p>Argument Clinic automatically adds a &quot;self&quot; parameter for you
-using a default converter.  It automatically sets the <code class="docutils literal notranslate"><span class="pre">type</span></code>
-of this parameter to the &quot;pointer to an instance&quot; you specified
-when you declared the type.  However, you can override
-Argument Clinic's converter and specify one yourself.
-Just add your own <code class="docutils literal notranslate"><span class="pre">self</span></code> parameter as the first parameter in a
-block, and ensure that its converter is an instance of
-<code class="docutils literal notranslate"><span class="pre">self_converter</span></code> or a subclass thereof.</p>
-<p>What's the point?  This lets you override the type of <code class="docutils literal notranslate"><span class="pre">self</span></code>,
-or give it a different default name.</p>
-<p>How do you specify the custom type you want to cast <code class="docutils literal notranslate"><span class="pre">self</span></code> to?
-If you only have one or two functions with the same type for <code class="docutils literal notranslate"><span class="pre">self</span></code>,
-you can directly use Argument Clinic's existing <code class="docutils literal notranslate"><span class="pre">self</span></code> converter,
-passing in the type you want to use as the <code class="docutils literal notranslate"><span class="pre">type</span></code> parameter:</p>
+<h3>&quot;self 변환기&quot; 사용하기<a class="headerlink" href="#using-a-self-converter" title="제목 주소">¶</a></h3>
+<p>인자 클리닉은 기본 변환기를 사용하여 &quot;self&quot; 매개 변수를 자동으로 추가합니다. 이 매개 변수의 <code class="docutils literal notranslate"><span class="pre">type</span></code>을 형을 선언할 때 지정한 &quot;인스턴스에 대한 포인터&quot;로 자동 설정합니다. 그러나, 인자 클리닉의 변환기를 재정의하고 직접 지정할 수 있습니다. 자신의 <code class="docutils literal notranslate"><span class="pre">self</span></code> 매개 변수를 블록의 첫 번째 매개 변수로 추가하고, 변환기가 <code class="docutils literal notranslate"><span class="pre">self_converter</span></code>나 서브 클래스의 의 인스턴스가 되도록 하십시오.</p>
+<p>요점은 무엇일까요? 이렇게하면 <code class="docutils literal notranslate"><span class="pre">self</span></code> 형을 재정의하거나, 다른 기본 이름을 지정할 수 있습니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">self</span></code>를 캐스트하려는 사용자 정의 형을 어떻게 지정할까요? <code class="docutils literal notranslate"><span class="pre">self</span></code>에 대해 같은 형의 함수가 하나나 두 개만 있으면, 인자 클리닉의 기존 <code class="docutils literal notranslate"><span class="pre">self</span></code> 변환기를 직접 사용하여, 사용할 형을 <code class="docutils literal notranslate"><span class="pre">type</span></code> 매개 변수로 전달할 수 있습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[clinic input]</span>
 
 <span class="cm">_pickle.Pickler.dump</span>
@@ -853,9 +842,7 @@ passing in the type you want to use as the <code class="docutils literal notrans
 <span class="cm">[clinic start generated code]*/</span>
 </pre></div>
 </div>
-<p>On the other hand, if you have a lot of functions that will use the same
-type for <code class="docutils literal notranslate"><span class="pre">self</span></code>, it's best to create your own converter, subclassing
-<code class="docutils literal notranslate"><span class="pre">self_converter</span></code> but overwriting the <code class="docutils literal notranslate"><span class="pre">type</span></code> member:</p>
+<p>반면에, <code class="docutils literal notranslate"><span class="pre">self</span></code>에 대해 같은 형을 사용할 함수가 많으면, <code class="docutils literal notranslate"><span class="pre">self_converter</span></code>를 서브 클래싱하지만 <code class="docutils literal notranslate"><span class="pre">type</span></code> 멤버를 재정의하는 자체 변환기를 만드는 것이 가장 좋습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[python input]</span>
 <span class="cm">class PicklerObject_converter(self_converter):</span>
 <span class="cm">    type = &quot;PicklerObject *&quot;</span>
@@ -875,63 +862,30 @@ type for <code class="docutils literal notranslate"><span class="pre">self</span
 </div>
 </div>
 <div class="section" id="writing-a-custom-converter">
-<h3>Writing a custom converter<a class="headerlink" href="#writing-a-custom-converter" title="제목 주소">¶</a></h3>
-<p>As we hinted at in the previous section... you can write your own converters!
-A converter is simply a Python class that inherits from <code class="docutils literal notranslate"><span class="pre">CConverter</span></code>.
-The main purpose of a custom converter is if you have a parameter using
-the <code class="docutils literal notranslate"><span class="pre">O&amp;</span></code> format unit—parsing this parameter means calling
-a <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> &quot;converter function&quot;.</p>
-<p>Your converter class should be named <code class="docutils literal notranslate"><span class="pre">*something*_converter</span></code>.
-If the name follows this convention, then your converter class
-will be automatically registered with Argument Clinic; its name
-will be the name of your class with the <code class="docutils literal notranslate"><span class="pre">_converter</span></code> suffix
-stripped off.  (This is accomplished with a metaclass.)</p>
-<p>You shouldn't subclass <code class="docutils literal notranslate"><span class="pre">CConverter.__init__</span></code>.  Instead, you should
-write a <code class="docutils literal notranslate"><span class="pre">converter_init()</span></code> function.  <code class="docutils literal notranslate"><span class="pre">converter_init()</span></code>
-always accepts a <code class="docutils literal notranslate"><span class="pre">self</span></code> parameter; after that, all additional
-parameters <em>must</em> be keyword-only.  Any arguments passed in to
-the converter in Argument Clinic will be passed along to your
-<code class="docutils literal notranslate"><span class="pre">converter_init()</span></code>.</p>
-<p>There are some additional members of <code class="docutils literal notranslate"><span class="pre">CConverter</span></code> you may wish
-to specify in your subclass.  Here's the current list:</p>
+<h3>사용자 정의 변환기 작성하기<a class="headerlink" href="#writing-a-custom-converter" title="제목 주소">¶</a></h3>
+<p>이전 섹션에서 암시했듯이... 자신 만의 변환기를 작성할 수 있습니다! 변환기는 <code class="docutils literal notranslate"><span class="pre">CConverter</span></code>를 상속하는 단순한 파이썬 클래스입니다. 사용자 정의 변환기의 주요 목적은 <code class="docutils literal notranslate"><span class="pre">O&amp;</span></code> 포맷 단위를 사용하는 매개 변수가 있을 때입니다 - 이 매개 변수를 구문 분석한다는 것은 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> &quot;변환기 함수&quot;를 호출하는 것을 의미합니다.</p>
+<p>변환기 클래스의 이름은 <code class="docutils literal notranslate"><span class="pre">*something*_converter</span></code>여야 합니다. 이름이 이 규칙을 따르면, 변환기 클래스가 인자 클리닉에 자동으로 등록됩니다: 그 이름은 <code class="docutils literal notranslate"><span class="pre">_converter</span></code> 접미사가 제거된 클래스 이름이 됩니다. (이는 메타 클래스로 수행됩니다.)</p>
+<p><code class="docutils literal notranslate"><span class="pre">CConverter.__init__</span></code>를 서브 클래스해서는 안됩니다. 대신, <code class="docutils literal notranslate"><span class="pre">converter_init()</span></code> 함수를 작성해야합니다. <code class="docutils literal notranslate"><span class="pre">converter_init()</span></code>는 항상 <code class="docutils literal notranslate"><span class="pre">self</span></code> 매개 변수를 받아들입니다; 그 후에, 모든 추가 매개 변수는 <em>반드시</em> 키워드 전용이어야 합니다. 인자 클리닉의 변환기에 전달된 모든 인자는 여러분의 <code class="docutils literal notranslate"><span class="pre">converter_init()</span></code>로 전달됩니다.</p>
+<p>서브 클래스에 지정하고 싶을 <code class="docutils literal notranslate"><span class="pre">CConverter</span></code>의 추가 멤버가 있습니다. 현재 목록은 다음과 같습니다:</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">type</span></code></dt><dd><p>The C type to use for this variable.
-<code class="docutils literal notranslate"><span class="pre">type</span></code> should be a Python string specifying the type, e.g. <code class="docutils literal notranslate"><span class="pre">int</span></code>.
-If this is a pointer type, the type string should end with <code class="docutils literal notranslate"><span class="pre">'</span> <span class="pre">*'</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">type</span></code></dt><dd><p>이 변수에 사용할 C 형. <code class="docutils literal notranslate"><span class="pre">type</span></code>은 형을 지정하는 파이썬 문자열이어야합니다, 예를 들어 <code class="docutils literal notranslate"><span class="pre">int</span></code>. 포인터 형이면, 형 문자열은 <code class="docutils literal notranslate"><span class="pre">'</span> <span class="pre">*'</span></code>로 끝나야합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">default</span></code></dt><dd><p>The Python default value for this parameter, as a Python value.
-Or the magic value <code class="docutils literal notranslate"><span class="pre">unspecified</span></code> if there is no default.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">default</span></code></dt><dd><p>이 매개 변수의 파이썬 기본값 (파이썬 값). 또는 기본값이 없으면 매직 값 <code class="docutils literal notranslate"><span class="pre">unspecified</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">py_default</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">default</span></code> as it should appear in Python code,
-as a string.
-Or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is no default.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">py_default</span></code></dt><dd><p>파이썬 코드에 나타날 <code class="docutils literal notranslate"><span class="pre">default</span></code> (문자열). 또는 기본값이 없으면 <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">c_default</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">default</span></code> as it should appear in C code,
-as a string.
-Or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is no default.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">c_default</span></code></dt><dd><p>C 코드에 나타말 <code class="docutils literal notranslate"><span class="pre">default</span></code> (문자열). 또는 기본값이 없으면 <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">c_ignored_default</span></code></dt><dd><p>The default value used to initialize the C variable when
-there is no default, but not specifying a default may
-result in an &quot;uninitialized variable&quot; warning.  This can
-easily happen when using option groups—although
-properly-written code will never actually use this value,
-the variable does get passed in to the impl, and the
-C compiler will complain about the &quot;use&quot; of the
-uninitialized value.  This value should always be a
-non-empty string.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">c_ignored_default</span></code></dt><dd><p>기본값은 없지만, 기본값을 지정하지 않으면 &quot;초기화되지 않은 변수&quot; 경고를 발생시킬 수 있을 때, C 변수를 초기화하는 데 사용되는 기본값. 이는 옵션 그룹을 사용할 때 쉽게 발생할 수 있습니다 - 적절하게 작성된 코드는 실제로 이 값을 사용하지 않지만, 변수는 impl에 전달되며, C 컴파일러는 초기화되지 않은 값의 &quot;사용&quot;에 대해 불평합니다. 이 값은 항상 비어 있지 않은 문자열이어야합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">converter</span></code></dt><dd><p>The name of the C converter function, as a string.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">converter</span></code></dt><dd><p>C 변환기 함수의 이름 (문자열).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">impl_by_reference</span></code></dt><dd><p>A boolean value.  If true,
-Argument Clinic will add a <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> in front of the name of
-the variable when passing it into the impl function.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">impl_by_reference</span></code></dt><dd><p>불리언 값. 참이면, 인자 클리닉은 변수를 impl 함수에 전달할 때 변수 이름 앞에 <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>를 추가합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">parse_by_reference</span></code></dt><dd><p>A boolean value.  If true,
-Argument Clinic will add a <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> in front of the name of
-the variable when passing it into <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">parse_by_reference</span></code></dt><dd><p>불리언 값. 참이면, 인자 클리닉은 변수를 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>에 전달할 때 변수 이름 앞에 <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>를 추가합니다.</p>
 </dd>
 </dl>
-<p>Here's the simplest example of a custom converter, from <code class="docutils literal notranslate"><span class="pre">Modules/zlibmodule.c</span></code>:</p>
+<p>다음은 <code class="docutils literal notranslate"><span class="pre">Modules/zlibmodule.c</span></code>에서 온, 사용자 정의 변환기의 가장 간단한 예입니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[python input]</span>
 
 <span class="cm">class ssize_t_converter(CConverter):</span>
@@ -942,33 +896,17 @@ the variable when passing it into <a class="reference internal" href="../c-api/a
 <span class="cm">/*[python end generated code: output=da39a3ee5e6b4b0d input=35521e4e733823c7]*/</span>
 </pre></div>
 </div>
-<p>This block adds a converter to Argument Clinic named <code class="docutils literal notranslate"><span class="pre">ssize_t</span></code>.  Parameters
-declared as <code class="docutils literal notranslate"><span class="pre">ssize_t</span></code> will be declared as type <code class="docutils literal notranslate"><span class="pre">Py_ssize_t</span></code>, and will
-be parsed by the <code class="docutils literal notranslate"><span class="pre">'O&amp;'</span></code> format unit, which will call the
-<code class="docutils literal notranslate"><span class="pre">ssize_t_converter</span></code> converter function.  <code class="docutils literal notranslate"><span class="pre">ssize_t</span></code> variables
-automatically support default values.</p>
-<p>More sophisticated custom converters can insert custom C code to
-handle initialization and cleanup.
-You can see more examples of custom converters in the CPython
-source tree; grep the C files for the string <code class="docutils literal notranslate"><span class="pre">CConverter</span></code>.</p>
+<p>이 블록은 <code class="docutils literal notranslate"><span class="pre">ssize_t</span></code>라는 이름의 변환기를 인자 클리닉에 추가합니다. <code class="docutils literal notranslate"><span class="pre">ssize_t</span></code>로 선언된 매개 변수는 <code class="docutils literal notranslate"><span class="pre">Py_ssize_t</span></code> 형으로 선언되고, <code class="docutils literal notranslate"><span class="pre">ssize_t_converter</span></code> 변환기 함수를 호출하는 <code class="docutils literal notranslate"><span class="pre">'O&amp;'</span></code> 포맷 단위로 구문 분석됩니다. <code class="docutils literal notranslate"><span class="pre">ssize_t</span></code> 변수는 자동으로 기본값을 지원합니다.</p>
+<p>보다 정교한 사용자 정의 변환기는 사용자 정의 C 코드를 삽입하여 초기화와 정리를 처리할 수 있습니다. CPython 소스 트리에서 사용자 정의 변환기의 더 많은 예제를 볼 수 있습니다; 문자열 <code class="docutils literal notranslate"><span class="pre">CConverter</span></code>에 대해 C 파일을 grep하십시오.</p>
 </div>
 <div class="section" id="writing-a-custom-return-converter">
-<h3>Writing a custom return converter<a class="headerlink" href="#writing-a-custom-return-converter" title="제목 주소">¶</a></h3>
-<p>Writing a custom return converter is much like writing
-a custom converter.  Except it's somewhat simpler, because return
-converters are themselves much simpler.</p>
-<p>Return converters must subclass <code class="docutils literal notranslate"><span class="pre">CReturnConverter</span></code>.
-There are no examples yet of custom return converters,
-because they are not widely used yet.  If you wish to
-write your own return converter, please read <code class="docutils literal notranslate"><span class="pre">Tools/clinic/clinic.py</span></code>,
-specifically the implementation of <code class="docutils literal notranslate"><span class="pre">CReturnConverter</span></code> and
-all its subclasses.</p>
+<h3>사용자 정의 반환 변환기 작성하기<a class="headerlink" href="#writing-a-custom-return-converter" title="제목 주소">¶</a></h3>
+<p>사용자 정의 반환 변환기를 작성하는 것은 사용자 정의 변환기를 작성하는 것과 매우 유사합니다. 반환 변환기 자체가 훨씬 간단하기 때문에 다소 간단하다는 점만 다릅니다.</p>
+<p>반환 변환기는 <code class="docutils literal notranslate"><span class="pre">CReturnConverter</span></code>를 서브 클래스해야합니다. 아직 널리 사용되지 않기 때문에, 사용자 정의 반환 변환기의 예는 아직 없습니다. 자체 반환 변환기를 작성하려면, <code class="docutils literal notranslate"><span class="pre">Tools/clinic/clinic.py</span></code>, 특히 <code class="docutils literal notranslate"><span class="pre">CReturnConverter</span></code>와 모든 서브 클래스의 구현을 읽으십시오.</p>
 </div>
 <div class="section" id="meth-o-and-meth-noargs">
-<h3>METH_O and METH_NOARGS<a class="headerlink" href="#meth-o-and-meth-noargs" title="제목 주소">¶</a></h3>
-<p>To convert a function using <code class="docutils literal notranslate"><span class="pre">METH_O</span></code>, make sure the function's
-single argument is using the <code class="docutils literal notranslate"><span class="pre">object</span></code> converter, and mark the
-arguments as positional-only:</p>
+<h3>METH_O와 METH_NOARGS<a class="headerlink" href="#meth-o-and-meth-noargs" title="제목 주소">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">METH_O</span></code>를 사용하는 함수를 변환하려면, 함수의 단일 인자가 <code class="docutils literal notranslate"><span class="pre">object</span></code> 변환기를 사용하고 있는지 확인하고, 인자를 위치 전용으로 표시하십시오:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*[clinic input]</span>
 <span class="cm">meth_o_sample</span>
 
@@ -977,45 +915,25 @@ arguments as positional-only:</p>
 <span class="cm">[clinic start generated code]*/</span>
 </pre></div>
 </div>
-<p>To convert a function using <code class="docutils literal notranslate"><span class="pre">METH_NOARGS</span></code>, just don't specify
-any arguments.</p>
-<p>You can still use a self converter, a return converter, and specify
-a <code class="docutils literal notranslate"><span class="pre">type</span></code> argument to the object converter for <code class="docutils literal notranslate"><span class="pre">METH_O</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">METH_NOARGS</span></code>를 사용하는 함수를 변환하려면, 인자를 지정하지 마십시오.</p>
+<p>여전히 self 변환기, 반환 변환기를 사용하고, <code class="docutils literal notranslate"><span class="pre">METH_O</span></code>을 위한 객체 변환기에 <code class="docutils literal notranslate"><span class="pre">type</span></code> 인자를 지정할 수 있습니다.</p>
 </div>
 <div class="section" id="tp-new-and-tp-init-functions">
-<h3>tp_new and tp_init functions<a class="headerlink" href="#tp-new-and-tp-init-functions" title="제목 주소">¶</a></h3>
-<p>You can convert <code class="docutils literal notranslate"><span class="pre">tp_new</span></code> and <code class="docutils literal notranslate"><span class="pre">tp_init</span></code> functions.  Just name
-them <code class="docutils literal notranslate"><span class="pre">__new__</span></code> or <code class="docutils literal notranslate"><span class="pre">__init__</span></code> as appropriate.  Notes:</p>
+<h3>tp_new와 tp_init 함수<a class="headerlink" href="#tp-new-and-tp-init-functions" title="제목 주소">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tp_new</span></code>와 <code class="docutils literal notranslate"><span class="pre">tp_init</span></code> 함수를 변환할 수 있습니다. 적절하게 <code class="docutils literal notranslate"><span class="pre">__new__</span></code>나 <code class="docutils literal notranslate"><span class="pre">__init__</span></code>로 이름을 지정하십시오. 참고:</p>
 <ul class="simple">
-<li><p>The function name generated for <code class="docutils literal notranslate"><span class="pre">__new__</span></code> doesn't end in <code class="docutils literal notranslate"><span class="pre">__new__</span></code>
-like it would by default.  It's just the name of the class, converted
-into a valid C identifier.</p></li>
-<li><p>No <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> <code class="docutils literal notranslate"><span class="pre">#define</span></code> is generated for these functions.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code> functions return <code class="docutils literal notranslate"><span class="pre">int</span></code>, not <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code>.</p></li>
-<li><p>Use the docstring as the class docstring.</p></li>
-<li><p>Although <code class="docutils literal notranslate"><span class="pre">__new__</span></code> and <code class="docutils literal notranslate"><span class="pre">__init__</span></code> functions must always
-accept both the <code class="docutils literal notranslate"><span class="pre">args</span></code> and <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> objects, when converting
-you may specify any signature for these functions that you like.
-(If your function doesn't support keywords, the parsing function
-generated will throw an exception if it receives any.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__new__</span></code>에 대해 생성된 함수 이름은 기본적으로 그런것처럼 <code class="docutils literal notranslate"><span class="pre">__new__</span></code>로 끝나지 않습니다. 유효한 C 식별자로 변환된 클래스의 이름일뿐입니다.</p></li>
+<li><p>이러한 함수에 대해 <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> <code class="docutils literal notranslate"><span class="pre">#define</span></code>가 생성되지 않습니다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code> 함수는 <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code>가 아니라 <code class="docutils literal notranslate"><span class="pre">int</span></code>를 반환합니다.</p></li>
+<li><p>독스트링을 클래스 독스트링으로 사용합니다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__new__</span></code>와 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 함수는 항상 <code class="docutils literal notranslate"><span class="pre">args</span></code>와 <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> 객체를 모두 받아들여야 하지만, 변환할 때 이러한 함수에 대해 원하는 서명을 지정할 수 있습니다. (함수가 키워드를 지원하지 않으면, 생성된 구문 분석 함수에서 받게되면 예외가 발생합니다.)</p></li>
 </ul>
 </div>
 <div class="section" id="changing-and-redirecting-clinic-s-output">
-<h3>Changing and redirecting Clinic's output<a class="headerlink" href="#changing-and-redirecting-clinic-s-output" title="제목 주소">¶</a></h3>
-<p>It can be inconvenient to have Clinic's output interspersed with
-your conventional hand-edited C code.  Luckily, Clinic is configurable:
-you can buffer up its output for printing later (or earlier!), or write
-its output to a separate file.  You can also add a prefix or suffix to
-every line of Clinic's generated output.</p>
-<p>While changing Clinic's output in this manner can be a boon to readability,
-it may result in Clinic code using types before they are defined, or
-your code attempting to use Clinic-generated code before it is defined.
-These problems can be easily solved by rearranging the declarations in your file,
-or moving where Clinic's generated code goes.  (This is why the default behavior
-of Clinic is to output everything into the current block; while many people
-consider this hampers readability, it will never require rearranging your
-code to fix definition-before-use problems.)</p>
-<p>Let's start with defining some terminology:</p>
+<h3>클리닉 출력을 변경하고 리디렉션하기<a class="headerlink" href="#changing-and-redirecting-clinic-s-output" title="제목 주소">¶</a></h3>
+<p>기존의 수작업으로 편집 한 C 코드에 클리닉의 출력을 산재시키는 것은 불편할 수 있습니다. 운 좋게도, 클리닉은 구성 가능합니다: 나중에 (또는 이전에!) 인쇄하기 위해 출력을 버퍼링하거나, 별도의 파일에 출력을 쓸 수 있습니다. 클리닉의 생성된 출력의 모든 줄에 접두사나 접미사를 추가할 수도 있습니다.</p>
+<p>이러한 방식으로 클리닉의 출력을 변경하면 가독성에 도움이 될 수 있지만, 형이 정의되기 전에 형을 사용하는 클리닉 코드가 발생하거나, 정의되기 전에 클리닉에서 생성된 코드를 사용하려고 시도할 수 있습니다. 이러한 문제는 파일에서 선언을 재정렬하거나, 클리닉에서 생성된 코드가있는 곳으로 이동하여 쉽게 해결할 수 있습니다. (이것이 클리닉의 기본 동작이 모든 것을 현재 블록으로 출력하는 이유입니다; 많은 사람들이 이것이 가독성을 방해한다고 생각하지만, 사용전 정의 문제를 고치기 위해 코드를 재 배열할 필요가 없습니다.)</p>
+<p>몇 가지 용어를 정의하는 것으로 시작하겠습니다:</p>
 <dl>
 <dt><em>field</em></dt><dd><p>A field, in this context, is a subsection of Clinic's output.
 For example, the <code class="docutils literal notranslate"><span class="pre">#define</span></code> for the <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> structure
@@ -1351,12 +1269,12 @@ blocks embedded in Python files look slightly different.  They look like this:</
 <li><a class="reference internal" href="#using-a-return-converter">반환 변환기 사용하기</a></li>
 <li><a class="reference internal" href="#cloning-existing-functions">기존 함수 복제하기</a></li>
 <li><a class="reference internal" href="#calling-python-code">파이썬 코드 호출하기</a></li>
-<li><a class="reference internal" href="#using-a-self-converter">Using a &quot;self converter&quot;</a></li>
-<li><a class="reference internal" href="#writing-a-custom-converter">Writing a custom converter</a></li>
-<li><a class="reference internal" href="#writing-a-custom-return-converter">Writing a custom return converter</a></li>
-<li><a class="reference internal" href="#meth-o-and-meth-noargs">METH_O and METH_NOARGS</a></li>
-<li><a class="reference internal" href="#tp-new-and-tp-init-functions">tp_new and tp_init functions</a></li>
-<li><a class="reference internal" href="#changing-and-redirecting-clinic-s-output">Changing and redirecting Clinic's output</a></li>
+<li><a class="reference internal" href="#using-a-self-converter">&quot;self 변환기&quot; 사용하기</a></li>
+<li><a class="reference internal" href="#writing-a-custom-converter">사용자 정의 변환기 작성하기</a></li>
+<li><a class="reference internal" href="#writing-a-custom-return-converter">사용자 정의 반환 변환기 작성하기</a></li>
+<li><a class="reference internal" href="#meth-o-and-meth-noargs">METH_O와 METH_NOARGS</a></li>
+<li><a class="reference internal" href="#tp-new-and-tp-init-functions">tp_new와 tp_init 함수</a></li>
+<li><a class="reference internal" href="#changing-and-redirecting-clinic-s-output">클리닉 출력을 변경하고 리디렉션하기</a></li>
 <li><a class="reference internal" href="#the-ifdef-trick">The #ifdef trick</a></li>
 <li><a class="reference internal" href="#using-argument-clinic-in-python-files">Using Argument Clinic in Python files</a></li>
 </ul>
