@@ -935,10 +935,7 @@ DecodeFSDefault
 <p>이러한 방식으로 클리닉의 출력을 변경하면 가독성에 도움이 될 수 있지만, 형이 정의되기 전에 형을 사용하는 클리닉 코드가 발생하거나, 정의되기 전에 클리닉에서 생성된 코드를 사용하려고 시도할 수 있습니다. 이러한 문제는 파일에서 선언을 재정렬하거나, 클리닉에서 생성된 코드가있는 곳으로 이동하여 쉽게 해결할 수 있습니다. (이것이 클리닉의 기본 동작이 모든 것을 현재 블록으로 출력하는 이유입니다; 많은 사람들이 이것이 가독성을 방해한다고 생각하지만, 사용전 정의 문제를 고치기 위해 코드를 재 배열할 필요가 없습니다.)</p>
 <p>몇 가지 용어를 정의하는 것으로 시작하겠습니다:</p>
 <dl>
-<dt><em>field</em></dt><dd><p>A field, in this context, is a subsection of Clinic's output.
-For example, the <code class="docutils literal notranslate"><span class="pre">#define</span></code> for the <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> structure
-is a field, called <code class="docutils literal notranslate"><span class="pre">methoddef_define</span></code>.  Clinic has seven
-different fields it can output per function definition:</p>
+<dt><em>field</em></dt><dd><p>이 문맥에서, 필드는 클리닉 출력의 하위 섹션입니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> 구조체의 <code class="docutils literal notranslate"><span class="pre">#define</span></code>은 <code class="docutils literal notranslate"><span class="pre">methoddef_define</span></code>라는 필드입니다. 클리닉에는 함수 정의당 출력할 수 있는 7가지 필드가 있습니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>docstring_prototype
 docstring_definition
 methoddef_define
@@ -948,212 +945,133 @@ parser_definition
 impl_definition
 </pre></div>
 </div>
-<p>All the names are of the form <code class="docutils literal notranslate"><span class="pre">&quot;&lt;a&gt;_&lt;b&gt;&quot;</span></code>,
-where <code class="docutils literal notranslate"><span class="pre">&quot;&lt;a&gt;&quot;</span></code> is the semantic object represented (the parsing function,
-the impl function, the docstring, or the methoddef structure) and <code class="docutils literal notranslate"><span class="pre">&quot;&lt;b&gt;&quot;</span></code>
-represents what kind of statement the field is.  Field names that end in
-<code class="docutils literal notranslate"><span class="pre">&quot;_prototype&quot;</span></code>
-represent forward declarations of that thing, without the actual body/data
-of the thing; field names that end in <code class="docutils literal notranslate"><span class="pre">&quot;_definition&quot;</span></code> represent the actual
-definition of the thing, with the body/data of the thing.  (<code class="docutils literal notranslate"><span class="pre">&quot;methoddef&quot;</span></code>
-is special, it's the only one that ends with <code class="docutils literal notranslate"><span class="pre">&quot;_define&quot;</span></code>, representing that
-it's a preprocessor #define.)</p>
+<p>모든 이름은 <code class="docutils literal notranslate"><span class="pre">&quot;&lt;a&gt;_&lt;b&gt;&quot;</span></code> 형식입니다. 여기서 <code class="docutils literal notranslate"><span class="pre">&quot;&lt;a&gt;&quot;</span></code>는 표현 된 의미 객체(구문 분석 함수, impl 함수, 독스트링 또는 methoddef 구조체)이고 <code class="docutils literal notranslate"><span class="pre">&quot;&lt;b&gt;&quot;</span></code>는 필드가 어떤 종류의 문장인지를 나타냅니다. <code class="docutils literal notranslate"><span class="pre">&quot;_prototype&quot;</span></code>으로 끝나는 필드 이름은 무언가의 실제 본문/데이터 없이 무언가의 전방 선언을 나타냅니다; <code class="docutils literal notranslate"><span class="pre">&quot;_definition&quot;</span></code>으로 끝나는 필드 이름은 무언가의 본문/데이터와 함께 무언가의 실제 정의를 나타냅니다. (<code class="docutils literal notranslate"><span class="pre">&quot;methoddef&quot;</span></code>는 특별합니다. 전 처리기 #define임을 나타내는 <code class="docutils literal notranslate"><span class="pre">&quot;_define&quot;</span></code>으로 끝나는 유일한 것입니다.)</p>
 </dd>
-<dt><em>destination</em></dt><dd><p>A destination is a place Clinic can write output to.  There are
-five built-in destinations:</p>
+<dt><em>destination</em></dt><dd><p>목적지(destination)는 클리닉이 출력을 쓸 수 있는 장소입니다. 5개의 내장 목적지가 있습니다:</p>
 <dl>
-<dt><code class="docutils literal notranslate"><span class="pre">block</span></code></dt><dd><p>The default destination: printed in the output section of
-the current Clinic block.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">block</span></code></dt><dd><p>기본 목적지: 현재 클리닉 블록의 출력 섹션에 인쇄됩니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">buffer</span></code></dt><dd><p>A text buffer where you can save text for later.  Text sent
-here is appended to the end of any existing text.  It's an
-error to have any text left in the buffer when Clinic finishes
-processing a file.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">buffer</span></code></dt><dd><p>나중을 위해 텍스트를 저장할 수 있는 텍스트 버퍼. 여기로 전송된 텍스트는 기존 텍스트의 끝에 추가됩니다. 클리닉이 파일 처리를 완료할 때 버퍼에 텍스트가 남아 있으면 에러입니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">file</span></code></dt><dd><p>A separate &quot;clinic file&quot; that will be created automatically by Clinic.
-The filename chosen for the file is <code class="docutils literal notranslate"><span class="pre">{basename}.clinic{extension}</span></code>,
-where <code class="docutils literal notranslate"><span class="pre">basename</span></code> and <code class="docutils literal notranslate"><span class="pre">extension</span></code> were assigned the output
-from <code class="docutils literal notranslate"><span class="pre">os.path.splitext()</span></code> run on the current file.  (Example:
-the <code class="docutils literal notranslate"><span class="pre">file</span></code> destination for <code class="docutils literal notranslate"><span class="pre">_pickle.c</span></code> would be written to
-<code class="docutils literal notranslate"><span class="pre">_pickle.clinic.c</span></code>.)</p>
-<p><strong>Important: When using a</strong> <code class="docutils literal notranslate"><span class="pre">file</span></code> <strong>destination, you</strong>
-<em>must check in</em> <strong>the generated file!</strong></p>
+<dt><code class="docutils literal notranslate"><span class="pre">file</span></code></dt><dd><p>클리닉이 자동으로 만들 별도의 &quot;클리닉 파일&quot;입니다. 파일에 대해 선택한 파일명은 <code class="docutils literal notranslate"><span class="pre">{basename}.clinic{extension}</span></code>입니다. 여기서 <code class="docutils literal notranslate"><span class="pre">basename</span></code>과 <code class="docutils literal notranslate"><span class="pre">extension</span></code>에는 현재 파일에대해 실행되는 <code class="docutils literal notranslate"><span class="pre">os.path.splitext()</span></code>의 출력이 대입되었습니다. (예: <code class="docutils literal notranslate"><span class="pre">_pickle.c</span></code>의 <code class="docutils literal notranslate"><span class="pre">file</span></code> 목적지는 <code class="docutils literal notranslate"><span class="pre">_pickle.clinic.c</span></code>에 기록됩니다.)</p>
+<p><strong>중요:</strong> <code class="docutils literal notranslate"><span class="pre">file</span></code> <strong>목적지를 사용할 때, 생성된 파일을</strong> <em>반드시 체크인하는</em> <strong>것이 중요합니다!</strong></p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">two-pass</span></code></dt><dd><p>A buffer like <code class="docutils literal notranslate"><span class="pre">buffer</span></code>.  However, a two-pass buffer can only
-be dumped once, and it prints out all text sent to it during
-all processing, even from Clinic blocks <em>after</em> the dumping point.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">two-pass</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code>와 같은 버퍼. 그러나, 2패스 버퍼는 한 번만 덤프 할 수 있으며, 모든 처리 중에 전송된 모든 텍스트를 인쇄합니다, 클리닉에서 덤프 지점 <em>이후의</em> 클리닉 블록에서 온 것 마저도.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">suppress</span></code></dt><dd><p>The text is suppressed—thrown away.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">suppress</span></code></dt><dd><p>텍스트가 표시되지 않고 버려집니다.</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p>Clinic defines five new directives that let you reconfigure its output.</p>
-<p>The first new directive is <code class="docutils literal notranslate"><span class="pre">dump</span></code>:</p>
+<p>클리닉은 출력을 재구성 할 수 있는 5개의 새로운 지시문을 정의합니다.</p>
+<p>첫 번째 새 지시문은 <code class="docutils literal notranslate"><span class="pre">dump</span></code>입니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dump &lt;destination&gt;
 </pre></div>
 </div>
-<p>This dumps the current contents of the named destination into the output of
-the current block, and empties it.  This only works with <code class="docutils literal notranslate"><span class="pre">buffer</span></code> and
-<code class="docutils literal notranslate"><span class="pre">two-pass</span></code> destinations.</p>
-<p>The second new directive is <code class="docutils literal notranslate"><span class="pre">output</span></code>.  The most basic form of <code class="docutils literal notranslate"><span class="pre">output</span></code>
-is like this:</p>
+<p>이것은 명명된 목적지의 현재 내용을 현재 블록의 출력으로 덤프하고, 목적지를 비웁니다. 이것은 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>와 <code class="docutils literal notranslate"><span class="pre">two-pass</span></code> 목적지에서만 작동합니다.</p>
+<p>두 번째 새 지시문은 <code class="docutils literal notranslate"><span class="pre">output</span></code>입니다. <code class="docutils literal notranslate"><span class="pre">output</span></code>의 가장 기본적인 형태는 다음과 같습니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>output &lt;field&gt; &lt;destination&gt;
 </pre></div>
 </div>
-<p>This tells Clinic to output <em>field</em> to <em>destination</em>.  <code class="docutils literal notranslate"><span class="pre">output</span></code> also
-supports a special meta-destination, called <code class="docutils literal notranslate"><span class="pre">everything</span></code>, which tells
-Clinic to output <em>all</em> fields to that <em>destination</em>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">output</span></code> has a number of other functions:</p>
+<p>이것은 클리닉에게 <em>field</em>를 <em>destination</em>으로 출력하도록 지시합니다. <code class="docutils literal notranslate"><span class="pre">output</span></code>은 <code class="docutils literal notranslate"><span class="pre">everything</span></code>이라는 특수 메타 목적지를 지원합니다. 이 메타 목적지는 클리닉에게 <em>모든</em> 필드를 해당 <em>목적지</em>로 출력하도록 지시합니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">output</span></code>에는 여러 가지 다른 함수가 있습니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>output push
 output pop
 output preset &lt;preset&gt;
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">output</span> <span class="pre">push</span></code> and <code class="docutils literal notranslate"><span class="pre">output</span> <span class="pre">pop</span></code> allow you to push and pop
-configurations on an internal configuration stack, so that you
-can temporarily modify the output configuration, then easily restore
-the previous configuration.  Simply push before your change to save
-the current configuration, then pop when you wish to restore the
-previous configuration.</p>
-<p><code class="docutils literal notranslate"><span class="pre">output</span> <span class="pre">preset</span></code> sets Clinic's output to one of several built-in
-preset configurations, as follows:</p>
+<p><code class="docutils literal notranslate"><span class="pre">output</span> <span class="pre">push</span></code>와 <code class="docutils literal notranslate"><span class="pre">output</span> <span class="pre">pop</span></code>을 사용하면 내부 구성 스택에 구성을 푸시하고 팝할 수 있어서, 출력 구성을 일시적으로 수정한 다음, 이전 구성을 쉽게 복원 할 수 있습니다. 변경하기 전에 푸시해서 현재 구성을 저장한 다음, 이전 구성을 복원하기 원할 때 팝 합니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">output</span> <span class="pre">preset</span></code>은 클리닉의 출력을 다음과 같은 여러 내장 사전 설정 구성 중 하나로 설정합니다:</p>
 <blockquote>
 <div><dl>
-<dt><code class="docutils literal notranslate"><span class="pre">block</span></code></dt><dd><p>Clinic's original starting configuration.  Writes everything
-immediately after the input block.</p>
-<p>Suppress the <code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>
-and <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>, write everything else to <code class="docutils literal notranslate"><span class="pre">block</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">block</span></code></dt><dd><p>클리닉의 원래 시작 구성. 입력 블록 바로 뒤에 모든 것을 씁니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>과 <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>을 억제하고, 나머지는 모두 <code class="docutils literal notranslate"><span class="pre">block</span></code>에 씁니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">file</span></code></dt><dd><p>Designed to write everything to the &quot;clinic file&quot; that it can.
-You then <code class="docutils literal notranslate"><span class="pre">#include</span></code> this file near the top of your file.
-You may need to rearrange your file to make this work, though
-usually this just means creating forward declarations for various
-<code class="docutils literal notranslate"><span class="pre">typedef</span></code> and <code class="docutils literal notranslate"><span class="pre">PyTypeObject</span></code> definitions.</p>
-<p>Suppress the <code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>
-and <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>, write the <code class="docutils literal notranslate"><span class="pre">impl_definition</span></code> to
-<code class="docutils literal notranslate"><span class="pre">block</span></code>, and write everything else to <code class="docutils literal notranslate"><span class="pre">file</span></code>.</p>
-<p>The default filename is <code class="docutils literal notranslate"><span class="pre">&quot;{dirname}/clinic/{basename}.h&quot;</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">file</span></code></dt><dd><p>가능한 모든 것을 &quot;클리닉 파일&quot;에 기록하도록 설계되었습니다. 그러면 여러분은 파일 상단 근처에서 이 파일을 <code class="docutils literal notranslate"><span class="pre">#include</span></code>합니다. 이것이 작동하려면 파일을 다시 재배치해야 할 수 있습니다, 일반적으로 이것은 단지 다양한 <code class="docutils literal notranslate"><span class="pre">typedef</span></code>와 <code class="docutils literal notranslate"><span class="pre">PyTypeObject</span></code> 정의에 대한 전방 선언을 만드는 것을 의미하지만.</p>
+<p><code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>과 <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>을 억제하고, <code class="docutils literal notranslate"><span class="pre">impl_definition</span></code>을 <code class="docutils literal notranslate"><span class="pre">block</span></code>에 쓰고 나머지는 모두 <code class="docutils literal notranslate"><span class="pre">file</span></code>에 씁니다.</p>
+<p>기본 파일명은 <code class="docutils literal notranslate"><span class="pre">&quot;{dirname}/clinic/{basename}.h&quot;</span></code>입니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">buffer</span></code></dt><dd><p>Save up most of the output from Clinic, to be written into
-your file near the end.  For Python files implementing modules
-or builtin types, it's recommended that you dump the buffer
-just above the static structures for your module or
-builtin type; these are normally very near the end.  Using
-<code class="docutils literal notranslate"><span class="pre">buffer</span></code> may require even more editing than <code class="docutils literal notranslate"><span class="pre">file</span></code>, if
-your file has static <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> arrays defined in the
-middle of the file.</p>
-<p>Suppress the <code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>, <code class="docutils literal notranslate"><span class="pre">impl_prototype</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>, write the <code class="docutils literal notranslate"><span class="pre">impl_definition</span></code> to
-<code class="docutils literal notranslate"><span class="pre">block</span></code>, and write everything else to <code class="docutils literal notranslate"><span class="pre">file</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">buffer</span></code></dt><dd><p>클리닉의 출력 대부분을 저장하여, 마지막에 파일에 기록합니다. 모듈이나 내장 형을 구현하는 파이썬 파일의 경우, 모듈이나 내장 형의 정적 구조 바로 위에 버퍼를 덤프하는 것이 좋습니다; 이것들은 일반적으로 거의 끝 부분에 있습니다. 파일 중간에 정의된 정적 <code class="docutils literal notranslate"><span class="pre">PyMethodDef</span></code> 배열이있으면, <code class="docutils literal notranslate"><span class="pre">buffer</span></code>를 사용하면 <code class="docutils literal notranslate"><span class="pre">file</span></code>보다 더 많은 편집이 필요할 수 있습니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>, <code class="docutils literal notranslate"><span class="pre">impl_prototype</span></code> 및 <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>을 억제하고, <code class="docutils literal notranslate"><span class="pre">impl_definition</span></code>을 <code class="docutils literal notranslate"><span class="pre">block</span></code>에 쓰고, 나머지는 모두 <code class="docutils literal notranslate"><span class="pre">file</span></code>에 씁니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">two-pass</span></code></dt><dd><p>Similar to the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> preset, but writes forward declarations to
-the <code class="docutils literal notranslate"><span class="pre">two-pass</span></code> buffer, and definitions to the <code class="docutils literal notranslate"><span class="pre">buffer</span></code>.
-This is similar to the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> preset, but may require
-less editing than <code class="docutils literal notranslate"><span class="pre">buffer</span></code>.  Dump the <code class="docutils literal notranslate"><span class="pre">two-pass</span></code> buffer
-near the top of your file, and dump the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> near
-the end just like you would when using the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> preset.</p>
-<p>Suppresses the <code class="docutils literal notranslate"><span class="pre">impl_prototype</span></code>, write the <code class="docutils literal notranslate"><span class="pre">impl_definition</span></code>
-to <code class="docutils literal notranslate"><span class="pre">block</span></code>, write <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>, <code class="docutils literal notranslate"><span class="pre">methoddef_define</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code> to <code class="docutils literal notranslate"><span class="pre">two-pass</span></code>, write everything else
-to <code class="docutils literal notranslate"><span class="pre">buffer</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">two-pass</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code> 사전 설정과 유사하지만, 전방 선언을 <code class="docutils literal notranslate"><span class="pre">two-pass</span></code> 버퍼에 쓰고, 정의를 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>에 씁니다. 이것은 <code class="docutils literal notranslate"><span class="pre">buffer</span></code> 사전 설정과 유사하지만, <code class="docutils literal notranslate"><span class="pre">buffer</span></code>보다 편집이 덜 필요할 수 있습니다. 파일 상단 근처에 <code class="docutils literal notranslate"><span class="pre">two-pass</span></code> 버퍼를 덤프하고, <code class="docutils literal notranslate"><span class="pre">buffer</span></code> 사전 설정을 사용할 때처럼 끝 근처에 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>를 덤프하십시오.</p>
+<p><code class="docutils literal notranslate"><span class="pre">impl_prototype</span></code>을 억제하고, <code class="docutils literal notranslate"><span class="pre">impl_definition</span></code>을 <code class="docutils literal notranslate"><span class="pre">block</span></code>에 쓰고, <code class="docutils literal notranslate"><span class="pre">docstring_prototype</span></code>, <code class="docutils literal notranslate"><span class="pre">methoddef_define</span></code> 및 <code class="docutils literal notranslate"><span class="pre">parser_prototype</span></code>을 <code class="docutils literal notranslate"><span class="pre">two-pass</span></code>에 쓰고, 나머지는 모두 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>에 씁니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">partial-buffer</span></code></dt><dd><p>Similar to the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> preset, but writes more things to <code class="docutils literal notranslate"><span class="pre">block</span></code>,
-only writing the really big chunks of generated code to <code class="docutils literal notranslate"><span class="pre">buffer</span></code>.
-This avoids the definition-before-use problem of <code class="docutils literal notranslate"><span class="pre">buffer</span></code> completely,
-at the small cost of having slightly more stuff in the block's output.
-Dump the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> near the end, just like you would when using
-the <code class="docutils literal notranslate"><span class="pre">buffer</span></code> preset.</p>
-<p>Suppresses the <code class="docutils literal notranslate"><span class="pre">impl_prototype</span></code>, write the <code class="docutils literal notranslate"><span class="pre">docstring_definition</span></code>
-and <code class="docutils literal notranslate"><span class="pre">parser_definition</span></code> to <code class="docutils literal notranslate"><span class="pre">buffer</span></code>, write everything else to <code class="docutils literal notranslate"><span class="pre">block</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">partial-buffer</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code> 사전 설정과 유사하지만, <code class="docutils literal notranslate"><span class="pre">block</span></code>에 더 많은 것을 쓰고, 생성된 코드의 정말 큰 덩어리 만 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>에 씁니다. 이것은 블록의 출력에 약간 더 많은 것을 갖는 적은 비용으로, <code class="docutils literal notranslate"><span class="pre">buffer</span></code>의 사용 전 정의 문제를 완전히 피합니다. <code class="docutils literal notranslate"><span class="pre">buffer</span></code> 사전 설정을 사용할 때처럼, 끝 부분에 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>를 덤프하십시오.</p>
+<p><code class="docutils literal notranslate"><span class="pre">impl_prototype</span></code>을 억제하고, <code class="docutils literal notranslate"><span class="pre">docstring_definition</span></code>과 <code class="docutils literal notranslate"><span class="pre">parser_definition</span></code>을 <code class="docutils literal notranslate"><span class="pre">buffer</span></code>에 쓰고, 나머지는 모두 <code class="docutils literal notranslate"><span class="pre">block</span></code>에 씁니다.</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>The third new directive is <code class="docutils literal notranslate"><span class="pre">destination</span></code>:</p>
+<p>세 번째 새 지시문은 <code class="docutils literal notranslate"><span class="pre">destination</span></code>입니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>destination &lt;name&gt; &lt;command&gt; [...]
 </pre></div>
 </div>
-<p>This performs an operation on the destination named <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
-<p>There are two defined subcommands: <code class="docutils literal notranslate"><span class="pre">new</span></code> and <code class="docutils literal notranslate"><span class="pre">clear</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">new</span></code> subcommand works like this:</p>
+<p><code class="docutils literal notranslate"><span class="pre">name</span></code>라는 목적지에에서 작업을 수행합니다.</p>
+<p>두 개의 정의된 부속 명령이 있습니다: <code class="docutils literal notranslate"><span class="pre">new</span></code>와 <code class="docutils literal notranslate"><span class="pre">clear</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">new</span></code> 부속 명령은 다음과 같이 작동합니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>destination &lt;name&gt; new &lt;type&gt;
 </pre></div>
 </div>
-<p>This creates a new destination with name <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> and type <code class="docutils literal notranslate"><span class="pre">&lt;type&gt;</span></code>.</p>
-<p>There are five destination types:</p>
+<p>이렇게하면 이름이 <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code>이고 형이 <code class="docutils literal notranslate"><span class="pre">&lt;type&gt;</span></code>인 새 목적지가 만들어집니다.</p>
+<p>다음과 같은 5가지 목적지 형이 있습니다:</p>
 <blockquote>
 <div><dl>
-<dt><code class="docutils literal notranslate"><span class="pre">suppress</span></code></dt><dd><p>Throws the text away.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">suppress</span></code></dt><dd><p>텍스트를 버립니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">block</span></code></dt><dd><p>Writes the text to the current block.  This is what Clinic
-originally did.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">block</span></code></dt><dd><p>현재 블록에 텍스트를 씁니다. 이것이 클리닉이 원래 한 일입니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">buffer</span></code></dt><dd><p>A simple text buffer, like the &quot;buffer&quot; builtin destination above.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">buffer</span></code></dt><dd><p>위의 &quot;buffer&quot; 내장 목적지과 같은, 간단한 텍스트 버퍼.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">file</span></code></dt><dd><p>A text file.  The file destination takes an extra argument,
-a template to use for building the filename, like so:</p>
+<dt><code class="docutils literal notranslate"><span class="pre">file</span></code></dt><dd><p>텍스트 파일. 파일 목적지는 다음과 같이 파일명을 빌드하는 데 사용할 템플릿 인 추가 인자를 취합니다:</p>
 <blockquote>
 <div><p>destination &lt;name&gt; new &lt;type&gt; &lt;file_template&gt;</p>
 </div></blockquote>
-<p>The template can use three strings internally that will be replaced
-by bits of the filename:</p>
+<p>템플릿은 내부적으로 파일명의 일부로 대체되는 세 개의 문자열을 사용할 수 있습니다:</p>
 <blockquote>
 <div><dl class="simple">
-<dt>{path}</dt><dd><p>The full path to the file, including directory and full filename.</p>
+<dt>{path}</dt><dd><p>디렉터리와 전체 파일명을 포함하는, 파일의 전체 경로.</p>
 </dd>
-<dt>{dirname}</dt><dd><p>The name of the directory the file is in.</p>
+<dt>{dirname}</dt><dd><p>파일이 있는 디렉터리의 이름.</p>
 </dd>
-<dt>{basename}</dt><dd><p>Just the name of the file, not including the directory.</p>
+<dt>{basename}</dt><dd><p>디렉터리를 제외한, 파일의 이름.</p>
 </dd>
-<dt>{basename_root}</dt><dd><p>Basename with the extension clipped off
-(everything up to but not including the last '.').</p>
+<dt>{basename_root}</dt><dd><p>확장자가 잘린 basename (마지막 '.'을 포함하지 않는 모든 것).</p>
 </dd>
-<dt>{basename_extension}</dt><dd><p>The last '.' and everything after it.  If the basename
-does not contain a period, this will be the empty string.</p>
+<dt>{basename_extension}</dt><dd><p>마지막 '.' 그리고 그 이후의 모든 것. basename에 마침표가 포함되어 있지 않으면, 빈 문자열이됩니다.</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>If there are no periods in the filename, {basename} and {filename}
-are the same, and {extension} is empty.  &quot;{basename}{extension}&quot;
-is always exactly the same as &quot;{filename}&quot;.&quot;</p>
+<p>파일명에 마침표가 없으면, {basename}과 {filename}은 같고, {extension}은 비어 있습니다.&quot;{basename}{extension}&quot;은 항상 &quot;{filename}&quot;.&quot;과 정확히 같습니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">two-pass</span></code></dt><dd><p>A two-pass buffer, like the &quot;two-pass&quot; builtin destination above.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">two-pass</span></code></dt><dd><p>위의 &quot;two-pass&quot; 내장 목적지와 같은, 2 패스 버퍼.</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>The <code class="docutils literal notranslate"><span class="pre">clear</span></code> subcommand works like this:</p>
+<p><code class="docutils literal notranslate"><span class="pre">clear</span></code> 부속 명령은 다음과 같이 작동합니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>destination &lt;name&gt; clear
 </pre></div>
 </div>
-<p>It removes all the accumulated text up to this point in the destination.
-(I don't know what you'd need this for, but I thought maybe it'd be
-useful while someone's experimenting.)</p>
-<p>The fourth new directive is <code class="docutils literal notranslate"><span class="pre">set</span></code>:</p>
+<p>목적지에서 이 지점까지 누적된 모든 텍스트를 제거합니다. (이것이 무엇에 필요한지 모르겠지만, 누군가가 실험하는 동안 유용할 것이라고 생각했습니다.)</p>
+<p>네 번째 새 지시문은 <code class="docutils literal notranslate"><span class="pre">set</span></code>입니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>set line_prefix &quot;string&quot;
 set line_suffix &quot;string&quot;
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">set</span></code> lets you set two internal variables in Clinic.
-<code class="docutils literal notranslate"><span class="pre">line_prefix</span></code> is a string that will be prepended to every line of Clinic's output;
-<code class="docutils literal notranslate"><span class="pre">line_suffix</span></code> is a string that will be appended to every line of Clinic's output.</p>
-<p>Both of these support two format strings:</p>
+<p><code class="docutils literal notranslate"><span class="pre">set</span></code>을 사용하면 클리닉에서 두 개의 내부 변수를 설정할 수 있습니다. <code class="docutils literal notranslate"><span class="pre">line_prefix</span></code>는 클리닉 출력의 모든 줄 앞에 추가되는 문자열입니다; <code class="docutils literal notranslate"><span class="pre">line_suffix</span></code>는 클리닉 출력의 모든 줄에 뒤에 추가되는 문자열입니다.</p>
+<p>둘 다 두 가지 포맷 문자열을 지원합니다:</p>
 <blockquote>
 <div><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">{block</span> <span class="pre">comment</span> <span class="pre">start}</span></code></dt><dd><p>Turns into the string <code class="docutils literal notranslate"><span class="pre">/*</span></code>, the start-comment text sequence for C files.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">{block</span> <span class="pre">comment</span> <span class="pre">start}</span></code></dt><dd><p>C 파일의 시작 주석 텍스트 시퀀스인, <code class="docutils literal notranslate"><span class="pre">/*</span></code> 문자열로 바뀝니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">{block</span> <span class="pre">comment</span> <span class="pre">end}</span></code></dt><dd><p>Turns into the string <code class="docutils literal notranslate"><span class="pre">*/</span></code>, the end-comment text sequence for C files.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">{block</span> <span class="pre">comment</span> <span class="pre">end}</span></code></dt><dd><p>C 파일의 종료 주석 텍스트 시퀀스인 <code class="docutils literal notranslate"><span class="pre">*/</span></code> 문자열로 바뀝니다.</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>The final new directive is one you shouldn't need to use directly,
-called <code class="docutils literal notranslate"><span class="pre">preserve</span></code>:</p>
+<p>마지막 새 지시문은 <code class="docutils literal notranslate"><span class="pre">preserve</span></code>라고하는 여러분이 직접 사용할 필요가 없는 것입니다:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>preserve
 </pre></div>
 </div>
-<p>This tells Clinic that the current contents of the output should be kept, unmodified.
-This is used internally by Clinic when dumping output into <code class="docutils literal notranslate"><span class="pre">file</span></code> files; wrapping
-it in a Clinic block lets Clinic use its existing checksum functionality to ensure
-the file was not modified by hand before it gets overwritten.</p>
+<p>이것은 출력의 현재 내용이 수정되지 않고 유지되어야 함을 클리닉에 알려줍니다. 이는 <code class="docutils literal notranslate"><span class="pre">file</span></code> 파일로 출력을 덤프 할 때 클리닉에서 내부적으로 사용됩니다; 클리닉 블록에서 래핑하면 클리닉이 기존 체크섬 기능을 사용하여 파일을 덮어 쓰기 전에 수동으로 수정하지 않았는지 확인할 수 있습니다.</p>
 </div>
 <div class="section" id="the-ifdef-trick">
 <h3>The #ifdef trick<a class="headerlink" href="#the-ifdef-trick" title="제목 주소">¶</a></h3>
