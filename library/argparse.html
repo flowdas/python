@@ -622,7 +622,7 @@
 <li><p><a class="reference internal" href="#action">action</a> - 명령행에서 이 인자가 발견될 때 수행 할 액션의 기본형.</p></li>
 <li><p><a class="reference internal" href="#nargs">nargs</a> - 소비되어야 하는 명령행 인자의 수.</p></li>
 <li><p><a class="reference internal" href="#const">const</a> - 일부 <a class="reference internal" href="#action">action</a> 및 <a class="reference internal" href="#nargs">nargs</a> 를 선택할 때 필요한 상숫값.</p></li>
-<li><p><a class="reference internal" href="#default">default</a> - 인자가 명령행에 없는 경우 생성되는 값.</p></li>
+<li><p><a class="reference internal" href="#default">default</a> - 인자가 명령행에 없고 namespace 객체에 없으면 생성되는 값.</p></li>
 <li><p><a class="reference internal" href="#type">type</a> - 명령행 인자가 변환되어야 할 형.</p></li>
 <li><p><a class="reference internal" href="#choices">choices</a> - 인자로 허용되는 값의 컨테이너.</p></li>
 <li><p><a class="reference internal" href="#required">required</a> - 명령행 옵션을 생략 할 수 있는지 아닌지 (선택적일 때만).</p></li>
@@ -857,6 +857,13 @@
 <span class="go">Namespace(foo=42)</span>
 </pre></div>
 </div>
+<p>대상 이름 공간에 이미 어트리뷰트가 설정되었으면, 액션 <em>default</em>는 이를 덮어쓰지 않습니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([],</span> <span class="n">namespace</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="n">foo</span><span class="o">=</span><span class="mi">101</span><span class="p">))</span>
+<span class="go">Namespace(foo=101)</span>
+</pre></div>
+</div>
 <p><code class="docutils literal notranslate"><span class="pre">default</span></code> 값이 문자열이면, 파서는 마치 명령행 인자인 것처럼 파싱합니다. 특히, 파서는 <a class="reference internal" href="#argparse.Namespace" title="argparse.Namespace"><code class="xref py py-class docutils literal notranslate"><span class="pre">Namespace</span></code></a> 반환 값에 어트리뷰트를 설정하기 전에, 제공된 모든 <a class="reference internal" href="#type">type</a> 변환 인자를 적용합니다. 그렇지 않은 경우, 파서는 값을 있는 그대로 사용합니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--length&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;10&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
@@ -955,19 +962,8 @@
 <span class="go">doors.py: error: argument door: invalid choice: 4 (choose from 1, 2, 3)</span>
 </pre></div>
 </div>
-<p>모든 컨테이너는 <em>choices</em> 값으로 전달될 수 있기 때문에, <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> 객체, <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> 객체, 사용자 정의 컨테이너 등이 모두 지원됩니다. 여기에는 <a class="reference internal" href="enum.html#enum.Enum" title="enum.Enum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a>이 포함되며, 인자의 선택을 제한하는 데 사용될 수 있습니다; 이전의 가위바위보 게임 예제를 재사용하면 다음과 같습니다:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">GameMove</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">ROCK</span> <span class="o">=</span> <span class="s1">&#39;rock&#39;</span>
-<span class="gp">... </span>    <span class="n">PAPER</span> <span class="o">=</span> <span class="s1">&#39;paper&#39;</span>
-<span class="gp">... </span>    <span class="n">SCISSORS</span> <span class="o">=</span> <span class="s1">&#39;scissors&#39;</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;game.py&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;move&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">GameMove</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">GameMove</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s1">&#39;rock&#39;</span><span class="p">])</span>
-<span class="go">Namespace(move=&lt;GameMove.ROCK: &#39;rock&#39;&gt;)</span>
-</pre></div>
-</div>
+<p>모든 컨테이너는 <em>choices</em> 값으로 전달될 수 있기 때문에, <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> 객체, <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> 객체, 사용자 정의 컨테이너 등이 모두 지원됩니다.</p>
+<p><a class="reference internal" href="enum.html#enum.Enum" title="enum.Enum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></a>은 사용법, 도움말 및 에러 메시지에서 나타나는 방식을 제어하기 어렵기 때문에 사용하지 않는 것이 좋습니다.</p>
 <div class="admonition-flowdas admonition">
 <p class="admonition-title">flowdas</p>
 <p><em>choices</em> 와 <code class="docutils literal notranslate"><span class="pre">nargs='*'</span></code> 를 함께 쓰면 묘한 일이 일어납니다. 아무런 값도 주지 않으면 빈 튜플이
