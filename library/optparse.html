@@ -523,53 +523,35 @@ Options:
 </div>
 <div class="section" id="how-optparse-handles-errors">
 <span id="optparse-how-optparse-handles-errors"></span><h3><a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>가 에러를 처리하는 방법<a class="headerlink" href="#how-optparse-handles-errors" title="제목 주소">¶</a></h3>
-<p>There are two broad classes of errors that <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> has to worry about:
-programmer errors and user errors.  Programmer errors are usually erroneous
-calls to <a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-func docutils literal notranslate"><span class="pre">OptionParser.add_option()</span></code></a>, e.g. invalid option strings, unknown
-option attributes, missing option attributes, etc.  These are dealt with in the
-usual way: raise an exception (either <code class="xref py py-exc docutils literal notranslate"><span class="pre">optparse.OptionError</span></code> or
-<a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>) and let the program crash.</p>
-<p>Handling user errors is much more important, since they are guaranteed to happen
-no matter how stable your code is.  <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> can automatically detect
-some user errors, such as bad option arguments (passing <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">4x</span></code> where
-<code class="docutils literal notranslate"><span class="pre">-n</span></code> takes an integer argument), missing arguments (<code class="docutils literal notranslate"><span class="pre">-n</span></code> at the end
-of the command line, where <code class="docutils literal notranslate"><span class="pre">-n</span></code> takes an argument of any type).  Also,
-you can call <code class="xref py py-func docutils literal notranslate"><span class="pre">OptionParser.error()</span></code> to signal an application-defined error
-condition:</p>
+<p><a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>가 걱정해야 할 에러에는 두 가지가 있습니다: 프로그래머 에러와 사용자 에러. 프로그래머 에러는 일반적으로 <a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-func docutils literal notranslate"><span class="pre">OptionParser.add_option()</span></code></a>에 대한 잘못된 호출입니다, 예를 들어 잘못된 옵션 문자열, 알 수 없는 옵션 어트리뷰트, 누락 된 옵션 어트리뷰트 등. 이러한 에러는 일반적인 방식으로 처리됩니다: 예외(<code class="xref py py-exc docutils literal notranslate"><span class="pre">optparse.OptionError</span></code>나 <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>)를 발생시키고 프로그램이 충돌하도록 합니다.</p>
+<p>사용자 에러를 처리하는 것은 훨씬 더 중요합니다, 코드가 아무리 안정적이더라도 발생하는 것이 보장되기 때문입니다. <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>는 잘못된 옵션 인자 (<code class="docutils literal notranslate"><span class="pre">-n</span></code>가 정수 인자를 취할 때 <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">4x</span></code> 전달), 누락 된 인자(<code class="docutils literal notranslate"><span class="pre">-n</span></code>이 모든 형의 인자를 취할 때, 명령 줄 끝의 <code class="docutils literal notranslate"><span class="pre">-n</span></code>)와 같은 일부 사용자 에러를 자동으로 감지할 수 있습니다. 또한, <code class="xref py py-func docutils literal notranslate"><span class="pre">OptionParser.error()</span></code>를 호출하여 응용 프로그램 정의 에러 조건을 알릴 수 있습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 <span class="o">...</span>
 <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">a</span> <span class="ow">and</span> <span class="n">options</span><span class="o">.</span><span class="n">b</span><span class="p">:</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;options -a and -b are mutually exclusive&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In either case, <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> handles the error the same way: it prints the
-program's usage message and an error message to standard error and exits with
-error status 2.</p>
-<p>Consider the first example above, where the user passes <code class="docutils literal notranslate"><span class="pre">4x</span></code> to an option
-that takes an integer:</p>
+<p>두 경우 모두, <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>는 같은 방식으로 에러를 처리합니다: 프로그램의 사용법 메시지와 에러 메시지를 표준 에러에 인쇄하고 에러 상태 2로 종료합니다.</p>
+<p>사용자가 정수를 취하는 옵션에 <code class="docutils literal notranslate"><span class="pre">4x</span></code>를 전달하는 위의 첫 번째 예를 고려하십시오:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> /usr/bin/foo -n 4x
 <span class="go">Usage: foo [options]</span>
 
 <span class="go">foo: error: option -n: invalid integer value: &#39;4x&#39;</span>
 </pre></div>
 </div>
-<p>Or, where the user fails to pass a value at all:</p>
+<p>또는 사용자가 값을 전혀 전달하지 못하는 경우:</p>
 <div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> /usr/bin/foo -n
 <span class="go">Usage: foo [options]</span>
 
 <span class="go">foo: error: -n option requires an argument</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>-generated error messages take care always to mention the
-option involved in the error; be sure to do the same when calling
-<code class="xref py py-func docutils literal notranslate"><span class="pre">OptionParser.error()</span></code> from your application code.</p>
-<p>If <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>'s default error-handling behaviour does not suit your needs,
-you'll need to subclass OptionParser and override its <code class="xref py py-meth docutils literal notranslate"><span class="pre">exit()</span></code>
-and/or <code class="xref py py-meth docutils literal notranslate"><span class="pre">error()</span></code> methods.</p>
+<p><a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>-생성 에러 메시지는 항상 에러와 관련된 옵션을 언급하도록 주의를 기울입니다; 응용 프로그램 코드에서 <code class="xref py py-func docutils literal notranslate"><span class="pre">OptionParser.error()</span></code>를 호출 할 때도 그래야합니다.</p>
+<p><a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>의 기본 에러 처리 동작이 여러분의 요구에 맞지 않으면, OptionParser를 서브 클래스 화하고 <code class="xref py py-meth docutils literal notranslate"><span class="pre">exit()</span></code> 및/또는 <code class="xref py py-meth docutils literal notranslate"><span class="pre">error()</span></code> 메서드를 재정의해야합니다.</p>
 </div>
 <div class="section" id="putting-it-all-together">
-<span id="optparse-putting-it-all-together"></span><h3>Putting it all together<a class="headerlink" href="#putting-it-all-together" title="제목 주소">¶</a></h3>
-<p>Here's what <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>-based scripts usually look like:</p>
+<span id="optparse-putting-it-all-together"></span><h3>모두 합치기<a class="headerlink" href="#putting-it-all-together" title="제목 주소">¶</a></h3>
+<p>일반적으로 <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> 기반 스크립트는 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">optparse</span> <span class="k">import</span> <span class="n">OptionParser</span>
 <span class="o">...</span>
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
@@ -598,61 +580,39 @@ and/or <code class="xref py py-meth docutils literal notranslate"><span class="p
 <div class="section" id="reference-guide">
 <span id="optparse-reference-guide"></span><h2>레퍼런스 지침서<a class="headerlink" href="#reference-guide" title="제목 주소">¶</a></h2>
 <div class="section" id="creating-the-parser">
-<span id="optparse-creating-parser"></span><h3>Creating the parser<a class="headerlink" href="#creating-the-parser" title="제목 주소">¶</a></h3>
-<p>The first step in using <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> is to create an OptionParser instance.</p>
+<span id="optparse-creating-parser"></span><h3>구문 분석기 만들기<a class="headerlink" href="#creating-the-parser" title="제목 주소">¶</a></h3>
+<p><a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>를 사용하는 첫 번째 단계는 OptionParser 인스턴스를 만드는 것입니다.</p>
 <dl class="class">
 <dt id="optparse.OptionParser">
 <em class="property">class </em><code class="sig-prename descclassname">optparse.</code><code class="sig-name descname">OptionParser</code><span class="sig-paren">(</span><em class="sig-param">...</em><span class="sig-paren">)</span><a class="headerlink" href="#optparse.OptionParser" title="정의 주소">¶</a></dt>
-<dd><p>The OptionParser constructor has no required arguments, but a number of
-optional keyword arguments.  You should always pass them as keyword
-arguments, i.e. do not rely on the order in which the arguments are declared.</p>
+<dd><p>OptionParser 생성자에는 필수 인자가 없지만, 여러 선택적 키워드 인자가 있습니다. 이들을 항상 키워드 인자로 전달해야합니다, 즉, 인자가 선언된 순서에 의존하지 마십시오.</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">usage</span></code> (default: <code class="docutils literal notranslate"><span class="pre">&quot;%prog</span> <span class="pre">[options]&quot;</span></code>)</dt><dd><p>The usage summary to print when your program is run incorrectly or with a
-help option.  When <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> prints the usage string, it expands
-<code class="docutils literal notranslate"><span class="pre">%prog</span></code> to <code class="docutils literal notranslate"><span class="pre">os.path.basename(sys.argv[0])</span></code> (or to <code class="docutils literal notranslate"><span class="pre">prog</span></code> if you
-passed that keyword argument).  To suppress a usage message, pass the
-special value <code class="xref py py-data docutils literal notranslate"><span class="pre">optparse.SUPPRESS_USAGE</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">usage</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">&quot;%prog</span> <span class="pre">[options]&quot;</span></code>)</dt><dd><p>프로그램이 잘못 실행되거나 도움말(help) 옵션을 사용할 때 인쇄 할 사용법 요약. <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>가 사용법 문자열을 인쇄 할 때, <code class="docutils literal notranslate"><span class="pre">%prog</span></code>를 <code class="docutils literal notranslate"><span class="pre">os.path.basename(sys.argv[0])</span></code>(또는 해당 키워드 인자를 전달한 경우 <code class="docutils literal notranslate"><span class="pre">prog</span></code>)으로 확장합니다. 사용법 메시지를 표시하지 않으려면, 특수 값 <code class="xref py py-data docutils literal notranslate"><span class="pre">optparse.SUPPRESS_USAGE</span></code>를 전달하십시오.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">option_list</span></code> (default: <code class="docutils literal notranslate"><span class="pre">[]</span></code>)</dt><dd><p>A list of Option objects to populate the parser with.  The options in
-<code class="docutils literal notranslate"><span class="pre">option_list</span></code> are added after any options in <code class="docutils literal notranslate"><span class="pre">standard_option_list</span></code> (a
-class attribute that may be set by OptionParser subclasses), but before
-any version or help options. Deprecated; use <a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_option()</span></code></a> after
-creating the parser instead.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">option_list</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">[]</span></code>)</dt><dd><p>구문 분석기를 채울 Option 객체 리스트. <code class="docutils literal notranslate"><span class="pre">option_list</span></code>의 옵션은 <code class="docutils literal notranslate"><span class="pre">standard_option_list</span></code>(OptionParser 서브 클래스에서 설정할 수 있는 클래스 어트리뷰트)의 모든 옵션 뒤에 추가되지만, 모든 버전(version) 또는 도움말(help) 옵션 앞에 추가됩니다. 폐지되었습니다; 대신 구문 분석기를 만든 후 <a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_option()</span></code></a>을 사용하십시오.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">option_class</span></code> (default: optparse.Option)</dt><dd><p>Class to use when adding options to the parser in <a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_option()</span></code></a>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">option_class</span></code> (기본값: optparse.Option)</dt><dd><p><a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_option()</span></code></a>에서 구문 분석기에 옵션을 추가 할 때 사용할 클래스.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">version</span></code> (default: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</dt><dd><p>A version string to print when the user supplies a version option. If you
-supply a true value for <code class="docutils literal notranslate"><span class="pre">version</span></code>, <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> automatically adds a
-version option with the single option string <code class="docutils literal notranslate"><span class="pre">--version</span></code>.  The
-substring <code class="docutils literal notranslate"><span class="pre">%prog</span></code> is expanded the same as for <code class="docutils literal notranslate"><span class="pre">usage</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">version</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</dt><dd><p>사용자가 버전(version) 옵션을 제공 할 때 인쇄 할 버전 문자열. <code class="docutils literal notranslate"><span class="pre">version</span></code>에 참 값을 제공하면, <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>는 단일 옵션 문자열 <code class="docutils literal notranslate"><span class="pre">--version</span></code>으로 버전 옵션을 자동으로 추가합니다. 하위 문자열 <code class="docutils literal notranslate"><span class="pre">%prog</span></code>는 <code class="docutils literal notranslate"><span class="pre">usage</span></code>와 동일하게 확장됩니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">conflict_handler</span></code> (default: <code class="docutils literal notranslate"><span class="pre">&quot;error&quot;</span></code>)</dt><dd><p>Specifies what to do when options with conflicting option strings are
-added to the parser; see section
-<a class="reference internal" href="#optparse-conflicts-between-options"><span class="std std-ref">Conflicts between options</span></a>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">conflict_handler</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">&quot;error&quot;</span></code>)</dt><dd><p>충돌하는 옵션 문자열이 있는 옵션이 구문 분석기에 추가 될 때 수행 할 작업을 지정합니다; 섹션 <a class="reference internal" href="#optparse-conflicts-between-options"><span class="std std-ref">옵션 간의 충돌</span></a>을 참조하십시오.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">description</span></code> (default: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</dt><dd><p>A paragraph of text giving a brief overview of your program.
-<a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> reformats this paragraph to fit the current terminal width
-and prints it when the user requests help (after <code class="docutils literal notranslate"><span class="pre">usage</span></code>, but before the
-list of options).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">description</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</dt><dd><p>프로그램에 대한 간략한 개요를 제공하는 텍스트 단락. <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>는 현재 터미널 너비에 맞게 이 단락을 다시 포맷하고 사용자가 도움말을 요청할 때 인쇄합니다 (<code class="docutils literal notranslate"><span class="pre">usage</span></code> 이후, 옵션 목록 이전).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">formatter</span></code> (default: a new <code class="xref py py-class docutils literal notranslate"><span class="pre">IndentedHelpFormatter</span></code>)</dt><dd><p>An instance of optparse.HelpFormatter that will be used for printing help
-text.  <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> provides two concrete classes for this purpose:
-IndentedHelpFormatter and TitledHelpFormatter.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">formatter</span></code> (기본값: 새 <code class="xref py py-class docutils literal notranslate"><span class="pre">IndentedHelpFormatter</span></code>)</dt><dd><p>도움말 텍스트를 인쇄하는 데 사용될 optparse.HelpFormatter의 인스턴스. <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>는 이 목적으로 두 개의 구상 클래스를 제공합니다: IndentedHelpFormatter 와 TitledHelpFormatter.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">add_help_option</span></code> (default: <code class="docutils literal notranslate"><span class="pre">True</span></code>)</dt><dd><p>If true, <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> will add a help option (with option strings <code class="docutils literal notranslate"><span class="pre">-h</span></code>
-and <code class="docutils literal notranslate"><span class="pre">--help</span></code>) to the parser.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">add_help_option</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">True</span></code>)</dt><dd><p>참이면, <a class="reference internal" href="#module-optparse" title="optparse: Command-line option parsing library. (deprecated)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>는 구문 분석기에 도움말 옵션(옵션 문자열 <code class="docutils literal notranslate"><span class="pre">-h</span></code>와 <code class="docutils literal notranslate"><span class="pre">--help</span></code>)을 추가합니다.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">prog</span></code></dt><dd><p>The string to use when expanding <code class="docutils literal notranslate"><span class="pre">%prog</span></code> in <code class="docutils literal notranslate"><span class="pre">usage</span></code> and <code class="docutils literal notranslate"><span class="pre">version</span></code>
-instead of <code class="docutils literal notranslate"><span class="pre">os.path.basename(sys.argv[0])</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">prog</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">usage</span></code>와 <code class="docutils literal notranslate"><span class="pre">version</span></code>에서 <code class="docutils literal notranslate"><span class="pre">%prog</span></code>를 확장할 때 <code class="docutils literal notranslate"><span class="pre">os.path.basename(sys.argv[0])</span></code> 대신 사용할 문자열.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">epilog</span></code> (default: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</dt><dd><p>A paragraph of help text to print after the option help.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">epilog</span></code> (기본값: <code class="docutils literal notranslate"><span class="pre">None</span></code>)</dt><dd><p>옵션 도움말 다음에 인쇄 할 도움말 텍스트 단락.</p>
 </dd>
 </dl>
 </dd></dl>
 
 </div>
 <div class="section" id="populating-the-parser">
-<span id="optparse-populating-parser"></span><h3>Populating the parser<a class="headerlink" href="#populating-the-parser" title="제목 주소">¶</a></h3>
+<span id="optparse-populating-parser"></span><h3>구문 분석기 채우기<a class="headerlink" href="#populating-the-parser" title="제목 주소">¶</a></h3>
 <p>There are several ways to populate the parser with options.  The preferred way
 is by using <a class="reference internal" href="#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-meth docutils literal notranslate"><span class="pre">OptionParser.add_option()</span></code></a>, as shown in section
 <a class="reference internal" href="#optparse-tutorial"><span class="std std-ref">자습서</span></a>.  <code class="xref py py-meth docutils literal notranslate"><span class="pre">add_option()</span></code> can be called in one of two ways:</p>
@@ -1162,7 +1122,7 @@ option belonging to this <a class="reference internal" href="#optparse.OptionPar
 
 </div>
 <div class="section" id="conflicts-between-options">
-<span id="optparse-conflicts-between-options"></span><h3>Conflicts between options<a class="headerlink" href="#conflicts-between-options" title="제목 주소">¶</a></h3>
+<span id="optparse-conflicts-between-options"></span><h3>옵션 간의 충돌<a class="headerlink" href="#conflicts-between-options" title="제목 주소">¶</a></h3>
 <p>If you're not careful, it's easy to define options with conflicting option
 strings:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;--dry-run&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
@@ -1759,19 +1719,19 @@ getting it right when it's needed.</p>
 </li>
 <li><a class="reference internal" href="#printing-a-version-string">버전 문자열 인쇄하기</a></li>
 <li><a class="reference internal" href="#how-optparse-handles-errors"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code>가 에러를 처리하는 방법</a></li>
-<li><a class="reference internal" href="#putting-it-all-together">Putting it all together</a></li>
+<li><a class="reference internal" href="#putting-it-all-together">모두 합치기</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#reference-guide">레퍼런스 지침서</a><ul>
-<li><a class="reference internal" href="#creating-the-parser">Creating the parser</a></li>
-<li><a class="reference internal" href="#populating-the-parser">Populating the parser</a></li>
+<li><a class="reference internal" href="#creating-the-parser">구문 분석기 만들기</a></li>
+<li><a class="reference internal" href="#populating-the-parser">구문 분석기 채우기</a></li>
 <li><a class="reference internal" href="#defining-options">Defining options</a></li>
 <li><a class="reference internal" href="#option-attributes">Option attributes</a></li>
 <li><a class="reference internal" href="#standard-option-actions">Standard option actions</a></li>
 <li><a class="reference internal" href="#standard-option-types">Standard option types</a></li>
 <li><a class="reference internal" href="#parsing-arguments">Parsing arguments</a></li>
 <li><a class="reference internal" href="#querying-and-manipulating-your-option-parser">Querying and manipulating your option parser</a></li>
-<li><a class="reference internal" href="#conflicts-between-options">Conflicts between options</a></li>
+<li><a class="reference internal" href="#conflicts-between-options">옵션 간의 충돌</a></li>
 <li><a class="reference internal" href="#cleanup">Cleanup</a></li>
 <li><a class="reference internal" href="#other-methods">Other methods</a></li>
 </ul>
