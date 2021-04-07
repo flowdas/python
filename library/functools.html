@@ -154,18 +154,25 @@
 <dd><p>클래스의 메서드를 값이 한 번 계산된 다음 인스턴스 수명 동안 일반 어트리뷰트로 캐시 되는 프로퍼티로 변환합니다. <a class="reference internal" href="functions.html#property" title="property"><code class="xref py py-func docutils literal notranslate"><span class="pre">property()</span></code></a>와 유사하고, 캐싱이 추가되었습니다. 비싸게 계산되고 그 외에는 사실상 불변인 인스턴스의 프로퍼티에 유용합니다.</p>
 <p>예:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataSet</span><span class="p">:</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_of_numbers</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">sequence_of_numbers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sequence_of_numbers</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">stdev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">stdev</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
-
-    <span class="nd">@cached_property</span>
-    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">variance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>The mechanics of <a class="reference internal" href="#functools.cached_property" title="functools.cached_property"><code class="xref py py-func docutils literal notranslate"><span class="pre">cached_property()</span></code></a> are somewhat different from
+<a class="reference internal" href="functions.html#property" title="property"><code class="xref py py-func docutils literal notranslate"><span class="pre">property()</span></code></a>.  A regular property blocks attribute writes unless a
+setter is defined. In contrast, a <em>cached_property</em> allows writes.</p>
+<p>The <em>cached_property</em> decorator only runs on lookups and only when an
+attribute of the same name doesn't exist.  When it does run, the
+<em>cached_property</em> writes to the attribute with the same name. Subsequent
+attribute reads and writes take precedence over the <em>cached_property</em>
+method and it works like a normal attribute.</p>
+<p>The cached value can be cleared by deleting the attribute.  This
+allows the <em>cached_property</em> method to run again.</p>
 <p>이 데코레이터는 <span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0412"><strong>PEP 412</strong></a> 키 공유 딕셔너리의 작동을 방해함에 유의하십시오. 이는 인스턴스 딕셔너리가 평소보다 더 많은 공간을 차지할 수 있음을 의미합니다.</p>
 <p>또한, 이 데코레이터는 각 인스턴스의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 어트리뷰트가 가변 매핑일 것을 요구합니다. 이는 메타 클래스(형 인스턴스의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 어트리뷰트가 클래스 이름 공간에 대한 읽기 전용 프락시이기 때문에)와 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code>를 정의된 슬롯 중 하나로 포함하지 않고 <code class="docutils literal notranslate"><span class="pre">__slots__</span></code>를 지정하는 것(이러한 클래스는 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 어트리뷰트를 전혀 제공하지 않기 때문에)과 같은 일부 형에서 작동하지 않음을 의미합니다.</p>
 <p>가변 매핑을 사용할 수 없거나 공간 효율적인 키 공유가 필요하면, <a class="reference internal" href="#functools.cache" title="functools.cache"><code class="xref py py-func docutils literal notranslate"><span class="pre">cache()</span></code></a> 위에 <a class="reference internal" href="functions.html#property" title="property"><code class="xref py py-func docutils literal notranslate"><span class="pre">property()</span></code></a>를 쌓아서 <a class="reference internal" href="#functools.cached_property" title="functools.cached_property"><code class="xref py py-func docutils literal notranslate"><span class="pre">cached_property()</span></code></a>와 유사한 효과를 얻을 수 있습니다:</p>
