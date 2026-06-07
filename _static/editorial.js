@@ -18,6 +18,40 @@
             this.catalogPath = this.inferCatalogPath();
             this.catalogId = null;
             this.catalogPromise = null;
+
+            // Intercept login parameters from callback redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('login_success')) {
+                const userId = urlParams.get('editorial_user');
+                const username = urlParams.get('editorial_name');
+                const avatar = urlParams.get('editorial_avatar');
+                
+                const setCookie = (name, value) => {
+                    const days = 30;
+                    const date = new Date();
+                    date.setTime(date.getTime() + (days*24*60*60*1000));
+                    let cookieStr = `${name}=${encodeURIComponent(value)}; expires=${date.toUTCString()}; path=/`;
+                    if (window.location.protocol === 'https:') {
+                        cookieStr += '; Secure; SameSite=Lax';
+                    }
+                    document.cookie = cookieStr;
+                };
+
+                if (userId) setCookie('editorial_user', userId);
+                if (username) setCookie('editorial_name', username);
+                if (avatar) setCookie('editorial_avatar', avatar);
+
+                // Remove the login parameters from the address bar
+                urlParams.delete('login_success');
+                urlParams.delete('editorial_user');
+                urlParams.delete('editorial_name');
+                urlParams.delete('editorial_avatar');
+                
+                const newSearch = urlParams.toString();
+                const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
             this.user = this.checkAuthFromCookie();
             this.footnotes = []; 
             this.interactionData = {};
@@ -471,7 +505,7 @@
                         : '';
                     const actionButtonHtml = isAuth 
                         ? `<button class="btn-submit" onclick="window.editorial.submitSuggestion('${hash}')">새 번역 제안</button>`
-                        : `<a href="${this.apiUrl}/auth/github?next=${encodeURIComponent(window.location.pathname + window.location.search)}" class="github-login-btn">GitHub으로 로그인</a>`;
+                        : `<a href="${this.apiUrl}/auth/github?next=${encodeURIComponent(window.location.href)}" class="github-login-btn">GitHub으로 로그인</a>`;
 
                     root.innerHTML = `
                         <div class="unified-editor" id="editor-${hash}">
