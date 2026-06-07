@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Call Graph Introspection &#8212; Python 3.14.0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.14.0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="이벤트 루프" href="asyncio-eventloop.html" />
+    <link rel="prev" title="예외" href="asyncio-exceptions.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/library/asyncio-graph.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=cf0c1595"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.14</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">Call Graph Introspection</a><ul>
+<li><a class="reference internal" href="#low-level-utility-functions">Low level utility functions</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">파이썬 표준 라이브러리</a></li>
+                    
+                        <li><a href="ipc.html">네트워킹과 프로세스 간 통신</a></li>
+                    
+                        <li><a href="asyncio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> — 비동기 I/O</a></li>
+                    
+                    <li class="current">Call Graph Introspection</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="call-graph-introspection">
+<span id="asyncio-graph"></span><h1 data-msgid="5a5bac4228b19dca218e7648a074c609d238bef3" data-score="0" data-since="260603">Call Graph Introspection<a class="headerlink" href="#call-graph-introspection" title="Link to this heading">¶</a></h1>
+<p data-msgid="ef9d154c2f479f0f3b38ff8f379ef52177aed046" data-score="0" data-since="260603"><strong>Source code:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/asyncio/graph.py`</span></a></p>
+<hr class="docutils" />
+<p data-msgid="2e8fd82649be7c249cac033a1ccf3a1b2c169a9f" data-score="0" data-since="260603">asyncio has powerful runtime call graph introspection utilities
+to trace the entire call graph of a running <em>coroutine</em> or <em>task</em>, or
+a suspended <em>future</em>.  These utilities and the underlying machinery
+can be used from within a Python program or by external profilers
+and debuggers.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.14.</span></p>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncio.print_call_graph">
+<span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">print_call_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">future</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.print_call_graph" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="ef7003535e27aa4bbe6280a9afa8e936685853be" data-score="0" data-since="260603">Print the async call graph for the current task or the provided
+<a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> or <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+<p data-msgid="7128c7baf79d6185eb9b11bd2b5de28b9ee66463" data-score="0" data-since="260603">This function prints entries starting from the top frame and going
+down towards the invocation point.</p>
+<p data-msgid="32117ddd744bbf0b4a7d0cc908a9d538a90ca900" data-score="0" data-since="260603">The function receives an optional <em>future</em> argument.
+If not passed, the current running task will be used.</p>
+<p data-msgid="5692aaeb1961823fba421db532a055f0193e6317" data-score="0" data-since="260603">If the function is called on <em>the current task</em>, the optional
+keyword-only <em>depth</em> argument can be used to skip the specified
+number of frames from top of the stack.</p>
+<p data-msgid="6aa38e2b591636c20363d0c6322cfde6af4799ed" data-score="0" data-since="260603">If the optional keyword-only <em>limit</em> argument is provided, each call stack
+in the resulting graph is truncated to include at most <code class="docutils literal notranslate"><span class="pre">abs(limit)</span></code>
+entries. If <em>limit</em> is positive, the entries left are the closest to
+the invocation point. If <em>limit</em> is negative, the topmost entries are
+left. If <em>limit</em> is omitted or <code class="docutils literal notranslate"><span class="pre">None</span></code>, all entries are present.
+If <em>limit</em> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, the call stack is not printed at all, only
+“awaited by” information is printed.</p>
+<p data-msgid="edef1c8ea95d2a56f1504d070bdc6a7b6a4ce982" data-score="0" data-since="260603">If <em>file</em> is omitted or <code class="docutils literal notranslate"><span class="pre">None</span></code>, the function will print
+to <a class="reference internal" href="sys.html#sys.stdout" title="sys.stdout"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.stdout</span></code></a>.</p>
+<p data-msgid="0a5ce20e100c28ad108c42433dfb89ac54a4921f" data-score="0" data-since="260603"><strong>Example:</strong></p>
+<p data-msgid="0803b4ef840b209cd639aaf3793681e483ee488a" data-score="0" data-since="260603">The following Python code:</p>
+<div class="highlight-python notranslate" data-msgid="27acc184bc7ef943b5c1d912cf8905d7ed31a500" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test</span><span class="p">():</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">print_call_graph</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TaskGroup</span><span class="p">()</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">test</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p data-msgid="ec94cc491bca893983aff92fea946fb3a5041c0b" data-score="0" data-since="260603">will print:</p>
+<div class="highlight-python3 notranslate" data-msgid="cac3db640ae1d31c321d5a5aff232cf4f38ab77c" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="o">*</span> <span class="n">Task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mh">0x1039f0fe0</span><span class="p">)</span>
+<span class="o">+</span> <span class="n">Call</span> <span class="n">stack</span><span class="p">:</span>
+<span class="o">|</span>   <span class="n">File</span> <span class="s1">&#39;t2.py&#39;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">4</span><span class="p">,</span> <span class="ow">in</span> <span class="k">async</span> <span class="n">test</span><span class="p">()</span>
+<span class="o">+</span> <span class="n">Awaited</span> <span class="n">by</span><span class="p">:</span>
+   <span class="o">*</span> <span class="n">Task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Task-1&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mh">0x103a5e060</span><span class="p">)</span>
+      <span class="o">+</span> <span class="n">Call</span> <span class="n">stack</span><span class="p">:</span>
+      <span class="o">|</span>   <span class="n">File</span> <span class="s1">&#39;taskgroups.py&#39;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">107</span><span class="p">,</span> <span class="ow">in</span> <span class="k">async</span> <span class="n">TaskGroup</span><span class="o">.</span><span class="fm">__aexit__</span><span class="p">()</span>
+      <span class="o">|</span>   <span class="n">File</span> <span class="s1">&#39;t2.py&#39;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">7</span><span class="p">,</span> <span class="ow">in</span> <span class="k">async</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncio.format_call_graph">
+<span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">format_call_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">future</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.format_call_graph" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="06158cb5e1a8c0bcbc756390ee8888dd4ba48543" data-score="0" data-since="260603">Like <a class="reference internal" href="#asyncio.print_call_graph" title="asyncio.print_call_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_call_graph()</span></code></a>, but returns a string.
+If <em>future</em> is <code class="docutils literal notranslate"><span class="pre">None</span></code> and there’s no current task,
+the function returns an empty string.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncio.capture_call_graph">
+<span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">capture_call_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">future</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.capture_call_graph" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="66e7f0d50daa65dd5e71d05987cee4f5f41ba538" data-score="0" data-since="260603">Capture the async call graph for the current task or the provided
+<a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> or <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+<p data-msgid="dd5c11f12bf4aef7189050decdc50a3492c0fc6a" data-score="0" data-since="260603">The function receives an optional <em>future</em> argument.
+If not passed, the current running task will be used. If there’s no
+current task, the function returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p data-msgid="5692aaeb1961823fba421db532a055f0193e6317" data-score="0" data-since="260603">If the function is called on <em>the current task</em>, the optional
+keyword-only <em>depth</em> argument can be used to skip the specified
+number of frames from top of the stack.</p>
+<p data-msgid="849d20667394ce481e7012d94dfe8add0cb61591" data-score="0" data-since="260603">Returns a <code class="docutils literal notranslate"><span class="pre">FutureCallGraph</span></code> data class object:</p>
+<ul>
+<li><p data-msgid="731aa83e1055b52ce4859ffa269a01dd63d5f19b" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">FutureCallGraph(future,</span> <span class="pre">call_stack,</span> <span class="pre">awaited_by)</span></code></p>
+<blockquote>
+<div><p data-msgid="4f86dc9a31b5ab91c3a3e9aa50ce3ba2266531b1" data-score="0" data-since="260603">Where <em>future</em> is a reference to a <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> or
+a <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> (or their subclasses.)</p>
+<p data-msgid="1b2f4a9a8fdd025ba9ea9f1eeb613b8144ae398d" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">call_stack</span></code> is a tuple of <code class="docutils literal notranslate"><span class="pre">FrameCallGraphEntry</span></code> objects.</p>
+<p data-msgid="4a1174a168468a60e97ac36f37d8b2d84dccf9c8" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">awaited_by</span></code> is a tuple of <code class="docutils literal notranslate"><span class="pre">FutureCallGraph</span></code> objects.</p>
+</div></blockquote>
+</li>
+<li><p data-msgid="17a1ba6f5a5c77c4380a1f506f5d492bf35db039" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">FrameCallGraphEntry(frame)</span></code></p>
+<blockquote>
+<div><p data-msgid="95d96c1ae17f50a51be2631e3194671c683208aa" data-score="0" data-since="260603">Where <em>frame</em> is a frame object of a regular Python function
+in the call stack.</p>
+</div></blockquote>
+</li>
+</ul>
+</dd></dl>
+
+<section id="low-level-utility-functions">
+<h2 data-msgid="ddc393589fa95476eab207ae4b20ebc84c92f33e" data-score="0" data-since="260603">Low level utility functions<a class="headerlink" href="#low-level-utility-functions" title="Link to this heading">¶</a></h2>
+<p data-msgid="d1eb74dbe5e2e60dab59463d173d0841407b3cb9" data-score="0" data-since="260603">To introspect an async call graph asyncio requires cooperation from
+control flow structures, such as <code class="xref py py-func docutils literal notranslate"><span class="pre">shield()</span></code> or <a class="reference internal" href="asyncio-task.html#asyncio.TaskGroup" title="asyncio.TaskGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskGroup</span></code></a>.
+Any time an intermediate <a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> object with low-level APIs like
+<a class="reference internal" href="asyncio-future.html#asyncio.Future.add_done_callback" title="asyncio.Future.add_done_callback"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Future.add_done_callback()</span></code></a> is
+involved, the following two functions should be used to inform asyncio
+about how exactly such intermediate future objects are connected with
+the tasks they wrap or control.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncio.future_add_to_awaited_by">
+<span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">future_add_to_awaited_by</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">future</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waiter</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.future_add_to_awaited_by" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="2f50211f21e021ae9a842fc197c6343bff31c345" data-score="0" data-since="260603">Record that <em>future</em> is awaited on by <em>waiter</em>.</p>
+<p data-msgid="cacffbc9c099a47e2c1fbe9f3021bbf6dcfecd2a" data-score="0" data-since="260603">Both <em>future</em> and <em>waiter</em> must be instances of
+<a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> or <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> or their subclasses,
+otherwise the call would have no effect.</p>
+<p data-msgid="a7972d1e893f48b80aac907d12359d5997f95a04" data-score="0" data-since="260603">A call to <code class="docutils literal notranslate"><span class="pre">future_add_to_awaited_by()</span></code> must be followed by an
+eventual call to the <a class="reference internal" href="#asyncio.future_discard_from_awaited_by" title="asyncio.future_discard_from_awaited_by"><code class="xref py py-func docutils literal notranslate"><span class="pre">future_discard_from_awaited_by()</span></code></a> function
+with the same arguments.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncio.future_discard_from_awaited_by">
+<span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">future_discard_from_awaited_by</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">future</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waiter</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.future_discard_from_awaited_by" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="3a97973c6926468caf3daaa05c7096650af2ba05" data-score="0" data-since="260603">Record that <em>future</em> is no longer awaited on by <em>waiter</em>.</p>
+<p data-msgid="cacffbc9c099a47e2c1fbe9f3021bbf6dcfecd2a" data-score="0" data-since="260603">Both <em>future</em> and <em>waiter</em> must be instances of
+<a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">Future</span></code></a> or <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> or their subclasses, otherwise
+the call would have no effect.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>

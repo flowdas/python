@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Python support for free threading &#8212; Python 3.14.0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.14.0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="C API Extension Support for Free Threading" href="free-threading-extensions.html" />
+    <link rel="prev" title="The Python 2.3 Method Resolution Order" href="mro.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/howto/free-threading-python.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=cf0c1595"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.14</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">Python support for free threading</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#identifying-free-threaded-python">Identifying free-threaded Python</a></li>
+<li><a class="reference internal" href="#the-global-interpreter-lock-in-free-threaded-python">The global interpreter lock in free-threaded Python</a></li>
+<li><a class="reference internal" href="#thread-safety">Thread safety</a></li>
+<li><a class="reference internal" href="#known-limitations">Known limitations</a><ul>
+<li><a class="reference internal" href="#immortalization">Immortalization</a></li>
+<li><a class="reference internal" href="#frame-objects">Frame objects</a></li>
+<li><a class="reference internal" href="#iterators">Iterators</a></li>
+<li><a class="reference internal" href="#single-threaded-performance">Single-threaded performance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#behavioral-changes">Behavioral changes</a><ul>
+<li><a class="reference internal" href="#context-variables">Context variables</a></li>
+<li><a class="reference internal" href="#warning-filters">Warning filters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">파이썬 HOWTO</a></li>
+                    
+                    <li class="current">Python support for free threading</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="python-support-for-free-threading">
+<span id="freethreading-python-howto"></span><h1 data-msgid="2bc85e4f4d05a5e5e4d6b6b8815fa52bb6715fbc" data-score="0" data-since="260603">Python support for free threading<a class="headerlink" href="#python-support-for-free-threading" title="Link to this heading">¶</a></h1>
+<p data-msgid="9bcede8b080110203081860dd0a183514a03bb72" data-score="0" data-since="260603">Starting with the 3.13 release, CPython has support for a build of
+Python called <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free threading</span></a> where the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global interpreter lock</span></a>
+(GIL) is disabled.  Free-threaded execution allows for full utilization of the
+available processing power by running threads in parallel on available CPU cores.
+While not all software will benefit from this automatically, programs
+designed with threading in mind will run faster on multi-core hardware.</p>
+<p data-msgid="19e92e5cd1205dd1dc80f2ff5d25af818d4ed205" data-score="0" data-since="260603">The free-threaded mode is working and continues to be improved, but
+there is some additional overhead in single-threaded workloads compared
+to the regular build. Additionally, third-party packages, in particular ones
+with an <a class="reference internal" href="../glossary.html#term-extension-module"><span class="xref std std-term">extension module</span></a>, may not be ready for use in a
+free-threaded build, and will re-enable the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>.</p>
+<p data-msgid="50e837b16c6376445462061d6178eb3038335b4e" data-score="0" data-since="260603">This document describes the implications of free threading
+for Python code.  See <a class="reference internal" href="free-threading-extensions.html#freethreading-extensions-howto"><span class="std std-ref">C API Extension Support for Free Threading</span></a> for information on
+how to write C extensions that support the free-threaded build.</p>
+<div class="admonition seealso">
+<p class="admonition-title">더 보기</p>
+<p data-msgid="52849eadd91849fbaba5b4e83b37b8192e585deb" data-score="0" data-since="260603"><span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0703/"><strong>PEP 703</strong></a> – Making the Global Interpreter Lock Optional in CPython for an
+overall description of free-threaded Python.</p>
+</div>
+<section id="installation">
+<h2 data-msgid="c81b79df3c6448eae7c4f80428b54cd5692a17d7" data-score="0" data-since="260603">Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p data-msgid="b5fcddec5f028a6f4b36711079a864340a12547a" data-score="0" data-since="260603">Starting with Python 3.13, the official macOS and Windows installers
+optionally support installing free-threaded Python binaries.  The installers
+are available at <a class="reference external" href="https://www.python.org/downloads/">https://www.python.org/downloads/</a>.</p>
+<p data-msgid="f5e61397d15e2da4bfcbfa5775b1a5afaa8e9078" data-score="0" data-since="260603">For information on other platforms, see the <a class="reference external" href="https://py-free-threading.github.io/installing-cpython/">Installing a Free-Threaded Python</a>, a
+community-maintained installation guide for installing free-threaded Python.</p>
+<p data-msgid="e5b4d7190ae5db2e396ec55d10452d673e29a140" data-score="0" data-since="260603">When building CPython from source, the <a class="reference internal" href="../using/configure.html#cmdoption-disable-gil"><code class="xref std std-option docutils literal notranslate"><span class="pre">--disable-gil</span></code></a> configure option
+should be used to build a free-threaded Python interpreter.</p>
+</section>
+<section id="identifying-free-threaded-python">
+<h2 data-msgid="026ea01cc33d20c674ba9223e44554ba29f713c2" data-score="0" data-since="260603">Identifying free-threaded Python<a class="headerlink" href="#identifying-free-threaded-python" title="Link to this heading">¶</a></h2>
+<p data-msgid="43de5435e33570926babb1aae8e677707315ce28" data-score="0" data-since="260603">To check if the current interpreter supports free-threading, <a class="reference internal" href="../using/cmdline.html#cmdoption-V"><code class="xref std std-option docutils literal notranslate"><span class="pre">python</span> <span class="pre">-VV</span></code></a>
+and <a class="reference internal" href="../library/sys.html#sys.version" title="sys.version"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.version</span></code></a> contain “free-threading build”.
+The new <a class="reference internal" href="../library/sys.html#sys._is_gil_enabled" title="sys._is_gil_enabled"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys._is_gil_enabled()</span></code></a> function can be used to check whether
+the GIL is actually disabled in the running process.</p>
+<p data-msgid="8c7a6de41c96c81298335a108419c62f67af1472" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">sysconfig.get_config_var(&quot;Py_GIL_DISABLED&quot;)</span></code> configuration variable can
+be used to determine whether the build supports free threading.  If the variable
+is set to <code class="docutils literal notranslate"><span class="pre">1</span></code>, then the build supports free threading.  This is the recommended
+mechanism for decisions related to the build configuration.</p>
+</section>
+<section id="the-global-interpreter-lock-in-free-threaded-python">
+<h2 data-msgid="98b99588bd758c1ccbbacd9c368d0a9e14884247" data-score="0" data-since="260603">The global interpreter lock in free-threaded Python<a class="headerlink" href="#the-global-interpreter-lock-in-free-threaded-python" title="Link to this heading">¶</a></h2>
+<p data-msgid="eda80dad16ea6ba1a045b823036d3644eeafe514" data-score="0" data-since="260603">Free-threaded builds of CPython support optionally running with the GIL enabled
+at runtime using the environment variable <span class="target" id="index-1"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_GIL"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_GIL</span></code></a> or
+the command-line option <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">gil</span></code></a>.</p>
+<p data-msgid="ae4fd2d9c7c7fd32624e4ed5a4fd2f0392c19a71" data-score="0" data-since="260603">The GIL may also automatically be enabled when importing a C-API extension
+module that is not explicitly marked as supporting free threading.  A warning
+will be printed in this case.</p>
+<p data-msgid="2f8df5bd7e5d1d68e82615655fc071fc7b9fead5" data-score="0" data-since="260603">In addition to individual package documentation, the following websites track
+the status of popular packages support for free threading:</p>
+<ul class="simple">
+<li><p data-msgid="d62f5bbf2994637e3b535e2ea5b8cab57ae116ff" data-score="0" data-since="260603"><a class="reference external" href="https://py-free-threading.github.io/tracking/">https://py-free-threading.github.io/tracking/</a></p></li>
+<li><p data-msgid="4678d03c3b85e5156ace61cbb66d997966feca99" data-score="0" data-since="260603"><a class="reference external" href="https://hugovk.github.io/free-threaded-wheels/">https://hugovk.github.io/free-threaded-wheels/</a></p></li>
+</ul>
+</section>
+<section id="thread-safety">
+<h2 data-msgid="d0cef5deb223649da3c92e68bafacf5c8ccd785e" data-score="0" data-since="260603">Thread safety<a class="headerlink" href="#thread-safety" title="Link to this heading">¶</a></h2>
+<p data-msgid="7c8ba7f272814e916847fe790c69c6c341cd71bb" data-score="0" data-since="260603">The free-threaded build of CPython aims to provide similar thread-safety
+behavior at the Python level to the default GIL-enabled build.  Built-in
+types like <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>, and <a class="reference internal" href="../library/stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> use internal locks
+to protect against concurrent modifications in ways that behave similarly to
+the GIL.  However, Python has not historically guaranteed specific behavior for
+concurrent modifications to these built-in types, so this should be treated
+as a description of the current implementation, not a guarantee of current or
+future behavior.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="36d6ade589bde86cb45ad92b249d6fb72949f2e3" data-score="0" data-since="260603">It’s recommended to use the <a class="reference internal" href="../library/threading.html#threading.Lock" title="threading.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Lock</span></code></a> or other synchronization
+primitives instead of relying on the internal locks of built-in types, when
+possible.</p>
+</div>
+</section>
+<section id="known-limitations">
+<h2 data-msgid="b36c6077a62ee3e8bd61bbeb730cb7130516f528" data-score="0" data-since="260603">Known limitations<a class="headerlink" href="#known-limitations" title="Link to this heading">¶</a></h2>
+<p data-msgid="ef96a9976cd46c4fba9b388f25f59b2b7d39d4da" data-score="0" data-since="260603">This section describes known limitations of the free-threaded CPython build.</p>
+<section id="immortalization">
+<h3 data-msgid="ce7da7ae84c7c22ea9a147544c19abd5e814ffff" data-score="0" data-since="260603">Immortalization<a class="headerlink" href="#immortalization" title="Link to this heading">¶</a></h3>
+<p data-msgid="92b30449caed00685d9e31ea3b126134141791c7" data-score="0" data-since="260603">The free-threaded build of the 3.13 release makes some objects <a class="reference internal" href="../glossary.html#term-immortal"><span class="xref std std-term">immortal</span></a>.
+Immortal objects are not deallocated and have reference counts that are
+never modified.  This is done to avoid reference count contention that would
+prevent efficient multi-threaded scaling.</p>
+<p data-msgid="7a71042684dc305026f5292843aedaf05a9900d9" data-score="0" data-since="260603">An object will be made immortal when a new thread is started for the first time
+after the main thread is running.  The following objects are immortalized:</p>
+<ul class="simple">
+<li><p data-msgid="d700dafe6cafeaaa7f4d3eb0fd348daa46e816b7" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#user-defined-funcs"><span class="std std-ref">function</span></a> objects declared at the module level</p></li>
+<li><p data-msgid="0f1dfdb1750ea05bb434c6718b1a8331bd024b33" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#instance-methods"><span class="std std-ref">method</span></a> descriptors</p></li>
+<li><p data-msgid="bcb7ae71d331076554bf51830c15ebf1e1096568" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#code-objects"><span class="std std-ref">code</span></a> objects</p></li>
+<li><p data-msgid="afbad3eeb18b8d349401dd2262774b23077fe138" data-score="0" data-since="260603"><a class="reference internal" href="../glossary.html#term-module"><span class="xref std std-term">module</span></a> objects and their dictionaries</p></li>
+<li><p data-msgid="5caed4b699c0a6d5f091ddd474cb089e2330d2c6" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#classes"><span class="std std-ref">classes</span></a> (type objects)</p></li>
+</ul>
+<p data-msgid="1b21c4fb518a3f004dff2bde1874fe4b19ffcd12" data-score="0" data-since="260603">Because immortal objects are never deallocated, applications that create many
+objects of these types may see increased memory usage.  This is expected to be
+addressed in the 3.14 release.</p>
+<p data-msgid="e1ecdc4aa58d526d9d7fcab52a53cbd886030cd4" data-score="0" data-since="260603">Additionally, numeric and string literals in the code as well as strings
+returned by <a class="reference internal" href="../library/sys.html#sys.intern" title="sys.intern"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.intern()</span></code></a> are also immortalized.  This behavior is
+expected to remain in the 3.14 free-threaded build.</p>
+</section>
+<section id="frame-objects">
+<h3 data-msgid="79d2949feb338bce6dc1efcc270c92dab0e3c760" data-score="0" data-since="260603">Frame objects<a class="headerlink" href="#frame-objects" title="Link to this heading">¶</a></h3>
+<p data-msgid="3ecc22f11dde396484413ed00baa4c6241f58d11" data-score="0" data-since="260603">It is not safe to access <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">frame</span></a> objects from other
+threads and doing so may cause your program to crash .  This means that
+<a class="reference internal" href="../library/sys.html#sys._current_frames" title="sys._current_frames"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys._current_frames()</span></code></a> is generally not safe to use in a free-threaded
+build.  Functions like <a class="reference internal" href="../library/inspect.html#inspect.currentframe" title="inspect.currentframe"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.currentframe()</span></code></a> and <a class="reference internal" href="../library/sys.html#sys._getframe" title="sys._getframe"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys._getframe()</span></code></a>
+are generally safe as long as the resulting frame object is not passed to
+another thread.</p>
+</section>
+<section id="iterators">
+<h3 data-msgid="909a5f0dfd8c3a4ef79cd1458e2b5fb136ad7fae" data-score="0" data-since="260603">Iterators<a class="headerlink" href="#iterators" title="Link to this heading">¶</a></h3>
+<p data-msgid="e5ce2100e0fc3fb83176f202b5fc12a376e1ba8a" data-score="0" data-since="260603">Sharing the same iterator object between multiple threads is generally not
+safe and threads may see duplicate or missing elements when iterating or crash
+the interpreter.</p>
+</section>
+<section id="single-threaded-performance">
+<h3 data-msgid="4a831e33e08ed4c5f57792d1b808a8184a82b529" data-score="0" data-since="260603">Single-threaded performance<a class="headerlink" href="#single-threaded-performance" title="Link to this heading">¶</a></h3>
+<p data-msgid="89f3252ce4fa3a09123098cd2d96293a4ef95ec1" data-score="0" data-since="260603">The free-threaded build has additional overhead when executing Python code
+compared to the default GIL-enabled build.  In 3.13, this overhead is about
+40% on the <a class="reference external" href="https://pyperformance.readthedocs.io/">pyperformance</a> suite.
+Programs that spend most of their time in C extensions or I/O will see
+less of an impact.  The largest impact is because the specializing adaptive
+interpreter (<span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0659/"><strong>PEP 659</strong></a>) is disabled in the free-threaded build.  We expect
+to re-enable it in a thread-safe way in the 3.14 release.  This overhead is
+expected to be reduced in upcoming Python release.   We are aiming for an
+overhead of 10% or less on the pyperformance suite compared to the default
+GIL-enabled build.</p>
+</section>
+</section>
+<section id="behavioral-changes">
+<h2 data-msgid="9ef27725b2c57189335b87c3cb8ca376d2fed44a" data-score="0" data-since="260603">Behavioral changes<a class="headerlink" href="#behavioral-changes" title="Link to this heading">¶</a></h2>
+<p data-msgid="46e81d89ee8f5f6b1ff819fac7685e0ef2e427c1" data-score="0" data-since="260603">This section describes CPython behavioural changes with the free-threaded
+build.</p>
+<section id="context-variables">
+<h3 data-msgid="a81ca58a2d33854d7dad7ec7988eec151557124f" data-score="0" data-since="260603">Context variables<a class="headerlink" href="#context-variables" title="Link to this heading">¶</a></h3>
+<p data-msgid="3a06c7e4bd1fc3483459c1e874f22ffa2568b4c9" data-score="0" data-since="260603">In the free-threaded build, the flag <a class="reference internal" href="../library/sys.html#sys.flags.thread_inherit_context" title="sys.flags.thread_inherit_context"><code class="xref py py-data docutils literal notranslate"><span class="pre">thread_inherit_context</span></code></a>
+is set to true by default which causes threads created with
+<a class="reference internal" href="../library/threading.html#threading.Thread" title="threading.Thread"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></a> to start with a copy of the
+<a class="reference internal" href="../library/contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context()</span></code></a> of the caller of
+<a class="reference internal" href="../library/threading.html#threading.Thread.start" title="threading.Thread.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start()</span></code></a>.  In the default GIL-enabled build, the flag
+defaults to false so threads start with an
+empty <a class="reference internal" href="../library/contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context()</span></code></a>.</p>
+</section>
+<section id="warning-filters">
+<h3 data-msgid="a7c654b5fb44a26a2dbf3060973361164dc0626e" data-score="0" data-since="260603">Warning filters<a class="headerlink" href="#warning-filters" title="Link to this heading">¶</a></h3>
+<p data-msgid="25dd53261721a513e73bd8c84acb0b4626f5b641" data-score="0" data-since="260603">In the free-threaded build, the flag <a class="reference internal" href="../library/sys.html#sys.flags.context_aware_warnings" title="sys.flags.context_aware_warnings"><code class="xref py py-data docutils literal notranslate"><span class="pre">context_aware_warnings</span></code></a>
+is set to true by default.  In the default GIL-enabled build, the flag defaults
+to false.  If the flag is true then the <a class="reference internal" href="../library/warnings.html#warnings.catch_warnings" title="warnings.catch_warnings"><code class="xref py py-class docutils literal notranslate"><span class="pre">warnings.catch_warnings</span></code></a>
+context manager uses a context variable for warning filters.  If the flag is
+false then <a class="reference internal" href="../library/warnings.html#warnings.catch_warnings" title="warnings.catch_warnings"><code class="xref py py-class docutils literal notranslate"><span class="pre">catch_warnings</span></code></a> modifies the global filters list,
+which is not thread-safe.  See the <a class="reference internal" href="../library/warnings.html#module-warnings" title="warnings: Issue warning messages and control their disposition."><code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code></a> module for more details.</p>
+</section>
+</section>
+</section>
+
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>

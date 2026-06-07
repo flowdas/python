@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>timer file descriptor HOWTO &#8212; Python 3.14.0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.14.0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="The Python 2.3 Method Resolution Order" href="mro.html" />
+    <link rel="prev" title="Isolating Extension Modules" href="isolating-extensions.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/howto/timerfd.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=cf0c1595"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.14</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">timer file descriptor HOWTO</a><ul>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">파이썬 HOWTO</a></li>
+                    
+                    <li class="current">timer file descriptor HOWTO</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="timer-file-descriptor-howto">
+<span id="timerfd-howto"></span><h1 data-msgid="b2eaf8ee90ce4215695e6a055725df99c18a45cc" data-score="0" data-since="260603">timer file descriptor HOWTO<a class="headerlink" href="#timer-file-descriptor-howto" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Release<span class="colon">:</span></dt>
+<dd class="field-odd"><p data-msgid="e83d8b4ce4e1f6b2a7f7dfc5cd73b7fc2bb34b6e" data-score="100" data-since="260607">1.13</p>
+</dd>
+</dl>
+<p data-msgid="a728ab73d0c01bfadb6bb1f24cc3f89cd66c3a34" data-score="0" data-since="260603">This HOWTO discusses Python’s support for the linux timer file descriptor.</p>
+<section id="examples">
+<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="0" data-since="260603">Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p data-msgid="5dd6c3b77f8336cbcbda1e47a1ed7c9f06072bcb" data-score="0" data-since="260603">The following example shows how to use a timer file descriptor
+to execute a function twice a second:</p>
+<div class="highlight-python notranslate" data-msgid="a18738af9fb7f82c1a36f3c4102a8501705fdf47" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="c1"># Practical scripts should use really use a non-blocking timer,</span>
+<span class="c1"># we use a blocking timer here for simplicity.</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># Create the timer file descriptor</span>
+<span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">timerfd_create</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">CLOCK_REALTIME</span><span class="p">)</span>
+
+<span class="c1"># Start the timer in 1 second, with an interval of half a second</span>
+<span class="n">os</span><span class="o">.</span><span class="n">timerfd_settime</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Process timer events four times.</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="c1"># read() will block until the timer expires</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Timer expired&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># Remember to close the timer file descriptor!</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p data-msgid="21afb16307c3ff2a22792ce089b1824055ce2e93" data-score="0" data-since="260603">To avoid the precision loss caused by the <a class="reference internal" href="../library/functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> type,
+timer file descriptors allow specifying initial expiration and interval
+in integer nanoseconds with <code class="docutils literal notranslate"><span class="pre">_ns</span></code> variants of the functions.</p>
+<p data-msgid="c63da9be92310c4ed1b3f45c2be0b077fe7b61d9" data-score="0" data-since="260603">This example shows how <a class="reference internal" href="../library/select.html#select.epoll" title="select.epoll"><code class="xref py py-func docutils literal notranslate"><span class="pre">epoll()</span></code></a> can be used with timer file
+descriptors to wait until the file descriptor is ready for reading:</p>
+<div class="highlight-python notranslate" data-msgid="88d544016e6a29b29f1b8999919213c4f35c1342" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span><span class="o">,</span><span class="w"> </span><span class="nn">select</span><span class="o">,</span><span class="w"> </span><span class="nn">socket</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="c1"># epoll 객체 생성</span>
+<span class="n">ep</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">epoll</span><span class="p">()</span>
+
+<span class="c1"># 이 예제에서는 루프백 주소를 사용하여 서버에 &quot;stop&quot; 명령을 보냅니다.</span>
+<span class="c1">#</span>
+<span class="c1"># $ telnet 127.0.0.1 1234</span>
+<span class="c1"># 127.0.0.1에 연결 시도 중...</span>
+<span class="c1"># 127.0.0.1에 연결되었습니다.</span>
+<span class="c1"># 이스케이프 문자는 &#39;^]&#39;입니다.</span>
+<span class="c1"># stop</span>
+<span class="c1"># 원격 호스트에 의해 연결이 종료되었습니다.</span>
+<span class="c1">#</span>
+<span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">1234</span><span class="p">))</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">select</span><span class="o">.</span><span class="n">EPOLLIN</span><span class="p">)</span>
+
+<span class="c1"># 논블로킹 모드로 타이머 파일 디스크립터들을 생성합니다.</span>
+<span class="n">num</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">fds</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">timerfd_create</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">CLOCK_REALTIME</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">TFD_NONBLOCK</span><span class="p">)</span>
+    <span class="n">fds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+    <span class="c1"># 읽기 이벤트에 대해 타이머 파일 디스크립터를 등록합니다.</span>
+    <span class="n">ep</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">select</span><span class="o">.</span><span class="n">EPOLLIN</span><span class="p">)</span>
+
+<span class="c1"># os.timerfd_settime_ns()를 사용하여 나노초 단위로 타이머를 시작합니다.</span>
+<span class="c1"># 타이머 1은 0.25초마다 작동하고, 타이머 2는 0.5초마다 작동합니다.</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fd</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fds</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">one_sec_in_nsec</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">9</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">one_sec_in_nsec</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">timerfd_settime_ns</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="n">i</span><span class="o">//</span><span class="mi">4</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">i</span><span class="o">//</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">timeout</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">is_active</span><span class="p">:</span>
+        <span class="c1"># 타이머 만료를 3초간 대기합니다.</span>
+        <span class="c1"># epoll.poll()은 (fd, event) 쌍의 리스트를 반환합니다.</span>
+        <span class="c1"># fd는 파일 디스크립터입니다.</span>
+        <span class="c1"># sock 및 conn[=socket.accept()의 반환 값]은 파일 디스크립터가 아닌 소켓 객체입니다.</span>
+        <span class="c1"># 따라서 fileno()를 사용하여 파일 디스크립터를 얻습니다.</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">ep</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+
+        <span class="c1"># 하나 이상의 타이머 파일 디스크립터가 한 번에 읽기 준비가 되면,</span>
+        <span class="c1"># epoll.poll()은 (fd, event) 쌍의 리스트를 반환합니다.</span>
+        <span class="c1">#</span>
+        <span class="c1"># 이 예제의 설정에서는,</span>
+        <span class="c1">#    1번째 타이머는 0.25초마다 작동합니다. (0.25, 0.5, 0.75, 1.0, ...)</span>
+        <span class="c1">#    2번째 타이머는 0.5초마다 작동합니다. (0.5, 1.0, 1.5, 2.0, ...)</span>
+        <span class="c1">#    3번째 타이머는 0.75초마다 작동합니다. (0.75, 1.5, 2.25, 3.0, ...)</span>
+        <span class="c1">#</span>
+        <span class="c1">#    0.25초 시점에는 1번째 타이머만 작동합니다.</span>
+        <span class="c1">#    0.5초 시점에는 1번째 타이머와 2번째 타이머가 동시에 작동합니다.</span>
+        <span class="c1">#    0.75초 시점에는 1번째 타이머와 3번째 타이머가 동시에 작동합니다.</span>
+        <span class="c1">#    1.5초 시점에는 1번째, 2번째, 3번째 타이머가 모두 동시에 작동합니다.</span>
+        <span class="c1">#</span>
+        <span class="c1"># 마지막 os.read() 호출 이후 타이머 파일 디스크립터가</span>
+        <span class="c1"># 여러 번 신호를 받은 경우, os.read()는 신호가 발생한 횟수를</span>
+        <span class="c1"># 바이트 클래스의 호스트 바이트 순서(host order)로 반환합니다.</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Signaled events=</span><span class="si">{</span><span class="n">events</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fd</span><span class="p">,</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">event</span> <span class="o">&amp;</span> <span class="n">select</span><span class="o">.</span><span class="n">EPOLLIN</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fd</span> <span class="o">==</span> <span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">():</span>
+                    <span class="c1"># 연결 요청이 있는지 확인합니다.</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accepting connection </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accepted connection </span><span class="si">{</span><span class="n">conn</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">addr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">ep</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">select</span><span class="o">.</span><span class="n">EPOLLIN</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">conn</span> <span class="ow">and</span> <span class="n">fd</span> <span class="o">==</span> <span class="n">conn</span><span class="o">.</span><span class="n">fileno</span><span class="p">():</span>
+                    <span class="c1"># 읽을 데이터가 있는지 확인합니다.</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading data </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                        <span class="c1"># 안전을 위해 UnicodeDecodeError 예외를 포착해야 합니다.</span>
+                        <span class="n">cmd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;stop&quot;</span><span class="p">):</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping server&quot;</span><span class="p">)</span>
+                            <span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown command: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># 더 이상 데이터가 없으면 연결을 닫습니다.</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Closing connection </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">ep</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+                        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">elif</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">fds</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading timer </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">byteorder</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timer </span><span class="si">{</span><span class="n">fds</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> expired </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> times&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown file descriptor </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">fds</span><span class="p">:</span>
+        <span class="n">ep</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+    <span class="n">ep</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p data-msgid="102f4c4563546995457c25c22422409186864e10" data-score="0" data-since="260603">This example shows how <a class="reference internal" href="../library/select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a> can be used with timer file
+descriptors to wait until the file descriptor is ready for reading:</p>
+<div class="highlight-python notranslate" data-msgid="61291696effe9cf15f71b747fcef806a9c6a2a0a" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span><span class="o">,</span><span class="w"> </span><span class="nn">select</span><span class="o">,</span><span class="w"> </span><span class="nn">socket</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="c1"># In this example, use loopback address to send &quot;stop&quot; command to the server.</span>
+<span class="c1">#</span>
+<span class="c1"># $ telnet 127.0.0.1 1234</span>
+<span class="c1"># Trying 127.0.0.1...</span>
+<span class="c1"># Connected to 127.0.0.1.</span>
+<span class="c1"># Escape character is &#39;^]&#39;.</span>
+<span class="c1"># stop</span>
+<span class="c1"># Connection closed by foreign host.</span>
+<span class="c1">#</span>
+<span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">1234</span><span class="p">))</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Create timer file descriptors in non-blocking mode.</span>
+<span class="n">num</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">fds</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">timerfd_create</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">CLOCK_REALTIME</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">TFD_NONBLOCK</span><span class="p">)</span>
+       <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+<span class="n">select_fds</span> <span class="o">=</span> <span class="n">fds</span> <span class="o">+</span> <span class="p">[</span><span class="n">sock</span><span class="p">]</span>
+
+<span class="c1"># Start the timers with os.timerfd_settime() in seconds.</span>
+<span class="c1"># Timer 1 fires every 0.25 seconds; timer 2 every 0.5 seconds; etc</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fd</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fds</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+   <span class="n">os</span><span class="o">.</span><span class="n">timerfd_settime</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="n">i</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">i</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">timeout</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">is_active</span><span class="p">:</span>
+       <span class="c1"># Wait for the timer to expire for 3 seconds.</span>
+       <span class="c1"># select.select() returns a list of file descriptors or objects.</span>
+       <span class="n">rfd</span><span class="p">,</span> <span class="n">wfd</span><span class="p">,</span> <span class="n">xfd</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">select_fds</span><span class="p">,</span> <span class="n">select_fds</span><span class="p">,</span> <span class="n">select_fds</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+       <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">rfd</span><span class="p">:</span>
+           <span class="k">if</span> <span class="n">fd</span> <span class="o">==</span> <span class="n">sock</span><span class="p">:</span>
+               <span class="c1"># Check if there is a connection request.</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accepting connection </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+               <span class="n">conn</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accepted connection </span><span class="si">{</span><span class="n">conn</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">addr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">select_fds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+           <span class="k">elif</span> <span class="n">conn</span> <span class="ow">and</span> <span class="n">fd</span> <span class="o">==</span> <span class="n">conn</span><span class="p">:</span>
+               <span class="c1"># Check if there is data to read.</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading data </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">data</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+               <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                   <span class="c1"># You should catch UnicodeDecodeError exception for safety.</span>
+                   <span class="n">cmd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                   <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;stop&quot;</span><span class="p">):</span>
+                       <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping server&quot;</span><span class="p">)</span>
+                       <span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
+                   <span class="k">else</span><span class="p">:</span>
+                       <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown command: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="k">else</span><span class="p">:</span>
+                   <span class="c1"># No more data, close connection</span>
+                   <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Closing connection </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                   <span class="n">select_fds</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+                   <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                   <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+           <span class="k">elif</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">fds</span><span class="p">:</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading timer </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">byteorder</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timer </span><span class="si">{</span><span class="n">fds</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> expired </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> times&quot;</span><span class="p">)</span>
+           <span class="k">else</span><span class="p">:</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown file descriptor </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">fds</span><span class="p">:</span>
+       <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+    <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</section>
+</section>
+<div class="lost-and-found-section">
+    <h4>분실물 보관소</h4>
+    <div class="lost-and-found-items">
+        <span data-msgid="d41f56cea1ac933d25c57aebc6522e2b6c58eb87" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+    </div>
+</div>
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>

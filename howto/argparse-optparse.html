@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Migrating optparse code to argparse &#8212; Python 3.14.0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.14.0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="optparse — 명령 줄 옵션용 구문 분석기" href="../library/optparse.html" />
+    <link rel="prev" title="Argparse 자습서" href="argparse.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/howto/argparse-optparse.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=cf0c1595"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.14</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">Migrating <code class="docutils literal notranslate"><span class="pre">optparse</span></code> code to <code class="docutils literal notranslate"><span class="pre">argparse</span></code></a></li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="../library/index.html">파이썬 표준 라이브러리</a></li>
+                    
+                        <li><a href="../library/cmdlinelibs.html">Command-line interface libraries</a></li>
+                    
+                        <li><a href="../library/argparse.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">argparse</span></code> — Parser for command-line options, arguments and subcommands</a></li>
+                    
+                    <li class="current">Migrating <code class="docutils literal notranslate"><span class="pre">optparse</span></code> code to <code class="docutils literal notranslate"><span class="pre">argparse</span></code></li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="migrating-optparse-code-to-argparse">
+<span id="migrating-optparse-code"></span><span id="upgrading-optparse-code"></span><h1 data-msgid="33ef116ff7468191527ff1a5798aef3a768d7ac5" data-score="0" data-since="260603">Migrating <code class="docutils literal notranslate"><span class="pre">optparse</span></code> code to <code class="docutils literal notranslate"><span class="pre">argparse</span></code><a class="headerlink" href="#migrating-optparse-code-to-argparse" title="Link to this heading">¶</a></h1>
+<p data-msgid="104575e53320671caca10dedefe3b97c4d54c459" data-score="0" data-since="260603">The <a class="reference internal" href="../library/argparse.html#module-argparse" title="argparse: Command-line option and argument parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">argparse</span></code></a> module offers several higher level features not natively
+provided by the <a class="reference internal" href="../library/optparse.html#module-optparse" title="optparse: Command-line option parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> module, including:</p>
+<ul class="simple">
+<li><p data-msgid="d4c17076488bf64b63db8111e44b0dde598cfc0f" data-score="0" data-since="260603">Handling positional arguments.</p></li>
+<li><p data-msgid="1fe4166da114fc97bb58e0af482c21791536682e" data-score="0" data-since="260603">Supporting subcommands.</p></li>
+<li><p data-msgid="c29452ab1c8012d51e55807debb9753834319ccf" data-score="0" data-since="260603">Allowing alternative option prefixes like <code class="docutils literal notranslate"><span class="pre">+</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code>.</p></li>
+<li><p data-msgid="80fe32e67eb7aed793b1d67d211a8198a39506a3" data-score="0" data-since="260603">Handling zero-or-more and one-or-more style arguments.</p></li>
+<li><p data-msgid="b6206021551dc337089d35c15bdfd762b397d0ed" data-score="0" data-since="260603">Producing more informative usage messages.</p></li>
+<li><p data-msgid="c34f5ec250c79d0186f98bf25f1b0038d6cc1fc1" data-score="0" data-since="260603">Providing a much simpler interface for custom <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p></li>
+</ul>
+<p data-msgid="d2e25a5bb910ad29ed37cdd0911b8fc38c2d3a05" data-score="0" data-since="260603">Originally, the <a class="reference internal" href="../library/argparse.html#module-argparse" title="argparse: Command-line option and argument parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">argparse</span></code></a> module attempted to maintain compatibility
+with <a class="reference internal" href="../library/optparse.html#module-optparse" title="optparse: Command-line option parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a>.  However, the fundamental design differences between
+supporting declarative command line option processing (while leaving positional
+argument processing to application code), and supporting both named options
+and positional arguments in the declarative interface mean that the
+API has diverged from that of <code class="docutils literal notranslate"><span class="pre">optparse</span></code> over time.</p>
+<p data-msgid="c4c6a096918827ec35e17191fca4816e42d32ddd" data-score="0" data-since="260603">As described in <a class="reference internal" href="../library/optparse.html#choosing-an-argument-parser"><span class="std std-ref">Choosing an argument parsing library</span></a>, applications that are
+currently using <a class="reference internal" href="../library/optparse.html#module-optparse" title="optparse: Command-line option parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> and are happy with the way it works can
+just continue to use <code class="docutils literal notranslate"><span class="pre">optparse</span></code>.</p>
+<p data-msgid="e09e21382e63cdcfeec328805808e92a99d9a637" data-score="0" data-since="260603">Application developers that are considering migrating should also review
+the list of intrinsic behavioural differences described in that section
+before deciding whether or not migration is desirable.</p>
+<p data-msgid="4f91f170d9ef00bee0de55b5b317813aff7f7fad" data-score="0" data-since="260603">For applications that do choose to migrate from <a class="reference internal" href="../library/optparse.html#module-optparse" title="optparse: Command-line option parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">optparse</span></code></a> to <a class="reference internal" href="../library/argparse.html#module-argparse" title="argparse: Command-line option and argument parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">argparse</span></code></a>,
+the following suggestions should be helpful:</p>
+<ul class="simple">
+<li><p data-msgid="dbce9f310f098052c23eeb4fdc4281d10bb94b24" data-score="0" data-since="260603">Replace all <a class="reference internal" href="../library/optparse.html#optparse.OptionParser.add_option" title="optparse.OptionParser.add_option"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optparse.OptionParser.add_option()</span></code></a> calls with
+<a class="reference internal" href="../library/argparse.html#argparse.ArgumentParser.add_argument" title="argparse.ArgumentParser.add_argument"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ArgumentParser.add_argument()</span></code></a> calls.</p></li>
+<li><p data-msgid="b7dc4e037133995886319cf2271eebb895d31a71" data-score="0" data-since="260603">Replace <code class="docutils literal notranslate"><span class="pre">(options,</span> <span class="pre">args)</span> <span class="pre">=</span> <span class="pre">parser.parse_args()</span></code> with <code class="docutils literal notranslate"><span class="pre">args</span> <span class="pre">=</span>
+<span class="pre">parser.parse_args()</span></code> and add additional <a class="reference internal" href="../library/argparse.html#argparse.ArgumentParser.add_argument" title="argparse.ArgumentParser.add_argument"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ArgumentParser.add_argument()</span></code></a>
+calls for the positional arguments. Keep in mind that what was previously
+called <code class="docutils literal notranslate"><span class="pre">options</span></code>, now in the <a class="reference internal" href="../library/argparse.html#module-argparse" title="argparse: Command-line option and argument parsing library."><code class="xref py py-mod docutils literal notranslate"><span class="pre">argparse</span></code></a> context is called <code class="docutils literal notranslate"><span class="pre">args</span></code>.</p></li>
+<li><p data-msgid="e555faea257a208dde25867e24a6fb4be6a302d6" data-score="0" data-since="260603">Replace <a class="reference internal" href="../library/optparse.html#optparse.OptionParser.disable_interspersed_args" title="optparse.OptionParser.disable_interspersed_args"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optparse.OptionParser.disable_interspersed_args()</span></code></a>
+by using <a class="reference internal" href="../library/argparse.html#argparse.ArgumentParser.parse_intermixed_args" title="argparse.ArgumentParser.parse_intermixed_args"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_intermixed_args()</span></code></a> instead of
+<a class="reference internal" href="../library/argparse.html#argparse.ArgumentParser.parse_args" title="argparse.ArgumentParser.parse_args"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_args()</span></code></a>.</p></li>
+<li><p data-msgid="7dce0acad9e5af050b0f93eef4f2d546821690e3" data-score="0" data-since="260603">Replace callback actions and the <code class="docutils literal notranslate"><span class="pre">callback_*</span></code> keyword arguments with
+<code class="docutils literal notranslate"><span class="pre">type</span></code> or <code class="docutils literal notranslate"><span class="pre">action</span></code> arguments.</p></li>
+<li><p data-msgid="3af8cddc14a07ba7fdf208b25d7245d6f9fbf4f0" data-score="0" data-since="260603">Replace string names for <code class="docutils literal notranslate"><span class="pre">type</span></code> keyword arguments with the corresponding
+type objects (e.g. int, float, complex, etc).</p></li>
+<li><p data-msgid="a79b008a081c5e17641585d3d6b71f30a459226d" data-score="0" data-since="260603">Replace <a class="reference internal" href="../library/optparse.html#optparse.Values" title="optparse.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">optparse.Values</span></code></a> with <a class="reference internal" href="../library/argparse.html#argparse.Namespace" title="argparse.Namespace"><code class="xref py py-class docutils literal notranslate"><span class="pre">Namespace</span></code></a> and
+<a class="reference internal" href="../library/optparse.html#optparse.OptionError" title="optparse.OptionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">optparse.OptionError</span></code></a> and <a class="reference internal" href="../library/optparse.html#optparse.OptionValueError" title="optparse.OptionValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">optparse.OptionValueError</span></code></a> with
+<a class="reference internal" href="../library/argparse.html#argparse.ArgumentError" title="argparse.ArgumentError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ArgumentError</span></code></a>.</p></li>
+<li><p data-msgid="47cc834acf74e9d4439649ac987baae42199b2c7" data-score="0" data-since="260603">Replace strings with implicit arguments such as <code class="docutils literal notranslate"><span class="pre">%default</span></code> or <code class="docutils literal notranslate"><span class="pre">%prog</span></code> with
+the standard Python syntax to use dictionaries to format strings, that is,
+<code class="docutils literal notranslate"><span class="pre">%(default)s</span></code> and <code class="docutils literal notranslate"><span class="pre">%(prog)s</span></code>.</p></li>
+<li><p data-msgid="bd62244f188da7b66597c49a42fcc4b4b48b57b9" data-score="0" data-since="260603">Replace the OptionParser constructor <code class="docutils literal notranslate"><span class="pre">version</span></code> argument with a call to
+<code class="docutils literal notranslate"><span class="pre">parser.add_argument('--version',</span> <span class="pre">action='version',</span> <span class="pre">version='&lt;the</span> <span class="pre">version&gt;')</span></code>.</p></li>
+</ul>
+</section>
+
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>

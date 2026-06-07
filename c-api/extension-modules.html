@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Defining extension modules &#8212; Python 3.14.0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.14.0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="유틸리티" href="utilities.html" />
+    <link rel="prev" title="예외 처리" href="exceptions.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/c-api/extension-modules.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=cf0c1595"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.14</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">Defining extension modules</a><ul>
+<li><a class="reference internal" href="#multiple-module-instances">Multiple module instances</a></li>
+<li><a class="reference internal" href="#initialization-function">Initialization function</a></li>
+<li><a class="reference internal" href="#multi-phase-initialization">Multi-phase initialization</a></li>
+<li><a class="reference internal" href="#legacy-single-phase-initialization">Legacy single-phase initialization</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">파이썬/C API 레퍼런스 설명서</a></li>
+                    
+                    <li class="current">Defining extension modules</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="defining-extension-modules">
+<span id="extension-modules"></span><h1 data-msgid="3d706d1aa200cca0ef9cbdbcfb999e2edcd635b1" data-score="0" data-since="260603">Defining extension modules<a class="headerlink" href="#defining-extension-modules" title="Link to this heading">¶</a></h1>
+<p data-msgid="5b3fb95a04ccf5cdae604133e017f3a0f061e4d2" data-score="0" data-since="260603">A C extension for CPython is a shared library (for example, a <code class="docutils literal notranslate"><span class="pre">.so</span></code> file
+on Linux, <code class="docutils literal notranslate"><span class="pre">.pyd</span></code> DLL on Windows), which is loadable into the Python process
+(for example, it is compiled with compatible compiler settings), and which
+exports an <a class="reference internal" href="#extension-export-hook"><span class="std std-ref">initialization function</span></a>.</p>
+<p data-msgid="f643d0151381be4fd26bd2dcac3a5b24a08578df" data-score="0" data-since="260603">To be importable by default (that is, by
+<a class="reference internal" href="../library/importlib.html#importlib.machinery.ExtensionFileLoader" title="importlib.machinery.ExtensionFileLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.machinery.ExtensionFileLoader</span></code></a>),
+the shared library must be available on <a class="reference internal" href="../library/sys.html#sys.path" title="sys.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sys.path</span></code></a>,
+and must be named after the module name plus an extension listed in
+<a class="reference internal" href="../library/importlib.html#importlib.machinery.EXTENSION_SUFFIXES" title="importlib.machinery.EXTENSION_SUFFIXES"><code class="xref py py-attr docutils literal notranslate"><span class="pre">importlib.machinery.EXTENSION_SUFFIXES</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="523e19d429291d2c68318421095e9c2a0d3046d3" data-score="0" data-since="260603">Building, packaging and distributing extension modules is best done with
+third-party tools, and is out of scope of this document.
+One suitable tool is Setuptools, whose documentation can be found at
+<a class="reference external" href="https://setuptools.pypa.io/en/latest/setuptools.html">https://setuptools.pypa.io/en/latest/setuptools.html</a>.</p>
+</div>
+<p data-msgid="b6f6acda07edaa4ceec9199486a5c44c92da0893" data-score="0" data-since="260603">Normally, the initialization function returns a module definition initialized
+using <a class="reference internal" href="#c.PyModuleDef_Init" title="PyModuleDef_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModuleDef_Init()</span></code></a>.
+This allows splitting the creation process into several phases:</p>
+<ul class="simple">
+<li><p data-msgid="c0cb0132eb8b2a1d9636e82f78cd1331f7ec84ec" data-score="0" data-since="260603">Before any substantial code is executed, Python can determine which
+capabilities the module supports, and it can adjust the environment or
+refuse loading an incompatible extension.</p></li>
+<li><p data-msgid="ff3881e59e708f94d92ceb37676916c7214aa582" data-score="0" data-since="260603">By default, Python itself creates the module object – that is, it does
+the equivalent of <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">object.__new__()</span></code></a> for classes.
+It also sets initial attributes like <a class="reference internal" href="../reference/datamodel.html#module.__package__" title="module.__package__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__package__</span></code></a> and
+<a class="reference internal" href="../reference/datamodel.html#module.__loader__" title="module.__loader__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__loader__</span></code></a>.</p></li>
+<li><p data-msgid="91b594778a5a2235eaca9a8b39c7ecdadc86b323" data-score="0" data-since="260603">Afterwards, the module object is initialized using extension-specific
+code – the equivalent of <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> on classes.</p></li>
+</ul>
+<p data-msgid="4f831c0d1fc907bcb2dbe38e6e974b2c2d4b5152" data-score="0" data-since="260603">This is called <em>multi-phase initialization</em> to distinguish it from the legacy
+(but still supported) <em>single-phase initialization</em> scheme,
+where the initialization function returns a fully constructed module.
+See the <a class="reference internal" href="#single-phase-initialization"><span class="std std-ref">single-phase-initialization section below</span></a>
+for details.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.5에서 변경: </span>Added support for multi-phase initialization (<span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0489/"><strong>PEP 489</strong></a>).</p>
+</div>
+<section id="multiple-module-instances">
+<h2 data-msgid="eccc5b9ebb78ee60c39ae186245d3adb35fff0cb" data-score="0" data-since="260603">Multiple module instances<a class="headerlink" href="#multiple-module-instances" title="Link to this heading">¶</a></h2>
+<p data-msgid="f55ec325da803751b5e5e5d604f472da853dc1a5" data-score="0" data-since="260603">By default, extension modules are not singletons.
+For example, if the <a class="reference internal" href="../library/sys.html#sys.modules" title="sys.modules"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sys.modules</span></code></a> entry is removed and the module
+is re-imported, a new module object is created, and typically populated with
+fresh method and type objects.
+The old module is subject to normal garbage collection.
+This mirrors the behavior of pure-Python modules.</p>
+<p data-msgid="7cf73088dbbc648645d42346edb76521d1b017d1" data-score="0" data-since="260603">Additional module instances may be created in
+<a class="reference internal" href="init.html#sub-interpreter-support"><span class="std std-ref">sub-interpreters</span></a>
+or after Python runtime reinitialization
+(<a class="reference internal" href="init.html#c.Py_Finalize" title="Py_Finalize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Finalize()</span></code></a> and <a class="reference internal" href="init.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>).
+In these cases, sharing Python objects between module instances would likely
+cause crashes or undefined behavior.</p>
+<p data-msgid="cde5f6c8119699b68efc72d233c423deaf7383af" data-score="0" data-since="260603">To avoid such issues, each instance of an extension module should
+be <em>isolated</em>: changes to one instance should not implicitly affect the others,
+and all state owned by the module, including references to Python objects,
+should be specific to a particular module instance.
+See <a class="reference internal" href="../howto/isolating-extensions.html#isolating-extensions-howto"><span class="std std-ref">Isolating Extension Modules</span></a> for more details and a practical guide.</p>
+<p data-msgid="80e7a695342729643bda07e32bcfd7a8b0b3ee0c" data-score="0" data-since="260603">A simpler way to avoid these issues is
+<a class="reference internal" href="../howto/isolating-extensions.html#isolating-extensions-optout"><span class="std std-ref">raising an error on repeated initialization</span></a>.</p>
+<p data-msgid="02255773dfdb31d0d2f2177f9e32b5aa35767767" data-score="0" data-since="260603">All modules are expected to support
+<a class="reference internal" href="init.html#sub-interpreter-support"><span class="std std-ref">sub-interpreters</span></a>, or otherwise explicitly
+signal a lack of support.
+This is usually achieved by isolation or blocking repeated initialization,
+as above.
+A module may also be limited to the main interpreter using
+the <a class="reference internal" href="module.html#c.Py_mod_multiple_interpreters" title="Py_mod_multiple_interpreters"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_mod_multiple_interpreters</span></code></a> slot.</p>
+</section>
+<section id="initialization-function">
+<span id="extension-export-hook"></span><h2 data-msgid="c63a9b5c39218ce5c8c06abb648dcbac8d6ea043" data-score="0" data-since="260603">Initialization function<a class="headerlink" href="#initialization-function" title="Link to this heading">¶</a></h2>
+<p data-msgid="1235435cf2a12589c5cfeb89c1c23d19a37d0005" data-score="0" data-since="260603">The initialization function defined by an extension module has the
+following signature:</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyInit_modulename">
+<a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInit_modulename</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInit_modulename" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<p data-msgid="e85051d96cc085e42e78d5ae25eec8d58732ba0c" data-score="0" data-since="260603">Its name should be <code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;name&gt;</span></em></code>, with <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> replaced by the
+name of the module.</p>
+<p data-msgid="068e380a9a22059b0a9869e33eac6ed6f90684d0" data-score="0" data-since="260603">For modules with ASCII-only names, the function must instead be named
+<code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;name&gt;</span></em></code>, with <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> replaced by the name of the module.
+When using <a class="reference internal" href="#multi-phase-initialization"><span class="std std-ref">Multi-phase initialization</span></a>, non-ASCII module names
+are allowed. In this case, the initialization function name is
+<code class="samp docutils literal notranslate"><span class="pre">PyInitU_</span><em><span class="pre">&lt;name&gt;</span></em></code>, with <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> encoded using Python’s
+<em>punycode</em> encoding with hyphens replaced by underscores. In Python:</p>
+<div class="highlight-python notranslate" data-msgid="08d496453ef43dc002510e7aa2495caae798bb68" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">initfunc_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;U_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;punycode&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">b</span><span class="s1">&#39;PyInit&#39;</span> <span class="o">+</span> <span class="n">suffix</span>
+</pre></div>
+</div>
+<p data-msgid="033c54183eb896ad4d82636351526b45fa1abdc0" data-score="0" data-since="260603">It is recommended to define the initialization function using a helper macro:</p>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.PyMODINIT_FUNC">
+<span class="sig-name descname"><span class="n"><span class="pre">PyMODINIT_FUNC</span></span></span><a class="headerlink" href="#c.PyMODINIT_FUNC" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="57a19cb9fb0fe736f3cded2b9161ba6bfd253d31" data-score="0" data-since="260603">Declare an extension module initialization function.
+This macro:</p>
+<ul class="simple">
+<li><p data-msgid="894cf3cdb87c92ebb72c1bda2d68789d2461d0f7" data-score="0" data-since="260603">specifies the <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> return type,</p></li>
+<li><p data-msgid="e041194e906b73f6869773cb52ecda8c098ddd33" data-score="0" data-since="260603">adds any special linkage declarations required by the platform, and</p></li>
+<li><p data-msgid="1149a131334e87580b8ffbb100ef32a824127879" data-score="0" data-since="260603">for C++, declares the function as <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code>.</p></li>
+</ul>
+</dd></dl>
+
+<p data-msgid="c1d4bfc30ec21cd09c41abbee8a25cd9722b6c92" data-score="0" data-since="260603">For example, a module called <code class="docutils literal notranslate"><span class="pre">spam</span></code> would be defined like this:</p>
+<div class="highlight-c notranslate" data-msgid="231b547866b007cad39dc808268ed9c48927aa43" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">PyModuleDef</span><span class="w"> </span><span class="n">spam_module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">m_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyModuleDef_HEAD_INIT</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">m_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">};</span>
+
+<span class="n">PyMODINIT_FUNC</span>
+<span class="nf">PyInit_spam</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">PyModuleDef_Init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">spam_module</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p data-msgid="b95511f0faef4e6bd7f4544a7748cb42f94fb506" data-score="0" data-since="260603">It is possible to export multiple modules from a single shared library by
+defining multiple initialization functions. However, importing them requires
+using symbolic links or a custom importer, because by default only the
+function corresponding to the filename is found.
+See the <a class="reference external" href="https://peps.python.org/pep-0489/#multiple-modules-in-one-library">Multiple modules in one library</a>
+section in <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0489/"><strong>PEP 489</strong></a> for details.</p>
+<p data-msgid="a9bd6ba064f0308fe0459a7a315fc82ba9613743" data-score="0" data-since="260603">The initialization function is typically the only non-<code class="docutils literal notranslate"><span class="pre">static</span></code>
+item defined in the module’s C source.</p>
+</section>
+<section id="multi-phase-initialization">
+<span id="id1"></span><h2 data-msgid="e669817f9b87522c8a661501c2c33a2dcb860f62" data-score="0" data-since="260603">Multi-phase initialization<a class="headerlink" href="#multi-phase-initialization" title="Link to this heading">¶</a></h2>
+<p data-msgid="5a0c10eeac22a9a5ca22f7f2fd3e17da67864b97" data-score="0" data-since="260603">Normally, the <a class="reference internal" href="#extension-export-hook"><span class="std std-ref">initialization function</span></a>
+(<code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code>) returns a <a class="reference internal" href="module.html#c.PyModuleDef" title="PyModuleDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code></a> instance with
+non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> <a class="reference internal" href="module.html#c.PyModuleDef.m_slots" title="PyModuleDef.m_slots"><code class="xref c c-member docutils literal notranslate"><span class="pre">m_slots</span></code></a>.
+Before it is returned, the <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> instance must be initialized
+using the following function:</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyModuleDef_Init">
+<a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyModuleDef_Init</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="module.html#c.PyModuleDef" title="PyModuleDef"><span class="n"><span class="pre">PyModuleDef</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">def</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyModuleDef_Init" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="242c06833ba18e0142a2308081ef397d13441591" data-score="0" data-since="260603">Ensure a module definition is a properly initialized Python object that
+correctly reports its type and a reference count.</p>
+<p data-msgid="cbd77f2a8609e945945db5ccf80f550d822761e1" data-score="0" data-since="260603">Return <em>def</em> cast to <code class="docutils literal notranslate"><span class="pre">PyObject*</span></code>, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if an error occurred.</p>
+<p data-msgid="aa7fdfbd2048ff94d0f7d0d370b59b6c9957515c" data-score="0" data-since="260603">Calling this function is required for <a class="reference internal" href="#multi-phase-initialization"><span class="std std-ref">Multi-phase initialization</span></a>.
+It should not be used in other contexts.</p>
+<p data-msgid="5042450d6fb19be2ce51b2a8d42db36d334e0922" data-score="0" data-since="260603">Note that Python assumes that <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> structures are statically
+allocated.
+This function may return either a new reference or a borrowed one;
+this reference must not be released.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.5.</span></p>
+</div>
+</dd></dl>
+
+</section>
+<section id="legacy-single-phase-initialization">
+<span id="single-phase-initialization"></span><h2 data-msgid="9db0c11ec4cd5929976916c7ac98c361131d59aa" data-score="0" data-since="260603">Legacy single-phase initialization<a class="headerlink" href="#legacy-single-phase-initialization" title="Link to this heading">¶</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">주의</p>
+<p data-msgid="d7ab402e205669fd74a1a10452d7320673a96f2a" data-score="0" data-since="260603">Single-phase initialization is a legacy mechanism to initialize extension
+modules, with known drawbacks and design flaws. Extension module authors
+are encouraged to use multi-phase initialization instead.</p>
+</div>
+<p data-msgid="7a41a41cbc08b2ec15081f1d04ea681711018328" data-score="0" data-since="260603">In single-phase initialization, the
+<a class="reference internal" href="#extension-export-hook"><span class="std std-ref">initialization function</span></a> (<code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code>)
+should create, populate and return a module object.
+This is typically done using <a class="reference internal" href="module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a> and functions like
+<a class="reference internal" href="module.html#c.PyModule_AddObjectRef" title="PyModule_AddObjectRef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_AddObjectRef()</span></code></a>.</p>
+<p data-msgid="99e2a752940390fc327e0301b9c8fa086827b063" data-score="0" data-since="260603">Single-phase initialization differs from the <a class="reference internal" href="#multi-phase-initialization"><span class="std std-ref">default</span></a>
+in the following ways:</p>
+<ul>
+<li><p data-msgid="3edce29d8ecbd438294455d6644287dae4c29332" data-score="0" data-since="260603">Single-phase modules are, or rather <em>contain</em>, “singletons”.</p>
+<p data-msgid="227500390c266ee99d017af59f80f404baef629e" data-score="0" data-since="260603">When the module is first initialized, Python saves the contents of
+the module’s <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> (that is, typically, the module’s functions and
+types).</p>
+<p data-msgid="e5c35ccdff87b0e5cdb26763f024333c552cf48b" data-score="0" data-since="260603">For subsequent imports, Python does not call the initialization function
+again.
+Instead, it creates a new module object with a new <code class="docutils literal notranslate"><span class="pre">__dict__</span></code>, and copies
+the saved contents to it.
+For example, given a single-phase module <code class="docutils literal notranslate"><span class="pre">_testsinglephase</span></code>
+<a class="footnote-reference brackets" href="#testsinglephase" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> that defines a function <code class="docutils literal notranslate"><span class="pre">sum</span></code> and an exception class
+<code class="docutils literal notranslate"><span class="pre">error</span></code>:</p>
+<div class="highlight-python notranslate" data-msgid="ffbabd245effaa2f2626228a492d83d4618668bb" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">_testsinglephase</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">one</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s1">&#39;_testsinglephase&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">_testsinglephase</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">two</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="ow">is</span> <span class="n">two</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span><span class="o">.</span><span class="vm">__dict__</span> <span class="ow">is</span> <span class="n">two</span><span class="o">.</span><span class="vm">__dict__</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span><span class="o">.</span><span class="n">sum</span> <span class="ow">is</span> <span class="n">two</span><span class="o">.</span><span class="n">sum</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="n">two</span><span class="o">.</span><span class="n">error</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p data-msgid="1fb2996c7671246ef2db032dd92746ba47d7c4ab" data-score="0" data-since="260603">The exact behavior should be considered a CPython implementation detail.</p>
+</li>
+<li><p data-msgid="3f1e09d62e58c3f32a455f5f84c35b561bd241c2" data-score="0" data-since="260603">To work around the fact that <code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code> does not take a <em>spec</em>
+argument, some state of the import machinery is saved and applied to the
+first suitable module created during the <code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code> call.
+Specifically, when a sub-module is imported, this mechanism prepends the
+parent package name to the name of the module.</p>
+<p data-msgid="ad1ae5bfdb1b6bcf8492747ea93af18ef8d51b3a" data-score="0" data-since="260603">A single-phase <code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code> function should create “its” module
+object as soon as possible, before any other module objects can be created.</p>
+</li>
+<li><p data-msgid="b95061bc2d4376d9a7fe32b552c8a4fa6c14899a" data-score="0" data-since="260603">Non-ASCII module names (<code class="docutils literal notranslate"><span class="pre">PyInitU_modulename</span></code>) are not supported.</p></li>
+<li><p data-msgid="28d0b777d9824a8273f233a26632d38bab1f9a8f" data-score="0" data-since="260603">Single-phase modules support module lookup functions like
+<a class="reference internal" href="module.html#c.PyState_FindModule" title="PyState_FindModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyState_FindModule()</span></code></a>.</p></li>
+</ul>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="testsinglephase" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p data-msgid="a020c4bb1198a6d42d517d220325d044a5f9c487" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">_testsinglephase</span></code> is an internal module used
+in CPython’s self-test suite; your installation may or may not
+include it.</p>
+</aside>
+</aside>
+</section>
+</section>
+<div class="lost-and-found-section">
+    <h4>분실물 보관소</h4>
+    <div class="lost-and-found-items">
+        <span data-msgid="8420b43bb03b8c5c51d18bada7bda5c3cc606ec6" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+    </div>
+</div>
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>
