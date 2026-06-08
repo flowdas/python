@@ -5,22 +5,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Remote debugging attachment protocol &#8212; Python 3.14.0 문서</title>
+    <title>Remote debugging attachment protocol &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
     <link rel="search" title="검색" href="../search.html" />
     <link rel="copyright" title="저작권" href="../copyright.html" />
     <link rel="next" title="파이썬 자주 나오는 질문들" href="../faq/index.html" />
-    <link rel="prev" title="C API Extension Support for Free Threading" href="free-threading-extensions.html" />
+    <link rel="prev" title="Migrating to Stable ABI for free threading (abi3t)" href="abi3t-migration.html" />
     
       
       <link rel="canonical" href="https://python.flowdas.com/howto/remote_debugging.html">
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -71,13 +71,20 @@
             </div>
             <nav class="toc">
                 <ul>
-<li><a class="reference internal" href="#">Remote debugging attachment protocol</a></li>
+<li><a class="reference internal" href="#">Remote debugging attachment protocol</a><ul>
+<li><a class="reference internal" href="#disabling-remote-debugging">Disabling remote debugging</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#permission-requirements">Permission requirements</a></li>
 <li><a class="reference internal" href="#locating-the-pyruntime-structure">Locating the PyRuntime structure</a></li>
 <li><a class="reference internal" href="#reading-py-debugoffsets">Reading _Py_DebugOffsets</a></li>
 <li><a class="reference internal" href="#locating-the-interpreter-and-thread-state">Locating the interpreter and thread state</a></li>
 <li><a class="reference internal" href="#writing-control-information">Writing control information</a></li>
 <li><a class="reference internal" href="#summary">Summary</a></li>
+<li><a class="reference internal" href="#security-and-threat-model">Security and threat model</a><ul>
+<li><a class="reference internal" href="#when-to-use-python-disable-remote-debug">When to use <code class="docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a></li>
+</ul>
+</li>
 </ul>
 
             </nav>
@@ -115,6 +122,16 @@
 <p data-msgid="e859ead2c7b3ed45b58aa864b7c5d66ba0fa9241" data-score="0" data-since="260603">This protocol enables external tools to attach to a running CPython process and
 execute Python code remotely.</p>
 <p data-msgid="6aef372ca62b2a367c2bdfc138664b9a898c408a" data-score="0" data-since="260603">Most platforms require elevated privileges to attach to another Python process.</p>
+<section id="disabling-remote-debugging">
+<h2 data-msgid="b7067cd1a6e947fad026c96a3081e3368ab7e438" data-score="0" data-since="260608">Disabling remote debugging<a class="headerlink" href="#disabling-remote-debugging" title="Link to this heading">¶</a></h2>
+<p data-msgid="765d88c327f4866edadf9736c82ae4f5e3c4a774" data-score="0" data-since="260608">To disable remote debugging support, use any of the following:</p>
+<ul class="simple">
+<li><p data-msgid="b9f7a16117bb2175460a4ad1e4cace9d1e009455" data-score="0" data-since="260608">Set the <span class="target" id="index-0"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_DISABLE_REMOTE_DEBUG"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a> environment variable to <code class="docutils literal notranslate"><span class="pre">1</span></code> before
+starting the interpreter.</p></li>
+<li><p data-msgid="49e934f8d2663cfb5b655708440b91538d586415" data-score="0" data-since="260608">Use the <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">disable_remote_debug</span></code></a> command-line option.</p></li>
+<li><p data-msgid="97db002a457ec2ebd23d617cff68d5f18ef06a40" data-score="0" data-since="260608">Compile Python with the <a class="reference internal" href="../using/configure.html#cmdoption-without-remote-debug"><code class="xref std std-option docutils literal notranslate"><span class="pre">--without-remote-debug</span></code></a> build flag.</p></li>
+</ul>
+</section>
 </section>
 <section id="permission-requirements">
 <span id="id1"></span><h1 data-msgid="d662ec2c7e36e9436e3d24a6f2014d2f5f52c318" data-score="0" data-since="260603">Permission requirements<a class="headerlink" href="#permission-requirements" title="Link to this heading">¶</a></h1>
@@ -656,6 +673,54 @@ assume the file is no longer needed.</p>
 <li><p data-msgid="bb10c27dc8f1b340217ee0fd08c2a23e068711a4" data-score="0" data-since="260603">Resume the process (if suspended). The script will execute at the next safe
 evaluation point.</p></li>
 </ol>
+</section>
+<section id="security-and-threat-model">
+<span id="remote-debugging-threat-model"></span><h1 data-msgid="af58415b972ba30b3dc19151e389608c81f874cc" data-score="0" data-since="260608">Security and threat model<a class="headerlink" href="#security-and-threat-model" title="Link to this heading">¶</a></h1>
+<p data-msgid="e529e81c55539bcc214741c8c1aaab004787f18f" data-score="0" data-since="260608">The remote debugging protocol relies on the same operating system primitives
+used by native debuggers such as GDB and LLDB.  Attaching to a process
+requires the <strong>same privileges</strong> that those debuggers require, for example
+<code class="docutils literal notranslate"><span class="pre">ptrace</span></code> / Yama LSM on Linux, <code class="docutils literal notranslate"><span class="pre">task_for_pid</span></code> on macOS, and
+<code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code> on Windows.  Python does not introduce any new privilege
+escalation path; if an attacker already possesses the permissions needed to
+attach to a process, they could equally use GDB to read memory or inject
+code.</p>
+<p data-msgid="1a7795b761af8280af9810a285a2a6ae6abab944" data-score="0" data-since="260608">The following principles define what is, and is not, considered a security
+vulnerability in this feature:</p>
+<dl class="simple">
+<dt data-msgid="4786637af44ede52278f29e82256ddb2af712129" data-score="0" data-since="260608">Attaching requires OS-level privileges</dt><dd><p data-msgid="59e52c95765598cb8f5fb4f574efd34884e38e21" data-score="0" data-since="260608">On every supported platform the operating system gates cross-process
+memory access behind privilege checks (<code class="docutils literal notranslate"><span class="pre">CAP_SYS_PTRACE</span></code>, root, or
+administrator rights).  A report that demonstrates an issue only after
+these privileges have already been obtained is <strong>not</strong> a vulnerability in
+CPython, since the OS security boundary was already crossed.</p>
+</dd>
+<dt data-msgid="f994884f518dab5567b18067873dee6e414db908" data-score="0" data-since="260608">Crashes or memory errors when reading a compromised process are not vulnerabilities</dt><dd><p data-msgid="5a296dcfc91c89eeff5370389a3608eb168f2b65" data-score="0" data-since="260608">A tool that reads internal interpreter state from a target process must
+trust that memory to be well-formed.  If the target process has been
+corrupted or is controlled by an attacker, the debugger or profiler may
+crash, produce garbage output, or behave unpredictably.  This is the same
+risk accepted by every <code class="docutils literal notranslate"><span class="pre">ptrace</span></code>-based debugger.  Bugs in this category
+(buffer overflows, segmentation faults, or undefined behaviour triggered
+by reading corrupted state) are <strong>not</strong> treated as security issues, though
+fixes that improve robustness are welcome.</p>
+</dd>
+<dt data-msgid="4c9e01fa409dfec3afcb543c59f90636e0ae75d9" data-score="0" data-since="260608">Vulnerabilities in the target process are not in scope</dt><dd><p data-msgid="a637c440f45a50def1250b7702e3728321e61ba6" data-score="0" data-since="260608">If the Python process being debugged has already been compromised, the
+attacker already controls execution in that process.  Demonstrating further
+impact from that starting point does not constitute a vulnerability in the
+remote debugging protocol.</p>
+</dd>
+</dl>
+<section id="when-to-use-python-disable-remote-debug">
+<h2 data-msgid="efffad803caf649f4354e5bda4172196004701cf" data-score="0" data-since="260608">When to use <code class="docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code><a class="headerlink" href="#when-to-use-python-disable-remote-debug" title="Link to this heading">¶</a></h2>
+<p data-msgid="193f3b1b97e36ab7e7ce827bd1943f5a280f428a" data-score="0" data-since="260608">The environment variable <span class="target" id="index-1"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_DISABLE_REMOTE_DEBUG"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a> (and the
+equivalent <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">disable_remote_debug</span></code></a> flag) allows operators to disable
+the in-process side of the protocol as a <strong>defence-in-depth</strong> measure.  This
+may be useful in hardened or sandboxed deployment environments where no
+debugging or profiling of the process is expected and reducing attack surface
+is a priority, even though the OS-level privilege checks already prevent
+unprivileged access.</p>
+<p data-msgid="d4d021d362f65474f9b3ad8cd2d148854ce56cc8" data-score="0" data-since="260608">Setting this variable does <strong>not</strong> affect other OS-level debugging interfaces
+(<code class="docutils literal notranslate"><span class="pre">ptrace</span></code>, <code class="docutils literal notranslate"><span class="pre">/proc</span></code>, <code class="docutils literal notranslate"><span class="pre">task_for_pid</span></code>, etc.), which remain available
+according to their own permission models.</p>
+</section>
 </section>
 <div class="lost-and-found-section">
     <h4>분실물 보관소</h4>

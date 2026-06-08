@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>큐 &#8212; Python 3.14.0 문서</title>
+    <title>큐 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -198,10 +198,10 @@ is empty, or if the queue has been shut down immediately.</p>
 <dt class="sig sig-object py" id="asyncio.Queue.shutdown">
 <span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">immediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Queue.shutdown" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="04831d03349f97bb630e2ec4891219d5c461d513" data-score="0" data-since="260603">Put a <a class="reference internal" href="#asyncio.Queue" title="asyncio.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instance into a shutdown mode.</p>
-<p data-msgid="4b9b6a1ac111551d6e66da358c0bbf8db6f88087" data-score="0" data-since="260603">The queue can no longer grow.
+<p data-msgid="85f8b52917a7b84664198001bfcdd554bf6b88b1" data-score="0" data-since="260608">The queue can no longer grow.
 Future calls to <a class="reference internal" href="#asyncio.Queue.put" title="asyncio.Queue.put"><code class="xref py py-meth docutils literal notranslate"><span class="pre">put()</span></code></a> raise <a class="reference internal" href="#asyncio.QueueShutDown" title="asyncio.QueueShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">QueueShutDown</span></code></a>.
 Currently blocked callers of <a class="reference internal" href="#asyncio.Queue.put" title="asyncio.Queue.put"><code class="xref py py-meth docutils literal notranslate"><span class="pre">put()</span></code></a> will be unblocked
-and will raise <a class="reference internal" href="#asyncio.QueueShutDown" title="asyncio.QueueShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">QueueShutDown</span></code></a> in the formerly blocked thread.</p>
+and will raise <a class="reference internal" href="#asyncio.QueueShutDown" title="asyncio.QueueShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">QueueShutDown</span></code></a> in the formerly awaiting task.</p>
 <p data-msgid="0b59a946d56134f2748a1ed9e0460586eeec5d43" data-score="0" data-since="260603">If <em>immediate</em> is false (the default), the queue can be wound
 down normally with <a class="reference internal" href="#asyncio.Queue.get" title="asyncio.Queue.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a> calls to extract tasks
 that have already been loaded.</p>
@@ -209,10 +209,11 @@ that have already been loaded.</p>
 pending <a class="reference internal" href="#asyncio.Queue.join" title="asyncio.Queue.join"><code class="xref py py-meth docutils literal notranslate"><span class="pre">join()</span></code></a> will be unblocked normally.</p>
 <p data-msgid="22148d64bbacf307d419ea286b157273eac2d460" data-score="0" data-since="260603">Once the queue is empty, future calls to <a class="reference internal" href="#asyncio.Queue.get" title="asyncio.Queue.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a> will
 raise <a class="reference internal" href="#asyncio.QueueShutDown" title="asyncio.QueueShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">QueueShutDown</span></code></a>.</p>
-<p data-msgid="d1c181f296bf60f680a2a60729d50e80cc5fd736" data-score="0" data-since="260603">If <em>immediate</em> is true, the queue is terminated immediately.
-The queue is drained to be completely empty.  All callers of
-<a class="reference internal" href="#asyncio.Queue.join" title="asyncio.Queue.join"><code class="xref py py-meth docutils literal notranslate"><span class="pre">join()</span></code></a> are unblocked regardless of the number
-of unfinished tasks.  Blocked callers of <a class="reference internal" href="#asyncio.Queue.get" title="asyncio.Queue.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>
+<p data-msgid="491a88a8b169a9ab97cfff59a4e1efdeac555d6c" data-score="0" data-since="260608">If <em>immediate</em> is true, the queue is terminated immediately.
+The queue is drained to be completely empty and the count
+of unfinished tasks is reduced by the number of tasks drained.
+If unfinished tasks is zero, callers of <a class="reference internal" href="#asyncio.Queue.join" title="asyncio.Queue.join"><code class="xref py py-meth docutils literal notranslate"><span class="pre">join()</span></code></a>
+are unblocked.  Also, blocked callers of <a class="reference internal" href="#asyncio.Queue.get" title="asyncio.Queue.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a>
 are unblocked and will raise <a class="reference internal" href="#asyncio.QueueShutDown" title="asyncio.QueueShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">QueueShutDown</span></code></a> because the
 queue is empty.</p>
 <p data-msgid="cb75837454df1d34431ffd6e09b6465169287aa5" data-score="0" data-since="260603">Use caution when using <a class="reference internal" href="#asyncio.Queue.join" title="asyncio.Queue.join"><code class="xref py py-meth docutils literal notranslate"><span class="pre">join()</span></code></a> with <em>immediate</em> set

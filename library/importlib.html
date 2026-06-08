@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>importlib — import의 구현 &#8212; Python 3.14.0 문서</title>
+    <title>importlib — import의 구현 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -74,9 +74,9 @@
 <li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code> — <code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code>의 구현</a><ul>
 <li><a class="reference internal" href="#introduction">소개</a></li>
 <li><a class="reference internal" href="#functions">함수</a></li>
-<li><a class="reference internal" href="#module-importlib.abc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.abc</span></code> – import와 관련된 추상 베이스 클래스</a></li>
-<li><a class="reference internal" href="#module-importlib.machinery"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.machinery</span></code> – 임포터와 경로 훅</a></li>
-<li><a class="reference internal" href="#module-importlib.util"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.util</span></code> – 임포터를 위한 유틸리티 코드</a></li>
+<li><a class="reference internal" href="#module-importlib.abc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.abc</span></code> – Abstract base classes related to import</a></li>
+<li><a class="reference internal" href="#module-importlib.machinery"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.machinery</span></code> – Importers and path hooks</a></li>
+<li><a class="reference internal" href="#module-importlib.util"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.util</span></code> – Utility code for importers</a></li>
 <li><a class="reference internal" href="#examples">예</a><ul>
 <li><a class="reference internal" href="#importing-programmatically">프로그래밍 방식으로 임포트 하기</a></li>
 <li><a class="reference internal" href="#checking-if-a-module-can-be-imported">모듈을 임포트 할 수 있는지 확인하기</a></li>
@@ -131,7 +131,7 @@
 <hr class="docutils" />
 <section id="introduction">
 <h2 data-msgid="2473e96bc614a911821242119918a241a41836d6" data-score="100" data-since="260603">소개<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
-<p data-msgid="e7a0a6cbe5b0f8c751f8c840824201521f938445" data-score="65" data-since="260603"><a class="reference internal" href="#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a> 패키지의 목적은 세 가지입니다.</p>
+<p data-msgid="1fc1325ff6e5a94f9e1f7a4eeac4ddcf2ad7901c" data-score="0" data-since="260608">The purpose of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code> package is three-fold.</p>
 <p data-msgid="69de34fe003adc2a1fbe0bb556f78765ee8f7466" data-score="86" data-since="260603">하나는 파이썬 소스 코드에서 <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a> 문(그리고, 확장하면 <a class="reference internal" href="functions.html#import__" title="__import__"><code class="xref py py-func docutils literal notranslate"><span class="pre">__import__()</span></code></a> 함수)의 구현을 제공하는 것입니다. 이것은 모든 파이썬 인터프리터에 이식할 수 있는 <code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code>의 구현을 제공합니다. 또한 파이썬 이외의 프로그래밍 언어로 구현된 것보다 이해하기 쉬운 구현을 제공합니다.</p>
 <p data-msgid="12b1ce22e8211c17c6b200286e43d38535d9fed9" data-score="81" data-since="260603">둘째, <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a>를 구현하는 구성 요소가 이 패키지에서 노출되어, 사용자가 임포트 프로세스에 참여하기 위해 자신의 사용자 지정 객체(일반적으로 <a class="reference internal" href="../glossary.html#term-importer"><span class="xref std std-term">임포터</span></a>라고 합니다)를 쉽게 만들 수 있도록 합니다.</p>
 <p data-msgid="dde737c566651a686fd72d930e2073a4d88854d4" data-score="0" data-since="260603">Three, the package contains modules exposing additional functionality for
@@ -198,6 +198,9 @@ distributions.</p></li>
 <dd><p data-msgid="064caf4603425383dfa330667d382e66c122d1ea" data-score="81" data-since="260603">모듈을 임포트 합니다. <em>name</em> 인자는 절대나 상대적인 항으로 임포트 할 모듈을 지정합니다 (예를 들어 <code class="docutils literal notranslate"><span class="pre">pkg.mod</span></code>나 <code class="docutils literal notranslate"><span class="pre">..mod</span></code>). 이름이 상대적인 항으로 지정되면, <em>package</em> 인자는 패키지 이름을 결정하기 위한 앵커 역할을 하는 패키지 이름으로 설정해야 합니다 (예를 들어 <code class="docutils literal notranslate"><span class="pre">import_module('..mod',</span> <span class="pre">'pkg.subpkg')</span></code>는 <code class="docutils literal notranslate"><span class="pre">pkg.mod</span></code>를 임포트 합니다).</p>
 <p data-msgid="17af1b4faa53c138d728e452dc22ee26e3f07eaf" data-score="87" data-since="260603"><a class="reference internal" href="#importlib.import_module" title="importlib.import_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_module()</span></code></a> 함수는 <a class="reference internal" href="#importlib.__import__" title="importlib.__import__"><code class="xref py py-func docutils literal notranslate"><span class="pre">importlib.__import__()</span></code></a> 주위를 감싸는 단순화 래퍼 역할을 합니다. 이는 함수의 모든 의미가 <a class="reference internal" href="#importlib.__import__" title="importlib.__import__"><code class="xref py py-func docutils literal notranslate"><span class="pre">importlib.__import__()</span></code></a>에서 파생됨을 뜻합니다. 이 두 함수의 가장 중요한 차이점은 <a class="reference internal" href="#importlib.import_module" title="importlib.import_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_module()</span></code></a>이 지정된 패키지나 모듈(예를 들어 <code class="docutils literal notranslate"><span class="pre">pkg.mod</span></code>)을 반환하는 반면, <a class="reference internal" href="functions.html#import__" title="__import__"><code class="xref py py-func docutils literal notranslate"><span class="pre">__import__()</span></code></a>는 최상위 패키지나 모듈(예를 들어 <code class="docutils literal notranslate"><span class="pre">pkg</span></code>)을 반환한다는 것입니다.</p>
 <p data-msgid="84dba44d174790332d2d4d0b17bf5050d89d8197" data-score="83" data-since="260603">인터프리터가 실행을 시작한 이후 만들어진 모듈(예를 들어, 파이썬 소스 파일을 만들면)을 동적으로 임포트 하는 경우, 임포트 시스템에서 새 모듈을 알 수 있도록 <a class="reference internal" href="#importlib.invalidate_caches" title="importlib.invalidate_caches"><code class="xref py py-func docutils literal notranslate"><span class="pre">invalidate_caches()</span></code></a>를 호출해야 할 수 있습니다.</p>
+<p data-msgid="b5d660391cce1fe1f7643b71ab516c025cc9db92" data-score="0" data-since="260608">If the module cannot be imported, <a class="reference internal" href="#importlib.import_module" title="importlib.import_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_module()</span></code></a> will raise
+<a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a> or an appropriate subclass like
+<a class="reference internal" href="exceptions.html#ModuleNotFoundError" title="ModuleNotFoundError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ModuleNotFoundError</span></code></a>.</p>
 <div class="versionchanged" data-msgid="9ad1989e0f93894a2d50cb6965adf11a309713f2" data-score="95" data-since="260603">
 <p><span class="versionmodified changed">버전 3.3에서 변경: </span>부모 패키지는 자동으로 임포트 됩니다.</p>
 </div>
@@ -254,10 +257,12 @@ or other synchronization primitives for thread-safe module reloading.</p>
 
 </section>
 <section id="module-importlib.abc">
-<span id="importlib-abc-abstract-base-classes-related-to-import"></span><h2 data-msgid="71615753171b5ebc68faa0fa053b756cc91aa138" data-score="100" data-since="260603"><a class="reference internal" href="#module-importlib.abc" title="importlib.abc: Abstract base classes related to import"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.abc</span></code></a> – import와 관련된 추상 베이스 클래스<a class="headerlink" href="#module-importlib.abc" title="Link to this heading">¶</a></h2>
+<span id="importlib-abc-abstract-base-classes-related-to-import"></span><h2 data-msgid="d3303cd551b1b207d4298703f3ac81922381ddc2" data-score="0" data-since="260608"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.abc</span></code> – Abstract base classes related to import<a class="headerlink" href="#module-importlib.abc" title="Link to this heading">¶</a></h2>
 <p data-msgid="dafc6ca7cd8efeab28a063ea4ecf22e6a417df42" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/importlib/abc.py`</span></a></p>
 <hr class="docutils" />
-<p data-msgid="0c40f6f555fbd2ae38cab0cdef57a81899aaa3b3" data-score="95" data-since="260603"><a class="reference internal" href="#module-importlib.abc" title="importlib.abc: Abstract base classes related to import"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.abc</span></code></a> 모듈에는 <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a>에서 사용하는 모든 핵심 추상 베이스 클래스가 포함되어 있습니다. 핵심 ABC 구현에 도움이 되도록 핵심 추상 베이스 클래스의 일부 서브 클래스도 제공됩니다.</p>
+<p data-msgid="e4c9f6e7d8fca4c98a76df1afa5da581320dc254" data-score="0" data-since="260608">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.abc</span></code> module contains all of the core abstract base classes
+used by <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a>. Some subclasses of the core abstract base classes
+are also provided to help in implementing the core ABCs.</p>
 <p data-msgid="f787bfffbaf257e19ef84edca250c59da0cb9f67" data-score="100" data-since="260603">ABC 계층:</p>
 <div class="highlight-python3 notranslate" data-msgid="ec58c72170bf2ca586c231343cb5142e4687ab22" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="nb">object</span>
  <span class="o">+--</span> <span class="n">MetaPathFinder</span>
@@ -298,6 +303,29 @@ or other synchronization primitives for thread-safe module reloading.</p>
 </div>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="importlib.abc.MetaPathFinder.discover">
+<span class="sig-name descname"><span class="pre">discover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.MetaPathFinder.discover" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="abb4625bc07cbb6f18d75f805b21616151d0e1a5" data-score="0" data-since="260608">An optional method which searches for possible specs with given <em>parent</em>
+module spec. If <em>parent</em> is <em>None</em>, <a class="reference internal" href="#importlib.abc.MetaPathFinder.discover" title="importlib.abc.MetaPathFinder.discover"><code class="xref py py-meth docutils literal notranslate"><span class="pre">MetaPathFinder.discover()</span></code></a> will
+search for top-level modules.</p>
+<p data-msgid="23369e26f351f48c3f5830a75411ce8a364da050" data-score="0" data-since="260608">Returns an iterable of possible specs.</p>
+<p data-msgid="b72828bb1e47c4a3951eed45f73739d2f0ce1cf1" data-score="0" data-since="260608">Raises <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> if <em>parent</em> is not a package module.</p>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<p data-msgid="451cf096271e953dfd30be7f44674765b1fa4701" data-score="0" data-since="260608">This method can potentially yield a very large number of objects, and
+it may carry out IO operations when computing these values.</p>
+<p data-msgid="7da767ef6948011911b1a19f7cb03207a6ddd337" data-score="0" data-since="260608">Because of this, it will generally be desirable to compute the result
+values on-the-fly, as they are needed. As such, the returned object is
+only guaranteed to be an <a class="reference internal" href="collections.abc.html#collections.abc.Iterable" title="collections.abc.Iterable"><code class="xref py py-class docutils literal notranslate"><span class="pre">iterable</span></code></a>,
+instead of a <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> or other
+<a class="reference internal" href="collections.abc.html#collections.abc.Collection" title="collections.abc.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">collection</span></code></a> type.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.15.</span></p>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -325,16 +353,43 @@ or other synchronization primitives for thread-safe module reloading.</p>
 <dd><p data-msgid="a8e57343605c0106d4e604f6b8a1ec8059a2c55a" data-score="87" data-since="260603">호출될 때, 파인더가 사용하는 내부 캐시를 무효로 해야 하는 선택적 메서드. 모든 캐시 된 파인더의 캐시를 무효화 할 때 <a class="reference internal" href="#importlib.machinery.PathFinder.invalidate_caches" title="importlib.machinery.PathFinder.invalidate_caches"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.machinery.PathFinder.invalidate_caches()</span></code></a>에서 사용합니다.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="importlib.abc.PathEntryFinder.discover">
+<span class="sig-name descname"><span class="pre">discover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.PathEntryFinder.discover" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="d2a2da7d6263d7844df2090598fd022e6f56efdc" data-score="0" data-since="260608">An optional method which searches for possible specs with given <em>parent</em>
+module spec. If <em>parent</em> is <em>None</em>, <a class="reference internal" href="#importlib.abc.PathEntryFinder.discover" title="importlib.abc.PathEntryFinder.discover"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PathEntryFinder.discover()</span></code></a> will
+search for top-level modules.</p>
+<p data-msgid="23369e26f351f48c3f5830a75411ce8a364da050" data-score="0" data-since="260608">Returns an iterable of possible specs.</p>
+<p data-msgid="b72828bb1e47c4a3951eed45f73739d2f0ce1cf1" data-score="0" data-since="260608">Raises <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> if <em>parent</em> is not a package module.</p>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<p data-msgid="451cf096271e953dfd30be7f44674765b1fa4701" data-score="0" data-since="260608">This method can potentially yield a very large number of objects, and
+it may carry out IO operations when computing these values.</p>
+<p data-msgid="7da767ef6948011911b1a19f7cb03207a6ddd337" data-score="0" data-since="260608">Because of this, it will generally be desirable to compute the result
+values on-the-fly, as they are needed. As such, the returned object is
+only guaranteed to be an <a class="reference internal" href="collections.abc.html#collections.abc.Iterable" title="collections.abc.Iterable"><code class="xref py py-class docutils literal notranslate"><span class="pre">iterable</span></code></a>,
+instead of a <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> or other
+<a class="reference internal" href="collections.abc.html#collections.abc.Collection" title="collections.abc.Collection"><code class="xref py py-class docutils literal notranslate"><span class="pre">collection</span></code></a> type.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.15.</span></p>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="importlib.abc.Loader">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">importlib.abc.</span></span><span class="sig-name descname"><span class="pre">Loader</span></span><a class="headerlink" href="#importlib.abc.Loader" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5af2063680befb07273e3e9e4af742a59b653b10" data-score="94" data-since="260603"><a class="reference internal" href="../glossary.html#term-loader"><span class="xref std std-term">로더</span></a>의 추상 베이스 클래스. 로더에 대한 정확한 정의는 <span class="target" id="index-39"></span><a class="pep reference external" href="https://peps.python.org/pep-0302/"><strong>PEP 302</strong></a>를 참조하십시오.</p>
+<dd><blockquote>
+<div><p data-msgid="5af2063680befb07273e3e9e4af742a59b653b10" data-score="94" data-since="260603"><a class="reference internal" href="../glossary.html#term-loader"><span class="xref std std-term">로더</span></a>의 추상 베이스 클래스. 로더에 대한 정확한 정의는 <span class="target" id="index-39"></span><a class="pep reference external" href="https://peps.python.org/pep-0302/"><strong>PEP 302</strong></a>를 참조하십시오.</p>
 <p data-msgid="46986788b31f778a353a275e4f703d32e5514570" data-score="93" data-since="260603">리소스 읽기를 지원하려는 로더는 <a class="reference internal" href="importlib.resources.abc.html#importlib.resources.abc.ResourceReader" title="importlib.resources.abc.ResourceReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.resources.abc.ResourceReader</span></code></a>에 지정된 대로 <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_resource_reader()</span></code> 메서드를 구현해야 합니다.</p>
 <div class="versionchanged" data-msgid="f93bb49353efa413fe9c96fd6e94d142713aec28" data-score="84" data-since="260603">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span>선택적 <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_resource_reader()</span></code> 메서드를 도입했습니다.</p>
 </div>
+</div></blockquote>
+<div class="versionchanged" data-msgid="5986dbe0c8a2f5d9277ac5792589f393ba304121" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Removed the <code class="docutils literal notranslate"><span class="pre">load_module()</span></code> method.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="importlib.abc.Loader.create_module">
 <span class="sig-name descname"><span class="pre">create_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Loader.create_module" title="Link to this definition">¶</a></dt>
@@ -359,26 +414,7 @@ or other synchronization primitives for thread-safe module reloading.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Loader.load_module">
-<span class="sig-name descname"><span class="pre">load_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Loader.load_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="88361404c5272127e08228168a77dd3ca1e63668" data-score="93" data-since="260603">모듈을 로드하는 레거시 메서드. 모듈을 로드할 수 없으면, <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>가 발생하고, 그렇지 않으면 로드된 모듈이 반환됩니다.</p>
-<p data-msgid="d8947e8afaad739ed95024cd880ec5db42743b91" data-score="91" data-since="260603">요청된 모듈이 <a class="reference internal" href="sys.html#sys.modules" title="sys.modules"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.modules</span></code></a>에 이미 존재하면, 해당 모듈이 사용되고 다시 로드되어야 합니다. 그렇지 않으면 로더는 임포트에서 재귀를 방지하기 위해 로드를 시작하기 전에 새 모듈을 만들어 <a class="reference internal" href="sys.html#sys.modules" title="sys.modules"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.modules</span></code></a>에 삽입해야 합니다. 로더가 모듈을 삽입했는데 로드에 실패하면, 로더가 <a class="reference internal" href="sys.html#sys.modules" title="sys.modules"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.modules</span></code></a>에서 모듈을 제거해야 합니다; 로더가 실행을 시작하기 전에 이미 <a class="reference internal" href="sys.html#sys.modules" title="sys.modules"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.modules</span></code></a>에 있었던 모듈은 그대로 두어야 합니다.</p>
-<p data-msgid="98a7687b4503e415b0313c5620baed1f181dc094" data-score="87" data-since="260603">로더는 모듈에서 여러 어트리뷰트를 설정해야 합니다 (이러한 어트리뷰트 중 일부는 모듈을 다시 로드할 때 변경될 수 있습니다):</p>
-<ul class="simple">
-<li><p data-msgid="d176f11894d400b6a26251c691b110f9e8c6a7c5" data-score="91" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#module.__name__" title="module.__name__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__name__</span></code></a></p></li>
-<li><p data-msgid="9f21bd3b8d1c1c24532c592b34e00188cf1afcf8" data-score="91" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#module.__file__" title="module.__file__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__file__</span></code></a></p></li>
-<li><p data-msgid="3597ca29a00531d14eb39b1f4f26fd484d71411e" data-score="94" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#module.__cached__" title="module.__cached__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__cached__</span></code></a> <em>(폐지됨)</em></p></li>
-<li><p data-msgid="0fe8a321240acd973e18702824724a871b859144" data-score="91" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#module.__path__" title="module.__path__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__path__</span></code></a></p></li>
-<li><p data-msgid="06be105b97167234f63242bef1f8252b844a1233" data-score="94" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#module.__package__" title="module.__package__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__package__</span></code></a> <em>(폐지됨)</em></p></li>
-<li><p data-msgid="121c6bb7248166a74f60509bd00ef8071fd2f711" data-score="94" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#module.__loader__" title="module.__loader__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__loader__</span></code></a> <em>(폐지됨)</em></p></li>
-</ul>
-<p data-msgid="5d8654cc7d80b2edfbba67e9976ab33e05ca4c75" data-score="91" data-since="260603"><a class="reference internal" href="#importlib.abc.Loader.exec_module" title="importlib.abc.Loader.exec_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">exec_module()</span></code></a>을 사용할 수 있으면 이전 버전과 호환되는 기능이 제공됩니다.</p>
-<div class="versionchanged" data-msgid="928067b36bbf35900f665751d3549b9d18e71773" data-score="88" data-since="260603">
-<p><span class="versionmodified changed">버전 3.4에서 변경: </span>호출될 때 <a class="reference internal" href="exceptions.html#NotImplementedError" title="NotImplementedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a> 대신 <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>를 발생시킵니다. <a class="reference internal" href="#importlib.abc.Loader.exec_module" title="importlib.abc.Loader.exec_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">exec_module()</span></code></a>을 사용할 수 있을 때 제공되는 기능.</p>
 </div>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -446,15 +482,21 @@ this module.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="importlib.abc.InspectLoader.source_to_code">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_to_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;string&gt;'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.InspectLoader.source_to_code" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_to_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;string&gt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.InspectLoader.source_to_code" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="9f84251b896e4099e85eabf977360100f7b05b57" data-score="86" data-since="260603">파이썬 소스에서 코드 객체를 만듭니다.</p>
 <p data-msgid="7a6aba6852d564d891c3616b2ee9fd27a0963ad7" data-score="63" data-since="260603"><em>data</em> 인자는 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수가 지원하는 것은 무엇이든 될 수 있습니다 (즉 문자열이나 바이트열). <em>path</em> 인자는 소스 코드가 온 곳의 “경로”여야 하며, 추상 개념(예를 들어 zip 파일에서의 위치)일 수 있습니다.</p>
 <p data-msgid="897ade8d94cd74f78edc605b7bcf7f22e2139173" data-score="91" data-since="260603">후속 코드 객체를 사용하면 <code class="docutils literal notranslate"><span class="pre">exec(code,</span> <span class="pre">module.__dict__)</span></code>를 실행하여 그 코드를 모듈에서 실행할 수 있습니다.</p>
+<p data-msgid="383f0fa598a1ded7be0ca17fa1b6a34b0b9932ee" data-score="0" data-since="260608">The optional argument <em>fullname</em> specifies the module name.
+It is needed to unambiguous <a class="reference internal" href="warnings.html#warning-filter"><span class="std std-ref">filter</span></a> syntax
+warnings by module name.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.4.</span></p>
 </div>
 <div class="versionchanged" data-msgid="1459e69a16cd90787d6f57f18ddeaae95af5edc1" data-score="100" data-since="260603">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span>메서드를 정적(static)으로 만들었습니다.</p>
+</div>
+<div class="versionadded" data-msgid="00beae3cc880c941e76dd97536e35cf3ef71aee5" data-score="0" data-since="260608">
+<p><span class="versionmodified added">Added in version 3.15: </span>Added the <em>fullname</em> parameter.</p>
 </div>
 </dd></dl>
 
@@ -465,12 +507,6 @@ this module.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.4.</span></p>
 </div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.InspectLoader.load_module">
-<span class="sig-name descname"><span class="pre">load_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.InspectLoader.load_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="482d595ef6b4a98bd74b43623b5a1295563e15ef" data-score="97" data-since="260603"><a class="reference internal" href="#importlib.abc.Loader.load_module" title="importlib.abc.Loader.load_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Loader.load_module()</span></code></a>의 구현.</p>
 </dd></dl>
 
 </dd></dl>
@@ -501,6 +537,9 @@ this module.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.3.</span></p>
 </div>
+<div class="versionchanged" data-msgid="5986dbe0c8a2f5d9277ac5792589f393ba304121" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Removed the <code class="docutils literal notranslate"><span class="pre">load_module()</span></code> method.</p>
+</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="importlib.abc.FileLoader.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#importlib.abc.FileLoader.name" title="Link to this definition">¶</a></dt>
@@ -511,12 +550,6 @@ this module.</p>
 <dt class="sig sig-object py" id="importlib.abc.FileLoader.path">
 <span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#importlib.abc.FileLoader.path" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="d24fcb72bd38ac60753fa7a12e92464c2f4e5e6d" data-score="100" data-since="260603">모듈 파일의 경로.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.FileLoader.load_module">
-<span class="sig-name descname"><span class="pre">load_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.FileLoader.load_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2874c51757f2df6b81c548b20656b216c1ea9538" data-score="97" data-since="260603">super의 <code class="docutils literal notranslate"><span class="pre">load_module()</span></code>을 호출합니다.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -546,6 +579,9 @@ this module.</p>
 </li>
 </ul>
 <p data-msgid="820b3f6142c58fe5ce5c1163838bd9df32ae5062" data-score="80" data-since="260603">이 클래스에 의해 정의된 추상 메서드는 선택적 바이트 코드 파일 지원을 추가하는 것입니다. 이러한 선택적 메서드를 구현하지 않으면 (또는 그들이 <a class="reference internal" href="exceptions.html#NotImplementedError" title="NotImplementedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a>를 발생시키도록 하면) 로더가 소스 코드에 대해서만 작동하도록 만듭니다. 메서드를 구현하면 로더가 소스*와* 바이트 코드 파일 모두에 대해 작동하게 할 수 있습니다; 바이트 코드만 제공되는 <em>소스 없는</em> 로드는 허용하지 않습니다. 바이트 코드 파일은 파이썬 컴파일러의 구문 분석 단계를 제거하여 로딩 속도를 높이기 위한 최적화라서, 바이트 코드 전용 API는 노출되지 않습니다.</p>
+<div class="versionchanged" data-msgid="5986dbe0c8a2f5d9277ac5792589f393ba304121" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Removed the <code class="docutils literal notranslate"><span class="pre">load_module()</span></code> method.</p>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="importlib.abc.SourceLoader.path_stats">
 <span class="sig-name descname"><span class="pre">path_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.SourceLoader.path_stats" title="Link to this definition">¶</a></dt>
@@ -601,12 +637,6 @@ this module.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.SourceLoader.load_module">
-<span class="sig-name descname"><span class="pre">load_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.SourceLoader.load_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="8c2f0fe7e56364b068baaa3a5e2b6f8aacb06a0f" data-score="97" data-since="260603"><a class="reference internal" href="#importlib.abc.Loader.load_module" title="importlib.abc.Loader.load_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Loader.load_module()</span></code></a>의 구상 구현.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="importlib.abc.SourceLoader.get_source">
 <span class="sig-name descname"><span class="pre">get_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.SourceLoader.get_source" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="7042f832e85d22e00001096b31f4e18f87e841ca" data-score="98" data-since="260603"><a class="reference internal" href="#importlib.abc.InspectLoader.get_source" title="importlib.abc.InspectLoader.get_source"><code class="xref py py-meth docutils literal notranslate"><span class="pre">InspectLoader.get_source()</span></code></a>의 구상 구현.</p>
@@ -620,144 +650,9 @@ this module.</p>
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="importlib.abc.ResourceReader">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">importlib.abc.</span></span><span class="sig-name descname"><span class="pre">ResourceReader</span></span><a class="headerlink" href="#importlib.abc.ResourceReader" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="186829b3bc6790c9855ac97b5dec80bc298e770c" data-score="97" data-since="260603"><em>TraversableResources 로 대체되었습니다</em></p>
-<p data-msgid="b6a058981c127ddf270c8bf55ea0bb0344d2e215" data-score="99" data-since="260603"><em>리소스(resources)</em>를 읽을 수 있는 기능을 제공하는 <a class="reference internal" href="../glossary.html#term-abstract-base-class"><span class="xref std std-term">추상 베이스 클래스</span></a>.</p>
-<p data-msgid="f8802c3c79630234ed20bc3332c40219949159a2" data-score="91" data-since="260603">이 ABC의 관점에서, <em>리소스(resource)</em>는 패키지 내에 제공되는 바이너리 아티팩트(artifact)입니다. 일반적으로 이것은 패키지의 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> 파일 옆에 있는 데이터 파일 같은 것입니다. 이 클래스의 목적은 이러한 데이터 파일에 대한 액세스를 추상화하여 패키지와 해당 데이터 파일이 예를 들어 zip 파일에 있는지 파일 시스템에 저장되어 있는지가 중요하지 않도록 만드는 것입니다.</p>
-<p data-msgid="25234b4279f9c9de194230eac449a8a18e420035" data-score="87" data-since="260603">이 클래스의 모든 메서드에서, <em>resource</em> 인자는 개념적으로 단지 파일 이름을 나타내는 <a class="reference internal" href="../glossary.html#term-path-like-object"><span class="xref std std-term">경로류 객체</span></a>가 될 것으로 기대됩니다. 이는 <em>resource</em> 인자에 서브 디렉터리 경로가 포함되지 않아야 함을 의미합니다. 판독기(reader)가 읽으려는 패키지의 위치가 “디렉터리”의 역할을 하기 때문입니다. 따라서 디렉터리와 파일 이름에 대한 은유는 각각 패키지와 리소스입니다. 이것은 또한 이 클래스의 인스턴스가 (잠재적으로 여러 패키지나 모듈을 나타내는 대신) 특정 패키지와 직접적으로 연관될 것으로 기대되는 이유입니다.</p>
-<p data-msgid="cb61d0dd6b54b5b28c6e9ff55d1e22da3b804ca9" data-score="95" data-since="260603">리소스 읽기를 지원하려는 로더는 이 ABC의 인터페이스를 구현하는 객체를 반환하는 <code class="docutils literal notranslate"><span class="pre">get_resource_reader(fullname)</span></code>이라는 메서드를 제공해야 합니다. fullname으로 지정된 모듈이 패키지가 아니면, 이 메서드는 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 반환해야 합니다. 이 ABC와 호환되는 객체는 지정된 모듈이 패키지일 때만 반환해야 합니다.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">Added in version 3.7.</span></p>
-</div>
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.ResourceReader.open_resource">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">open_resource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.ResourceReader.open_resource" title="Link to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p data-msgid="ac032c7db0d05e99ebea4a1d946d913e82cb9d83" data-score="100" data-since="260603"><em>resource</em>의 바이너리 읽기를 위해 열린 <a class="reference internal" href="../glossary.html#term-file-like-object"><span class="xref std std-term">파일류 객체</span></a>를 반환합니다.</p>
-<p data-msgid="62563742f8353dabcd09b60510587023dc4f6c24" data-score="96" data-since="260603">리소스를 찾을 수 없으면, <a class="reference internal" href="exceptions.html#FileNotFoundError" title="FileNotFoundError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">FileNotFoundError</span></code></a> 가 발생합니다.</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.ResourceReader.resource_path">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">resource_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.ResourceReader.resource_path" title="Link to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p data-msgid="56c3db0555e378b92bbcd11aaeba51ebfc4ca2b7" data-score="100" data-since="260603"><em>resource</em>에 대한 파일 시스템 경로를 반환합니다.</p>
-<p data-msgid="d37d8b4143842064a8cbf87d2f2e86c856b75ce4" data-score="97" data-since="260603">리소스가 파일 시스템에 구체적으로 존재하지 않으면, <a class="reference internal" href="exceptions.html#FileNotFoundError" title="FileNotFoundError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">FileNotFoundError</span></code></a> 가 발생합니다.</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.ResourceReader.is_resource">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_resource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.ResourceReader.is_resource" title="Link to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p data-msgid="e79c2880db856a3e80d5fcec824d87132cd91715" data-score="95" data-since="260603">명명된 <em>name</em>을 리소스로 간주하면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다. <em>name</em>이 없으면, <a class="reference internal" href="exceptions.html#FileNotFoundError" title="FileNotFoundError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">FileNotFoundError</span></code></a> 가 발생합니다.</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.ResourceReader.contents">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">contents</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.ResourceReader.contents" title="Link to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p data-msgid="c7d2aaf110a51b290352c8b48464d247bbe8e7fe" data-score="95" data-since="260603">패키지 내용에 대한 문자열의 <a class="reference internal" href="../glossary.html#term-iterable"><span class="xref std std-term">이터러블</span></a>을 반환합니다. 이터레이터가 반환한 모든 이름이 실제 리소스일 필요는 없음에 유의하십시오, 예를 들어 <a class="reference internal" href="#importlib.abc.ResourceReader.is_resource" title="importlib.abc.ResourceReader.is_resource"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_resource()</span></code></a>가 거짓인 이름을 반환하는 것이 허용됩니다.</p>
-<p data-msgid="1698c3d6368b675b56ce12b0b386c7be180d6706" data-score="87" data-since="260603">리소스가 아닌 이름이 반환되도록 하는 것은 패키지와 그것의 리소스가 저장되는 방법이 사전에 알려졌고 리소스가 아닌 이름이 유용한 상황을 허용하기 위함입니다. 예를 들어, 패키지와 리소스가 파일 시스템에 저장되어있는 것으로 알려졌을 때 해당 서브 디렉터리 이름을 직접 사용할 수 있도록 서브 디렉터리 이름 반환이 허용됩니다.</p>
-<p data-msgid="22685ed5927596fd28d7ba1c6153d574f910d052" data-score="100" data-since="260603">추상 메서드는 항목이 없는 이터러블을 반환합니다.</p>
-</div></blockquote>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="importlib.abc.Traversable">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">importlib.abc.</span></span><span class="sig-name descname"><span class="pre">Traversable</span></span><a class="headerlink" href="#importlib.abc.Traversable" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="93557685b425f8ccff8ef6258438a2e6959405e3" data-score="100" data-since="260603">디렉터리를 탐색하고 파일을 여는 데 적합한 <a class="reference internal" href="pathlib.html#pathlib.Path" title="pathlib.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a> 메서드의 부분집합이 있는 객체.</p>
-<p data-msgid="ed6a4369ec1780ebf572a55be20b0d1445a8804b" data-score="0" data-since="260603">For a representation of the object on the file-system, use
-<a class="reference internal" href="importlib.resources.html#importlib.resources.as_file" title="importlib.resources.as_file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.resources.as_file()</span></code></a>.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">Added in version 3.9.</span></p>
-</div>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#importlib.abc.Traversable.name" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d4b204d14d86672a3070176a96ebdb11fbda2958" data-score="0" data-since="260603">Abstract. The base name of this object without any parent references.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.iterdir">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iterdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.iterdir" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c9c033ea26f9b8d31149a9ea77912232a6f61a25" data-score="0" data-since="260603">Yield <code class="docutils literal notranslate"><span class="pre">Traversable</span></code> objects in <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.is_dir">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.is_dir" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9bb1cc59483fe8ed2f019474cf3c4f22c3ebd154" data-score="0" data-since="260603">Return <code class="docutils literal notranslate"><span class="pre">True</span></code> if <code class="docutils literal notranslate"><span class="pre">self</span></code> is a directory.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.is_file">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.is_file" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1deb1ea9d25c45f7c5c0eaf7b5e820cb5821b2e7" data-score="0" data-since="260603">Return <code class="docutils literal notranslate"><span class="pre">True</span></code> if <code class="docutils literal notranslate"><span class="pre">self</span></code> is a file.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.joinpath">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">joinpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.joinpath" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="f52629bd8cf94d46f4fc3c1f1e04b0eb492e628b" data-score="0" data-since="260603">Return Traversable child in <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.__truediv__">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.__truediv__" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="46a09b2d2de8d5bfb0f6fce557cffde9c2496f2a" data-score="0" data-since="260603">Return <code class="docutils literal notranslate"><span class="pre">Traversable</span></code> child in <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.open">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.open" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="471ed72d7dd980d9c6a6e2d592e4bf15fed7c56e" data-score="0" data-since="260603"><em>mode</em> may be ‘r’ or ‘rb’ to open as text or binary. Return a handle
-suitable for reading (same as <a class="reference internal" href="pathlib.html#pathlib.Path.open" title="pathlib.Path.open"><code class="xref py py-attr docutils literal notranslate"><span class="pre">pathlib.Path.open</span></code></a>).</p>
-<p data-msgid="dc3f4a3e67fb8b0985ac8d5fc23462d74a11b213" data-score="0" data-since="260603">When opening as text, accepts encoding parameters such as those
-accepted by <a class="reference internal" href="io.html#io.TextIOWrapper" title="io.TextIOWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">io.TextIOWrapper</span></code></a>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.read_bytes">
-<span class="sig-name descname"><span class="pre">read_bytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.read_bytes" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="30a876e869886b5f43ca19bcc2a80bfb2801c475" data-score="0" data-since="260603">Read contents of <code class="docutils literal notranslate"><span class="pre">self</span></code> as bytes.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.Traversable.read_text">
-<span class="sig-name descname"><span class="pre">read_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.Traversable.read_text" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="7497554678d9cd09c3b4e5e942f289b3d061a868" data-score="0" data-since="260603">Read contents of <code class="docutils literal notranslate"><span class="pre">self</span></code> as text.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="importlib.abc.TraversableResources">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">importlib.abc.</span></span><span class="sig-name descname"><span class="pre">TraversableResources</span></span><a class="headerlink" href="#importlib.abc.TraversableResources" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6ef6896b672a30bee9cdf1cbe845e5a1b2d76ee1" data-score="75" data-since="260603"><a class="reference internal" href="importlib.resources.html#importlib.resources.files" title="importlib.resources.files"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.resources.files()</span></code></a> 인터페이스를 제공할 수 있는 리소스 리더를 위한 추상 베이스 클래스. <a class="reference internal" href="importlib.resources.abc.html#importlib.resources.abc.ResourceReader" title="importlib.resources.abc.ResourceReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.resources.abc.ResourceReader</span></code></a>를 서브 클래싱하고 <a class="reference internal" href="importlib.resources.abc.html#importlib.resources.abc.ResourceReader" title="importlib.resources.abc.ResourceReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.resources.abc.ResourceReader</span></code></a>의 추상 메서드의 구상 구현을 제공합니다. 따라서, <a class="reference internal" href="#importlib.abc.TraversableResources" title="importlib.abc.TraversableResources"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.abc.TraversableResources</span></code></a>를 제공하는 모든 로더는 ResourceReader도 제공합니다.</p>
-<p data-msgid="70b4907226004400a0600653508c2aab372262a2" data-score="0" data-since="260603">Loaders that wish to support resource reading are expected to
-implement this interface.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">Added in version 3.9.</span></p>
-</div>
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.abc.TraversableResources.files">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#importlib.abc.TraversableResources.files" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1ca12ff8d862ee1efec3f52da7360866ecc891d3" data-score="0" data-since="260603">Returns a <a class="reference internal" href="importlib.resources.abc.html#importlib.resources.abc.Traversable" title="importlib.resources.abc.Traversable"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.resources.abc.Traversable</span></code></a> object for the loaded
-package.</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="module-importlib.machinery">
-<span id="importlib-machinery-importers-and-path-hooks"></span><h2 data-msgid="1ed6b73a5190bd1259bb46254ebe69a83772ddae" data-score="100" data-since="260603"><a class="reference internal" href="#module-importlib.machinery" title="importlib.machinery: Importers and path hooks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.machinery</span></code></a> – 임포터와 경로 훅<a class="headerlink" href="#module-importlib.machinery" title="Link to this heading">¶</a></h2>
+<span id="importlib-machinery-importers-and-path-hooks"></span><h2 data-msgid="0082cd067bf387df659beffaae92cb35c62783c7" data-score="0" data-since="260608"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.machinery</span></code> – Importers and path hooks<a class="headerlink" href="#module-importlib.machinery" title="Link to this heading">¶</a></h2>
 <p data-msgid="ff974c425fb48c4c9f8016136ec6ead5beb81ca2" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/importlib/machinery.py`</span></a></p>
 <hr class="docutils" />
 <p data-msgid="11b3b4d3af8337f910d2f4fc573ec805f45aef0c" data-score="94" data-since="260603">이 모듈에는 <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a>가 모듈을 찾고 로드하는 데 도움이 되는 다양한 객체가 포함되어 있습니다.</p>
@@ -929,11 +824,39 @@ package.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="importlib.machinery.NamespacePath">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">importlib.machinery.</span></span><span class="sig-name descname"><span class="pre">NamespacePath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_finder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.machinery.NamespacePath" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="143235a28f596443e86214f46a1c30967cf4de33" data-score="0" data-since="260608">Represents a <a class="reference internal" href="../glossary.html#term-namespace-package"><span class="xref std std-term">namespace package</span></a>’s path (<a class="reference internal" href="../reference/datamodel.html#module.__path__" title="module.__path__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__path__</span></code></a>).</p>
+<p data-msgid="a91a37d5e9c5e10e90fcb7052b1b6046457b30fd" data-score="0" data-since="260608">When its <code class="docutils literal notranslate"><span class="pre">__path__</span></code> value is accessed it will be recomputed if necessary.
+This keeps it in-sync with the global state (<a class="reference internal" href="sys.html#sys.modules" title="sys.modules"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sys.modules</span></code></a>).</p>
+<p data-msgid="f665fed3985a1bd193233ae4e5e6b311abe62410" data-score="0" data-since="260608">The <em>name</em> argument is the name of the namespace module.</p>
+<p data-msgid="ca4be27eed789fd9e6762d7d3f1630b5b13612c7" data-score="0" data-since="260608">The <em>path</em> argument is the initial path value.</p>
+<p data-msgid="6cfe698a370e3364d5a0773e66f8f08346513418" data-score="0" data-since="260608">The <em>path_finder</em> argument is the callable used to recompute the path value.
+The callable has the same signature as <a class="reference internal" href="#importlib.abc.MetaPathFinder.find_spec" title="importlib.abc.MetaPathFinder.find_spec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.MetaPathFinder.find_spec()</span></code></a>.</p>
+<p data-msgid="a0e4b5e45d5636f2861ea53856d958469b661029" data-score="0" data-since="260608">When the parent’s <a class="reference internal" href="../reference/datamodel.html#module.__path__" title="module.__path__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__path__</span></code></a> attribute is updated, the path
+value is recomputed.</p>
+<p data-msgid="e9e747a1252ed3fe9d4d305fedbd4f6ab4534621" data-score="0" data-since="260608">If the parent module is missing from <a class="reference internal" href="sys.html#sys.modules" title="sys.modules"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.modules</span></code></a>, then
+<a class="reference internal" href="exceptions.html#ModuleNotFoundError" title="ModuleNotFoundError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ModuleNotFoundError</span></code></a> will be raised.</p>
+<p data-msgid="d49547b3cb38f3597611339589c2a163a3c7a0a3" data-score="0" data-since="260608">For top-level modules, the parent module’s path is <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="d8582197e660cca12cbf649a4d98ade93f1d2b95" data-score="0" data-since="260608"><a class="reference internal" href="#importlib.machinery.PathFinder.invalidate_caches" title="importlib.machinery.PathFinder.invalidate_caches"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PathFinder.invalidate_caches()</span></code></a> invalidates <a class="reference internal" href="#importlib.machinery.NamespacePath" title="importlib.machinery.NamespacePath"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespacePath</span></code></a>,
+forcing the path value to be recomputed next time it is accessed.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.15.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="importlib.machinery.SourceFileLoader">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">importlib.machinery.</span></span><span class="sig-name descname"><span class="pre">SourceFileLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.machinery.SourceFileLoader" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="07963bf6d298908cd00a8256bd15828cfa457e95" data-score="84" data-since="260603"><a class="reference internal" href="#importlib.abc.FileLoader" title="importlib.abc.FileLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.abc.FileLoader</span></code></a>를 서브 클래싱하고 다른 메서드의 구상 구현을 제공하는 <a class="reference internal" href="#importlib.abc.SourceLoader" title="importlib.abc.SourceLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.abc.SourceLoader</span></code></a>의 구상 구현.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.3.</span></p>
+</div>
+<div class="versionchanged" data-msgid="5986dbe0c8a2f5d9277ac5792589f393ba304121" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Removed the <code class="docutils literal notranslate"><span class="pre">load_module()</span></code> method.</p>
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="importlib.machinery.SourceFileLoader.name">
@@ -965,12 +888,6 @@ package.</p>
 <dd><p data-msgid="57a49522063e16013d907a8658615a1cb01dc570" data-score="92" data-since="260603"><a class="reference internal" href="#importlib.abc.SourceLoader.set_data" title="importlib.abc.SourceLoader.set_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.SourceLoader.set_data()</span></code></a>의 구상 구현.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.machinery.SourceFileLoader.load_module">
-<span class="sig-name descname"><span class="pre">load_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.machinery.SourceFileLoader.load_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c0819418e0ed11af829ce7609ac6c7597908b81e" data-score="90" data-since="260603">로드할 모듈 이름을 지정하는 것이 선택적인 <a class="reference internal" href="#importlib.abc.Loader.load_module" title="importlib.abc.Loader.load_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.Loader.load_module()</span></code></a>의 구상 구현.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -980,6 +897,9 @@ package.</p>
 <p data-msgid="86e0817628ee18c1a8ed5a0fc40828bffeaed3c5" data-score="81" data-since="260603">바이트 코드 파일(그래서 소스 코드 파일이 아닌)을 직접 사용하면 모든 파이썬 구현이나 바이트 코드 형식을 변경하는 새 버전의 파이썬에서 모듈을 사용할 수 없게 됨에 유의하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.3.</span></p>
+</div>
+<div class="versionchanged" data-msgid="5986dbe0c8a2f5d9277ac5792589f393ba304121" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Removed the <code class="docutils literal notranslate"><span class="pre">load_module()</span></code> method.</p>
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="importlib.machinery.SourcelessFileLoader.name">
@@ -1011,12 +931,6 @@ package.</p>
 <dd><p data-msgid="dc87e140210dcadf7768b04e39cb0774532a2a7a" data-score="96" data-since="260603">이 로더가 사용될 때는 바이트 코드 파일에 소스가 없어서 <code class="docutils literal notranslate"><span class="pre">None</span></code>을 반환합니다.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="importlib.machinery.SourcelessFileLoader.load_module">
-<span class="sig-name descname"><span class="pre">load_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.machinery.SourcelessFileLoader.load_module" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p data-msgid="c0819418e0ed11af829ce7609ac6c7597908b81e" data-score="90" data-since="260603">로드할 모듈 이름을 지정하는 것이 선택적인 <a class="reference internal" href="#importlib.abc.Loader.load_module" title="importlib.abc.Loader.load_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.Loader.load_module()</span></code></a>의 구상 구현.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1169,8 +1083,7 @@ set to <code class="docutils literal notranslate"><span class="pre">None</span><
 <dl class="py attribute">
 <dt class="sig sig-object py" id="importlib.machinery.ModuleSpec.cached">
 <span class="sig-name descname"><span class="pre">cached</span></span><a class="headerlink" href="#importlib.machinery.ModuleSpec.cached" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="84b64e1177da2941201b9ce259913ca9b20f3302" data-score="0" data-since="260603">The filename of a compiled version of the module’s code
-(see <a class="reference internal" href="../reference/datamodel.html#module.__cached__" title="module.__cached__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">module.__cached__</span></code></a>).
+<dd><p data-msgid="447e58df282e1d904cd14adb15cb9a056748fadf" data-score="0" data-since="260608">The filename of a compiled version of the module’s code.
 The <a class="reference internal" href="../glossary.html#term-finder"><span class="xref std std-term">finder</span></a> should always set this attribute but it may be <code class="docutils literal notranslate"><span class="pre">None</span></code>
 for modules that do not need compiled code stored.</p>
 </dd></dl>
@@ -1200,10 +1113,10 @@ must be dynamic libraries, contained in a framework with appropriate
 metadata, stored in the <code class="docutils literal notranslate"><span class="pre">Frameworks</span></code> folder of the packaged app. There can
 be only a single binary per framework, and there can be no executable binary
 material outside the Frameworks folder.</p>
-<p data-msgid="38f04af7ec394803e7d5d68365e584fe71ec4c33" data-score="0" data-since="260603">To accommodate this requirement, when running on iOS, extension module
+<p data-msgid="8bccd79269df6c9e8e88c9dd81a51e565777652d" data-score="0" data-since="260608">To accommodate this requirement, when running on iOS, extension module
 binaries are <em>not</em> packaged as <code class="docutils literal notranslate"><span class="pre">.so</span></code> files on <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>, but as
 individual standalone frameworks. To discover those frameworks, this loader
-is be registered against the <code class="docutils literal notranslate"><span class="pre">.fwork</span></code> file extension, with a <code class="docutils literal notranslate"><span class="pre">.fwork</span></code>
+is registered against the <code class="docutils literal notranslate"><span class="pre">.fwork</span></code> file extension, with a <code class="docutils literal notranslate"><span class="pre">.fwork</span></code>
 file acting as a placeholder in the original location of the binary on
 <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>. The <code class="docutils literal notranslate"><span class="pre">.fwork</span></code> file contains the path of the actual binary in
 the <code class="docutils literal notranslate"><span class="pre">Frameworks</span></code> folder, relative to the app bundle. To allow for
@@ -1254,7 +1167,7 @@ details on how to construct this build step.</p>
 
 </section>
 <section id="module-importlib.util">
-<span id="importlib-util-utility-code-for-importers"></span><h2 data-msgid="06c5082122486a2e3b6c755db5afd8bd4a692c2a" data-score="78" data-since="260603"><a class="reference internal" href="#module-importlib.util" title="importlib.util: Utility code for importers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.util</span></code></a> – 임포터를 위한 유틸리티 코드<a class="headerlink" href="#module-importlib.util" title="Link to this heading">¶</a></h2>
+<span id="importlib-util-utility-code-for-importers"></span><h2 data-msgid="7395f716dc21c9e780cb08dd3b3323b1e3a9dac7" data-score="0" data-since="260608"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib.util</span></code> – Utility code for importers<a class="headerlink" href="#module-importlib.util" title="Link to this heading">¶</a></h2>
 <p data-msgid="f44110eae2e7bc92c2d24118f6c47a45ec11d496" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/importlib/util.py`</span></a></p>
 <hr class="docutils" />
 <p data-msgid="7b2f343994191431fca625ddff040f6f1ae10701" data-score="81" data-since="260603">이 모듈에는 <a class="reference internal" href="../glossary.html#term-importer"><span class="xref std std-term">임포터</span></a> 구성에 도움이 되는 다양한 객체가 포함되어 있습니다.</p>
@@ -1269,10 +1182,9 @@ details on how to construct this build step.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="importlib.util.cache_from_source">
-<span class="sig-prename descclassname"><span class="pre">importlib.util.</span></span><span class="sig-name descname"><span class="pre">cache_from_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.util.cache_from_source" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">importlib.util.</span></span><span class="sig-name descname"><span class="pre">cache_from_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#importlib.util.cache_from_source" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="075fcd49fb2f1851945941f52d94a57a0c907f04" data-score="94" data-since="260603">소스 <em>path</em>와 연관된 바이트 컴파일된 파일의 <span class="target" id="index-46"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a>/<span class="target" id="index-47"></span><a class="pep reference external" href="https://peps.python.org/pep-0488/"><strong>PEP 488</strong></a> 경로를 반환합니다. 예를 들어, <em>path</em>가 <code class="docutils literal notranslate"><span class="pre">/foo/bar/baz.py</span></code>이면 반환값은 파이썬 3.2의 경우 <code class="docutils literal notranslate"><span class="pre">/foo/bar/__pycache__/baz.cpython-32.pyc</span></code>입니다. <code class="docutils literal notranslate"><span class="pre">cpython-32</span></code> 문자열은 현재 매직 태그에서 온 것입니다 (<code class="xref py py-func docutils literal notranslate"><span class="pre">get_tag()</span></code>를 참조하십시오; <code class="xref py py-attr docutils literal notranslate"><span class="pre">sys.implementation.cache_tag</span></code>가 정의되지 않으면 <a class="reference internal" href="exceptions.html#NotImplementedError" title="NotImplementedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a> 가 발생합니다).</p>
 <p data-msgid="3546c27c56a23c9964f065eba6a88d558f959ae4" data-score="91" data-since="260603"><em>optimization</em> 매개 변수는 바이트 코드 파일의 최적화 수준을 지정하는 데 사용됩니다. 빈 문자열은 최적화하지 않음을 나타내므로, <em>optimization</em>이 <code class="docutils literal notranslate"><span class="pre">''</span></code> 인 <code class="docutils literal notranslate"><span class="pre">/foo/bar/baz.py</span></code>는 바이트 코드 경로가 <code class="docutils literal notranslate"><span class="pre">/foo/bar/__pycache__/baz.cpython-32.pyc</span></code>가 됩니다. <code class="docutils literal notranslate"><span class="pre">None</span></code>은 인터프리터의 최적화 수준이 사용되도록 합니다. 다른 값의 문자열 표현은 사용되므로, <em>optimization</em>이 <code class="docutils literal notranslate"><span class="pre">2</span></code>인 <code class="docutils literal notranslate"><span class="pre">/foo/bar/baz.py</span></code>는 바이트 코드 경로가 <code class="docutils literal notranslate"><span class="pre">/foo/bar/__pycache__/baz.cpython-32.opt-2.pyc</span></code>가 됩니다. <em>optimization</em>의 문자열 표현은 영숫자만 가능하며, 그렇지 않으면 <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다.</p>
-<p data-msgid="c5772033dac0733245abfb4a714089b85077e8dc" data-score="92" data-since="260603"><em>debug_override</em> 매개 변수는 폐지되었고 <code class="docutils literal notranslate"><span class="pre">__debug__</span></code>의 시스템값을 대체하는 데 사용할 수 있습니다. <code class="docutils literal notranslate"><span class="pre">True</span></code> 값은 <em>optimization</em>을 빈 문자열로 설정하는 것과 등등합니다. <code class="docutils literal notranslate"><span class="pre">False</span></code> 값은 <em>optimization</em>을 <code class="docutils literal notranslate"><span class="pre">1</span></code>로 설정하는 것과 같습니다. <em>debug_override</em>와 <em>optimization</em>이 모두 <code class="docutils literal notranslate"><span class="pre">None</span></code>이 아니면 <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>가 발생합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.4.</span></p>
 </div>
@@ -1281,6 +1193,9 @@ details on how to construct this build step.</p>
 </div>
 <div class="versionchanged" data-msgid="268115c3e7485965296942a3b20798e109976395" data-score="84" data-since="260603">
 <p><span class="versionmodified changed">버전 3.6에서 변경: </span><a class="reference internal" href="../glossary.html#term-path-like-object"><span class="xref std std-term">경로류 객체</span></a>를 받아들입니다.</p>
+</div>
+<div class="versionchanged" data-msgid="47e91364561baa2b03761234b1131b31f41edd70" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>The <em>debug_override</em> parameter was removed.</p>
 </div>
 </dd></dl>
 
@@ -1584,14 +1499,7 @@ file is appropriate.</p>
     <div class="lost-and-found-items">
         <span data-msgid="03589244a975b05bbff289c33bbd891335d54241" data-score="78" data-since="260603" class="lost-and-found-item"></span>
         <span data-msgid="19cb858f5f3b9d37cbf1098511fa2c9757e750a3" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="46f879ed57378fccba097d4ce1b29d13ace73273" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="533c16b9a4f3a732a12d55df84e2465d0354fd87" data-score="100" data-since="260603" class="lost-and-found-item"></span>
         <span data-msgid="681b5b5ae10b994e61d9fc53cf8a95498ff0df39" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="a0f2c77b90fa653bd7ae751939ab9bed154df367" data-score="97" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="b68ce951d4f23066905ac4b2b96d4ba39aa39664" data-score="90" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="ee837e684fd82d401f0c4edbccdddc9025faf5b9" data-score="97" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="ef0ea5e3ed7a0cf2e1f067cc1308313819b02b85" data-score="98" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="f20b289182da0a0bc779fa4b2ecdbb9342d8918d" data-score="97" data-since="260603" class="lost-and-found-item"></span>
     </div>
 </div>
 

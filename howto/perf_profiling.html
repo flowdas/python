@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Python support for the Linux perf profiler &#8212; Python 3.14.0 문서</title>
+    <title>Python support for the perf map compatible profilers &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -71,7 +71,8 @@
             </div>
             <nav class="toc">
                 <ul>
-<li><a class="reference internal" href="#">Python support for the Linux <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler</a><ul>
+<li><a class="reference internal" href="#">Python support for the <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">map</span></code> compatible profilers</a><ul>
+<li><a class="reference internal" href="#using-the-samply-profiler">Using the samply profiler</a></li>
 <li><a class="reference internal" href="#how-to-enable-perf-profiling-support">How to enable <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support</a></li>
 <li><a class="reference internal" href="#how-to-obtain-the-best-results">How to obtain the best results</a></li>
 <li><a class="reference internal" href="#how-to-work-without-frame-pointers">How to work without frame pointers</a></li>
@@ -103,38 +104,39 @@
                     
                         <li><a href="index.html">파이썬 HOWTO</a></li>
                     
-                    <li class="current">Python support for the Linux <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler</li>
+                    <li class="current">Python support for the <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">map</span></code> compatible profilers</li>
                 </ol>
             </nav>
 
             <article class="document">
                 
-  <section id="python-support-for-the-linux-perf-profiler">
-<span id="perf-profiling"></span><h1 data-msgid="e9c4f84ddbbacc01c4e7120261e754352a49881b" data-score="0" data-since="260603">Python support for the Linux <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler<a class="headerlink" href="#python-support-for-the-linux-perf-profiler" title="Link to this heading">¶</a></h1>
+  <section id="python-support-for-the-perf-map-compatible-profilers">
+<span id="perf-profiling"></span><h1 data-msgid="99e5c8c2866509e9e7bce5e693386610eeeff5af" data-score="0" data-since="260608">Python support for the <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">map</span></code> compatible profilers<a class="headerlink" href="#python-support-for-the-perf-map-compatible-profilers" title="Link to this heading">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">author<span class="colon">:</span></dt>
 <dd class="field-odd"><p data-msgid="20f67598eafcd18d9465455034f99306585c07c8" data-score="0" data-since="260603">Pablo Galindo</p>
 </dd>
 </dl>
-<p data-msgid="4250cb6f7d25c6339efd2a4f1e1635d6de2e7eb3" data-score="0" data-since="260603"><a class="reference external" href="https://perf.wiki.kernel.org">The Linux perf profiler</a>
-is a very powerful tool that allows you to profile and obtain
-information about the performance of your application.
-<code class="docutils literal notranslate"><span class="pre">perf</span></code> also has a very vibrant ecosystem of tools
-that aid with the analysis of the data that it produces.</p>
-<p data-msgid="0fda51adabb7a2c939b8625c07f91b0783237323" data-score="0" data-since="260603">The main problem with using the <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler with Python applications is that
-<code class="docutils literal notranslate"><span class="pre">perf</span></code> only gets information about native symbols, that is, the names of
+<p data-msgid="579b9e85c01b3b08633c8e30773d90b5b55c95ec" data-score="0" data-since="260608"><a class="reference external" href="https://perf.wiki.kernel.org">The Linux perf profiler</a> and
+<a class="reference external" href="https://github.com/mstange/samply">samply</a> are powerful tools that allow you to
+profile and obtain information about the performance of your application.
+Both tools have vibrant ecosystems that aid with the analysis of the data they produce.</p>
+<p data-msgid="eaab3fea638d231a78c0c788255f8ba72cb72365" data-score="0" data-since="260608">The main problem with using these profilers with Python applications is that
+they only get information about native symbols, that is, the names of
 functions and procedures written in C. This means that the names and file names
-of Python functions in your code will not appear in the output of <code class="docutils literal notranslate"><span class="pre">perf</span></code>.</p>
-<p data-msgid="7f475d5a399c8b6b93ff3ae4276681a95e2f2672" data-score="0" data-since="260603">Since Python 3.12, the interpreter can run in a special mode that allows Python
-functions to appear in the output of the <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler. When this mode is
+of Python functions in your code will not appear in the profiler output.</p>
+<p data-msgid="c32de506a804b332d78c375b3d075d7976921ba2" data-score="0" data-since="260608">Since Python 3.12, the interpreter can run in a special mode that allows Python
+functions to appear in the output of compatible profilers. When this mode is
 enabled, the interpreter will interpose a small piece of code compiled on the
-fly before the execution of every Python function and it will teach <code class="docutils literal notranslate"><span class="pre">perf</span></code> the
+fly before the execution of every Python function and it will teach the profiler the
 relationship between this piece of code and the associated Python function using
 <a class="reference internal" href="../c-api/perfmaps.html"><span class="doc">perf map files</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="4ac58b332b3e544a1b0cc060af8a5f911f8bd220" data-score="0" data-since="260603">Support for the <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler is currently only available for Linux on
-select architectures. Check the output of the <code class="docutils literal notranslate"><span class="pre">configure</span></code> build step or
+<p data-msgid="0369dc8059e00bac07b06b78ce349d8fac431384" data-score="0" data-since="260608">Support for profiling is available on Linux and macOS on select architectures.
+Perf is available on Linux, while samply can be used on both Linux and macOS.
+samply support on macOS is available starting from Python 3.15.
+Check the output of the <code class="docutils literal notranslate"><span class="pre">configure</span></code> build step or
 check the output of <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">sysconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">HAVE_PERF_TRAMPOLINE</span></code>
 to see if your system is supported.</p>
 </div>
@@ -160,7 +162,7 @@ to see if your system is supported.</p>
 </pre></div>
 </div>
 <p data-msgid="72cdfe9f8daf0c6b1a5eb3ca634b5e43c98374fb" data-score="0" data-since="260603">Then we can use <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">report</span></code> to analyze the data:</p>
-<div class="highlight-shell-session notranslate" data-msgid="8b02a36f019fd32a973c4bbbf668ddce9b6ec697" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
+<div class="highlight-shell-session notranslate" data-msgid="7d2e06e95a6b1e45a1498a0d46517f8ded1cbd6e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
 
 <span class="gp"># </span>Children<span class="w">      </span>Self<span class="w">       </span>Samples<span class="w">  </span>Command<span class="w">     </span>Shared<span class="w"> </span>Object<span class="w">       </span>Symbol
 <span class="gp"># </span>........<span class="w">  </span>........<span class="w">  </span>............<span class="w">  </span>..........<span class="w">  </span>..................<span class="w">  </span>..........................................
@@ -192,7 +194,7 @@ to see if your system is supported.</p>
 <span class="go">                        |          |          |                     |</span>
 <span class="go">                        |          |          |                     |--51.67%--_PyEval_EvalFrameDefault</span>
 <span class="go">                        |          |          |                     |          |</span>
-<span class="go">                        |          |          |                     |          |--11.52%--_PyLong_Add</span>
+<span class="go">                        |          |          |                     |          |--11.52%--_PyCompactLong_Add</span>
 <span class="go">                        |          |          |                     |          |          |</span>
 <span class="go">                        |          |          |                     |          |          |--2.97%--_PyObject_Malloc</span>
 <span class="go">...</span>
@@ -203,7 +205,7 @@ to see if your system is supported.</p>
 functions use the same C function to evaluate bytecode so we cannot know which Python function corresponds to which
 bytecode-evaluating function.</p>
 <p data-msgid="7b0891d6919a36a3858a34900bc50fb0727df8bc" data-score="0" data-since="260603">Instead, if we run the same experiment with <code class="docutils literal notranslate"><span class="pre">perf</span></code> support enabled we get:</p>
-<div class="highlight-shell-session notranslate" data-msgid="6027df6e8bd3280e40baa3a0c89be61d2f685ea8" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
+<div class="highlight-shell-session notranslate" data-msgid="18a0767f0edc592c575140bc7901967e2a80bfaa" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
 
 <span class="gp"># </span>Children<span class="w">      </span>Self<span class="w">       </span>Samples<span class="w">  </span>Command<span class="w">     </span>Shared<span class="w"> </span>Object<span class="w">       </span>Symbol
 <span class="gp"># </span>........<span class="w">  </span>........<span class="w">  </span>............<span class="w">  </span>..........<span class="w">  </span>..................<span class="w">  </span>.....................................................................
@@ -239,11 +241,33 @@ bytecode-evaluating function.</p>
 <span class="go">                        |          |          |                     |</span>
 <span class="go">                        |          |          |                     |--51.81%--_PyEval_EvalFrameDefault</span>
 <span class="go">                        |          |          |                     |          |</span>
-<span class="go">                        |          |          |                     |          |--13.77%--_PyLong_Add</span>
+<span class="go">                        |          |          |                     |          |--13.77%--_PyCompactLong_Add</span>
 <span class="go">                        |          |          |                     |          |          |</span>
 <span class="go">                        |          |          |                     |          |          |--3.26%--_PyObject_Malloc</span>
 </pre></div>
 </div>
+<section id="using-the-samply-profiler">
+<h2 data-msgid="1da2b812d294fab19095ef28a39af2b5e493a6b6" data-score="0" data-since="260608">Using the samply profiler<a class="headerlink" href="#using-the-samply-profiler" title="Link to this heading">¶</a></h2>
+<p data-msgid="dd4fd1dc8a4ef51b9eff53da01c3f0678538d753" data-score="0" data-since="260608">samply is a modern profiler that can be used as an alternative to perf.
+It uses the same perf map files that Python generates, making it compatible
+with Python’s profiling support. samply is particularly useful on macOS
+where perf is not available.</p>
+<p data-msgid="774c9fed7ca212d506eda9d6b2cbf51213e7c24b" data-score="0" data-since="260608">To use samply with Python, first install it following the instructions at
+<a class="reference external" href="https://github.com/mstange/samply">https://github.com/mstange/samply</a>, then run:</p>
+<div class="highlight-shell-session notranslate" data-msgid="e35e0fcde875cabb5ac9b294abb7b88b17900ecb" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="gp">$ </span>samply<span class="w"> </span>record<span class="w"> </span><span class="nv">PYTHONPERFSUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>my_script.py
+</pre></div>
+</div>
+<p data-msgid="72b3c30908508afbe4fcdc324e36618d43bb3867" data-score="0" data-since="260608">This will open a web interface where you can analyze the profiling data
+interactively. The advantage of samply is that it provides a modern
+web-based interface for analyzing profiling data and works on both Linux
+and macOS.</p>
+<p data-msgid="66785883d7ea52ebdcd90fbc0d3c06461b1f5a2e" data-score="0" data-since="260608">On macOS, samply support requires Python 3.15 or later. Also on macOS, samply
+can’t profile signed Python executables due to restrictions by macOS. You can
+profile with Python binaries that you’ve compiled yourself, or which are
+unsigned or locally-signed (such as anything installed by Homebrew). In
+order to attach to running processes on macOS, run <code class="docutils literal notranslate"><span class="pre">samply</span> <span class="pre">setup</span></code> once (and
+every time samply is updated) to self-sign the samply binary.</p>
+</section>
 <section id="how-to-enable-perf-profiling-support">
 <h2 data-msgid="336d30c87e6ea4fd5e3fe1cae8b824c2212dfb8c" data-score="0" data-since="260603">How to enable <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support<a class="headerlink" href="#how-to-enable-perf-profiling-support" title="Link to this heading">¶</a></h2>
 <p data-msgid="038fc250887cf02d971b2d27ce4642f918232893" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support can be enabled either from the start using
@@ -281,8 +305,9 @@ the <code class="xref std std-option docutils literal notranslate"><span class="
 </section>
 <section id="how-to-obtain-the-best-results">
 <h2 data-msgid="cb1ddd7e2f5abd9a36f20a402280544a0d450e16" data-score="0" data-since="260603">How to obtain the best results<a class="headerlink" href="#how-to-obtain-the-best-results" title="Link to this heading">¶</a></h2>
-<p data-msgid="ba083c847728d4a746a7778f3e22d149e0ee93d0" data-score="0" data-since="260603">For best results, Python should be compiled with
-<code class="docutils literal notranslate"><span class="pre">CFLAGS=&quot;-fno-omit-frame-pointer</span> <span class="pre">-mno-omit-leaf-frame-pointer&quot;</span></code> as this allows
+<p data-msgid="31506519aceceb9f917182a15ec33424adc57dca" data-score="0" data-since="260608">For best results, keep frame pointers enabled. On supported GCC-compatible
+toolchains, CPython builds itself with <code class="docutils literal notranslate"><span class="pre">-fno-omit-frame-pointer</span></code> and similar
+flags (see <a class="reference internal" href="../using/configure.html#cmdoption-without-frame-pointers"><code class="xref std std-option docutils literal notranslate"><span class="pre">--without-frame-pointers</span></code></a> for details). These flags allow
 profilers to unwind using only the frame pointer and not on DWARF debug
 information. This is because as the code that is interposed to allow <code class="docutils literal notranslate"><span class="pre">perf</span></code>
 support is dynamically generated it doesn’t have any DWARF debugging information

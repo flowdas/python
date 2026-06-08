@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Python support for free threading &#8212; Python 3.14.0 문서</title>
+    <title>Python support for free threading &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -86,6 +86,15 @@
 <li><a class="reference internal" href="#behavioral-changes">Behavioral changes</a><ul>
 <li><a class="reference internal" href="#context-variables">Context variables</a></li>
 <li><a class="reference internal" href="#warning-filters">Warning filters</a></li>
+<li><a class="reference internal" href="#increased-memory-usage">Increased memory usage</a><ul>
+<li><a class="reference internal" href="#all-interned-strings-are-immortal">All interned strings are immortal</a></li>
+<li><a class="reference internal" href="#non-gc-objects-have-a-larger-object-header">Non-GC objects have a larger object header</a></li>
+<li><a class="reference internal" href="#qsbr-can-delay-freeing-of-memory">QSBR can delay freeing of memory</a></li>
+<li><a class="reference internal" href="#mimalloc-allocator-vs-pymalloc">mimalloc allocator vs pymalloc</a></li>
+<li><a class="reference internal" href="#free-threaded-reference-counting-can-cause-objects-to-live-longer">Free-threaded reference counting can cause objects to live longer</a></li>
+<li><a class="reference internal" href="#per-thread-reference-counting-can-delay-freeing-objects">Per-thread reference counting can delay freeing objects</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -130,9 +139,7 @@ Python called <a class="reference internal" href="../glossary.html#term-free-thr
 available processing power by running threads in parallel on available CPU cores.
 While not all software will benefit from this automatically, programs
 designed with threading in mind will run faster on multi-core hardware.</p>
-<p data-msgid="19e92e5cd1205dd1dc80f2ff5d25af818d4ed205" data-score="0" data-since="260603">The free-threaded mode is working and continues to be improved, but
-there is some additional overhead in single-threaded workloads compared
-to the regular build. Additionally, third-party packages, in particular ones
+<p data-msgid="2e83559bd9421236309b2010bedaf58ac02f16df" data-score="0" data-since="260608">Some third-party packages, in particular ones
 with an <a class="reference internal" href="../glossary.html#term-extension-module"><span class="xref std std-term">extension module</span></a>, may not be ready for use in a
 free-threaded build, and will re-enable the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>.</p>
 <p data-msgid="50e837b16c6376445462061d6178eb3038335b4e" data-score="0" data-since="260603">This document describes the implications of free threading
@@ -201,53 +208,36 @@ possible.</p>
 <p data-msgid="ef96a9976cd46c4fba9b388f25f59b2b7d39d4da" data-score="0" data-since="260603">This section describes known limitations of the free-threaded CPython build.</p>
 <section id="immortalization">
 <h3 data-msgid="ce7da7ae84c7c22ea9a147544c19abd5e814ffff" data-score="0" data-since="260603">Immortalization<a class="headerlink" href="#immortalization" title="Link to this heading">¶</a></h3>
-<p data-msgid="92b30449caed00685d9e31ea3b126134141791c7" data-score="0" data-since="260603">The free-threaded build of the 3.13 release makes some objects <a class="reference internal" href="../glossary.html#term-immortal"><span class="xref std std-term">immortal</span></a>.
+<p data-msgid="b8375ae5df468627d258f7ab645e62aff61b35c5" data-score="0" data-since="260608">In the free-threaded build, some objects are <a class="reference internal" href="../glossary.html#term-immortal"><span class="xref std std-term">immortal</span></a>.
 Immortal objects are not deallocated and have reference counts that are
 never modified.  This is done to avoid reference count contention that would
 prevent efficient multi-threaded scaling.</p>
-<p data-msgid="7a71042684dc305026f5292843aedaf05a9900d9" data-score="0" data-since="260603">An object will be made immortal when a new thread is started for the first time
-after the main thread is running.  The following objects are immortalized:</p>
+<p data-msgid="90b83e24ce2975f383ae658deefeb866a7c98062" data-score="0" data-since="260608">As of the 3.14 release, immortalization is limited to:</p>
 <ul class="simple">
-<li><p data-msgid="d700dafe6cafeaaa7f4d3eb0fd348daa46e816b7" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#user-defined-funcs"><span class="std std-ref">function</span></a> objects declared at the module level</p></li>
-<li><p data-msgid="0f1dfdb1750ea05bb434c6718b1a8331bd024b33" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#instance-methods"><span class="std std-ref">method</span></a> descriptors</p></li>
-<li><p data-msgid="bcb7ae71d331076554bf51830c15ebf1e1096568" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#code-objects"><span class="std std-ref">code</span></a> objects</p></li>
-<li><p data-msgid="afbad3eeb18b8d349401dd2262774b23077fe138" data-score="0" data-since="260603"><a class="reference internal" href="../glossary.html#term-module"><span class="xref std std-term">module</span></a> objects and their dictionaries</p></li>
-<li><p data-msgid="5caed4b699c0a6d5f091ddd474cb089e2330d2c6" data-score="0" data-since="260603"><a class="reference internal" href="../reference/datamodel.html#classes"><span class="std std-ref">classes</span></a> (type objects)</p></li>
+<li><p data-msgid="38102398594a7c32a4e381654ea84fe7d35ada9e" data-score="0" data-since="260608">Code constants: numeric literals, string literals, and tuple literals
+composed of other constants.</p></li>
+<li><p data-msgid="b53d83400f55bf2aa2a8519c4c2c417141057f1b" data-score="0" data-since="260608">Strings interned by <a class="reference internal" href="../library/sys.html#sys.intern" title="sys.intern"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.intern()</span></code></a>.</p></li>
 </ul>
-<p data-msgid="1b21c4fb518a3f004dff2bde1874fe4b19ffcd12" data-score="0" data-since="260603">Because immortal objects are never deallocated, applications that create many
-objects of these types may see increased memory usage.  This is expected to be
-addressed in the 3.14 release.</p>
-<p data-msgid="e1ecdc4aa58d526d9d7fcab52a53cbd886030cd4" data-score="0" data-since="260603">Additionally, numeric and string literals in the code as well as strings
-returned by <a class="reference internal" href="../library/sys.html#sys.intern" title="sys.intern"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.intern()</span></code></a> are also immortalized.  This behavior is
-expected to remain in the 3.14 free-threaded build.</p>
 </section>
 <section id="frame-objects">
 <h3 data-msgid="79d2949feb338bce6dc1efcc270c92dab0e3c760" data-score="0" data-since="260603">Frame objects<a class="headerlink" href="#frame-objects" title="Link to this heading">¶</a></h3>
-<p data-msgid="3ecc22f11dde396484413ed00baa4c6241f58d11" data-score="0" data-since="260603">It is not safe to access <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">frame</span></a> objects from other
-threads and doing so may cause your program to crash .  This means that
-<a class="reference internal" href="../library/sys.html#sys._current_frames" title="sys._current_frames"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys._current_frames()</span></code></a> is generally not safe to use in a free-threaded
-build.  Functions like <a class="reference internal" href="../library/inspect.html#inspect.currentframe" title="inspect.currentframe"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.currentframe()</span></code></a> and <a class="reference internal" href="../library/sys.html#sys._getframe" title="sys._getframe"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys._getframe()</span></code></a>
-are generally safe as long as the resulting frame object is not passed to
-another thread.</p>
+<p data-msgid="9d9ac4c2da86cc37fb0069af49cd920409c87442" data-score="0" data-since="260608">It is not safe to access <a class="reference internal" href="../reference/datamodel.html#frame.f_locals" title="frame.f_locals"><code class="xref py py-attr docutils literal notranslate"><span class="pre">frame.f_locals</span></code></a> from a <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">frame</span></a>
+object if that frame is currently executing in another thread, and doing so may
+crash the interpreter.</p>
 </section>
 <section id="iterators">
 <h3 data-msgid="909a5f0dfd8c3a4ef79cd1458e2b5fb136ad7fae" data-score="0" data-since="260603">Iterators<a class="headerlink" href="#iterators" title="Link to this heading">¶</a></h3>
-<p data-msgid="e5ce2100e0fc3fb83176f202b5fc12a376e1ba8a" data-score="0" data-since="260603">Sharing the same iterator object between multiple threads is generally not
-safe and threads may see duplicate or missing elements when iterating or crash
-the interpreter.</p>
+<p data-msgid="f6f9fe93bbd6dc6932b5bef0eb65621515de3cf0" data-score="0" data-since="260608">It is generally not thread-safe to access the same iterator object from
+multiple threads concurrently, and threads may see duplicate or missing
+elements.</p>
 </section>
 <section id="single-threaded-performance">
 <h3 data-msgid="4a831e33e08ed4c5f57792d1b808a8184a82b529" data-score="0" data-since="260603">Single-threaded performance<a class="headerlink" href="#single-threaded-performance" title="Link to this heading">¶</a></h3>
-<p data-msgid="89f3252ce4fa3a09123098cd2d96293a4ef95ec1" data-score="0" data-since="260603">The free-threaded build has additional overhead when executing Python code
-compared to the default GIL-enabled build.  In 3.13, this overhead is about
-40% on the <a class="reference external" href="https://pyperformance.readthedocs.io/">pyperformance</a> suite.
-Programs that spend most of their time in C extensions or I/O will see
-less of an impact.  The largest impact is because the specializing adaptive
-interpreter (<span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0659/"><strong>PEP 659</strong></a>) is disabled in the free-threaded build.  We expect
-to re-enable it in a thread-safe way in the 3.14 release.  This overhead is
-expected to be reduced in upcoming Python release.   We are aiming for an
-overhead of 10% or less on the pyperformance suite compared to the default
-GIL-enabled build.</p>
+<p data-msgid="bd3513b9a19c3240a51704d9e57a235515186f00" data-score="0" data-since="260608">The free-threaded build has additional overhead when executing Python code
+compared to the default GIL-enabled build.  The amount of overhead depends
+on the workload and hardware.  On the pyperformance benchmark suite, the
+average overhead ranges from about 1% on macOS aarch64 to 8% on x86-64 Linux
+systems.</p>
 </section>
 </section>
 <section id="behavioral-changes">
@@ -272,6 +262,118 @@ to false.  If the flag is true then the <a class="reference internal" href="../l
 context manager uses a context variable for warning filters.  If the flag is
 false then <a class="reference internal" href="../library/warnings.html#warnings.catch_warnings" title="warnings.catch_warnings"><code class="xref py py-class docutils literal notranslate"><span class="pre">catch_warnings</span></code></a> modifies the global filters list,
 which is not thread-safe.  See the <a class="reference internal" href="../library/warnings.html#module-warnings" title="warnings: Issue warning messages and control their disposition."><code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code></a> module for more details.</p>
+</section>
+<section id="increased-memory-usage">
+<h3 data-msgid="86d6d093a7165309b6880a0408c0c2a81c19f47e" data-score="0" data-since="260608">Increased memory usage<a class="headerlink" href="#increased-memory-usage" title="Link to this heading">¶</a></h3>
+<p data-msgid="176e485eee40424a9a8dafc4a4159fa1880807d8" data-score="0" data-since="260608">The free-threaded build will typically use more memory compared to the default
+build.  There are multiple reasons for this, mostly due to design decisions.</p>
+<section id="all-interned-strings-are-immortal">
+<h4 data-msgid="a2ea0308405c7d6d1363e56d5525046b8d534cc7" data-score="0" data-since="260608">All interned strings are immortal<a class="headerlink" href="#all-interned-strings-are-immortal" title="Link to this heading">¶</a></h4>
+<p data-msgid="9b6b6bd9767495be997dbb83d8fb44a34315c875" data-score="0" data-since="260608">For modern Python versions (since version 2.3), interning a string (e.g. with
+<a class="reference internal" href="../library/sys.html#sys.intern" title="sys.intern"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.intern()</span></code></a>) does not cause it to become immortal.  Instead, if the last
+reference to that string disappears, it will be removed from the interned
+string table.  This is not the case for the free-threaded build and any interned
+string will become immortal, surviving until interpreter shutdown.</p>
+</section>
+<section id="non-gc-objects-have-a-larger-object-header">
+<h4 data-msgid="0aa96858ded717bdecc71fc79c786126eca5880d" data-score="0" data-since="260608">Non-GC objects have a larger object header<a class="headerlink" href="#non-gc-objects-have-a-larger-object-header" title="Link to this heading">¶</a></h4>
+<p data-msgid="8e7587f26b7c0f0d8564f52e32ee4b69c87068ff" data-score="0" data-since="260608">The free-threaded build uses a different <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> structure.  Instead
+of having the GC related information allocated before the <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a>
+structure, like in the default build, the GC related info is part of the normal
+object header.  For example, on the AMD64 platform, <code class="docutils literal notranslate"><span class="pre">None</span></code> uses 32 bytes on
+the free-threaded build vs 16 bytes for the default build.  GC objects (such as
+dicts and lists) are the same size for both builds since the free-threaded
+build does not use additional space for the GC info.</p>
+</section>
+<section id="qsbr-can-delay-freeing-of-memory">
+<h4 data-msgid="805085658d4e181942c8841276e72c8775896a54" data-score="0" data-since="260608">QSBR can delay freeing of memory<a class="headerlink" href="#qsbr-can-delay-freeing-of-memory" title="Link to this heading">¶</a></h4>
+<p data-msgid="2bc876f4ea66d305730f70be0f536d30a9806819" data-score="0" data-since="260608">In order to safely implement lock-free data structures, a safe memory
+reclamation (SMR) scheme is used, known as quiescent state-based reclamation
+(QSBR).  This means that the memory backing data structures allowing lock-free
+access will use QSBR, which defers the free operation, rather than immediately
+freeing the memory.  Two examples of these data structures are the list object
+and the dictionary keys object.  See <code class="docutils literal notranslate"><span class="pre">InternalDocs/qsbr.md</span></code> in the CPython
+source tree for more details on how QSBR is implemented.  Running
+<a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a> should cause all memory being held by QSBR to be actually
+freed.  Note that even when QSBR frees the memory, the underlying memory
+allocator may not immediately return that memory to the OS and so the resident
+set size (RSS) of the process might not decrease.</p>
+</section>
+<section id="mimalloc-allocator-vs-pymalloc">
+<h4 data-msgid="752f69ff2321c420d307d2b48c1e50eb59d287a7" data-score="0" data-since="260608">mimalloc allocator vs pymalloc<a class="headerlink" href="#mimalloc-allocator-vs-pymalloc" title="Link to this heading">¶</a></h4>
+<p data-msgid="91f0817eb7c79892428e5da3a5089319a46c6193" data-score="0" data-since="260608">The default build will normally use the “pymalloc” memory allocator for small
+allocations (512 bytes or smaller).  The free-threaded build does not use
+pymalloc and allocates all Python objects using the “mimalloc” allocator.  The
+pymalloc allocator has the following properties that help keep memory usage
+low: small per-allocated-block overhead, effective memory fragmentation
+prevention, and quick return of free memory to the operating system.  The
+mimalloc allocator does quite well in these respects as well but can have some
+more overhead.</p>
+<p data-msgid="f996a9f3158a2f9268bccf53c2a11d3a32332a92" data-score="0" data-since="260608">In the free-threaded build, mimalloc manages memory in a number of separate
+heaps (currently four).  For example, all GC supporting objects are allocated
+from their own heap.  Using separate heaps means that free memory in one heap
+cannot be used for an allocation that uses another heap.  Also, some heaps are
+configured to use QSBR (quiescent-state based reclamation) when freeing the
+memory that backs up the heap (known as “pages” in mimalloc terminology).  The
+use of QSBR creates a delay between all memory blocks for a page being freed
+and the memory page being released, either for new allocations or back to the
+OS.</p>
+<p data-msgid="1fb9cff0c64136b6bc72d39c54f350aa343fc42d" data-score="0" data-since="260608">The mimalloc allocator also defers returning freed memory back to the OS.  You
+can reduce that delay by setting the environment variable
+<code class="xref std std-envvar docutils literal notranslate"><span class="pre">MIMALLOC_PURGE_DELAY</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code>.  Note that this will likely reduce
+the performance of the allocator.</p>
+</section>
+<section id="free-threaded-reference-counting-can-cause-objects-to-live-longer">
+<h4 data-msgid="155323f69bb7c2fc01852781226143271e5832d0" data-score="0" data-since="260608">Free-threaded reference counting can cause objects to live longer<a class="headerlink" href="#free-threaded-reference-counting-can-cause-objects-to-live-longer" title="Link to this heading">¶</a></h4>
+<p data-msgid="92d563cb3e26d3bbefe00ab13902dd44918a4f38" data-score="0" data-since="260608">In the default build, when an object’s reference count reaches zero, it is
+normally deallocated.  The free-threaded build uses “biased reference
+counting”, with a fast-path for objects “owned” by the current thread and a
+slow path for other objects.  See <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0703/"><strong>PEP 703</strong></a> for additional details.  Any time
+an object’s reference count ends up in a “queued” state, deallocation can be
+deferred.  The queued state is cleared from the “eval breaker” section of the
+bytecode evaluator.</p>
+<p data-msgid="28a0200bd262bb17ae2c91fd36d2bcae2d2db258" data-score="0" data-since="260608">The free-threaded build also allows a different mode of reference counting,
+known as “deferred reference counting”.  This mode is enabled by setting a flag
+on a per-object basis.  Deferred reference counting is enabled for the
+following types:</p>
+<ul class="simple">
+<li><p data-msgid="1af461ea3d8b09e48dcf557040157ed56dd06eac" data-score="0" data-since="260608">module objects</p></li>
+<li><p data-msgid="ee8713074ee0d9b454c68e9459a6659e3287eeb0" data-score="0" data-since="260608">module top-level functions</p></li>
+<li><p data-msgid="40ff55603a217b2eaa5737dcc24ebe58d0cb6524" data-score="0" data-since="260608">class methods defined in the class scope</p></li>
+<li><p data-msgid="3a55ebe3751c085205afbb7c8699e6017645cd8b" data-score="0" data-since="260608">descriptor objects</p></li>
+<li><p data-msgid="78f4814c86108ed64f1a4458f66102cdbf2afe0c" data-score="0" data-since="260608">thread-local objects, created by <a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a></p></li>
+</ul>
+<p data-msgid="3cd8018d5e73b7a449e8cd9d8a2c8e134e3226b4" data-score="0" data-since="260608">When deferred reference counting is enabled, references from Python function
+stacks are not added to the reference count.  This scheme reduces the overhead
+of reference counting, especially for objects used from multiple threads.
+Because the stack references are not counted, objects with deferred reference
+counting are not immediately freed when their internal reference count goes to
+zero.  Instead, they are examined by the next GC run and, if no stack
+references to them are found, they are freed.  This means these objects are
+freed by the GC and not when their reference count goes to zero, as is typical.</p>
+</section>
+<section id="per-thread-reference-counting-can-delay-freeing-objects">
+<h4 data-msgid="7e23c26064f130d81490bcb6acc3509aa3844e43" data-score="0" data-since="260608">Per-thread reference counting can delay freeing objects<a class="headerlink" href="#per-thread-reference-counting-can-delay-freeing-objects" title="Link to this heading">¶</a></h4>
+<p data-msgid="82ec83359a17e26c5e228b59419db2b5194873f0" data-score="0" data-since="260608">To avoid contention on the reference count fields of frequently shared
+objects, the free-threaded build also uses “per-thread reference counting”
+for a few selected object types.  Rather than updating a single shared
+reference count, each thread maintains its own local reference count array,
+indexed by a unique id assigned to the object.  The true reference count is
+only computed by summing the per-thread counts when the object’s local
+count drops to zero.  Per-thread reference counting is currently used for:</p>
+<ul class="simple">
+<li><p data-msgid="0b482b300d5ef46eaa42517037b7ccfaa6ffb24d" data-score="0" data-since="260608">heap type objects (classes created in Python)</p></li>
+<li><p data-msgid="1f744cb0d4dcd1d1833152df3ca1384ba70aebfd" data-score="0" data-since="260608">code objects</p></li>
+<li><p data-msgid="0bb4d09bff77db4dc7894be3669218a04c631aa5" data-score="0" data-since="260608">the <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> of module objects</p></li>
+</ul>
+<p data-msgid="9b42c388c13edfc495a8825359fa968b87cecec4" data-score="0" data-since="260608">Because the per-thread counts must be merged back to the object before it
+can be deallocated, objects using per-thread reference counting are
+typically freed later than they would be in the default build.  In
+particular, such an object is usually not freed until the thread that
+referenced it reaches a safe point (for example, in the “eval breaker”
+section of the bytecode evaluator) or exits.  Running <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a>
+will merge the per-thread counts and allow these objects to be freed.</p>
+</section>
 </section>
 </section>
 </section>

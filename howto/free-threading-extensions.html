@@ -5,21 +5,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>C API Extension Support for Free Threading &#8212; Python 3.14.0 문서</title>
+    <title>C API Extension Support for Free Threading &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
     <link rel="search" title="검색" href="../search.html" />
     <link rel="copyright" title="저작권" href="../copyright.html" />
-    <link rel="next" title="Remote debugging attachment protocol" href="remote_debugging.html" />
+    <link rel="next" title="Migrating to Stable ABI for free threading (abi3t)" href="abi3t-migration.html" />
     <link rel="prev" title="Python support for free threading" href="free-threading-python.html" />
     
       
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -95,6 +95,7 @@
 <li><a class="reference internal" href="#how-critical-sections-work">How Critical Sections Work</a></li>
 <li><a class="reference internal" href="#deadlock-avoidance">Deadlock Avoidance</a></li>
 <li><a class="reference internal" href="#important-considerations">Important Considerations</a></li>
+<li><a class="reference internal" href="#per-object-locks-ob-mutex">Per-Object Locks (<code class="docutils literal notranslate"><span class="pre">ob_mutex</span></code>)</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#building-extensions-for-the-free-threaded-build">Building Extensions for the Free-Threaded Build</a><ul>
@@ -170,30 +171,27 @@ the GIL disabled depending on whether the extension uses multi-phase or
 single-phase initialization.</p>
 <section id="multi-phase-initialization">
 <h3 data-msgid="256c57e4417dc2b7b6b0fa2a21dff5fdeadde905" data-score="0" data-since="260603">Multi-Phase Initialization<a class="headerlink" href="#multi-phase-initialization" title="Link to this heading">¶</a></h3>
-<p data-msgid="bdd17c3554f7f3f2eabd27bc80e899affe4dbcb8" data-score="0" data-since="260603">Extensions that use multi-phase initialization (i.e.,
-<a class="reference internal" href="../c-api/extension-modules.html#c.PyModuleDef_Init" title="PyModuleDef_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModuleDef_Init()</span></code></a>) should add a <a class="reference internal" href="../c-api/module.html#c.Py_mod_gil" title="Py_mod_gil"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_mod_gil</span></code></a> slot in the
-module definition.  If your extension supports older versions of CPython,
+<p data-msgid="1aaedff95be293c1180c3ad35aba54b57a9fbdfc" data-score="0" data-since="260608">Extensions that use <a class="reference internal" href="../c-api/extension-modules.html#multi-phase-initialization"><span class="std std-ref">multi-phase initialization</span></a>
+(functions like <a class="reference internal" href="../c-api/extension-modules.html#c.PyModuleDef_Init" title="PyModuleDef_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModuleDef_Init()</span></code></a>,
+<a class="reference internal" href="../c-api/extension-modules.html#c.PyModExport_modulename" title="PyModExport_modulename"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModExport_*</span></code></a> export hook,
+<a class="reference internal" href="../c-api/module.html#c.PyModule_FromSlotsAndSpec" title="PyModule_FromSlotsAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_FromSlotsAndSpec()</span></code></a>) should add a
+<a class="reference internal" href="../c-api/module.html#c.Py_mod_gil" title="Py_mod_gil"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_mod_gil</span></code></a> slot in the module definition.
+If your extension supports older versions of CPython,
 you should guard the slot with a <a class="reference internal" href="../c-api/apiabiversion.html#c.PY_VERSION_HEX" title="PY_VERSION_HEX"><code class="xref c c-data docutils literal notranslate"><span class="pre">PY_VERSION_HEX</span></code></a> check.</p>
-<div class="highlight-c notranslate" data-msgid="d11f41f44c95293ef118b3f8023544f9089a1982" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">PyModuleDef_Slot</span><span class="w"> </span><span class="n">module_slots</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight-c notranslate" data-msgid="ec9d8b3a8bd77f1056edb8e43ac77eba721a7a74" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">PyModuleDef_Slot</span><span class="w"> </span><span class="n">module_slots</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">...</span>
 <span class="cp">#if PY_VERSION_HEX &gt;= 0x030D0000</span>
 <span class="w">    </span><span class="p">{</span><span class="n">Py_mod_gil</span><span class="p">,</span><span class="w"> </span><span class="n">Py_MOD_GIL_NOT_USED</span><span class="p">},</span>
 <span class="cp">#endif</span>
 <span class="w">    </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">}</span>
 <span class="p">};</span>
-
-<span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">PyModuleDef</span><span class="w"> </span><span class="n">moduledef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">PyModuleDef_HEAD_INIT</span><span class="p">,</span>
-<span class="w">    </span><span class="p">.</span><span class="n">m_slots</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">module_slots</span><span class="p">,</span>
-<span class="w">    </span><span class="p">...</span>
-<span class="p">};</span>
 </pre></div>
 </div>
 </section>
 <section id="single-phase-initialization">
 <h3 data-msgid="a2a69155284e07596122361870a95ece09a659ba" data-score="0" data-since="260603">Single-Phase Initialization<a class="headerlink" href="#single-phase-initialization" title="Link to this heading">¶</a></h3>
-<p data-msgid="d08d80abb87c0ba1fd456e2765a789e22acb10c7" data-score="0" data-since="260603">Extensions that use single-phase initialization (i.e.,
-<a class="reference internal" href="../c-api/module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a>) should call <a class="reference internal" href="../c-api/module.html#c.PyUnstable_Module_SetGIL" title="PyUnstable_Module_SetGIL"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_Module_SetGIL()</span></code></a> to
+<p data-msgid="de2800608488678c379d532c21e25b7a52bc673e" data-score="0" data-since="260608">Extensions that use legacy <a class="reference internal" href="../c-api/extension-modules.html#single-phase-initialization"><span class="std std-ref">single-phase initialization</span></a>
+(that is, <a class="reference internal" href="../c-api/module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a>) should call <a class="reference internal" href="../c-api/module.html#c.PyUnstable_Module_SetGIL" title="PyUnstable_Module_SetGIL"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_Module_SetGIL()</span></code></a> to
 indicate that they support running with the GIL disabled.  The function is
 only defined in the free-threaded build, so you should guard the call with
 <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_GIL_DISABLED</span></code> to avoid compilation errors in the regular build.</p>
@@ -244,7 +242,7 @@ lock the list before appending an item.</p>
 <section id="pydict-next">
 <span id="id1"></span><h4 data-msgid="4ace9dfc434f8fe37b5f000b807d780c7032665f" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">PyDict_Next</span></code><a class="headerlink" href="#pydict-next" title="Link to this heading">¶</a></h4>
 <p data-msgid="e4e0a19bede0adf4d53d829f2408c4b4e2c4e7ba" data-score="0" data-since="260603">A notable exception is <a class="reference internal" href="../c-api/dict.html#c.PyDict_Next" title="PyDict_Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_Next()</span></code></a>, which does not lock the
-dictionary.  You should use <a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_CRITICAL_SECTION" title="Py_BEGIN_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION</span></code></a> to protect
+dictionary.  You should use <a class="reference internal" href="../c-api/synchronization.html#c.Py_BEGIN_CRITICAL_SECTION" title="Py_BEGIN_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION</span></code></a> to protect
 the dictionary while iterating over it if the dictionary may be concurrently
 modified:</p>
 <div class="highlight-c notranslate" data-msgid="ce65b926ed252fa031fcc5cbb64fa1fb3780b532" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">Py_BEGIN_CRITICAL_SECTION</span><span class="p">(</span><span class="n">dict</span><span class="p">);</span>
@@ -295,10 +293,10 @@ that return <a class="reference internal" href="../glossary.html#term-strong-ref
 <tr class="row-even"><td><p data-msgid="5215df384b00b80722e1134d4d83f7a215e84209" data-score="100" data-since="260607"><a class="reference internal" href="../c-api/dict.html#c.PyDict_Next" title="PyDict_Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_Next()</span></code></a></p></td>
 <td><p data-msgid="0e17248927ea015c03f6ca263100a1ca0bb9df4b" data-score="0" data-since="260603">none (see <a class="reference internal" href="#pydict-next"><span class="std std-ref">PyDict_Next</span></a>)</p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="6346ca603dda52aa864dcc4b9708b94a90df083f" data-score="100" data-since="260607"><a class="reference internal" href="../c-api/weakref.html#c.PyWeakref_GetObject" title="PyWeakref_GetObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyWeakref_GetObject()</span></code></a></p></td>
+<tr class="row-odd"><td><p data-msgid="1514beefe2035d28b1834ddab2103aee9aeed644" data-score="0" data-since="260608"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyWeakref_GetObject()</span></code></p></td>
 <td><p data-msgid="976c0781bd18455e513c6cd51e4718e88b608d22" data-score="100" data-since="260607"><a class="reference internal" href="../c-api/weakref.html#c.PyWeakref_GetRef" title="PyWeakref_GetRef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyWeakref_GetRef()</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="0191b0e8823d05e9fc2cfd75c9679f2df6cf5a83" data-score="100" data-since="260607"><a class="reference internal" href="../c-api/weakref.html#c.PyWeakref_GET_OBJECT" title="PyWeakref_GET_OBJECT"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyWeakref_GET_OBJECT()</span></code></a></p></td>
+<tr class="row-even"><td><p data-msgid="11dff226de98c7d1cdbac4f3660d8cf51218b75a" data-score="0" data-since="260608"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyWeakref_GET_OBJECT()</span></code></p></td>
 <td><p data-msgid="976c0781bd18455e513c6cd51e4718e88b608d22" data-score="100" data-since="260607"><a class="reference internal" href="../c-api/weakref.html#c.PyWeakref_GetRef" title="PyWeakref_GetRef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyWeakref_GetRef()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p data-msgid="081a695c465fda6b76bab2771cac84ece8c147af" data-score="100" data-since="260607"><a class="reference internal" href="../c-api/import.html#c.PyImport_AddModule" title="PyImport_AddModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyImport_AddModule()</span></code></a></p></td>
@@ -322,10 +320,10 @@ to provide implementations of these functions for older Python versions.</p>
 </section>
 <section id="memory-allocation-apis">
 <span id="free-threaded-memory-allocation"></span><h2 data-msgid="0638cc3865e0f8149e26972d775c154979eddf07" data-score="0" data-since="260603">Memory Allocation APIs<a class="headerlink" href="#memory-allocation-apis" title="Link to this heading">¶</a></h2>
-<p data-msgid="96e5403c013fd90bb8e6817a1551c58a3d29f04e" data-score="0" data-since="260603">Python’s memory management C API provides functions in three different
+<p data-msgid="71b66ed67db630279a545a0d102b245a0ad42abc" data-score="0" data-since="260608">Python’s memory management C API provides functions in three different
 <a class="reference internal" href="../c-api/memory.html#id1"><span class="std std-ref">allocation domains</span></a>: “raw”, “mem”, and “object”.
 For thread-safety, the free-threaded build requires that only Python objects
-are allocated using the object domain, and that all Python object are
+are allocated using the object domain, and that all Python objects are
 allocated using that domain.  This differs from the prior Python versions,
 where this was only a best practice and not a hard requirement.</p>
 <div class="admonition note">
@@ -341,17 +339,19 @@ Use <a class="reference internal" href="../c-api/memory.html#c.PyMem_Malloc" tit
 <p data-msgid="6eada850fb28bee5033ce5ebfb1d6e94125298e0" data-score="0" data-since="260603">Python provides a set of functions and macros to manage thread state and the
 GIL, such as:</p>
 <ul class="simple">
-<li><p data-msgid="0bac0eb4941ae9ce73bcce93cef2f5675d5a9c0e" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/init.html#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> and <a class="reference internal" href="../c-api/init.html#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a></p></li>
-<li><p data-msgid="dac874ea724509a4e3b48efd89fe2041ab6c6fa4" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/init.html#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> and <a class="reference internal" href="../c-api/init.html#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a></p></li>
-<li><p data-msgid="30b675d847685d46396c830e7ed654cc469222af" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> and <a class="reference internal" href="../c-api/init.html#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a></p></li>
+<li><p data-msgid="9f581d365f7889fee3e83889b459608de042c014" data-score="0" data-since="260608"><a class="reference internal" href="../c-api/threads.html#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a>, <a class="reference internal" href="../c-api/threads.html#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a>,
+and <a class="reference internal" href="../c-api/threads.html#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a></p></li>
+<li><p data-msgid="0bac0eb4941ae9ce73bcce93cef2f5675d5a9c0e" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/threads.html#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> and <a class="reference internal" href="../c-api/threads.html#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a></p></li>
+<li><p data-msgid="dac874ea724509a4e3b48efd89fe2041ab6c6fa4" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/threads.html#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> and <a class="reference internal" href="../c-api/threads.html#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a></p></li>
+<li><p data-msgid="30b675d847685d46396c830e7ed654cc469222af" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/threads.html#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> and <a class="reference internal" href="../c-api/threads.html#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a></p></li>
 </ul>
-<p data-msgid="5971fb9352427899a36147077971c7cd617bf78d" data-score="0" data-since="260603">These functions should still be used in the free-threaded build to manage
+<p data-msgid="edcf1524ec9484ef22b89cb4c1a5248e2f28e73b" data-score="0" data-since="260608">These functions should still be used in the free-threaded build to manage
 thread state even when the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a> is disabled.  For example, if you
-create a thread outside of Python, you must call <a class="reference internal" href="../c-api/init.html#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>
+create a thread outside of Python, you must call <a class="reference internal" href="../c-api/threads.html#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a>
 before calling into the Python API to ensure that the thread has a valid
 Python thread state.</p>
-<p data-msgid="50a8b5953fec7232fda7fc9e9ae8502e87ff5e0b" data-score="0" data-since="260603">You should continue to call <a class="reference internal" href="../c-api/init.html#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> or
-<a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> around blocking operations, such as I/O or
+<p data-msgid="50a8b5953fec7232fda7fc9e9ae8502e87ff5e0b" data-score="0" data-since="260603">You should continue to call <a class="reference internal" href="../c-api/threads.html#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> or
+<a class="reference internal" href="../c-api/threads.html#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> around blocking operations, such as I/O or
 lock acquisitions, to allow other threads to run the
 <a class="reference internal" href="../glossary.html#term-garbage-collection"><span class="xref std std-term">cyclic garbage collector</span></a>.</p>
 </section>
@@ -390,9 +390,9 @@ the underlying mutex.</p>
 <h3 data-msgid="5179e3fefbc523c8d0f453ecdfeb177846c41562" data-score="0" data-since="260603">Using Critical Sections<a class="headerlink" href="#using-critical-sections" title="Link to this heading">¶</a></h3>
 <p data-msgid="94b173af5bca9486851301bbf90235615845af46" data-score="0" data-since="260603">The primary APIs for using critical sections are:</p>
 <ul class="simple">
-<li><p data-msgid="626656dcbe5e3cb2672ab9808e74fe567aa17029" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_CRITICAL_SECTION" title="Py_BEGIN_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION</span></code></a> and <a class="reference internal" href="../c-api/init.html#c.Py_END_CRITICAL_SECTION" title="Py_END_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_CRITICAL_SECTION</span></code></a> -
+<li><p data-msgid="626656dcbe5e3cb2672ab9808e74fe567aa17029" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/synchronization.html#c.Py_BEGIN_CRITICAL_SECTION" title="Py_BEGIN_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION</span></code></a> and <a class="reference internal" href="../c-api/synchronization.html#c.Py_END_CRITICAL_SECTION" title="Py_END_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_CRITICAL_SECTION</span></code></a> -
 For locking a single object</p></li>
-<li><p data-msgid="7109f5aecb9b2f8f574b670068c4b852929055d9" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a> and <a class="reference internal" href="../c-api/init.html#c.Py_END_CRITICAL_SECTION2" title="Py_END_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_CRITICAL_SECTION2</span></code></a>
+<li><p data-msgid="7109f5aecb9b2f8f574b670068c4b852929055d9" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/synchronization.html#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a> and <a class="reference internal" href="../c-api/synchronization.html#c.Py_END_CRITICAL_SECTION2" title="Py_END_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_CRITICAL_SECTION2</span></code></a>
 - For locking two objects simultaneously</p></li>
 </ul>
 <p data-msgid="dcf0033fcd6f847b896f3e4c2a837fc2c0de2923" data-score="0" data-since="260603">These macros must be used in matching pairs and must appear in the same C
@@ -446,13 +446,13 @@ reacquired first</p></li>
 </ol>
 <p data-msgid="42d48b2ba05cb125991456c476d1219a73e49b3f" data-score="0" data-since="260603">This means you cannot rely on nested critical sections to lock multiple objects
 at once, as the inner critical section may suspend the outer ones. Instead, use
-<a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a> to lock two objects simultaneously.</p>
-<p data-msgid="167c72cc46df47d1f0b33c7784b99bab602901ae" data-score="0" data-since="260603">Note that the locks described above are only <code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code> based locks.
+<a class="reference internal" href="../c-api/synchronization.html#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a> to lock two objects simultaneously.</p>
+<p data-msgid="6a51cede788adf447fad1279805939131f80901f" data-score="0" data-since="260608">Note that the locks described above are only <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> based locks.
 The critical section implementation does not know about or affect other locking
 mechanisms that might be in use, like POSIX mutexes.  Also note that while
-blocking on any <code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code> causes the critical sections to be
+blocking on any <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> causes the critical sections to be
 suspended, only the mutexes that are part of the critical sections are
-released.  If <code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code> is used without a critical section, it will
+released.  If <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> is used without a critical section, it will
 not be released and therefore does not get the same deadlock avoidance.</p>
 </section>
 <section id="important-considerations">
@@ -475,7 +475,7 @@ to lock more objects, you’ll need to restructure your code.</p></li>
 <li><p data-msgid="6df4e336c34be6a4cbe6721d5b8920c94717188d" data-score="0" data-since="260603">While critical sections will not deadlock if you attempt to lock the same
 object twice, they are less efficient than purpose-built reentrant locks for
 this use case.</p></li>
-<li><p data-msgid="1ada6878b7da570ae5e174a2fcbcf880c3dbe157" data-score="0" data-since="260603">When using <a class="reference internal" href="../c-api/init.html#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a>, the order of the objects
+<li><p data-msgid="1ada6878b7da570ae5e174a2fcbcf880c3dbe157" data-score="0" data-since="260603">When using <a class="reference internal" href="../c-api/synchronization.html#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a>, the order of the objects
 doesn’t affect correctness (the implementation handles deadlock avoidance),
 but it’s good practice to always lock objects in a consistent order.</p></li>
 <li><p data-msgid="1614d81dc4e5b182cf685156a043051edfd901d4" data-score="0" data-since="260603">Remember that the critical section macros are primarily for protecting access
@@ -485,17 +485,35 @@ internal extension state, standard mutexes or other synchronization
 primitives might be more appropriate.</p></li>
 </ul>
 </section>
+<section id="per-object-locks-ob-mutex">
+<span id="per-object-locks"></span><h3 data-msgid="46020ed9c26eb87cf264b066845a0098783a3769" data-score="0" data-since="260608">Per-Object Locks (<code class="docutils literal notranslate"><span class="pre">ob_mutex</span></code>)<a class="headerlink" href="#per-object-locks-ob-mutex" title="Link to this heading">¶</a></h3>
+<p data-msgid="a30aba743dce345e0537b616be5c64aa4826bfc4" data-score="0" data-since="260608">In the free-threaded build, each Python object contains a <a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_mutex" title="PyObject.ob_mutex"><code class="xref c c-member docutils literal notranslate"><span class="pre">ob_mutex</span></code></a>
+field of type <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a>.  This mutex is <strong>reserved for use by the
+critical section API</strong> (<a class="reference internal" href="../c-api/synchronization.html#c.Py_BEGIN_CRITICAL_SECTION" title="Py_BEGIN_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION</span></code></a> /
+<a class="reference internal" href="../c-api/synchronization.html#c.Py_END_CRITICAL_SECTION" title="Py_END_CRITICAL_SECTION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_CRITICAL_SECTION</span></code></a>).</p>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<p data-msgid="a96b62a5ac13cf3e3633fd0a136e77e2e9e47f09" data-score="0" data-since="260608">Do <strong>not</strong> lock <code class="docutils literal notranslate"><span class="pre">ob_mutex</span></code> directly with <code class="docutils literal notranslate"><span class="pre">PyMutex_Lock(&amp;obj-&gt;ob_mutex)</span></code>.
+Mixing direct <code class="docutils literal notranslate"><span class="pre">PyMutex_Lock</span></code> calls with the critical section API on the
+same mutex can cause deadlocks.</p>
+</div>
+<p data-msgid="b224b45554575cb481c83be991066a031ff0d245" data-score="0" data-since="260608">Even if your own code never uses critical sections on a particular object type,
+<strong>CPython internals may use the critical section API on any Python object</strong>.</p>
+<p data-msgid="06b3b1b731dde689ee7d95bc62c6d5294823b04a" data-score="0" data-since="260608">If your extension type needs its own lock, add a separate <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a>
+field (or another synchronization primitive) to your object struct.
+<a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> is very lightweight, so there is negligible cost to having
+an additional one.</p>
+</section>
 </section>
 <section id="building-extensions-for-the-free-threaded-build">
 <h2 data-msgid="c79b85e6af6329810645201b5dbd4f2157fb80e9" data-score="0" data-since="260603">Building Extensions for the Free-Threaded Build<a class="headerlink" href="#building-extensions-for-the-free-threaded-build" title="Link to this heading">¶</a></h2>
 <p data-msgid="3e6c71429111438621fd8b32ee8d2f94dca106aa" data-score="0" data-since="260603">C API extensions need to be built specifically for the free-threaded build.
 The wheels, shared libraries, and binaries are indicated by a <code class="docutils literal notranslate"><span class="pre">t</span></code> suffix.</p>
 <ul class="simple">
-<li><p data-msgid="562428771a9224e819001959c421470b0679306c" data-score="0" data-since="260603"><a class="reference external" href="https://github.com/pypa/manylinux">pypa/manylinux</a> supports the
-free-threaded build, with the <code class="docutils literal notranslate"><span class="pre">t</span></code> suffix, such as <code class="docutils literal notranslate"><span class="pre">python3.13t</span></code>.</p></li>
-<li><p data-msgid="8744ce830c204a9465489284163563b6c177c35f" data-score="0" data-since="260603"><a class="reference external" href="https://github.com/pypa/cibuildwheel">pypa/cibuildwheel</a> supports the
-free-threaded build if you set
-<a class="reference external" href="https://cibuildwheel.pypa.io/en/stable/options/#enable">CIBW_ENABLE to cpython-freethreading</a>.</p></li>
+<li><p data-msgid="5de76414b2bbc79cc21a50b81daef5634ff7ba4f" data-score="0" data-since="260608"><a class="reference external" href="https://github.com/pypa/manylinux">pypa/manylinux</a> supports the
+free-threaded build, with the <code class="docutils literal notranslate"><span class="pre">t</span></code> suffix, such as <code class="docutils literal notranslate"><span class="pre">python3.14t</span></code>.</p></li>
+<li><p data-msgid="a0895ef4c6698e659e073beed6ea9aaaa2f0c990" data-score="0" data-since="260608"><a class="reference external" href="https://github.com/pypa/cibuildwheel">pypa/cibuildwheel</a> supports
+building wheels for the free-threaded build of Python 3.14 and newer.</p></li>
 </ul>
 <section id="limited-c-api-and-stable-abi">
 <h3 data-msgid="795a93e8ccdf76144445760ef870efd8ca66c0a5" data-score="0" data-since="260603">Limited C API and Stable ABI<a class="headerlink" href="#limited-c-api-and-stable-abi" title="Link to this heading">¶</a></h3>

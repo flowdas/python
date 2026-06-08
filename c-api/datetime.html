@@ -5,22 +5,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>DateTime 객체 &#8212; Python 3.14.0 문서</title>
+    <title>DateTime 객체 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
     <link rel="search" title="검색" href="../search.html" />
     <link rel="copyright" title="저작권" href="../copyright.html" />
-    <link rel="next" title="Objects for Type Hinting" href="typehints.html" />
-    <link rel="prev" title="컨텍스트 변수 객체" href="contextvars.html" />
+    <link rel="next" title="Interpreter initialization and finalization" href="interp-lifecycle.html" />
+    <link rel="prev" title="Curses C API" href="curses.html" />
     
       
       <link rel="canonical" href="https://python.flowdas.com/c-api/datetime.html">
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -72,6 +72,7 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">DateTime 객체</a></li>
+<li><a class="reference internal" href="#internal-data">Internal data</a></li>
 </ul>
 
             </nav>
@@ -96,7 +97,7 @@
                     <li><a href="../index.html">Python</a></li>
                     <li><a href="../contents.html">Docs</a></li>
                     
-                        <li><a href="index.html">파이썬/C API 레퍼런스 설명서</a></li>
+                        <li><a href="index.html">Python/C API reference manual</a></li>
                     
                         <li><a href="concrete.html">구상 객체 계층</a></li>
                     
@@ -108,7 +109,52 @@
                 
   <section id="datetime-objects">
 <span id="datetimeobjects"></span><h1 data-msgid="44d5fba36aea6207940bbf8850816379d5645bcb" data-score="100" data-since="260603">DateTime 객체<a class="headerlink" href="#datetime-objects" title="Link to this heading">¶</a></h1>
-<p data-msgid="c9e3a316fa99b21ada58a87174d5e1126135a0a1" data-score="83" data-since="260603">다양한 날짜와 시간 객체가 <a class="reference internal" href="../library/datetime.html#module-datetime" title="datetime: Basic date and time types."><code class="xref py py-mod docutils literal notranslate"><span class="pre">datetime</span></code></a> 모듈에서 제공됩니다. 이 함수를 사용하기 전에, 헤더 파일 <code class="file docutils literal notranslate"><span class="pre">datetime.h</span></code>가 소스에 포함되어야 하고 (<code class="file docutils literal notranslate"><span class="pre">Python.h</span></code>가 포함하지 않음에 유의하십시오), 일반적으로 모듈 초기화 함수의 일부로 <code class="xref c c-macro docutils literal notranslate"><span class="pre">PyDateTime_IMPORT</span></code> 매크로를 호출해야 합니다. 매크로는 C 구조체에 대한 포인터를 다음 매크로에서 사용되는 static 변수 <code class="xref c c-data docutils literal notranslate"><span class="pre">PyDateTimeAPI</span></code>에 넣습니다.</p>
+<p data-msgid="5d3c7f1b8f557b14993a390c80cb65538939b33e" data-score="0" data-since="260608">Various date and time objects are supplied by the <a class="reference internal" href="../library/datetime.html#module-datetime" title="datetime: Basic date and time types."><code class="xref py py-mod docutils literal notranslate"><span class="pre">datetime</span></code></a> module.
+Before using any of these functions, the header file <code class="file docutils literal notranslate"><span class="pre">datetime.h</span></code> must be
+included in your source (note that this is not included by <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code>),
+and the macro <a class="reference internal" href="#c.PyDateTime_IMPORT" title="PyDateTime_IMPORT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyDateTime_IMPORT</span></code></a> must be invoked, usually as part of
+the module initialisation function.  The macro puts a pointer to a C structure
+into a static variable, <a class="reference internal" href="#c.PyDateTimeAPI" title="PyDateTimeAPI"><code class="xref c c-data docutils literal notranslate"><span class="pre">PyDateTimeAPI</span></code></a>, that is used by the following
+macros.</p>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.PyDateTime_IMPORT">
+<span class="sig-name descname"><span class="n"><span class="pre">PyDateTime_IMPORT</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyDateTime_IMPORT" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="7637ca12c6c6929c2e30f6735173d8965a7141c3" data-score="0" data-since="260608">Import the datetime C API.</p>
+<p data-msgid="6655fd0b32972b4cd7a82e191886f7be55b658a8" data-score="0" data-since="260608">On success, populate the <a class="reference internal" href="#c.PyDateTimeAPI" title="PyDateTimeAPI"><code class="xref c c-var docutils literal notranslate"><span class="pre">PyDateTimeAPI</span></code></a> pointer.
+On failure, set <a class="reference internal" href="#c.PyDateTimeAPI" title="PyDateTimeAPI"><code class="xref c c-var docutils literal notranslate"><span class="pre">PyDateTimeAPI</span></code></a> to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and set an exception.
+The caller must check if an error occurred via <a class="reference internal" href="exceptions.html#c.PyErr_Occurred" title="PyErr_Occurred"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyErr_Occurred()</span></code></a>:</p>
+<div class="highlight-c notranslate" data-msgid="1626d13d58648d78c73b5f28f5a0d629ebb4ad89" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyDateTime_IMPORT</span><span class="p">;</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyErr_Occurred</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* cleanup */</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<p data-msgid="55e8e1d8a72112f335179ec2845cb8870189d63e" data-score="0" data-since="260608">This is not compatible with subinterpreters.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>This macro is now thread safe.</p>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.PyDateTime_CAPI">
+<span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyDateTime_CAPI</span></span></span><a class="headerlink" href="#c.PyDateTime_CAPI" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="4aa627d1b9d96e45b0f1b75ce07a2470e107d67a" data-score="0" data-since="260608">Structure containing the fields for the datetime C API.</p>
+<p data-msgid="fd2523112f8859ab44fba06e52555fc1ce34fb1d" data-score="0" data-since="260608">The fields of this structure are private and subject to change.</p>
+<p data-msgid="98d985da188cb134096d424f4e7b4094906d40cd" data-score="0" data-since="260608">Do not use this directly; prefer <code class="docutils literal notranslate"><span class="pre">PyDateTime_*</span></code> APIs instead.</p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.PyDateTimeAPI">
+<a class="reference internal" href="#c.PyDateTime_CAPI" title="PyDateTime_CAPI"><span class="n"><span class="pre">PyDateTime_CAPI</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyDateTimeAPI</span></span></span><a class="headerlink" href="#c.PyDateTimeAPI" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="df93dfa48739476a2190a99da8ab7a37b3bc1ecc" data-score="0" data-since="260608">Dynamically allocated object containing the datetime C API.</p>
+<p data-msgid="cf757f008ac415637f862be1a2356b7a12b61f59" data-score="0" data-since="260608">This variable is only available once <a class="reference internal" href="#c.PyDateTime_IMPORT" title="PyDateTime_IMPORT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyDateTime_IMPORT</span></code></a> succeeds.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>This variable should not be accessed directly as direct access is not thread-safe.
+Use <a class="reference internal" href="#c.PyDateTime_IMPORT" title="PyDateTime_IMPORT"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDateTime_IMPORT()</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyDateTime_Date">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyDateTime_Date</span></span></span><a class="headerlink" href="#c.PyDateTime_Date" title="Link to this definition">¶</a><br /></dt>
@@ -157,7 +203,7 @@ it is the same object as <a class="reference internal" href="../library/datetime
 <dl class="c var">
 <dt class="sig sig-object c" id="c.PyDateTime_DeltaType">
 <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyDateTime_DeltaType</span></span></span><a class="headerlink" href="#c.PyDateTime_DeltaType" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="e874f711c66cb2c9d24c19326dc09f5fdfc34bfd" data-score="0" data-since="260603">This instance of <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a> represents Python type for
+<dd><p data-msgid="fccfcd313b5b35eb31471dc9e18a967b3face0ce" data-score="0" data-since="260608">This instance of <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a> represents the Python type for
 the difference between two datetime values;
 it is the same object as <a class="reference internal" href="../library/datetime.html#datetime.timedelta" title="datetime.timedelta"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.timedelta</span></code></a> in the Python layer.</p>
 </dd></dl>
@@ -448,7 +494,25 @@ it is the same object as <a class="reference internal" href="../library/datetime
 </dd></dl>
 
 </section>
+<section id="internal-data">
+<h1 data-msgid="9c103360c0ede9fe10f09553d245321ec035a203" data-score="0" data-since="260608">Internal data<a class="headerlink" href="#internal-data" title="Link to this heading">¶</a></h1>
+<p data-msgid="310d9db0160a08159fa809dcf6325c102b4c3626" data-score="0" data-since="260608">The following symbols are exposed by the C API but should be considered
+internal-only.</p>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.PyDateTime_CAPSULE_NAME">
+<span class="sig-name descname"><span class="n"><span class="pre">PyDateTime_CAPSULE_NAME</span></span></span><a class="headerlink" href="#c.PyDateTime_CAPSULE_NAME" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="c66883cd73ebaf4d1ad5f79adfa05cd4403bda53" data-score="0" data-since="260608">Name of the datetime capsule to pass to <a class="reference internal" href="capsule.html#c.PyCapsule_Import" title="PyCapsule_Import"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyCapsule_Import()</span></code></a>.</p>
+<p data-msgid="791c5c7ae375e3c0fd23b2157db9bcda493f80f2" data-score="0" data-since="260608">Internal usage only. Use <a class="reference internal" href="#c.PyDateTime_IMPORT" title="PyDateTime_IMPORT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyDateTime_IMPORT</span></code></a> instead.</p>
+</dd></dl>
 
+</section>
+<div class="lost-and-found-section">
+    <h4>분실물 보관소</h4>
+    <div class="lost-and-found-items">
+        <span data-msgid="c0493ebc64d04ab8d116bdf88fc38a5b784fc8a6" data-score="0" data-since="260608" class="lost-and-found-item"></span>
+        <span data-msgid="cd7e56d69b41d12902db73f058dccd770682648b" data-score="0" data-since="260608" class="lost-and-found-item"></span>
+    </div>
+</div>
 
                 
                 <!-- Giscus Comments -->

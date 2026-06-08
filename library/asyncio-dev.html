@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>asyncio로 개발하기 &#8212; Python 3.14.0 문서</title>
+    <title>asyncio로 개발하기 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -78,6 +78,12 @@
 <li><a class="reference internal" href="#logging">로깅</a></li>
 <li><a class="reference internal" href="#detect-never-awaited-coroutines">await 하지 않은 코루틴 감지</a></li>
 <li><a class="reference internal" href="#detect-never-retrieved-exceptions">전달되지 않은 예외 감지</a></li>
+<li><a class="reference internal" href="#asynchronous-generators-best-practices">Asynchronous generators best practices</a><ul>
+<li><a class="reference internal" href="#close-asynchronous-generators-explicitly">Close asynchronous generators explicitly</a></li>
+<li><a class="reference internal" href="#create-asynchronous-generators-only-when-the-event-loop-is-running">Create asynchronous generators only when the event loop is running</a></li>
+<li><a class="reference internal" href="#avoid-concurrent-iteration-and-closure-of-the-same-generator">Avoid concurrent iteration and closure of the same generator</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -174,7 +180,7 @@
 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.InterpreterPoolExecutor" title="concurrent.futures.InterpreterPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpreterPoolExecutor</span></code></a> to execute
 blocking code in a different OS thread without blocking the OS thread
 that the event loop runs in.</p>
-<p data-msgid="a837026a860ce4f6bbb7be8f5e6fc365cd4b2e76" data-score="91" data-since="260603">현재 다른 프로세스(가령 <a class="reference internal" href="multiprocessing.html#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a>으로 시작된 프로세스)에서 직접 코루틴이나 콜백을 예약할 방법은 없습니다. <a class="reference internal" href="asyncio-eventloop.html#asyncio-event-loop-methods"><span class="std std-ref">이벤트 루프 메서드</span></a> 섹션은 이벤트 루프를 블록하지 않고 파이프를 읽고 파일 기술자를 감시할 수 있는 API를 나열합니다. 또한 asyncio의 <a class="reference internal" href="asyncio-subprocess.html#asyncio-subprocess"><span class="std std-ref">서브 프로세스</span></a> API는 프로세스를 시작하고 이벤트 루프에서 프로세스와 통신하는 방법을 제공합니다. 마지막으로, 앞서 언급한 <code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code> 메서드를 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ProcessPoolExecutor</span></code></a>와 함께 사용하여 다른 프로세스에서 코드를 실행할 수도 있습니다.</p>
+<p data-msgid="a837026a860ce4f6bbb7be8f5e6fc365cd4b2e76" data-score="91" data-since="260603">현재 다른 프로세스(가령 <a class="reference internal" href="multiprocessing.html#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a>으로 시작된 프로세스)에서 직접 코루틴이나 콜백을 예약할 방법은 없습니다. <a class="reference internal" href="asyncio-eventloop.html#asyncio-event-loop-methods"><span class="std std-ref">Event loop methods</span></a> 섹션은 이벤트 루프를 블록하지 않고 파이프를 읽고 파일 기술자를 감시할 수 있는 API를 나열합니다. 또한 asyncio의 <a class="reference internal" href="asyncio-subprocess.html#asyncio-subprocess"><span class="std std-ref">서브 프로세스</span></a> API는 프로세스를 시작하고 이벤트 루프에서 프로세스와 통신하는 방법을 제공합니다. 마지막으로, 앞서 언급한 <code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code> 메서드를 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ProcessPoolExecutor</span></code></a>와 함께 사용하여 다른 프로세스에서 코드를 실행할 수도 있습니다.</p>
 </section>
 <section id="running-blocking-code">
 <span id="asyncio-handle-blocking"></span><h2 data-msgid="2096ab9a46ff04c81882be6d12faa0f9071db7a6" data-score="100" data-since="260603">블로킹 코드 실행하기<a class="headerlink" href="#running-blocking-code" title="Link to this heading">¶</a></h2>
@@ -281,6 +287,213 @@ see <a class="reference internal" href="../howto/logging-cookbook.html#blocking-
 <span class="ne">Exception</span><span class="p">:</span> <span class="ow">not</span> <span class="n">consumed</span>
 </pre></div>
 </div>
+</section>
+<section id="asynchronous-generators-best-practices">
+<h2 data-msgid="1d1540cacd29a2b4b3e11f406ce345c5caaa469f" data-score="0" data-since="260608">Asynchronous generators best practices<a class="headerlink" href="#asynchronous-generators-best-practices" title="Link to this heading">¶</a></h2>
+<p data-msgid="1e0f684ef71a171e9658f11a3d06b77b49b249da" data-score="0" data-since="260608">Writing correct and efficient asyncio code requires awareness of certain pitfalls.
+This section outlines essential best practices that can save you hours of debugging.</p>
+<section id="close-asynchronous-generators-explicitly">
+<h3 data-msgid="3aa8b6543a2d210981ea29ea0bdc8d6b7fdf316c" data-score="0" data-since="260608">Close asynchronous generators explicitly<a class="headerlink" href="#close-asynchronous-generators-explicitly" title="Link to this heading">¶</a></h3>
+<p data-msgid="2b510db6e33b582e27050a91b93a195eb38246fc" data-score="0" data-since="260608">It is recommended to manually close the
+<a class="reference internal" href="../glossary.html#term-asynchronous-generator-iterator"><span class="xref std std-term">asynchronous generator</span></a>. If a generator
+exits early - for example, due to an exception raised in the body of
+an <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> loop - its asynchronous cleanup code may run in an
+unexpected context. This can occur after the tasks it depends on have completed,
+or during the event loop shutdown when the async-generator’s garbage collection
+hook is called.</p>
+<p data-msgid="933431cd9c878b947e842aab84c281575f4b3f1d" data-score="0" data-since="260608">To avoid this, explicitly close the generator by calling its
+<a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> method, or use the <a class="reference internal" href="contextlib.html#contextlib.aclosing" title="contextlib.aclosing"><code class="xref py py-func docutils literal notranslate"><span class="pre">contextlib.aclosing()</span></code></a>
+context manager:</p>
+<div class="highlight-python3 notranslate" data-msgid="9bec450e4953b9be525ad057ac0909d26c86f563" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">gen</span><span class="p">():</span>
+  <span class="k">yield</span> <span class="mi">1</span>
+  <span class="k">yield</span> <span class="mi">2</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">func</span><span class="p">():</span>
+  <span class="k">async</span> <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">aclosing</span><span class="p">(</span><span class="n">gen</span><span class="p">())</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
+      <span class="k">break</span>  <span class="c1"># Don&#39;t iterate until the end</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">func</span><span class="p">())</span>
+</pre></div>
+</div>
+<p data-msgid="b294e2a84ed25426ee97d08b3d94dd7c14d89816" data-score="0" data-since="260608">As noted above, the cleanup code for these asynchronous generators is deferred.
+The following example demonstrates that the finalization of an asynchronous
+generator can occur in an unexpected order:</p>
+<div class="highlight-python3 notranslate" data-msgid="b7389d60907a52c0cc25088474d97ffd1f305a3d" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="n">work_done</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">cursor</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="mi">1</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">work_done</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">rows</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">work_done</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="mi">2</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># imitate some async work</span>
+        <span class="n">work_done</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">():</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">():</span>
+            <span class="k">break</span>
+        <span class="k">break</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p data-msgid="902f7e4a17bf3317c5f350aba3142dd5294612d6" data-score="0" data-since="260608">For this example, we get the following output:</p>
+<div class="highlight-python3 notranslate" data-msgid="b723e0618feff97ebf3de4f51aa0511bd0f4ea0e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">unhandled</span> <span class="n">exception</span> <span class="n">during</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> <span class="n">shutdown</span>
+<span class="n">task</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">Task</span> <span class="n">finished</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Task-3&#39;</span> <span class="n">coro</span><span class="o">=&lt;&lt;</span><span class="n">async_generator_athrow</span> <span class="n">without</span> <span class="vm">__name__</span><span class="o">&gt;</span><span class="p">()</span><span class="o">&gt;</span> <span class="n">exception</span><span class="o">=</span><span class="ne">AssertionError</span><span class="p">()</span><span class="o">&gt;</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">&quot;example.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">6</span><span class="p">,</span> <span class="ow">in</span> <span class="n">cursor</span>
+    <span class="k">yield</span> <span class="mi">1</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">CancelledError</span>
+
+<span class="n">During</span> <span class="n">handling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">above</span> <span class="n">exception</span><span class="p">,</span> <span class="n">another</span> <span class="n">exception</span> <span class="n">occurred</span><span class="p">:</span>
+
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">&quot;example.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">8</span><span class="p">,</span> <span class="ow">in</span> <span class="n">cursor</span>
+    <span class="k">assert</span> <span class="n">work_done</span>
+           <span class="o">^^^^^^^^^</span>
+<span class="ne">AssertionError</span>
+</pre></div>
+</div>
+<p data-msgid="58b903c678dff3cf34dbbc311e72218e4e1650b2" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">cursor()</span></code> asynchronous generator was finalized before the <code class="docutils literal notranslate"><span class="pre">rows</span></code>
+generator - an unexpected behavior.</p>
+<p data-msgid="01bcc202c2aebcbda8c25be6afb0b92bcac50b7e" data-score="0" data-since="260608">The example can be fixed by explicitly closing the
+<code class="docutils literal notranslate"><span class="pre">cursor</span></code> and <code class="docutils literal notranslate"><span class="pre">rows</span></code> async-generators:</p>
+<div class="highlight-python3 notranslate" data-msgid="e7588bdca3bb6abd5a05b384a5456ad311de2e3a" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">aclosing</span><span class="p">(</span><span class="n">cursor</span><span class="p">())</span> <span class="k">as</span> <span class="n">cursor_gen</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cursor_gen</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">aclosing</span><span class="p">(</span><span class="n">rows</span><span class="p">())</span> <span class="k">as</span> <span class="n">rows_gen</span><span class="p">:</span>
+                <span class="k">async</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows_gen</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">break</span>
+</pre></div>
+</div>
+</section>
+<section id="create-asynchronous-generators-only-when-the-event-loop-is-running">
+<h3 data-msgid="8291f6cd5125c81b0aff8793cadf314b92e287de" data-score="0" data-since="260608">Create asynchronous generators only when the event loop is running<a class="headerlink" href="#create-asynchronous-generators-only-when-the-event-loop-is-running" title="Link to this heading">¶</a></h3>
+<p data-msgid="e1d3284011a52da336a3cf8685e84ebe0c136fda" data-score="0" data-since="260608">It is recommended to create
+<a class="reference internal" href="../glossary.html#term-asynchronous-generator-iterator"><span class="xref std std-term">asynchronous generators</span></a> only after
+the event loop has been created.</p>
+<p data-msgid="80ac23101dc5556ea3e81a552bf7d3e378157a1d" data-score="0" data-since="260608">To ensure that asynchronous generators close reliably, the event loop uses the
+<a class="reference internal" href="sys.html#sys.set_asyncgen_hooks" title="sys.set_asyncgen_hooks"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.set_asyncgen_hooks()</span></code></a> function to register callback functions. These
+callbacks update the list of running asynchronous generators to keep it in a
+consistent state.</p>
+<p data-msgid="d71a0aea0ae3cfcaa0411698c03e045d484075a5" data-score="0" data-since="260608">When the <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.shutdown_asyncgens" title="asyncio.loop.shutdown_asyncgens"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.shutdown_asyncgens()</span></code></a>
+function is called, the running generators are stopped gracefully and the
+list is cleared.</p>
+<p data-msgid="493d09acad4394f9a2cac0dcbace6223635592fb" data-score="0" data-since="260608">The asynchronous generator invokes the corresponding system hook during its
+first iteration. At the same time, the generator records that the hook has
+been called and does not call it again.</p>
+<p data-msgid="94c7f3595fe7399fb5677eeda0012f466a46e1cb" data-score="0" data-since="260608">Therefore, if iteration begins before the event loop is created,
+the event loop will not be able to add the generator to its list of active
+generators because the hooks are set after the generator attempts to call them.
+Consequently, the event loop will not be able to terminate the generator
+if necessary.</p>
+<p data-msgid="6e092c032a0619e78f7538faae4a1b73097dfe96" data-score="0" data-since="260603">Consider the following example:</p>
+<div class="highlight-python3 notranslate" data-msgid="b3560a0c0dc7c592b8e03661043b6077494e298c" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">agenfn</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="mi">10</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">with</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Runner</span><span class="p">()</span> <span class="k">as</span> <span class="n">runner</span><span class="p">:</span>
+    <span class="n">agen</span> <span class="o">=</span> <span class="n">agenfn</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">anext</span><span class="p">(</span><span class="n">agen</span><span class="p">)))</span>
+    <span class="k">del</span> <span class="n">agen</span>
+</pre></div>
+</div>
+<p data-msgid="2af450c2070e47ffd39209084f5cd72fb7ab7b01" data-score="75" data-since="260603">출력:</p>
+<div class="highlight-python3 notranslate" data-msgid="c8b09183a05a80107694205406215b003a52c4ae" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="mi">10</span>
+<span class="ne">Exception</span> <span class="n">ignored</span> <span class="k">while</span> <span class="n">closing</span> <span class="n">generator</span> <span class="o">&lt;</span><span class="n">async_generator</span> <span class="nb">object</span> <span class="n">agenfn</span> <span class="n">at</span> <span class="mh">0x000002F71CD10D70</span><span class="o">&gt;</span><span class="p">:</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">&quot;example.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">13</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+    <span class="k">del</span> <span class="n">agen</span>
+        <span class="o">^^^^</span>
+<span class="ne">RuntimeError</span><span class="p">:</span> <span class="k">async</span> <span class="n">generator</span> <span class="n">ignored</span> <span class="ne">GeneratorExit</span>
+</pre></div>
+</div>
+<p data-msgid="ac17efd579fa16e4b726a5d3e99233db3e5010eb" data-score="0" data-since="260608">This example can be fixed as follows:</p>
+<div class="highlight-python3 notranslate" data-msgid="0788582a51f60c27572c97c606285c9a7c0fd715" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">agenfn</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="mi">10</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">agen</span> <span class="o">=</span> <span class="n">agenfn</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">anext</span><span class="p">(</span><span class="n">agen</span><span class="p">))</span>
+    <span class="k">del</span> <span class="n">agen</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="avoid-concurrent-iteration-and-closure-of-the-same-generator">
+<h3 data-msgid="6723820a0452c5c1c45a6851567725235dc92a65" data-score="0" data-since="260608">Avoid concurrent iteration and closure of the same generator<a class="headerlink" href="#avoid-concurrent-iteration-and-closure-of-the-same-generator" title="Link to this heading">¶</a></h3>
+<p data-msgid="bda7d98cbc1323e4e6df27883417142b368f9169" data-score="0" data-since="260608">Async generators may be reentered while another
+<a class="reference internal" href="../reference/expressions.html#agen.__anext__" title="agen.__anext__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__anext__()</span></code></a> / <a class="reference internal" href="../reference/expressions.html#agen.athrow" title="agen.athrow"><code class="xref py py-meth docutils literal notranslate"><span class="pre">athrow()</span></code></a> / <a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> call is in
+progress. This may lead to an inconsistent state of the async generator and can
+cause errors.</p>
+<p data-msgid="0ad5649f37ac743c27415fc32e2147aa73941dcd" data-score="0" data-since="260608">Let’s consider the following example:</p>
+<div class="highlight-python3 notranslate" data-msgid="d4b4850d4b4c1e87223748bb2445f2d019c95864" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">consumer</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">idx</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;received&#39;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">amain</span><span class="p">():</span>
+    <span class="n">agenerator</span> <span class="o">=</span> <span class="n">consumer</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">agenerator</span><span class="o">.</span><span class="n">asend</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">fa</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">agenerator</span><span class="o">.</span><span class="n">asend</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">))</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">agenerator</span><span class="o">.</span><span class="n">asend</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">))</span>
+    <span class="k">await</span> <span class="n">fa</span>
+    <span class="k">await</span> <span class="n">fb</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">amain</span><span class="p">())</span>
+</pre></div>
+</div>
+<p data-msgid="2af450c2070e47ffd39209084f5cd72fb7ab7b01" data-score="75" data-since="260603">출력:</p>
+<div class="highlight-python3 notranslate" data-msgid="36e75923451635c15a187b60666d403be29738a2" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">received</span> <span class="n">A</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">&quot;test.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">38</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">amain</span><span class="p">())</span>
+    <span class="o">~~~~~~~~~~~^^^^^^^^^</span>
+  <span class="n">File</span> <span class="s2">&quot;Lib/asyncio/runners.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">204</span><span class="p">,</span> <span class="ow">in</span> <span class="n">run</span>
+    <span class="k">return</span> <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+           <span class="o">~~~~~~~~~~^^^^^^</span>
+  <span class="n">File</span> <span class="s2">&quot;Lib/asyncio/runners.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">127</span><span class="p">,</span> <span class="ow">in</span> <span class="n">run</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+           <span class="o">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^</span>
+  <span class="n">File</span> <span class="s2">&quot;Lib/asyncio/base_events.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">719</span><span class="p">,</span> <span class="ow">in</span> <span class="n">run_until_complete</span>
+    <span class="k">return</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+           <span class="o">~~~~~~~~~~~~~^^</span>
+  <span class="n">File</span> <span class="s2">&quot;test.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">36</span><span class="p">,</span> <span class="ow">in</span> <span class="n">amain</span>
+    <span class="k">await</span> <span class="n">fb</span>
+<span class="ne">RuntimeError</span><span class="p">:</span> <span class="n">anext</span><span class="p">():</span> <span class="n">asynchronous</span> <span class="n">generator</span> <span class="ow">is</span> <span class="n">already</span> <span class="n">running</span>
+</pre></div>
+</div>
+<p data-msgid="966beee25485c7e2c9180e0299de0cfd9dd2394e" data-score="0" data-since="260608">Therefore, it is recommended to avoid using asynchronous generators in parallel
+tasks or across multiple event loops.</p>
+</section>
 </section>
 </section>
 

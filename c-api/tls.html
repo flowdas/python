@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Thread-local storage support &#8212; Python 3.16.0a0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.16.0a0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="Multiple interpreters in a Python process" href="subinterpreters.html" />
+    <link rel="prev" title="Synchronization primitives" href="synchronization.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/c-api/tls.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=a665af2d"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.16</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">Thread-local storage support</a><ul>
+<li><a class="reference internal" href="#thread-specific-storage-api">Thread-specific storage API</a></li>
+<li><a class="reference internal" href="#dynamic-allocation">Dynamic allocation</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#legacy-apis">Legacy APIs</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">Python/C API reference manual</a></li>
+                    
+                    <li class="current">Thread-local storage support</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="thread-local-storage-support">
+<span id="thread-local-storage"></span><h1 data-msgid="5a6209ec61b5f4df456c96b17589346179d68bb6" data-score="0" data-since="260608">Thread-local storage support<a class="headerlink" href="#thread-local-storage-support" title="Link to this heading">¶</a></h1>
+<p data-msgid="7ff4a15327f077f33e3ff667e05697997bea7944" data-score="0" data-since="260608">The Python interpreter provides low-level support for thread-local storage
+(TLS) which wraps the underlying native TLS implementation to support the
+Python-level thread-local storage API (<a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a>).  The
+CPython C level APIs are similar to those offered by pthreads and Windows:
+use a thread key and functions to associate a <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> value per
+thread.</p>
+<p data-msgid="1b376879b9f2f0188c6fa55691415166a1b33bf0" data-score="0" data-since="260608">A <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> does <em>not</em> need to be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>
+when calling these functions; they supply their own locking.</p>
+<p data-msgid="a0ce7d760c9a4b7fe21f7828dc4fadd81f592d1c" data-score="0" data-since="260603">Note that <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> does not include the declaration of the TLS APIs,
+you need to include <code class="file docutils literal notranslate"><span class="pre">pythread.h</span></code> to use thread-local storage.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="88649d26b9a47fc3c63055641f59cc56265cf009" data-score="0" data-since="260603">None of these API functions handle memory management on behalf of the
+<span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> values.  You need to allocate and deallocate them yourself.
+If the <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> values happen to be <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span>, these
+functions don’t do refcount operations on them either.</p>
+</div>
+<section id="thread-specific-storage-api">
+<span id="id1"></span><h2 data-msgid="64bd7baaace98579d8a3d4abb7f436047c1e8c6c" data-score="0" data-since="260608">Thread-specific storage API<a class="headerlink" href="#thread-specific-storage-api" title="Link to this heading">¶</a></h2>
+<p data-msgid="6d418f5de6a1b0a74094b034275cd6c5ad39142b" data-score="0" data-since="260608">The thread-specific storage (TSS) API was introduced to supersede the use of the existing TLS API within the
+CPython interpreter.  This API uses a new type <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> instead of
+<span class="c-expr sig sig-inline c"><span class="kt">int</span></span> to represent thread keys.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.7.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">더 보기</p>
+<p data-msgid="8de03080e1145240293a5afc4bf437a5c3523b34" data-score="0" data-since="260603">“A New C-API for Thread-Local Storage in CPython” (<span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0539/"><strong>PEP 539</strong></a>)</p>
+</div>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Py_tss_t">
+<span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Py_tss_t</span></span></span><a class="headerlink" href="#c.Py_tss_t" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="1a7eb3b70bcf46a9c79c71f14d6d99ddea2d014e" data-score="0" data-since="260603">This data structure represents the state of a thread key, the definition of
+which may depend on the underlying TLS implementation, and it has an
+internal field representing the key’s initialization state.  There are no
+public members in this structure.</p>
+<p data-msgid="b18d6f2826e51961655398ed830a961022b65eb0" data-score="0" data-since="260603">When <a class="reference internal" href="stable.html#stable"><span class="std std-ref">Py_LIMITED_API</span></a> is not defined, static allocation of
+this type by <a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a> is allowed.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.Py_tss_NEEDS_INIT">
+<span class="sig-name descname"><span class="n"><span class="pre">Py_tss_NEEDS_INIT</span></span></span><a class="headerlink" href="#c.Py_tss_NEEDS_INIT" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="c03d8e2ddcad695de193f6013fb74bcc0cb1f6a4" data-score="0" data-since="260603">This macro expands to the initializer for <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> variables.
+Note that this macro won’t be defined with <a class="reference internal" href="stable.html#stable"><span class="std std-ref">Py_LIMITED_API</span></a>.</p>
+</dd></dl>
+
+</section>
+<section id="dynamic-allocation">
+<h2 data-msgid="58f56a133d75feb9fb85bc8122468a74f40762ee" data-score="0" data-since="260608">Dynamic allocation<a class="headerlink" href="#dynamic-allocation" title="Link to this heading">¶</a></h2>
+<p data-msgid="d3f2f7ecca4aada74c7b80decfa1620b70a6de15" data-score="0" data-since="260603">Dynamic allocation of the <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a>, required in extension modules
+built with <a class="reference internal" href="stable.html#stable"><span class="std std-ref">Py_LIMITED_API</span></a>, where static allocation of this type
+is not possible due to its implementation being opaque at build time.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_alloc">
+<a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_alloc</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_alloc" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="4dd6d9414d1fabb0de235eca83cd17f11717c444" data-score="0" data-since="260603">Return a value which is the same state as a value initialized with
+<a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> in the case of dynamic allocation
+failure.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_free">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_free</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_free" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="65ba14a0f42fbf0b1363c30e80b939c2d133305a" data-score="0" data-since="260603">Free the given <em>key</em> allocated by <a class="reference internal" href="#c.PyThread_tss_alloc" title="PyThread_tss_alloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_alloc()</span></code></a>, after
+first calling <a class="reference internal" href="#c.PyThread_tss_delete" title="PyThread_tss_delete"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_delete()</span></code></a> to ensure any associated
+thread locals have been unassigned. This is a no-op if the <em>key</em>
+argument is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="e215772fb7003850a8a5cef9a02385eebd02b4f9" data-score="0" data-since="260603">A freed key becomes a dangling pointer. You should reset the key to
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="methods">
+<h2 data-msgid="7e4ac6803c9159c694f63d089cb06b2519c16aba" data-score="0" data-since="260603">Methods<a class="headerlink" href="#methods" title="Link to this heading">¶</a></h2>
+<p data-msgid="cbe11fa29a3fbbfd256da01a709194bdf7599e63" data-score="0" data-since="260603">The parameter <em>key</em> of these functions must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  Moreover, the
+behaviors of <a class="reference internal" href="#c.PyThread_tss_set" title="PyThread_tss_set"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_set()</span></code></a> and <a class="reference internal" href="#c.PyThread_tss_get" title="PyThread_tss_get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_get()</span></code></a> are
+undefined if the given <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> has not been initialized by
+<a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_is_created">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_is_created</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_is_created" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="e50d6576ff63b09c693e0843d826066d49cbb6c2" data-score="0" data-since="260603">Return a non-zero value if the given <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> has been initialized
+by <a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_create">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_create</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_create" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="c07511477fdddb8ced93a065cad98cdbd4fb7637" data-score="0" data-since="260603">Return a zero value on successful initialization of a TSS key.  The behavior
+is undefined if the value pointed to by the <em>key</em> argument is not
+initialized by <a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a>.  This function can be called
+repeatedly on the same key – calling it on an already initialized key is a
+no-op and immediately returns success.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_delete">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_delete</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_delete" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="17311f0c816e38171110aee32880795b640eedd4" data-score="0" data-since="260603">Destroy a TSS key to forget the values associated with the key across all
+threads, and change the key’s initialization state to uninitialized.  A
+destroyed key is able to be initialized again by
+<a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>. This function can be called repeatedly on
+the same key – calling it on an already destroyed key is a no-op.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_set">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_set</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_set" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="38c6d5f32ad02fbd3b0d95e2f974dc44b22014f4" data-score="0" data-since="260603">Return a zero value to indicate successfully associating a <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span>
+value with a TSS key in the current thread.  Each thread has a distinct
+mapping of the key to a <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> value.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_tss_get">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_get</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_get" title="Link to this definition">¶</a><br /></dt>
+<dd><p data-msgid="3e2ef925dbd6b3a6f73a31957145a75e733f57bb" data-score="0" data-since="260603">Return the <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> value associated with a TSS key in the current
+thread.  This returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if no value is associated with the key in the
+current thread.</p>
+</dd></dl>
+
+</section>
+<section id="legacy-apis">
+<span id="thread-local-storage-api"></span><h2 data-msgid="daf30c9e12d8c6a4c82076751c71ae901ef6951a" data-score="0" data-since="260608">Legacy APIs<a class="headerlink" href="#legacy-apis" title="Link to this heading">¶</a></h2>
+<div class="deprecated" data-msgid="cdeb2bab4cc80e1afdb726644602fbfca600105b" data-score="0" data-since="260608">
+<p><span class="versionmodified deprecated">버전 3.7부터 폐지됨: </span>This API is superseded by the
+<a class="reference internal" href="#thread-specific-storage-api"><span class="std std-ref">thread-specific storage (TSS) API</span></a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="6fbbd3829ff024d90da63e7195604a4e354655f3" data-score="0" data-since="260603">This version of the API does not support platforms where the native TLS key
+is defined in a way that cannot be safely cast to <code class="docutils literal notranslate"><span class="pre">int</span></code>.  On such platforms,
+<a class="reference internal" href="#c.PyThread_create_key" title="PyThread_create_key"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_create_key()</span></code></a> will return immediately with a failure status,
+and the other TLS functions will all be no-ops on such platforms.</p>
+</div>
+<p data-msgid="92cf6a26467573323da17c5c00278e07f08cd061" data-score="0" data-since="260603">Due to the compatibility problem noted above, this version of the API should not
+be used in new code.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_create_key">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_create_key</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_create_key" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_delete_key">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_delete_key</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_delete_key" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_set_key_value">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_set_key_value</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">key</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_set_key_value" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_get_key_value">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_get_key_value</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_get_key_value" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_delete_key_value">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_delete_key_value</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_delete_key_value" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PyThread_ReInitTLS">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_ReInitTLS</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_ReInitTLS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>

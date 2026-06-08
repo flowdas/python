@@ -5,22 +5,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2. 확장형 정의하기: 자습서 &#8212; Python 3.14.0 문서</title>
+    <title>확장형 정의하기: 자습서 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=33af5441"></script>
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.14.0 문서에서 찾기"
+          title="Python 3.16.0a0 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
     <link rel="search" title="검색" href="../search.html" />
     <link rel="copyright" title="저작권" href="../copyright.html" />
-    <link rel="next" title="3. 확장형 정의하기: 여러 가지 주제" href="newtypes.html" />
-    <link rel="prev" title="1. C나 C++로 파이썬 확장하기" href="extending.html" />
+    <link rel="next" title="확장형 정의하기: 여러 가지 주제" href="newtypes.html" />
+    <link rel="prev" title="Using the C API: Assorted topics" href="extending.html" />
     
       
       <link rel="canonical" href="https://python.flowdas.com/extending/newtypes_tutorial.html">
@@ -61,7 +61,7 @@
             </div>
             <div class="sidebar-header">
                 <h3>Python</h3>
-                <p class="version">Version: 3.14</p>
+                <p class="version">Version: 3.16</p>
                 
                 <div id="searchbox" style="margin-top: 1.5rem;">
                     <form action="../search.html" method="get">
@@ -71,12 +71,12 @@
             </div>
             <nav class="toc">
                 <ul>
-<li><a class="reference internal" href="#">2. 확장형 정의하기: 자습서</a><ul>
-<li><a class="reference internal" href="#the-basics">2.1. 기초</a></li>
-<li><a class="reference internal" href="#adding-data-and-methods-to-the-basic-example">2.2. 기초 예제에 데이터와 메서드 추가하기</a></li>
-<li><a class="reference internal" href="#providing-finer-control-over-data-attributes">2.3. 데이터 어트리뷰트를 더 세밀하게 제어하기</a></li>
-<li><a class="reference internal" href="#supporting-cyclic-garbage-collection">2.4. 순환 가비지 수거 지원하기</a></li>
-<li><a class="reference internal" href="#subclassing-other-types">2.5. 다른 형의 서브 클래싱</a></li>
+<li><a class="reference internal" href="#">확장형 정의하기: 자습서</a><ul>
+<li><a class="reference internal" href="#the-basics">기초</a></li>
+<li><a class="reference internal" href="#adding-data-and-methods-to-the-basic-example">기초 예제에 데이터와 메서드 추가하기</a></li>
+<li><a class="reference internal" href="#providing-finer-control-over-data-attributes">데이터 어트리뷰트를 더 세밀하게 제어하기</a></li>
+<li><a class="reference internal" href="#supporting-cyclic-garbage-collection">순환 가비지 수거 지원하기</a></li>
+<li><a class="reference internal" href="#subclassing-other-types">다른 형의 서브 클래싱</a></li>
 </ul>
 </li>
 </ul>
@@ -105,17 +105,17 @@
                     
                         <li><a href="index.html">파이썬 인터프리터 확장 및 내장</a></li>
                     
-                    <li class="current"><span class="section-number">2. </span>확장형 정의하기: 자습서</li>
+                    <li class="current">확장형 정의하기: 자습서</li>
                 </ol>
             </nav>
 
             <article class="document">
                 
   <section id="defining-extension-types-tutorial">
-<span id="defining-new-types"></span><h1 data-msgid="f18ad07377574a710e7472ad05bf6a1188c01321" data-score="92" data-since="260603"><span class="section-number">2. </span>확장형 정의하기: 자습서<a class="headerlink" href="#defining-extension-types-tutorial" title="Link to this heading">¶</a></h1>
+<span id="defining-new-types"></span><h1 data-msgid="f18ad07377574a710e7472ad05bf6a1188c01321" data-score="92" data-since="260603">확장형 정의하기: 자습서<a class="headerlink" href="#defining-extension-types-tutorial" title="Link to this heading">¶</a></h1>
 <p data-msgid="63674bbaa3044ff5c17565fb54257b06c314604b" data-score="71" data-since="260603">파이썬은 C 확장 모듈 작성자가 내장 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>과 <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> 형과 마찬가지로 파이썬 코드에서 조작할 수 있는 새로운 형을 정의할 수 있도록 합니다. 모든 확장형의 코드는 패턴을 따르지만, 시작하기 전에 이해해야 할 세부 사항이 있습니다. 이 설명서는 주제에 대한 간단한 소개입니다.</p>
 <section id="the-basics">
-<span id="dnt-basics"></span><h2 data-msgid="a093f7952b1838c4dd6aeda28ea5e1fc38030960" data-score="100" data-since="260603"><span class="section-number">2.1. </span>기초<a class="headerlink" href="#the-basics" title="Link to this heading">¶</a></h2>
+<span id="dnt-basics"></span><h2 data-msgid="a093f7952b1838c4dd6aeda28ea5e1fc38030960" data-score="100" data-since="260603">기초<a class="headerlink" href="#the-basics" title="Link to this heading">¶</a></h2>
 <p data-msgid="c0c78010cfd9236ca019ea03e961771f9e8a73cd" data-score="0" data-since="260603">The <a class="reference internal" href="../glossary.html#term-CPython"><span class="xref std std-term">CPython</span></a> runtime sees all Python objects as variables of type
 <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span>, which serves as a “base type” for all Python objects.
 The <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> structure itself only contains the object’s
@@ -341,7 +341,7 @@ and play around with <code class="docutils literal notranslate"><span class="pre
 <p data-msgid="cd2b66dae0bfe61bd983764a8445d95f5b7e81e7" data-score="54" data-since="260603">물론, 현재 Custom 형은 그리 흥미롭지 않습니다. 데이터가 없고 아무것도 하지 않습니다. 서브 클래싱조차 할 수 없습니다.</p>
 </section>
 <section id="adding-data-and-methods-to-the-basic-example">
-<h2 data-msgid="9c6515083d6a718e8fac8685697124778f8fa326" data-score="90" data-since="260603"><span class="section-number">2.2. </span>기초 예제에 데이터와 메서드 추가하기<a class="headerlink" href="#adding-data-and-methods-to-the-basic-example" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="9c6515083d6a718e8fac8685697124778f8fa326" data-score="90" data-since="260603">기초 예제에 데이터와 메서드 추가하기<a class="headerlink" href="#adding-data-and-methods-to-the-basic-example" title="Link to this heading">¶</a></h2>
 <p data-msgid="7e13792700db992961e9931a328dff69de0f30c1" data-score="0" data-since="260603">Let’s extend the basic example to add some data and methods.  Let’s also make
 the type usable as a base class. We’ll create a new module, <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom2</span></code> that
 adds these capabilities:</p>
@@ -763,7 +763,7 @@ name in the <a class="reference internal" href="../c-api/type.html#c.PyTypeObjec
 </div>
 </section>
 <section id="providing-finer-control-over-data-attributes">
-<h2 data-msgid="26e5336e4c65fb062d3fe76bf1882c3aee470ff0" data-score="68" data-since="260603"><span class="section-number">2.3. </span>데이터 어트리뷰트를 더 세밀하게 제어하기<a class="headerlink" href="#providing-finer-control-over-data-attributes" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="26e5336e4c65fb062d3fe76bf1882c3aee470ff0" data-score="68" data-since="260603">데이터 어트리뷰트를 더 세밀하게 제어하기<a class="headerlink" href="#providing-finer-control-over-data-attributes" title="Link to this heading">¶</a></h2>
 <p data-msgid="937e806f73bb899c87fd696ee2fc1f1ced683097" data-score="0" data-since="260603">In this section, we’ll provide finer control over how the <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> and
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> attributes are set in the <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> example. In the previous
 version of our module, the instance variables <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code>
@@ -1055,7 +1055,7 @@ new value is not a string.</p>
 <p data-msgid="7eea94d3174e8d97dc65e3ced2f1deebed12ad26" data-score="92" data-since="260603">또한 이전과 마찬가지로, 초기화 함수에서 모듈 초기화 함수와 모듈 이름을 바꾸고, <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code> 파일에 추가 정의를 추가합니다.</p>
 </section>
 <section id="supporting-cyclic-garbage-collection">
-<h2 data-msgid="a20dbddefce1cae8da1988d50b3b5cce2ae71582" data-score="86" data-since="260603"><span class="section-number">2.4. </span>순환 가비지 수거 지원하기<a class="headerlink" href="#supporting-cyclic-garbage-collection" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="a20dbddefce1cae8da1988d50b3b5cce2ae71582" data-score="86" data-since="260603">순환 가비지 수거 지원하기<a class="headerlink" href="#supporting-cyclic-garbage-collection" title="Link to this heading">¶</a></h2>
 <p data-msgid="b4232c9c41557df9d9a195d41d7f9ad139a88a75" data-score="86" data-since="260603">파이썬에는 참조 횟수가 0이 아닐 때도 불필요한 객체를 식별할 수 있는 <a class="reference internal" href="../glossary.html#term-garbage-collection"><span class="xref std std-term">순환 가비지 수거기 (GC)</span></a>가 있습니다. 이것은 객체가 순환에 참여할 때 일어날 수 있습니다. 예를 들어, 다음을 고려하십시오:</p>
 <div class="highlight-pycon notranslate" data-msgid="e210808f7988b2ba1a91f889df2c9529483b7d25" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
@@ -1365,7 +1365,7 @@ returned if it is non-zero.</p>
 <p data-msgid="ba62b92ac0bba025e09866a6fbf880cfcfec3fbf" data-score="93" data-since="260603">거의 다 됐습니다. 사용자 정의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a>이나 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> 처리기를 작성했으면, 순환 가비지 수거를 위해 이를 수정해야 합니다. 대부분의 확장은 자동으로 제공된 버전을 사용합니다.</p>
 </section>
 <section id="subclassing-other-types">
-<h2 data-msgid="33672523e016e7789c43abb03ada661e3b78bb35" data-score="33" data-since="260603"><span class="section-number">2.5. </span>다른 형의 서브 클래싱<a class="headerlink" href="#subclassing-other-types" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="33672523e016e7789c43abb03ada661e3b78bb35" data-score="33" data-since="260603">다른 형의 서브 클래싱<a class="headerlink" href="#subclassing-other-types" title="Link to this heading">¶</a></h2>
 <p data-msgid="d1374a3c8047d3db6d54caa2eaced231fe972d37" data-score="86" data-since="260603">기존 형에서 파생된 새 확장형을 만들 수 있습니다. 확장이 필요한 <a class="reference internal" href="../c-api/type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a>를 쉽게 사용할 수 있어서, 내장형에서 상속하기가 가장 쉽습니다. 확장 모듈 간에 이러한 <a class="reference internal" href="../c-api/type.html#c.PyTypeObject" title="PyTypeObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code></a> 구조체를 공유하기 어려울 수 있습니다.</p>
 <p data-msgid="9900ec89de5c8a1569185f1b30fcc6b30660ed54" data-score="0" data-since="260603">In this example we will create a <code class="xref py py-class docutils literal notranslate"><span class="pre">SubList</span></code> type that inherits from the
 built-in <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> type. The new type will be completely compatible with

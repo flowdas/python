@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>profiling.tracing — Deterministic profiler &#8212; Python 3.16.0a0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.16.0a0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="profiling.sampling — Statistical profiler" href="profiling.sampling.html" />
+    <link rel="prev" title="profiling — Python profilers" href="profiling.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/library/profiling.tracing.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=a665af2d"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.16</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> — Deterministic profiler</a><ul>
+<li><a class="reference internal" href="#what-is-deterministic-profiling">What is deterministic profiling?</a></li>
+<li><a class="reference internal" href="#command-line-interface">Command-line interface</a></li>
+<li><a class="reference internal" href="#programmatic-usage-examples">Programmatic usage examples</a><ul>
+<li><a class="reference internal" href="#basic-profiling">Basic profiling</a></li>
+<li><a class="reference internal" href="#using-the-profile-class">Using the <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-reference">Module reference</a></li>
+<li><a class="reference internal" href="#using-a-custom-timer">Using a custom timer</a></li>
+<li><a class="reference internal" href="#limitations">Limitations</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">파이썬 표준 라이브러리</a></li>
+                    
+                        <li><a href="debug.html">Debugging and profiling</a></li>
+                    
+                        <li><a href="profiling.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling</span></code> — Python profilers</a></li>
+                    
+                    <li class="current"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> — Deterministic profiler</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="module-profiling.tracing">
+<span id="profiling-tracing-deterministic-profiler"></span><span id="profiling-tracing"></span><h1 data-msgid="3f786074dfcaafaf041202c589f30c8dd953ae5a" data-score="0" data-since="260608"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> — Deterministic profiler<a class="headerlink" href="#module-profiling.tracing" title="Link to this heading">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.15.</span></p>
+</div>
+<p data-msgid="4b9a073beda8f343560de6c04f71df67b0e21368" data-score="0" data-since="260608"><strong>Source code:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/profiling/tracing/`</span></a></p>
+<hr class="docutils" />
+<p data-msgid="3055ea4c3f93b24d0f8faa3979c3ceb2ce3c1975" data-score="0" data-since="260608">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> module provides deterministic profiling of Python
+programs. It monitors every function call, function return, and exception event,
+recording precise timing for each. This approach provides exact call counts and
+complete visibility into program execution, making it ideal for development and
+testing scenarios.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="03f0f8c45ab087ccaa83af4b41eddba724807d0f" data-score="0" data-since="260608">This module is also available as <code class="docutils literal notranslate"><span class="pre">cProfile</span></code> for backward compatibility.
+The <code class="docutils literal notranslate"><span class="pre">cProfile</span></code> name will continue to work in all future Python versions.
+Use whichever import style suits your codebase:</p>
+<div class="highlight-python3 notranslate" data-msgid="5156dfbdecc31c33ede4723599fd585b49ed43eb" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Preferred (new style)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
+<span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">)</span>
+
+<span class="c1"># Also works (backward compatible)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cProfile</span>
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="what-is-deterministic-profiling">
+<h2 data-msgid="781dd2127c452ac02c50776bcd4f967ab6cafe42" data-score="0" data-since="260608">What is deterministic profiling?<a class="headerlink" href="#what-is-deterministic-profiling" title="Link to this heading">¶</a></h2>
+<p data-msgid="55d2465ff68824bf7b7a785b1943c4f385476cd2" data-score="0" data-since="260608"><em class="dfn">Deterministic profiling</em> captures every function call, function return,
+and exception event during program execution. The profiler measures the precise
+time intervals between these events, providing exact statistics about how the
+program behaves.</p>
+<p data-msgid="99bc51f3014c9b4b9734fb9f226c63fa6f9cf69d" data-score="0" data-since="260608">In contrast to <a class="reference internal" href="profiling.sampling.html#profiling-sampling"><span class="std std-ref">statistical profiling</span></a>, which samples
+the call stack periodically to estimate where time is spent, deterministic
+profiling records every event. This means you get exact call counts rather than
+statistical approximations. The trade-off is that instrumenting every event
+introduces overhead that can slow down program execution.</p>
+<p data-msgid="38aec013ff5fd7625f8a3ef7838d7bb75e3d589f" data-score="0" data-since="260608">Python’s interpreted nature makes deterministic profiling practical. The
+interpreter already dispatches events for function calls and returns, so the
+profiler can hook into this mechanism without requiring code modification. The
+overhead tends to be moderate relative to the inherent cost of interpretation,
+making deterministic profiling suitable for most development workflows.</p>
+<p data-msgid="5e5227f6f43de54770b29a44740385314566a2fa" data-score="0" data-since="260608">Deterministic profiling helps answer questions like:</p>
+<ul class="simple">
+<li><p data-msgid="0b5450460a4f60eb1393d2df599abc1bc7820186" data-score="0" data-since="260608">How many times was this function called?</p></li>
+<li><p data-msgid="ca1b6d4cc49fb9ba4b47064ea5838602c77343a4" data-score="0" data-since="260608">What is the complete call graph of my program?</p></li>
+<li><p data-msgid="c7f83a65e47d4b77a976061fd047a5630e731bc2" data-score="0" data-since="260608">Which functions are called by a particular function?</p></li>
+<li><p data-msgid="60a73a2a7d08386fde7a05fcd3e882fd9026516f" data-score="0" data-since="260608">Are there unexpected function calls happening?</p></li>
+</ul>
+<p data-msgid="43923ac3a6ff39cf7a461653fb1f47aa00795b09" data-score="0" data-since="260608">Call count statistics can identify bugs (surprising counts) and inline
+expansion opportunities (high call counts). Internal time statistics reveal
+“hot loops” that warrant optimization. Cumulative time statistics help identify
+algorithmic inefficiencies. The handling of cumulative times in this profiler
+allows direct comparison of recursive and iterative implementations.</p>
+</section>
+<section id="command-line-interface">
+<span id="profiling-tracing-cli"></span><h2 data-msgid="c6cb5356866bc49f005ffa286dc1595832c99f1c" data-score="0" data-since="260603">Command-line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
+<p data-msgid="51df376fcd3891c6e8bb689a9494bc132a0c6e2b" data-score="0" data-since="260608">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> module can be invoked as a script to profile
+another script or module:</p>
+<div class="highlight-shell-session notranslate" data-msgid="508d1af04d119545d6dfdb985060e6fa1b477c4e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="go">python -m profiling.tracing [-o output_file] [-s sort_order] (-m module | script.py)</span>
+</pre></div>
+</div>
+<p data-msgid="a91bb12a18b21971e697b79057d58ec929283617" data-score="0" data-since="260608">This runs the specified script or module under the profiler and prints the
+results to standard output (or saves them to a file).</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-profiling.tracing-o">
+<span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_file&gt;</span></span><a class="headerlink" href="#cmdoption-profiling.tracing-o" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="227aae37b3c099722f5eb7a0b4c2695b58f4c90e" data-score="0" data-since="260608">Write the profile results to a file instead of standard output. The output
+file can be read by the <a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a> module for later analysis.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-profiling.tracing-s">
+<span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;sort_order&gt;</span></span><a class="headerlink" href="#cmdoption-profiling.tracing-s" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="9d0d9e687367626221182a54aaa6a4844b2c0eb7" data-score="0" data-since="260608">Sort the output by the specified key. This accepts any of the sort keys
+recognized by <a class="reference internal" href="pstats.html#pstats.Stats.sort_stats" title="pstats.Stats.sort_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pstats.Stats.sort_stats()</span></code></a>, such as <code class="docutils literal notranslate"><span class="pre">cumulative</span></code>,
+<code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">calls</span></code>, or <code class="docutils literal notranslate"><span class="pre">name</span></code>. This option only applies when
+<a class="reference internal" href="#cmdoption-profiling.tracing-o"><code class="xref std std-option docutils literal notranslate"><span class="pre">-o</span></code></a> is not specified.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-profiling.tracing-m">
+<span class="sig-name descname"><span class="pre">-m</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;module&gt;</span></span><a class="headerlink" href="#cmdoption-profiling.tracing-m" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="d1991a8ce1d33a36ef08cebec4a61fe399556328" data-score="0" data-since="260608">Profile a module instead of a script. The module is located using the
+standard import mechanism.</p>
+<div class="versionadded" data-msgid="e059aa7190f202601ce08f70db7d716e7c50a4a3" data-score="0" data-since="260608">
+<p><span class="versionmodified added">Added in version 3.7: </span>The <code class="docutils literal notranslate"><span class="pre">-m</span></code> option for <code class="docutils literal notranslate"><span class="pre">cProfile</span></code>.</p>
+</div>
+<div class="versionadded" data-msgid="4affc07f4b94d4713680a31263ee4a8a6a8250cc" data-score="0" data-since="260608">
+<p><span class="versionmodified added">Added in version 3.8: </span>The <code class="docutils literal notranslate"><span class="pre">-m</span></code> option for <a class="reference internal" href="profile.html#module-profile" title="profile: Pure Python profiler (deprecated). (폐지됨)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profile</span></code></a>.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="programmatic-usage-examples">
+<h2 data-msgid="a91ff30f60e1d5ffac5eac936bcd6648bfebf26a" data-score="0" data-since="260608">Programmatic usage examples<a class="headerlink" href="#programmatic-usage-examples" title="Link to this heading">¶</a></h2>
+<p data-msgid="536e5aaba3acd19f2f50eadaa4cd6ff53b1232cb" data-score="0" data-since="260608">For more control over profiling, use the module’s functions and classes
+directly.</p>
+<section id="basic-profiling">
+<h3 data-msgid="cda680c1b5a4f2d9bc6972c406da1331113e86d5" data-score="0" data-since="260608">Basic profiling<a class="headerlink" href="#basic-profiling" title="Link to this heading">¶</a></h3>
+<p data-msgid="4c70aabc86395c2ea79fc8fe44fa35355786de37" data-score="0" data-since="260608">The simplest approach uses the <code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code> function:</p>
+<div class="highlight-python3 notranslate" data-msgid="240c9d5c9ca7e2694f9f4e9ef555d642041cd5a9" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
+<span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p data-msgid="b02a96e4bfd109a9646a9da39f5a210317aa7d3f" data-score="0" data-since="260608">This profiles the given code string and prints a summary to standard output.
+To save results for later analysis:</p>
+<div class="highlight-python3 notranslate" data-msgid="58d6f33a377e3ead2af07fe55d953266a48a3f95" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">,</span> <span class="s1">&#39;output.prof&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-the-profile-class">
+<h3 data-msgid="fff3ed82a211a32b2eb909222d71c1f8a036c16a" data-score="0" data-since="260608">Using the <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class<a class="headerlink" href="#using-the-profile-class" title="Link to this heading">¶</a></h3>
+<p data-msgid="4d867be397f4580e6c990d8cba27a8dc9cd23b0d" data-score="0" data-since="260608">The <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class provides fine-grained control:</p>
+<div class="highlight-python3 notranslate" data-msgid="08cb2c5b93f24dd1d81b53816dc3b136dbeacc63" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pstats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="n">pr</span> <span class="o">=</span> <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span>
+<span class="n">pr</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+<span class="c1"># ... code to profile ...</span>
+<span class="n">pr</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+
+<span class="c1"># Print results</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+<span class="n">ps</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="n">pstats</span><span class="o">.</span><span class="n">SortKey</span><span class="o">.</span><span class="n">CUMULATIVE</span><span class="p">)</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+</pre></div>
+</div>
+<p data-msgid="4b9c089997e149f2cbc61aee7f983b4863e86bdf" data-score="0" data-since="260608">The <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class also works as a context manager:</p>
+<div class="highlight-python3 notranslate" data-msgid="66c04ff7641c4972609fc705cc91c8023698426e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
+
+<span class="k">with</span> <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span> <span class="k">as</span> <span class="n">pr</span><span class="p">:</span>
+    <span class="c1"># ... code to profile ...</span>
+
+<span class="n">pr</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="module-reference">
+<h2 data-msgid="79303385915874005eee364745f4a499b6c2a723" data-score="0" data-since="260608">Module reference<a class="headerlink" href="#module-reference" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="profiling.tracing.run">
+<span class="sig-prename descclassname"><span class="pre">profiling.tracing.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.run" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="8919e14b7dd44f36ef1e25f8f9305e5f6a3febff" data-score="0" data-since="260608">Profile execution of a command and print or save the results.</p>
+<p data-msgid="27cceb675557ebe4d1379f9a830bfca94cdb05b3" data-score="0" data-since="260608">This function executes the <em>command</em> string using <a class="reference internal" href="functions.html#exec" title="exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec()</span></code></a> in the
+<code class="docutils literal notranslate"><span class="pre">__main__</span></code> module’s namespace:</p>
+<div class="highlight-python3 notranslate" data-msgid="ab91ed5ad6aa1980e8452d68d28f925a140f1a84" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">__main__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">__main__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p data-msgid="aef89462cc5f660632c3bc2b2d059c3d1dd291b0" data-score="0" data-since="260608">If <em>filename</em> is not provided, the function creates a <a class="reference internal" href="pstats.html#pstats.Stats" title="pstats.Stats"><code class="xref py py-class docutils literal notranslate"><span class="pre">pstats.Stats</span></code></a>
+instance and prints a summary to standard output. If <em>filename</em> is
+provided, the raw profile data is saved to that file for later analysis
+with <a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a>.</p>
+<p data-msgid="ea0bb5a2693af90412dd6746eefb3b22728bbaf7" data-score="0" data-since="260608">The <em>sort</em> argument specifies the sort order for printed output, accepting
+any value recognized by <a class="reference internal" href="pstats.html#pstats.Stats.sort_stats" title="pstats.Stats.sort_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pstats.Stats.sort_stats()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="profiling.tracing.runctx">
+<span class="sig-prename descclassname"><span class="pre">profiling.tracing.</span></span><span class="sig-name descname"><span class="pre">runctx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.runctx" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="8ba86a59ebbc5072ee7db8fdbf5fc070a5b0e7e0" data-score="0" data-since="260608">Profile execution of a command with explicit namespaces.</p>
+<p data-msgid="1ef55e33b09d6a4bbd665a32d0a8977b431279bf" data-score="0" data-since="260608">Like <a class="reference internal" href="#profiling.tracing.run" title="profiling.tracing.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a>, but executes the command with the specified <em>globals</em>
+and <em>locals</em> mappings instead of using the <code class="docutils literal notranslate"><span class="pre">__main__</span></code> module’s namespace:</p>
+<div class="highlight-python3 notranslate" data-msgid="0d3e25f07b17fdb98da83017740c463ab0739bfc" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="nb">globals</span><span class="p">,</span> <span class="nb">locals</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="profiling.tracing.Profile">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">profiling.tracing.</span></span><span class="sig-name descname"><span class="pre">Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeunit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subcalls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builtins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="228c0278ec1c1d2aae8eb4f750180ff4a25d85e5" data-score="0" data-since="260608">A profiler object that collects execution statistics.</p>
+<p data-msgid="4383758c81c2548c7432b7600e45f3e3c7718f04" data-score="0" data-since="260608">The optional <em>timer</em> argument specifies a custom timing function. If not
+provided, the profiler uses a platform-appropriate default timer. When
+supplying a custom timer, it must return a single number representing the
+current time. If the timer returns integers, use <em>timeunit</em> to specify the
+duration of one time unit (for example, <code class="docutils literal notranslate"><span class="pre">0.001</span></code> for milliseconds).</p>
+<p data-msgid="18bbfd4122b805c8c70f3045c2fabbbc1bba356c" data-score="0" data-since="260608">The <em>subcalls</em> argument controls whether the profiler tracks call
+relationships between functions. The <em>builtins</em> argument controls whether
+built-in functions are profiled.</p>
+<div class="versionchanged" data-msgid="2fcb0ffa3f676720b6d1daa3da0743cc5cc9f4e3" data-score="0" data-since="260603">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Added context manager support.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.enable">
+<span class="sig-name descname"><span class="pre">enable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.enable" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="c29d95b5e665e53efb9e8378af02cb66c316a91d" data-score="0" data-since="260608">Start collecting profiling data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.disable">
+<span class="sig-name descname"><span class="pre">disable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.disable" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="a080c1f581ba85a4be5a4ad50e18bcb9a6d83e1a" data-score="0" data-since="260608">Stop collecting profiling data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.create_stats">
+<span class="sig-name descname"><span class="pre">create_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.create_stats" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="50ea0cb8e262fd800a779c61512637d54bd96308" data-score="0" data-since="260608">Stop collecting data and record the results internally as the current
+profile.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.print_stats">
+<span class="sig-name descname"><span class="pre">print_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.print_stats" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="7892c74797785586d5d120446a73712ae88acf9d" data-score="0" data-since="260608">Create a <a class="reference internal" href="pstats.html#pstats.Stats" title="pstats.Stats"><code class="xref py py-class docutils literal notranslate"><span class="pre">pstats.Stats</span></code></a> object from the current profile and print
+the results to standard output.</p>
+<p data-msgid="58be16aa76f02d49e45a207a168036d29abbe1b1" data-score="0" data-since="260608">The <em>sort</em> argument specifies the sorting order. It accepts a single
+key or a tuple of keys for multi-level sorting, using the same values
+as <a class="reference internal" href="pstats.html#pstats.Stats.sort_stats" title="pstats.Stats.sort_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pstats.Stats.sort_stats()</span></code></a>.</p>
+<div class="versionadded" data-msgid="72573d041790d3e85b42b32f58af3e3c9ca0f469" data-score="0" data-since="260608">
+<p><span class="versionmodified added">Added in version 3.13: </span>Support for a tuple of sort keys.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.dump_stats">
+<span class="sig-name descname"><span class="pre">dump_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.dump_stats" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="a78572f2338587f34903f66d15eff1f25ac2e704" data-score="0" data-since="260608">Write the current profile data to <em>filename</em>. The file can be read by
+<a class="reference internal" href="pstats.html#pstats.Stats" title="pstats.Stats"><code class="xref py py-class docutils literal notranslate"><span class="pre">pstats.Stats</span></code></a> for later analysis.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.run" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="d18cd5f371a680cefb8f1584683008a1a3748c07" data-score="0" data-since="260608">Profile the command string via <a class="reference internal" href="functions.html#exec" title="exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.runctx">
+<span class="sig-name descname"><span class="pre">runctx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.runctx" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="6e2e02e71a0ec27238c050a9c8fae455fc112382" data-score="0" data-since="260608">Profile the command string via <a class="reference internal" href="functions.html#exec" title="exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec()</span></code></a> with the specified
+namespaces.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profiling.tracing.Profile.runcall">
+<span class="sig-name descname"><span class="pre">runcall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile.runcall" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="bfc8831ce9423b018405af5b50aa6f52c32a0d50" data-score="0" data-since="260608">Profile a function call. Returns whatever <em>func</em> returns:</p>
+<div class="highlight-python3 notranslate" data-msgid="84ab5d14a4d6da3d4ac3a9f56fa158c1a6d3adba" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">runcall</span><span class="p">(</span><span class="n">my_function</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">keyword</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="b2672f47e92868dc00559b3c7101ec06f2b3b644" data-score="0" data-since="260608">Profiling requires that the profiled code returns normally. If the
+interpreter terminates (for example, via <a class="reference internal" href="sys.html#sys.exit" title="sys.exit"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.exit()</span></code></a>) during
+profiling, no results will be available.</p>
+</div>
+</section>
+<section id="using-a-custom-timer">
+<h2 data-msgid="de60096a210691c18ae3d3da4e5e7f7f31853253" data-score="0" data-since="260603">Using a custom timer<a class="headerlink" href="#using-a-custom-timer" title="Link to this heading">¶</a></h2>
+<p data-msgid="8bdf437b7714b20e259ab4e50fdb13b9c23fa38e" data-score="0" data-since="260608">The <a class="reference internal" href="#profiling.tracing.Profile" title="profiling.tracing.Profile"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code></a> class accepts a custom timing function, allowing you to
+measure different aspects of execution such as wall-clock time or CPU time.
+Pass the timing function to the constructor:</p>
+<div class="highlight-python3 notranslate" data-msgid="da27e7883b800aa4a866abc71d6d95728cfc3899" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">pr</span> <span class="o">=</span> <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">my_timer_function</span><span class="p">)</span>
+</pre></div>
+</div>
+<p data-msgid="56d69cf9c4611c376544fc7237d26b4cadf9feb4" data-score="0" data-since="260608">The timer function must return a single number representing the current time.
+If it returns integers, also specify <em>timeunit</em> to indicate the duration of
+one unit:</p>
+<div class="highlight-python3 notranslate" data-msgid="63296ecd070361f8fbf7b26de698bb9076a0397b" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Timer returns time in milliseconds</span>
+<span class="n">pr</span> <span class="o">=</span> <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">my_ms_timer</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>
+</pre></div>
+</div>
+<p data-msgid="7593d73ed2fa0bd0efdd32e3911ff0876fa56c38" data-score="0" data-since="260608">For best performance, the timer function should be as fast as possible. The
+profiler calls it frequently, so timer overhead directly affects profiling
+overhead.</p>
+<p data-msgid="0b7f7cbaa010c5814632afc1cf6d07255e473b36" data-score="0" data-since="260608">The <a class="reference internal" href="time.html#module-time" title="time: Time access and conversions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">time</span></code></a> module provides several functions suitable for use as custom
+timers:</p>
+<ul class="simple">
+<li><p data-msgid="5b6ff5c9c950da1b6f56245b27884e0b1aad246f" data-score="0" data-since="260608"><a class="reference internal" href="time.html#time.perf_counter" title="time.perf_counter"><code class="xref py py-func docutils literal notranslate"><span class="pre">time.perf_counter()</span></code></a> for high-resolution wall-clock time</p></li>
+<li><p data-msgid="c22583620a20a083afdea189c60996ed3185278c" data-score="0" data-since="260608"><a class="reference internal" href="time.html#time.process_time" title="time.process_time"><code class="xref py py-func docutils literal notranslate"><span class="pre">time.process_time()</span></code></a> for CPU time (excluding sleep)</p></li>
+<li><p data-msgid="ee0cee72d6c0aded34a3a11fc02b8fde4f9c262a" data-score="0" data-since="260608"><a class="reference internal" href="time.html#time.monotonic" title="time.monotonic"><code class="xref py py-func docutils literal notranslate"><span class="pre">time.monotonic()</span></code></a> for monotonic clock time</p></li>
+</ul>
+</section>
+<section id="limitations">
+<h2 data-msgid="a7c04c64ed3f2a9374590c76c50d3b7f1b18e3da" data-score="0" data-since="260603">Limitations<a class="headerlink" href="#limitations" title="Link to this heading">¶</a></h2>
+<p data-msgid="44d4bbeca8ab9db485fff326d24bda95fe98a0e7" data-score="0" data-since="260608">Deterministic profiling has inherent limitations related to timing accuracy.</p>
+<p data-msgid="20d885d3ffde267171b284c58356f49ba9a2cb3e" data-score="0" data-since="260608">The underlying timer typically has a resolution of about one millisecond.
+Measurements cannot be more accurate than this resolution. With enough
+measurements, timing errors tend to average out, but individual measurements
+may be imprecise.</p>
+<p data-msgid="fed9a725907687013b76ce13eb011c30fb2a632a" data-score="0" data-since="260608">There is also latency between when an event occurs and when the profiler
+captures the timestamp. Similarly, there is latency after reading the
+timestamp before user code resumes. Functions called frequently accumulate
+this latency, which can make them appear slower than they actually are. This
+error is typically less than one clock tick per call but can become
+significant for functions called many times.</p>
+<p data-msgid="abe27fa0ddb7957df45e7ce4544a64843c694d48" data-score="0" data-since="260608">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> module (and its <code class="docutils literal notranslate"><span class="pre">cProfile</span></code> alias) is
+implemented as a C extension with low overhead, so these timing issues are
+less pronounced than with the deprecated pure Python <a class="reference internal" href="profile.html#module-profile" title="profile: Pure Python profiler (deprecated). (폐지됨)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profile</span></code></a> module.</p>
+<div class="admonition seealso">
+<p class="admonition-title">더 보기</p>
+<dl class="simple">
+<dt data-msgid="966203d730a511675c2eed1f4877f508b6007ef9" data-score="0" data-since="260608"><a class="reference internal" href="profiling.html#module-profiling" title="profiling: Python profiling tools for performance analysis."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling</span></code></a></dt><dd><p data-msgid="d965f673a09a2b6478ebb7aaeceb153577ecda21" data-score="0" data-since="260608">Overview of Python profiling tools and guidance on choosing a profiler.</p>
+</dd>
+<dt data-msgid="602d654cf2729f7203d4e47d7b202694596bff68" data-score="0" data-since="260608"><a class="reference internal" href="profiling.sampling.html#module-profiling.sampling" title="profiling.sampling: Statistical sampling profiler for Python processes."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.sampling</span></code></a></dt><dd><p data-msgid="b15f29d53e05c8fbedd7f755b1c8f9b5bca32222" data-score="0" data-since="260608">Statistical sampling profiler for production use.</p>
+</dd>
+<dt data-msgid="50e5d9931470b73eaa1ed3f95729ae3faf988122" data-score="0" data-since="260603"><a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a></dt><dd><p data-msgid="8baf37b54ded328483fbb21dd691a6076d218d4b" data-score="0" data-since="260608">Statistics analysis and formatting for profile data.</p>
+</dd>
+<dt data-msgid="fd43faf1413971dca400c53f8cf78193ef6cefc6" data-score="0" data-since="260608"><a class="reference internal" href="profile.html#module-profile" title="profile: Pure Python profiler (deprecated). (폐지됨)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profile</span></code></a></dt><dd><p data-msgid="0869088e1906a29322382f5ef8bf9414eeb4e958" data-score="0" data-since="260608">Deprecated pure Python profiler (includes calibration documentation).</p>
+</dd>
+</dl>
+</div>
+</section>
+</section>
+
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>
