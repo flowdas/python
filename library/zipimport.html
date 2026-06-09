@@ -8,9 +8,11 @@
     <title>zipimport — Zip 저장소에서 모듈 임포트 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -111,61 +113,54 @@
             <article class="document">
                 
   <section id="module-zipimport">
-<span id="zipimport-import-modules-from-zip-archives"></span><h1 data-msgid="cdeab88451b8aa30afeb068590cdbba630e58353" data-score="100" data-since="260603"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zipimport</span></code> — Zip 저장소에서 모듈 임포트<a class="headerlink" href="#module-zipimport" title="Link to this heading">¶</a></h1>
-<p data-msgid="c649027a50e21045d42b6082be8c680f2e204783" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/zipimport.py`</span></a></p>
+<span id="zipimport-import-modules-from-zip-archives"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">zipimport</span></code> — Zip 저장소에서 모듈 임포트<a class="headerlink" href="#module-zipimport" title="Link to this heading">¶</a></h1>
+<p><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/zipimport.py">Lib/zipimport.py</a></p>
 <hr class="docutils" />
-<p data-msgid="1ca62bdd4d7d9c212f1f16e9d0afbd0bf484f286" data-score="0" data-since="260608">This module adds the ability to import Python modules (<code class="file docutils literal notranslate"><span class="pre">*.py</span></code>,
-<code class="file docutils literal notranslate"><span class="pre">*.pyc</span></code>) and packages from ZIP-format archives. It is usually not
-needed to use the <code class="xref py py-mod docutils literal notranslate"><span class="pre">zipimport</span></code> module explicitly; it is automatically used
-by the built-in <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a> mechanism for <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a> items that are paths
-to ZIP archives.</p>
-<p data-msgid="d195db2d0040edd62332a395800f72489dd1b226" data-score="95" data-since="260603">일반적으로, <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a>는 문자열 디렉터리 이름의 리스트입니다. 이 모듈은 또한 <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a> 항목이 ZIP 파일 저장소를 명명하는 문자열이 될 수 있도록 합니다. ZIP 저장소에는 패키지 임포트를 지원하는 하위 디렉터리 구조가 포함될 수 있으며, 저장소 내의 경로를 지정하여 하위 디렉터리에서만 임포트 되도록 할 수 있습니다. 예를 들어, 경로 <code class="file docutils literal notranslate"><span class="pre">example.zip/lib/</span></code>는 저장소 내의 <code class="file docutils literal notranslate"><span class="pre">lib/</span></code> 서브 디렉터리에서만 임포트하도록 합니다.</p>
-<p data-msgid="171474d0ab980b893efb9ad83d44a13280d8b502" data-score="93" data-since="260603">어떤 파일이든 ZIP 저장소에 있을 수 있지만, 임포터는 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 와 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일에 대해서만 호출됩니다. 동적 모듈(<code class="file docutils literal notranslate"><span class="pre">.pyd</span></code>, <code class="file docutils literal notranslate"><span class="pre">.so</span></code>)의 ZIP 임포트는 허용되지 않습니다. 저장소에 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일만 포함되어있으면, 파이썬은 해당 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일을 추가하여 저장소를 수정하지 않습니다. 즉, ZIP 저장소에 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일이 포함되어 있지 않으면, 임포트가 다소 느릴 수 있습니다.</p>
-<div class="versionchanged" data-msgid="81f19a8cc17832e9f28feb569c56cd723eb343a9" data-score="0" data-since="260608">
-<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Zstandard (<em>zstd</em>) compressed zip file entries are supported.</p>
+<p>이 모듈은 파이썬 모듈(<code class="file docutils literal notranslate"><span class="pre">*.py</span></code>, <code class="file docutils literal notranslate"><span class="pre">*.pyc</span></code>)과 아카이브에서 오는 패키지를 임포트하는 기능을 추가합니다. 일반적으로 <code class="xref py py-mod docutils literal notranslate"><span class="pre">zipimport</span></code> 모듈을 명시적으로 사용할 필요는 없으며, ZIP 아카이브 경로인 <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a> 항목에 대해서는 내장된 <a class="reference internal" href="../reference/simple_stmts.html#import"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">import</span></code></a> 메커니즘이 자동으로 사용합니다.</p>
+<p>일반적으로, <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a>는 문자열 디렉터리 이름의 리스트입니다. 이 모듈은 또한 <a class="reference internal" href="sys.html#sys.path" title="sys.path"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.path</span></code></a> 항목이 ZIP 파일 저장소를 명명하는 문자열이 될 수 있도록 합니다. ZIP 저장소에는 패키지 임포트를 지원하는 하위 디렉터리 구조가 포함될 수 있으며, 저장소 내의 경로를 지정하여 하위 디렉터리에서만 임포트 되도록 할 수 있습니다. 예를 들어, 경로 <code class="file docutils literal notranslate"><span class="pre">example.zip/lib/</span></code>는 저장소 내의 <code class="file docutils literal notranslate"><span class="pre">lib/</span></code> 서브 디렉터리에서만 임포트하도록 합니다.</p>
+<p>어떤 파일이든 ZIP 저장소에 있을 수 있지만, 임포터는 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 와 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일에 대해서만 호출됩니다. 동적 모듈(<code class="file docutils literal notranslate"><span class="pre">.pyd</span></code>, <code class="file docutils literal notranslate"><span class="pre">.so</span></code>)의 ZIP 임포트는 허용되지 않습니다. 저장소에 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일만 포함되어있으면, 파이썬은 해당 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일을 추가하여 저장소를 수정하지 않습니다. 즉, ZIP 저장소에 <code class="file docutils literal notranslate"><span class="pre">.pyc</span></code> 파일이 포함되어 있지 않으면, 임포트가 다소 느릴 수 있습니다.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>Zstandard (<em>zstd</em>) 압축된 zip 파일 항목을 지원합니다.</p>
 </div>
-<div class="versionchanged" data-msgid="25d05b158d5c95db65cc23eeba54f6c327aba076" data-score="85" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.13에서 변경: </span>ZIP64 를 지원합니다</p>
 </div>
-<div class="versionchanged" data-msgid="2d369188bcac647de8e53b4b7b56acd09eb337db" data-score="78" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.8에서 변경: </span>전에는, 저장소 주석이 포함된 ZIP 저장소는 지원되지 않았습니다.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <dl class="simple">
-<dt data-msgid="68878a6ff4095c439d28a628c363fd1949cd4204" data-score="99" data-since="260603"><a class="reference external" href="https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT">PKZIP Application Note</a></dt><dd><p data-msgid="54469b6bd39b705e43b8962025cf5f918051f4d6" data-score="72" data-since="260603">사용된 형식과 알고리즘 저자인 Phil Katz의 ZIP 파일 형식에 관한 설명서.</p>
+<dt><a class="reference external" href="https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT">PKZIP Application Note</a></dt><dd><p>사용된 형식과 알고리즘 저자인 Phil Katz의 ZIP 파일 형식에 관한 설명서.</p>
 </dd>
-<dt data-msgid="03f31d7b8f5ba61cc2d5617241e7f4e8e9e96968" data-score="100" data-since="260603"><span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0273/"><strong>PEP 273</strong></a> - Zip 저장소에서 모듈 임포트</dt><dd><p data-msgid="5029e4ecee87dcffeaf278815cfb4db5f68dc38a" data-score="96" data-since="260603">구현도 제공한 James C. Ahlstrom이 작성했습니다. 파이썬 2.3은 <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0273/"><strong>PEP 273</strong></a>의 명세를 따르지만, Just van Rossum이 작성한 구현을 사용하는데 <span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0302/"><strong>PEP 302</strong></a>에 설명된 임포트 훅을 사용합니다.</p>
+<dt><span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0273/"><strong>PEP 273</strong></a> - Zip 저장소에서 모듈 임포트</dt><dd><p>구현도 제공한 James C. Ahlstrom이 작성했습니다. 파이썬 2.3은 <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0273/"><strong>PEP 273</strong></a>의 명세를 따르지만, Just van Rossum이 작성한 구현을 사용하는데 <span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0302/"><strong>PEP 302</strong></a>에 설명된 임포트 훅을 사용합니다.</p>
 </dd>
-<dt data-msgid="be07715b7e2fb5f3441ddd4cc57af26d231aa856" data-score="0" data-since="260603"><a class="reference internal" href="importlib.html#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a> - The implementation of the import machinery</dt><dd><p data-msgid="f93387a68b1368720dbec40234ab8472e51a8743" data-score="0" data-since="260603">Package providing the relevant protocols for all importers to
-implement.</p>
+<dt><a class="reference internal" href="importlib.html#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a> - 임포트 메커니즘의 구현</dt><dd><p>모든 임포터가 구현할 관련 프로토콜을 제공하는 패키지입니다.</p>
 </dd>
 </dl>
 </div>
-<p data-msgid="cc5d1611a8f8acccc4d6cf1756c216896a066e42" data-score="56" data-since="260603">이 모듈은 예외를 정의합니다:</p>
+<p>이 모듈은 예외를 정의합니다:</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="zipimport.ZipImportError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">zipimport.</span></span><span class="sig-name descname"><span class="pre">ZipImportError</span></span><a class="headerlink" href="#zipimport.ZipImportError" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="aa16a2db6705bc32ea2a507ebe588035b19c1f95" data-score="84" data-since="260603">zipimporter 객체가 발생시키는 예외. <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>의 서브 클래스이므로, <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>로도 잡힐 수 있습니다.</p>
+<dd><p>zipimporter 객체가 발생시키는 예외. <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>의 서브 클래스이므로, <a class="reference internal" href="exceptions.html#ImportError" title="ImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ImportError</span></code></a>로도 잡힐 수 있습니다.</p>
 </dd></dl>
 
 <section id="zipimporter-objects">
-<span id="id3"></span><h2 data-msgid="2807fcb76a789c5317a5bd8e316f7a6837e35401" data-score="100" data-since="260603">zipimporter 객체<a class="headerlink" href="#zipimporter-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="57a2f60c2d4a0f2fc518fdf61064b9167d186d97" data-score="98" data-since="260603"><a class="reference internal" href="#zipimport.zipimporter" title="zipimport.zipimporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">zipimporter</span></code></a>는 ZIP 파일을 임포트하는 클래스입니다.</p>
+<span id="id1"></span><h2>zipimporter 객체<a class="headerlink" href="#zipimporter-objects" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="#zipimport.zipimporter" title="zipimport.zipimporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">zipimporter</span></code></a>는 ZIP 파일을 임포트하는 클래스입니다.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="zipimport.zipimporter">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">zipimport.</span></span><span class="sig-name descname"><span class="pre">zipimporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">archivepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d2cb346e1d84a6cc5130c17c28ed8869f62444c3" data-score="93" data-since="260603">새로운 zipimporter 인스턴스를 만듭니다. <em>archivepath</em>는 ZIP 파일의 경로이거나, ZIP 파일 내의 특정 경로여야 합니다. 예를 들어, <em>archivepath</em> <code class="file docutils literal notranslate"><span class="pre">foo/bar.zip/lib</span></code>는 ZIP 파일 <code class="file docutils literal notranslate"><span class="pre">foo/bar.zip</span></code> 내의 <code class="file docutils literal notranslate"><span class="pre">lib</span></code> 디렉터리에 있는 모듈을 찾습니다 (존재한다면).</p>
-<p data-msgid="d12aca0ef2880d16265e4eeeb08429c77de7ff87" data-score="97" data-since="260603"><em>archivepath</em>가 유효한 ZIP 저장소를 가리키지 않으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>가 발생합니다.</p>
+<dd><p>새로운 zipimporter 인스턴스를 만듭니다. <em>archivepath</em>는 ZIP 파일의 경로이거나, ZIP 파일 내의 특정 경로여야 합니다. 예를 들어, <em>archivepath</em> <code class="file docutils literal notranslate"><span class="pre">foo/bar.zip/lib</span></code>는 ZIP 파일 <code class="file docutils literal notranslate"><span class="pre">foo/bar.zip</span></code> 내의 <code class="file docutils literal notranslate"><span class="pre">lib</span></code> 디렉터리에 있는 모듈을 찾습니다 (존재한다면).</p>
+<p><em>archivepath</em>가 유효한 ZIP 저장소를 가리키지 않으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>가 발생합니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.12에서 변경: </span>Methods <code class="docutils literal notranslate"><span class="pre">find_loader()</span></code> and <code class="docutils literal notranslate"><span class="pre">find_module()</span></code>, deprecated in 3.10 are
-now removed.  Use <a class="reference internal" href="#zipimport.zipimporter.find_spec" title="zipimport.zipimporter.find_spec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_spec()</span></code></a> instead.</p>
+<p><span class="versionmodified changed">버전 3.12에서 변경: </span>3.10에서 사용 중단된 메서드 <code class="docutils literal notranslate"><span class="pre">find_loader()</span></code> 와 <code class="docutils literal notranslate"><span class="pre">find_module()</span></code> 은 이제 제거되었습니다. 대신 <a class="reference internal" href="#zipimport.zipimporter.find_spec" title="zipimport.zipimporter.find_spec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_spec()</span></code></a> 을 사용하십시오.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.create_module">
 <span class="sig-name descname"><span class="pre">create_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.create_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="79df5e399f99cc03ea89e5961913a02d9c3df027" data-score="0" data-since="260603">Implementation of <a class="reference internal" href="importlib.html#importlib.abc.Loader.create_module" title="importlib.abc.Loader.create_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.Loader.create_module()</span></code></a> that returns
-<a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a> to explicitly request the default semantics.</p>
+<dd><p>기본 의미론을 명시적으로 요청하는 :const:<a href="#id1"><span class="problematic" id="id2">`</span></a>None`을 반환하는 :meth:<a href="#id3"><span class="problematic" id="id4">`</span></a>importlib.abc.Loader.create_module`의 구현입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
 </div>
@@ -174,7 +169,7 @@ now removed.  Use <a class="reference internal" href="#zipimport.zipimporter.fin
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.exec_module">
 <span class="sig-name descname"><span class="pre">exec_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.exec_module" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="68e4cb389783849a10ac63da28902d5eb80c4498" data-score="0" data-since="260603">Implementation of <a class="reference internal" href="importlib.html#importlib.abc.Loader.exec_module" title="importlib.abc.Loader.exec_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.Loader.exec_module()</span></code></a>.</p>
+<dd><p>:meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>importlib.abc.Loader.exec_module`의 구현입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
 </div>
@@ -183,7 +178,7 @@ now removed.  Use <a class="reference internal" href="#zipimport.zipimporter.fin
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.find_spec">
 <span class="sig-name descname"><span class="pre">find_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.find_spec" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="711e59b97c2dc704ef50f5ec636d3a7cdae4a908" data-score="0" data-since="260603">An implementation of <a class="reference internal" href="importlib.html#importlib.abc.PathEntryFinder.find_spec" title="importlib.abc.PathEntryFinder.find_spec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">importlib.abc.PathEntryFinder.find_spec()</span></code></a>.</p>
+<dd><p>:meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>importlib.abc.PathEntryFinder.find_spec`의 구현입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
 </div>
@@ -192,14 +187,14 @@ now removed.  Use <a class="reference internal" href="#zipimport.zipimporter.fin
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.get_code">
 <span class="sig-name descname"><span class="pre">get_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.get_code" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="356dd6344c33dada12dd38293c4b0c92768c5717" data-score="99" data-since="260603">지정된 모듈의 코드 객체를 반환합니다. 모듈을 임포트할 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시킵니다.</p>
+<dd><p>지정된 모듈의 코드 객체를 반환합니다. 모듈을 임포트할 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시킵니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.get_data">
 <span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.get_data" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9874061defab58b085aef62e25de696db5253bb5" data-score="97" data-since="260603"><em>pathname</em>와 관련된 데이터를 반환합니다. 파일을 찾을 수 없으면 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>를 발생시킵니다.</p>
-<div class="versionchanged" data-msgid="91f3fd83d20ca6c52e6ee91bc609d8e5bc3e6251" data-score="72" data-since="260603">
+<dd><p><em>pathname</em>와 관련된 데이터를 반환합니다. 파일을 찾을 수 없으면 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>를 발생시킵니다.</p>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.3에서 변경: </span><a class="reference internal" href="exceptions.html#IOError" title="IOError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">IOError</span></code></a> 를 발생시켜왔습니다, 이제 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">OSError</span></code></a>의 별칭입니다.</p>
 </div>
 </dd></dl>
@@ -207,7 +202,7 @@ now removed.  Use <a class="reference internal" href="#zipimport.zipimporter.fin
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.get_filename">
 <span class="sig-name descname"><span class="pre">get_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.get_filename" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b65909faed4e934ed2d590088d14ce6ad48957d6" data-score="93" data-since="260603">지정한 모듈이 임포트될 때 설정될 <code class="docutils literal notranslate"><span class="pre">__file__</span></code>의 값을 반환합니다. 모듈을 임포트할 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시킵니다.</p>
+<dd><p>지정한 모듈이 임포트될 때 설정될 <code class="docutils literal notranslate"><span class="pre">__file__</span></code>의 값을 반환합니다. 모듈을 임포트할 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시킵니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.1.</span></p>
 </div>
@@ -216,20 +211,19 @@ now removed.  Use <a class="reference internal" href="#zipimport.zipimporter.fin
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.get_source">
 <span class="sig-name descname"><span class="pre">get_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.get_source" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5e5d0581604cb2ac0ae5ee739cd59b55c7bfbd20" data-score="96" data-since="260603">지정된 모듈의 소스 코드를 반환합니다. 모듈을 찾을 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시키고, 저장소에 모듈이 있지만, 소스가 없으면 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 반환합니다.</p>
+<dd><p>지정된 모듈의 소스 코드를 반환합니다. 모듈을 찾을 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시키고, 저장소에 모듈이 있지만, 소스가 없으면 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.is_package">
 <span class="sig-name descname"><span class="pre">is_package</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.is_package" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="227a96e2f8623629b49252da4fe4803f1af5c805" data-score="96" data-since="260603"><em>fullname</em>으로 지정된 모듈이 패키지면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다. 모듈을 찾을 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시킵니다.</p>
+<dd><p><em>fullname</em>으로 지정된 모듈이 패키지면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다. 모듈을 찾을 수 없으면 <a class="reference internal" href="#zipimport.ZipImportError" title="zipimport.ZipImportError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ZipImportError</span></code></a>를 발생시킵니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zipimport.zipimporter.invalidate_caches">
 <span class="sig-name descname"><span class="pre">invalidate_caches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zipimport.zipimporter.invalidate_caches" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4e9dd038d440de3b19e002e069a1e9e03831bdec" data-score="0" data-since="260603">Clear out the internal cache of information about files found within
-the ZIP archive.</p>
+<dd><p>ZIP 아카이브 내에서 발견된 파일 정보에 대한 내부 캐시를 지웁니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
 </div>
@@ -238,24 +232,23 @@ the ZIP archive.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="zipimport.zipimporter.archive">
 <span class="sig-name descname"><span class="pre">archive</span></span><a class="headerlink" href="#zipimport.zipimporter.archive" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6e8cdb5a4588e2688363c2f9738f79ba22753a8d" data-score="14" data-since="260603">있을 수도 있는 하위 경로를 제외한, 임포터와 연결된 ZIP 파일의 파일 이름.</p>
+<dd><p>있을 수도 있는 하위 경로를 제외한, 임포터와 연결된 ZIP 파일의 파일 이름.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="zipimport.zipimporter.prefix">
 <span class="sig-name descname"><span class="pre">prefix</span></span><a class="headerlink" href="#zipimport.zipimporter.prefix" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="3235524ccb9c1e0d4a3a9eb09aa8ce85f29285f5" data-score="96" data-since="260603">모듈이 검색되는 ZIP 파일 내의 하위 경로. ZIP 파일의 루트를 가리키는 zipimporter 객체에서는 빈 문자열입니다.</p>
+<dd><p>모듈이 검색되는 ZIP 파일 내의 하위 경로. ZIP 파일의 루트를 가리키는 zipimporter 객체에서는 빈 문자열입니다.</p>
 </dd></dl>
 
-<p data-msgid="1a8a36b1d78e81c85a177c44f68b60f4fee403a9" data-score="95" data-since="260603"><a class="reference internal" href="#zipimport.zipimporter.archive" title="zipimport.zipimporter.archive"><code class="xref py py-attr docutils literal notranslate"><span class="pre">archive</span></code></a>와 <a class="reference internal" href="#zipimport.zipimporter.prefix" title="zipimport.zipimporter.prefix"><code class="xref py py-attr docutils literal notranslate"><span class="pre">prefix</span></code></a> 어트리뷰트는, 슬래시로 결합 될 때, <a class="reference internal" href="#zipimport.zipimporter" title="zipimport.zipimporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">zipimporter</span></code></a> 생성자에 지정된 원래 <em>archivepath</em> 인자와 같습니다.</p>
+<p><a class="reference internal" href="#zipimport.zipimporter.archive" title="zipimport.zipimporter.archive"><code class="xref py py-attr docutils literal notranslate"><span class="pre">archive</span></code></a>와 <a class="reference internal" href="#zipimport.zipimporter.prefix" title="zipimport.zipimporter.prefix"><code class="xref py py-attr docutils literal notranslate"><span class="pre">prefix</span></code></a> 어트리뷰트는, 슬래시로 결합 될 때, <a class="reference internal" href="#zipimport.zipimporter" title="zipimport.zipimporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">zipimporter</span></code></a> 생성자에 지정된 원래 <em>archivepath</em> 인자와 같습니다.</p>
 </dd></dl>
 
 </section>
 <section id="examples">
-<span id="zipimport-examples"></span><h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="100" data-since="260603">예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
-<p data-msgid="4491369d616d3bb6f70e786f633de1afa7cfe84b" data-score="0" data-since="260608">Here is an example that imports a module from a ZIP archive - note that the
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">zipimport</span></code> module is not explicitly used.</p>
-<div class="highlight-shell-session notranslate" data-msgid="f7fceba7efbbe6f396bff05a7b0638685d8d0d6d" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span>unzip<span class="w"> </span>-l<span class="w"> </span>example_archive.zip
+<span id="zipimport-examples"></span><h2>예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>ZIP 아카이브에서 모듈을 임포트하는 예제입니다 - <code class="xref py py-mod docutils literal notranslate"><span class="pre">zipimport</span></code> 모듈이 명시적으로 사용되지 않음에 유의하십시오.</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>unzip<span class="w"> </span>-l<span class="w"> </span>example_archive.zip
 <span class="go">Archive:  example_archive.zip</span>
 <span class="go">  Length     Date   Time    Name</span>
 <span class="go"> --------    ----   ----    ----</span>
@@ -264,8 +257,8 @@ the ZIP archive.</p>
 <span class="go">     8467                   1 file</span>
 </pre></div>
 </div>
-<div class="highlight-pycon notranslate" data-msgid="3ba36d6d4367c6dda158f63ad2ea3e9054f932f0" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add the archive to the front of the module search path</span>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 아카이브를 모듈 검색 경로의 맨 앞에 추가합니다</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;example_archive.zip&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">example</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">example</span><span class="o">.</span><span class="vm">__file__</span>
@@ -274,12 +267,7 @@ the ZIP archive.</p>
 </div>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="67e17b5e130a719bb9f2eb97864f533c45afcda4" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

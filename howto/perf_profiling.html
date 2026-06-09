@@ -8,9 +8,11 @@
     <title>Python support for the perf map compatible profilers &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -23,7 +25,7 @@
     <link rel="prev" title="DTrace와 SystemTap으로 CPython 계측하기" href="instrumentation.html" />
     
       
-      <link rel="canonical" href="https://docs.python.org/3/howto/perf_profiling.html">
+      <link rel="canonical" href="https://python.flowdas.com/howto/perf_profiling.html">
       
     
 
@@ -111,21 +113,21 @@
             <article class="document">
                 
   <section id="python-support-for-the-perf-map-compatible-profilers">
-<span id="perf-profiling"></span><h1 data-msgid="99e5c8c2866509e9e7bce5e693386610eeeff5af" data-score="0" data-since="260608">Python support for the <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">map</span></code> compatible profilers<a class="headerlink" href="#python-support-for-the-perf-map-compatible-profilers" title="Link to this heading">¶</a></h1>
+<span id="perf-profiling"></span><h1>Python support for the <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">map</span></code> compatible profilers<a class="headerlink" href="#python-support-for-the-perf-map-compatible-profilers" title="Link to this heading">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">author<span class="colon">:</span></dt>
-<dd class="field-odd"><p data-msgid="20f67598eafcd18d9465455034f99306585c07c8" data-score="0" data-since="260603">Pablo Galindo</p>
+<dd class="field-odd"><p>Pablo Galindo</p>
 </dd>
 </dl>
-<p data-msgid="579b9e85c01b3b08633c8e30773d90b5b55c95ec" data-score="0" data-since="260608"><a class="reference external" href="https://perf.wiki.kernel.org">The Linux perf profiler</a> and
+<p><a class="reference external" href="https://perf.wiki.kernel.org">The Linux perf profiler</a> and
 <a class="reference external" href="https://github.com/mstange/samply">samply</a> are powerful tools that allow you to
 profile and obtain information about the performance of your application.
 Both tools have vibrant ecosystems that aid with the analysis of the data they produce.</p>
-<p data-msgid="eaab3fea638d231a78c0c788255f8ba72cb72365" data-score="0" data-since="260608">The main problem with using these profilers with Python applications is that
+<p>The main problem with using these profilers with Python applications is that
 they only get information about native symbols, that is, the names of
 functions and procedures written in C. This means that the names and file names
 of Python functions in your code will not appear in the profiler output.</p>
-<p data-msgid="c32de506a804b332d78c375b3d075d7976921ba2" data-score="0" data-since="260608">Since Python 3.12, the interpreter can run in a special mode that allows Python
+<p>Since Python 3.12, the interpreter can run in a special mode that allows Python
 functions to appear in the output of compatible profilers. When this mode is
 enabled, the interpreter will interpose a small piece of code compiled on the
 fly before the execution of every Python function and it will teach the profiler the
@@ -133,15 +135,15 @@ relationship between this piece of code and the associated Python function using
 <a class="reference internal" href="../c-api/perfmaps.html"><span class="doc">perf map files</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="0369dc8059e00bac07b06b78ce349d8fac431384" data-score="0" data-since="260608">Support for profiling is available on Linux and macOS on select architectures.
+<p>Support for profiling is available on Linux and macOS on select architectures.
 Perf is available on Linux, while samply can be used on both Linux and macOS.
 samply support on macOS is available starting from Python 3.15.
 Check the output of the <code class="docutils literal notranslate"><span class="pre">configure</span></code> build step or
 check the output of <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">sysconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">HAVE_PERF_TRAMPOLINE</span></code>
 to see if your system is supported.</p>
 </div>
-<p data-msgid="deb2ac459389a9cc4b2bfe019447df9257418358" data-score="0" data-since="260603">For example, consider the following script:</p>
-<div class="highlight-python notranslate" data-msgid="807f1641d1a0089b9d0d633a3db1aa4741158381" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<p>For example, consider the following script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -157,12 +159,12 @@ to see if your system is supported.</p>
     <span class="n">baz</span><span class="p">(</span><span class="mi">1000000</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="83d66b64ed70c92098d5a96b6393be02a15c2b64" data-score="0" data-since="260603">We can run <code class="docutils literal notranslate"><span class="pre">perf</span></code> to sample CPU stack traces at 9999 hertz:</p>
-<div class="highlight-shell-session notranslate" data-msgid="d07e07227db6589cf9064dfc29e9bcbaf7e57e04" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
+<p>We can run <code class="docutils literal notranslate"><span class="pre">perf</span></code> to sample CPU stack traces at 9999 hertz:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
 </pre></div>
 </div>
-<p data-msgid="72cdfe9f8daf0c6b1a5eb3ca634b5e43c98374fb" data-score="0" data-since="260603">Then we can use <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">report</span></code> to analyze the data:</p>
-<div class="highlight-shell-session notranslate" data-msgid="7d2e06e95a6b1e45a1498a0d46517f8ded1cbd6e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
+<p>Then we can use <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">report</span></code> to analyze the data:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
 
 <span class="gp"># </span>Children<span class="w">      </span>Self<span class="w">       </span>Samples<span class="w">  </span>Command<span class="w">     </span>Shared<span class="w"> </span>Object<span class="w">       </span>Symbol
 <span class="gp"># </span>........<span class="w">  </span>........<span class="w">  </span>............<span class="w">  </span>..........<span class="w">  </span>..................<span class="w">  </span>..........................................
@@ -200,12 +202,12 @@ to see if your system is supported.</p>
 <span class="go">...</span>
 </pre></div>
 </div>
-<p data-msgid="e8a05a1cc0ffaa3ab911560bf963167caa5777fb" data-score="0" data-since="260603">As you can see, the Python functions are not shown in the output, only <code class="docutils literal notranslate"><span class="pre">_PyEval_EvalFrameDefault</span></code>
+<p>As you can see, the Python functions are not shown in the output, only <code class="docutils literal notranslate"><span class="pre">_PyEval_EvalFrameDefault</span></code>
 (the function that evaluates the Python bytecode) shows up. Unfortunately that’s not very useful because all Python
 functions use the same C function to evaluate bytecode so we cannot know which Python function corresponds to which
 bytecode-evaluating function.</p>
-<p data-msgid="7b0891d6919a36a3858a34900bc50fb0727df8bc" data-score="0" data-since="260603">Instead, if we run the same experiment with <code class="docutils literal notranslate"><span class="pre">perf</span></code> support enabled we get:</p>
-<div class="highlight-shell-session notranslate" data-msgid="18a0767f0edc592c575140bc7901967e2a80bfaa" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
+<p>Instead, if we run the same experiment with <code class="docutils literal notranslate"><span class="pre">perf</span></code> support enabled we get:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>--stdio<span class="w"> </span>-n<span class="w"> </span>-g
 
 <span class="gp"># </span>Children<span class="w">      </span>Self<span class="w">       </span>Samples<span class="w">  </span>Command<span class="w">     </span>Shared<span class="w"> </span>Object<span class="w">       </span>Symbol
 <span class="gp"># </span>........<span class="w">  </span>........<span class="w">  </span>............<span class="w">  </span>..........<span class="w">  </span>..................<span class="w">  </span>.....................................................................
@@ -247,21 +249,21 @@ bytecode-evaluating function.</p>
 </pre></div>
 </div>
 <section id="using-the-samply-profiler">
-<h2 data-msgid="1da2b812d294fab19095ef28a39af2b5e493a6b6" data-score="0" data-since="260608">Using the samply profiler<a class="headerlink" href="#using-the-samply-profiler" title="Link to this heading">¶</a></h2>
-<p data-msgid="dd4fd1dc8a4ef51b9eff53da01c3f0678538d753" data-score="0" data-since="260608">samply is a modern profiler that can be used as an alternative to perf.
+<h2>Using the samply profiler<a class="headerlink" href="#using-the-samply-profiler" title="Link to this heading">¶</a></h2>
+<p>samply is a modern profiler that can be used as an alternative to perf.
 It uses the same perf map files that Python generates, making it compatible
 with Python’s profiling support. samply is particularly useful on macOS
 where perf is not available.</p>
-<p data-msgid="774c9fed7ca212d506eda9d6b2cbf51213e7c24b" data-score="0" data-since="260608">To use samply with Python, first install it following the instructions at
+<p>To use samply with Python, first install it following the instructions at
 <a class="reference external" href="https://github.com/mstange/samply">https://github.com/mstange/samply</a>, then run:</p>
-<div class="highlight-shell-session notranslate" data-msgid="e35e0fcde875cabb5ac9b294abb7b88b17900ecb" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="gp">$ </span>samply<span class="w"> </span>record<span class="w"> </span><span class="nv">PYTHONPERFSUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>my_script.py
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>samply<span class="w"> </span>record<span class="w"> </span><span class="nv">PYTHONPERFSUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>my_script.py
 </pre></div>
 </div>
-<p data-msgid="72b3c30908508afbe4fcdc324e36618d43bb3867" data-score="0" data-since="260608">This will open a web interface where you can analyze the profiling data
+<p>This will open a web interface where you can analyze the profiling data
 interactively. The advantage of samply is that it provides a modern
 web-based interface for analyzing profiling data and works on both Linux
 and macOS.</p>
-<p data-msgid="66785883d7ea52ebdcd90fbc0d3c06461b1f5a2e" data-score="0" data-since="260608">On macOS, samply support requires Python 3.15 or later. Also on macOS, samply
+<p>On macOS, samply support requires Python 3.15 or later. Also on macOS, samply
 can’t profile signed Python executables due to restrictions by macOS. You can
 profile with Python binaries that you’ve compiled yourself, or which are
 unsigned or locally-signed (such as anything installed by Homebrew). In
@@ -269,26 +271,26 @@ order to attach to running processes on macOS, run <code class="docutils literal
 every time samply is updated) to self-sign the samply binary.</p>
 </section>
 <section id="how-to-enable-perf-profiling-support">
-<h2 data-msgid="336d30c87e6ea4fd5e3fe1cae8b824c2212dfb8c" data-score="0" data-since="260603">How to enable <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support<a class="headerlink" href="#how-to-enable-perf-profiling-support" title="Link to this heading">¶</a></h2>
-<p data-msgid="038fc250887cf02d971b2d27ce4642f918232893" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support can be enabled either from the start using
+<h2>How to enable <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support<a class="headerlink" href="#how-to-enable-perf-profiling-support" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support can be enabled either from the start using
 the environment variable <span class="target" id="index-0"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONPERFSUPPORT"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPERFSUPPORT</span></code></a> or the
 <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">perf</span></code></a> option,
 or dynamically using <a class="reference internal" href="../library/sys.html#sys.activate_stack_trampoline" title="sys.activate_stack_trampoline"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.activate_stack_trampoline()</span></code></a> and
 <a class="reference internal" href="../library/sys.html#sys.deactivate_stack_trampoline" title="sys.deactivate_stack_trampoline"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.deactivate_stack_trampoline()</span></code></a>.</p>
-<p data-msgid="61188ad1436ae2ab7949d0bb8945c57e187828a8" data-score="0" data-since="260603">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code> functions take precedence over the <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> option,
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code> functions take precedence over the <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> option,
 the <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> option takes precedence over the environment variable.</p>
-<p data-msgid="b620cdb87a15c6c16913e269f6922b75c547d907" data-score="0" data-since="260603">Example, using the environment variable:</p>
-<div class="highlight-shell-session notranslate" data-msgid="2091057fcd31e62e793d95c983727ed9caf33dfb" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nv">PYTHONPERFSUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
+<p>Example, using the environment variable:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nv">PYTHONPERFSUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
 <span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>-g<span class="w"> </span>-i<span class="w"> </span>perf.data
 </pre></div>
 </div>
-<p data-msgid="e7b6c408a9642b2c4e61ed57a5fa8f3eec0fef67" data-score="0" data-since="260603">Example, using the <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> option:</p>
-<div class="highlight-shell-session notranslate" data-msgid="ed7f3221f78cd43836832efd9347a48afa1d0533" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>-X<span class="w"> </span>perf<span class="w"> </span>my_script.py
+<p>Example, using the <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> option:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>-X<span class="w"> </span>perf<span class="w"> </span>my_script.py
 <span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>-g<span class="w"> </span>-i<span class="w"> </span>perf.data
 </pre></div>
 </div>
-<p data-msgid="85fb819481895d2a54749ff63f0b7afb9dbce4c7" data-score="0" data-since="260603">Example, using the <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a> APIs in file <code class="file docutils literal notranslate"><span class="pre">example.py</span></code>:</p>
-<div class="highlight-python notranslate" data-msgid="d128c3d8159c075dbba09bab0a45c164356d88b2" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<p>Example, using the <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a> APIs in file <code class="file docutils literal notranslate"><span class="pre">example.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="n">sys</span><span class="o">.</span><span class="n">activate_stack_trampoline</span><span class="p">(</span><span class="s2">&quot;perf&quot;</span><span class="p">)</span>
 <span class="n">do_profiled_stuff</span><span class="p">()</span>
@@ -297,65 +299,65 @@ the <code class="xref std std-option docutils literal notranslate"><span class="
 <span class="n">non_profiled_stuff</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="1ed5f88926763de1097d9d9ddd514c51f5bf9915" data-score="0" data-since="260603">…then:</p>
-<div class="highlight-shell-session notranslate" data-msgid="dc03582171d954f77ff63938f499ba35fb5c83f3" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>./example.py
+<p>…then:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>./example.py
 <span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>-g<span class="w"> </span>-i<span class="w"> </span>perf.data
 </pre></div>
 </div>
 </section>
 <section id="how-to-obtain-the-best-results">
-<h2 data-msgid="cb1ddd7e2f5abd9a36f20a402280544a0d450e16" data-score="0" data-since="260603">How to obtain the best results<a class="headerlink" href="#how-to-obtain-the-best-results" title="Link to this heading">¶</a></h2>
-<p data-msgid="31506519aceceb9f917182a15ec33424adc57dca" data-score="0" data-since="260608">For best results, keep frame pointers enabled. On supported GCC-compatible
+<h2>How to obtain the best results<a class="headerlink" href="#how-to-obtain-the-best-results" title="Link to this heading">¶</a></h2>
+<p>For best results, keep frame pointers enabled. On supported GCC-compatible
 toolchains, CPython builds itself with <code class="docutils literal notranslate"><span class="pre">-fno-omit-frame-pointer</span></code> and similar
 flags (see <a class="reference internal" href="../using/configure.html#cmdoption-without-frame-pointers"><code class="xref std std-option docutils literal notranslate"><span class="pre">--without-frame-pointers</span></code></a> for details). These flags allow
 profilers to unwind using only the frame pointer and not on DWARF debug
 information. This is because as the code that is interposed to allow <code class="docutils literal notranslate"><span class="pre">perf</span></code>
 support is dynamically generated it doesn’t have any DWARF debugging information
 available.</p>
-<p data-msgid="6e43daca3078799c24cc5d07374e75883ded9ecf" data-score="0" data-since="260603">You can check if your system has been compiled with this flag by running:</p>
-<div class="highlight-shell-session notranslate" data-msgid="e63e1046d9111b28c894604689c926c4ea9672ac" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>sysconfig<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;no-omit-frame-pointer&#39;</span>
+<p>You can check if your system has been compiled with this flag by running:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>sysconfig<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;no-omit-frame-pointer&#39;</span>
 </pre></div>
 </div>
-<p data-msgid="10ba9cc4877adcfd4a263e8cb3ee35ab4607c928" data-score="0" data-since="260603">If you don’t see any output it means that your interpreter has not been compiled with
+<p>If you don’t see any output it means that your interpreter has not been compiled with
 frame pointers and therefore it may not be able to show Python functions in the output
 of <code class="docutils literal notranslate"><span class="pre">perf</span></code>.</p>
 </section>
 <section id="how-to-work-without-frame-pointers">
-<h2 data-msgid="1d0965793f39d459e706627a0c8789ec32802190" data-score="0" data-since="260603">How to work without frame pointers<a class="headerlink" href="#how-to-work-without-frame-pointers" title="Link to this heading">¶</a></h2>
-<p data-msgid="4471799ca0d5139babede08605b046e7793314e9" data-score="0" data-since="260603">If you are working with a Python interpreter that has been compiled without
+<h2>How to work without frame pointers<a class="headerlink" href="#how-to-work-without-frame-pointers" title="Link to this heading">¶</a></h2>
+<p>If you are working with a Python interpreter that has been compiled without
 frame pointers, you can still use the <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler, but the overhead will be
 a bit higher because Python needs to generate unwinding information for every
 Python function call on the fly. Additionally, <code class="docutils literal notranslate"><span class="pre">perf</span></code> will take more time to
 process the data because it will need to use the DWARF debugging information to
 unwind the stack and this is a slow process.</p>
-<p data-msgid="36386088b3431bdc80b122055edb92448d093818" data-score="0" data-since="260603">To enable this mode, you can use the environment variable
+<p>To enable this mode, you can use the environment variable
 <span class="target" id="index-1"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_PERF_JIT_SUPPORT"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_PERF_JIT_SUPPORT</span></code></a> or the <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">perf_jit</span></code></a> option,
 which will enable the JIT mode for the <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="71955a330ba81ce8a3a956450a6921b0cf515352" data-score="0" data-since="260603">Due to a bug in the <code class="docutils literal notranslate"><span class="pre">perf</span></code> tool, only <code class="docutils literal notranslate"><span class="pre">perf</span></code> versions higher than v6.8
+<p>Due to a bug in the <code class="docutils literal notranslate"><span class="pre">perf</span></code> tool, only <code class="docutils literal notranslate"><span class="pre">perf</span></code> versions higher than v6.8
 will work with the JIT mode.  The fix was also backported to the v6.7.2
 version of the tool.</p>
-<p data-msgid="e15146beb3ab13e8ae11c0c656a498b210a861fd" data-score="0" data-since="260603">Note that when checking the version of the <code class="docutils literal notranslate"><span class="pre">perf</span></code> tool (which can be done
+<p>Note that when checking the version of the <code class="docutils literal notranslate"><span class="pre">perf</span></code> tool (which can be done
 by running <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">version</span></code>) you must take into account that some distros
 add some custom version numbers including a <code class="docutils literal notranslate"><span class="pre">-</span></code> character.  This means
 that <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">6.7-3</span></code> is not necessarily <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">6.7.3</span></code>.</p>
 </div>
-<p data-msgid="4c62ed5557629f83e343297019836ff4b4867058" data-score="0" data-since="260603">When using the perf JIT mode, you need an extra step before you can run <code class="docutils literal notranslate"><span class="pre">perf</span>
+<p>When using the perf JIT mode, you need an extra step before you can run <code class="docutils literal notranslate"><span class="pre">perf</span>
 <span class="pre">report</span></code>. You need to call the <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">inject</span></code> command to inject the JIT
 information into the <code class="docutils literal notranslate"><span class="pre">perf.data</span></code> file.:</p>
-<div class="highlight-shell-session notranslate" data-msgid="874bc663b353bcb185990bd721422fc48063974d" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-k<span class="w"> </span><span class="m">1</span><span class="w"> </span>--call-graph<span class="w"> </span>dwarf<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>-Xperf_jit<span class="w"> </span>my_script.py
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-k<span class="w"> </span><span class="m">1</span><span class="w"> </span>--call-graph<span class="w"> </span>dwarf<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>-Xperf_jit<span class="w"> </span>my_script.py
 <span class="gp">$ </span>perf<span class="w"> </span>inject<span class="w"> </span>-i<span class="w"> </span>perf.data<span class="w"> </span>--jit<span class="w"> </span>--output<span class="w"> </span>perf.jit.data
 <span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>-g<span class="w"> </span>-i<span class="w"> </span>perf.jit.data
 </pre></div>
 </div>
-<p data-msgid="be3f96b649e166a119230ac7c59ab1cda5327485" data-score="0" data-since="260603">or using the environment variable:</p>
-<div class="highlight-shell-session notranslate" data-msgid="25f34dfe32ab3fed73cb96aed90504929bbd5d02" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nv">PYTHON_PERF_JIT_SUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>--call-graph<span class="w"> </span>dwarf<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
+<p>or using the environment variable:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nv">PYTHON_PERF_JIT_SUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>--call-graph<span class="w"> </span>dwarf<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
 <span class="gp">$ </span>perf<span class="w"> </span>inject<span class="w"> </span>-i<span class="w"> </span>perf.data<span class="w"> </span>--jit<span class="w"> </span>--output<span class="w"> </span>perf.jit.data
 <span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>-g<span class="w"> </span>-i<span class="w"> </span>perf.jit.data
 </pre></div>
 </div>
-<p data-msgid="2f94ca7cbde8b6bac0bf077749ed52108754887a" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">inject</span> <span class="pre">--jit</span></code> command will read <code class="docutils literal notranslate"><span class="pre">perf.data</span></code>,
+<p><code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">inject</span> <span class="pre">--jit</span></code> command will read <code class="docutils literal notranslate"><span class="pre">perf.data</span></code>,
 automatically pick up the perf dump file that Python creates (in
 <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$PID.dump</span></code>), and then create <code class="docutils literal notranslate"><span class="pre">perf.jit.data</span></code> which merges all the
 JIT information together. It should also create a lot of <code class="docutils literal notranslate"><span class="pre">jitted-XXXX-N.so</span></code>
@@ -363,39 +365,34 @@ files in the current directory which are ELF images for all the JIT trampolines
 that were created by Python.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="d0ada8519c97a35e0956a6ae51f8e90e21314d84" data-score="0" data-since="260603">When using <code class="docutils literal notranslate"><span class="pre">--call-graph</span> <span class="pre">dwarf</span></code>, the <code class="docutils literal notranslate"><span class="pre">perf</span></code> tool will take
+<p>When using <code class="docutils literal notranslate"><span class="pre">--call-graph</span> <span class="pre">dwarf</span></code>, the <code class="docutils literal notranslate"><span class="pre">perf</span></code> tool will take
 snapshots of the stack of the process being profiled and save the
 information in the <code class="docutils literal notranslate"><span class="pre">perf.data</span></code> file. By default, the size of the stack dump
 is 8192 bytes, but you can change the size by passing it after
 a comma like <code class="docutils literal notranslate"><span class="pre">--call-graph</span> <span class="pre">dwarf,16384</span></code>.</p>
-<p data-msgid="9d3f93881df33733cda2128a00b18473571ad92e" data-score="0" data-since="260603">The size of the stack dump is important because if the size is too small
+<p>The size of the stack dump is important because if the size is too small
 <code class="docutils literal notranslate"><span class="pre">perf</span></code> will not be able to unwind the stack and the output will be
 incomplete. On the other hand, if the size is too big, then <code class="docutils literal notranslate"><span class="pre">perf</span></code> won’t
 be able to sample the process as frequently as it would like as the overhead
 will be higher.</p>
-<p data-msgid="2e0b132f548d04137f0fa3cc03614d1669fdbd2b" data-score="0" data-since="260603">The stack size is particularly important when profiling Python code compiled
+<p>The stack size is particularly important when profiling Python code compiled
 with low optimization levels (like <code class="docutils literal notranslate"><span class="pre">-O0</span></code>), as these builds tend to have
 larger stack frames. If you are compiling Python with <code class="docutils literal notranslate"><span class="pre">-O0</span></code> and not seeing
 Python functions in your profiling output, try increasing the stack dump
 size to 65528 bytes (the maximum):</p>
-<div class="highlight-shell-session notranslate" data-msgid="aeda5926e0a95a476db3d4a22fbad88d95473506" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-k<span class="w"> </span><span class="m">1</span><span class="w"> </span>--call-graph<span class="w"> </span>dwarf,65528<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>-Xperf_jit<span class="w"> </span>my_script.py
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-k<span class="w"> </span><span class="m">1</span><span class="w"> </span>--call-graph<span class="w"> </span>dwarf,65528<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>-Xperf_jit<span class="w"> </span>my_script.py
 </pre></div>
 </div>
-<p data-msgid="67586cb9831a4a59cf0a7d3c942fec72ae22af82" data-score="0" data-since="260603">Different compilation flags can significantly impact stack sizes:</p>
+<p>Different compilation flags can significantly impact stack sizes:</p>
 <ul class="simple">
-<li><p data-msgid="6333bf0e76907c05b29f82e934e80fb28456d0c3" data-score="0" data-since="260603">Builds with <code class="docutils literal notranslate"><span class="pre">-O0</span></code> typically have much larger stack frames than those with <code class="docutils literal notranslate"><span class="pre">-O1</span></code> or higher</p></li>
-<li><p data-msgid="8cb4cb04587bfe3622eb2a714c9693c96830cade" data-score="0" data-since="260603">Adding optimizations (<code class="docutils literal notranslate"><span class="pre">-O1</span></code>, <code class="docutils literal notranslate"><span class="pre">-O2</span></code>, etc.) typically reduces stack size</p></li>
-<li><p data-msgid="49ddd76b10343e13690a6b0d48805b91b12d6cb4" data-score="0" data-since="260603">Frame pointers (<code class="docutils literal notranslate"><span class="pre">-fno-omit-frame-pointer</span></code>) generally provide more reliable stack unwinding</p></li>
+<li><p>Builds with <code class="docutils literal notranslate"><span class="pre">-O0</span></code> typically have much larger stack frames than those with <code class="docutils literal notranslate"><span class="pre">-O1</span></code> or higher</p></li>
+<li><p>Adding optimizations (<code class="docutils literal notranslate"><span class="pre">-O1</span></code>, <code class="docutils literal notranslate"><span class="pre">-O2</span></code>, etc.) typically reduces stack size</p></li>
+<li><p>Frame pointers (<code class="docutils literal notranslate"><span class="pre">-fno-omit-frame-pointer</span></code>) generally provide more reliable stack unwinding</p></li>
 </ul>
 </div>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="f64cd8e32f5ac7553c150bd05d6f2252bb73f68d" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

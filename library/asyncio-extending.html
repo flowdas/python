@@ -8,9 +8,11 @@
     <title>확장 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -114,48 +116,48 @@
             <article class="document">
                 
   <section id="extending">
-<h1 data-msgid="4be9a4abd6d7c8083fc1a7bf9004e653250a9ba5" data-score="0" data-since="260609">확장<a class="headerlink" href="#extending" title="Link to this heading">¶</a></h1>
-<p data-msgid="b0c9edb0143bfe7ed3a731a68ac4bc89589288c7" data-score="0" data-since="260603">The main direction for <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> extending is writing custom <em>event loop</em>
+<h1>확장<a class="headerlink" href="#extending" title="Link to this heading">¶</a></h1>
+<p>The main direction for <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> extending is writing custom <em>event loop</em>
 classes. Asyncio has helpers that could be used to simplify this task.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="b1a8f87301fb7c4bc4bc4a7b2bf79b07ae48beb0" data-score="0" data-since="260603">Third-parties should reuse existing asyncio code with caution,
+<p>Third-parties should reuse existing asyncio code with caution,
 a new Python version is free to break backward compatibility
 in <em>internal</em> part of API.</p>
 </div>
 <section id="writing-a-custom-event-loop">
-<h2 data-msgid="c8125632d4432c5e4f0cb095160187fb710685e5" data-score="0" data-since="260603">Writing a Custom Event Loop<a class="headerlink" href="#writing-a-custom-event-loop" title="Link to this heading">¶</a></h2>
-<p data-msgid="5e5a5d43e486363127f2d51e2852b8ca1cdefe1c" data-score="0" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.AbstractEventLoop" title="asyncio.AbstractEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.AbstractEventLoop</span></code></a> declares very many methods.  Implementing all them
+<h2>Writing a Custom Event Loop<a class="headerlink" href="#writing-a-custom-event-loop" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.AbstractEventLoop" title="asyncio.AbstractEventLoop"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.AbstractEventLoop</span></code></a> declares very many methods.  Implementing all them
 from scratch is a tedious job.</p>
-<p data-msgid="dd2517b0ff931f91f4ba2838557c2980d81b55ff" data-score="0" data-since="260603">A loop can get many common methods implementation for free by inheriting from
+<p>A loop can get many common methods implementation for free by inheriting from
 <code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.BaseEventLoop</span></code>.</p>
-<p data-msgid="fb7151d1552399a8dbd34c327f88359f9394981a" data-score="0" data-since="260603">In turn, the successor should implement a bunch of <em>private</em> methods declared but not
+<p>In turn, the successor should implement a bunch of <em>private</em> methods declared but not
 implemented in <code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.BaseEventLoop</span></code>.</p>
-<p data-msgid="76735a6d87ec802b42c90c33d63788d8bfaf9787" data-score="0" data-since="260603">For example, <code class="docutils literal notranslate"><span class="pre">loop.create_connection()</span></code> checks arguments, resolves DNS addresses, and
+<p>For example, <code class="docutils literal notranslate"><span class="pre">loop.create_connection()</span></code> checks arguments, resolves DNS addresses, and
 calls <code class="docutils literal notranslate"><span class="pre">loop._make_socket_transport()</span></code> that should be implemented by inherited class.
 The <code class="docutils literal notranslate"><span class="pre">_make_socket_transport()</span></code> method is not documented and is considered as an
 <em>internal</em> API.</p>
 </section>
 <section id="future-and-task-private-constructors">
-<h2 data-msgid="32f075cd63df4e24845cffb381dbd2e945c74fe4" data-score="0" data-since="260603">Future and Task private constructors<a class="headerlink" href="#future-and-task-private-constructors" title="Link to this heading">¶</a></h2>
-<p data-msgid="4a2be5a96236df7aad781f712647cb3bc1d17589" data-score="0" data-since="260603"><a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> and <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Task</span></code></a> should be never created directly,
+<h2>Future and Task private constructors<a class="headerlink" href="#future-and-task-private-constructors" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> and <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Task</span></code></a> should be never created directly,
 please use corresponding <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_future" title="asyncio.loop.create_future"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_future()</span></code></a> and <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_task" title="asyncio.loop.create_task"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_task()</span></code></a>,
 or <a class="reference internal" href="asyncio-task.html#asyncio.create_task" title="asyncio.create_task"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_task()</span></code></a> factories instead.</p>
-<p data-msgid="3ced561142dbc2b097491ef6085b5c09515f4dbb" data-score="0" data-since="260603">However, third-party <em>event loops</em> may <em>reuse</em> built-in future and task implementations
+<p>However, third-party <em>event loops</em> may <em>reuse</em> built-in future and task implementations
 for the sake of getting a complex and highly optimized code for free.</p>
-<p data-msgid="624ec542a883cf0f2c5e5f3a03dcabf9ad3cdd2d" data-score="0" data-since="260603">For this purpose the following, <em>private</em> constructors are listed:</p>
+<p>For this purpose the following, <em>private</em> constructors are listed:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.Future.__init__">
 <span class="sig-prename descclassname"><span class="pre">Future.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Future.__init__" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="24853462cb75537d77c1a9f73fe301143ec251cc" data-score="0" data-since="260603">Create a built-in future instance.</p>
-<p data-msgid="bffd591cb3f7ce60ca662a8e02333f1995a34b80" data-score="0" data-since="260603"><em>loop</em> is an optional event loop instance.</p>
+<dd><p>Create a built-in future instance.</p>
+<p><em>loop</em> is an optional event loop instance.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.Task.__init__">
 <span class="sig-prename descclassname"><span class="pre">Task.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coro</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Task.__init__" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1100aa06a2ec3faa0309a75216b71cdb59a71275" data-score="0" data-since="260603">Create a built-in task instance.</p>
-<p data-msgid="730f5fd57bf122e780e26aef57e112088e72f5d6" data-score="0" data-since="260603"><em>loop</em> is an optional event loop instance. The rest of arguments are described in
+<dd><p>Create a built-in task instance.</p>
+<p><em>loop</em> is an optional event loop instance. The rest of arguments are described in
 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_task" title="asyncio.loop.create_task"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_task()</span></code></a> description.</p>
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.11에서 변경: </span><em>context</em> argument is added.</p>
@@ -164,47 +166,42 @@ for the sake of getting a complex and highly optimized code for free.</p>
 
 </section>
 <section id="task-lifetime-support">
-<h2 data-msgid="61dd6150cb77b2ad92dcf309489bb6912e517ae5" data-score="0" data-since="260603">Task lifetime support<a class="headerlink" href="#task-lifetime-support" title="Link to this heading">¶</a></h2>
-<p data-msgid="40d374f3c05ff2c926f31a3291d42bb5e407984a" data-score="0" data-since="260603">A third party task implementation should call the following functions to keep a task
+<h2>Task lifetime support<a class="headerlink" href="#task-lifetime-support" title="Link to this heading">¶</a></h2>
+<p>A third party task implementation should call the following functions to keep a task
 visible by <a class="reference internal" href="asyncio-task.html#asyncio.all_tasks" title="asyncio.all_tasks"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.all_tasks()</span></code></a> and <a class="reference internal" href="asyncio-task.html#asyncio.current_task" title="asyncio.current_task"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.current_task()</span></code></a>:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio._register_task">
 <span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">_register_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio._register_task" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b3a4d9a90af0093ffc812cbf8ad04d341f37876a" data-score="0" data-since="260603">Register a new <em>task</em> as managed by <em>asyncio</em>.</p>
-<p data-msgid="574d537fba775496f5ed4d69877cc17d75612436" data-score="0" data-since="260603">Call the function from a task constructor.</p>
+<dd><p>Register a new <em>task</em> as managed by <em>asyncio</em>.</p>
+<p>Call the function from a task constructor.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio._unregister_task">
 <span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">_unregister_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio._unregister_task" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1e1df20ef5ae46da60dc860d01e14ea56f7dc36d" data-score="0" data-since="260603">Unregister a <em>task</em> from <em>asyncio</em> internal structures.</p>
-<p data-msgid="1f18a7ecf6e9f73c03142133e84f93d6378c62fd" data-score="0" data-since="260603">The function should be called when a task is about to finish.</p>
+<dd><p>Unregister a <em>task</em> from <em>asyncio</em> internal structures.</p>
+<p>The function should be called when a task is about to finish.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio._enter_task">
 <span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">_enter_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio._enter_task" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="92f07292253a52eab0dba4dd7aa7124c59e152e5" data-score="0" data-since="260603">Switch the current task to the <em>task</em> argument.</p>
-<p data-msgid="9d3789e25d0e774c3100463584718b02da611f29" data-score="0" data-since="260603">Call the function just before executing a portion of embedded <em>coroutine</em>
+<dd><p>Switch the current task to the <em>task</em> argument.</p>
+<p>Call the function just before executing a portion of embedded <em>coroutine</em>
 (<a class="reference internal" href="../reference/datamodel.html#coroutine.send" title="coroutine.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.send()</span></code></a> or <a class="reference internal" href="../reference/datamodel.html#coroutine.throw" title="coroutine.throw"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.throw()</span></code></a>).</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio._leave_task">
 <span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">_leave_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio._leave_task" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4fd8ade661ab9689f952db3bd0d375e3108f748c" data-score="0" data-since="260603">Switch the current task back from <em>task</em> to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-<p data-msgid="fe484171d47d3f64e21ee72bad89ecc003211fcd" data-score="0" data-since="260603">Call the function just after <a class="reference internal" href="../reference/datamodel.html#coroutine.send" title="coroutine.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.send()</span></code></a> or <a class="reference internal" href="../reference/datamodel.html#coroutine.throw" title="coroutine.throw"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.throw()</span></code></a>
+<dd><p>Switch the current task back from <em>task</em> to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>Call the function just after <a class="reference internal" href="../reference/datamodel.html#coroutine.send" title="coroutine.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.send()</span></code></a> or <a class="reference internal" href="../reference/datamodel.html#coroutine.throw" title="coroutine.throw"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.throw()</span></code></a>
 execution.</p>
 </dd></dl>
 
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="bdf983080332d7a57208786d18eacf942c77a2e9" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

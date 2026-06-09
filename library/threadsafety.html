@@ -8,9 +8,11 @@
     <title>Thread Safety Guarantees &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -120,120 +122,120 @@
             <article class="document">
                 
   <section id="thread-safety-guarantees">
-<span id="threadsafety"></span><h1 data-msgid="fbf407eedcaafd6ae24427356a9439f897fee221" data-score="0" data-since="260608">Thread Safety Guarantees<a class="headerlink" href="#thread-safety-guarantees" title="Link to this heading">¶</a></h1>
-<p data-msgid="905d8ea2b11bf71bae4fe227e904203856ecadcf" data-score="0" data-since="260608">This page documents thread-safety guarantees for built-in types in Python’s
+<span id="threadsafety"></span><h1>Thread Safety Guarantees<a class="headerlink" href="#thread-safety-guarantees" title="Link to this heading">¶</a></h1>
+<p>This page documents thread-safety guarantees for built-in types in Python’s
 free-threaded build. The guarantees described here apply when using Python with
 the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a> disabled (free-threaded mode). When the GIL is enabled, most
 operations are implicitly serialized.</p>
-<p data-msgid="79727b8fe90317ba438b9125a639eb289b11c9ae" data-score="0" data-since="260608">For general guidance on writing thread-safe code in free-threaded Python, see
+<p>For general guidance on writing thread-safe code in free-threaded Python, see
 <a class="reference internal" href="../howto/free-threading-python.html#freethreading-python-howto"><span class="std std-ref">Python support for free threading</span></a>.</p>
 <section id="thread-safety-levels">
-<span id="threadsafety-levels"></span><h2 data-msgid="dd7a3fddfd8c911d105ea516974e03bf81f0db82" data-score="0" data-since="260608">Thread safety levels<a class="headerlink" href="#thread-safety-levels" title="Link to this heading">¶</a></h2>
-<p data-msgid="b7a6118d3623ac1913936a65e24d9520e89f0f33" data-score="0" data-since="260608">The C API documentation uses the following levels to describe the thread
+<span id="threadsafety-levels"></span><h2>Thread safety levels<a class="headerlink" href="#thread-safety-levels" title="Link to this heading">¶</a></h2>
+<p>The C API documentation uses the following levels to describe the thread
 safety guarantees of each function. The levels are listed from least to
 most safe.</p>
 <section id="incompatible">
-<span id="threadsafety-level-incompatible"></span><h3 data-msgid="06db4ffa7efb34a97e841c2d2a3061a03d74f1e6" data-score="0" data-since="260608">Incompatible<a class="headerlink" href="#incompatible" title="Link to this heading">¶</a></h3>
-<p data-msgid="38b763eb5d5dc88604199c6df11b6f3d768a6f36" data-score="0" data-since="260608">A function or operation that cannot be made safe for concurrent use even
+<span id="threadsafety-level-incompatible"></span><h3>Incompatible<a class="headerlink" href="#incompatible" title="Link to this heading">¶</a></h3>
+<p>A function or operation that cannot be made safe for concurrent use even
 with external synchronization. Incompatible code typically accesses
 global state in an unsynchronized way and must only be called from a single
 thread throughout the program’s lifetime.</p>
-<p data-msgid="b13950d79c7ecd70790d22e5b9a90d75f5cb68cc" data-score="0" data-since="260608">Example: a function that modifies process-wide state such as signal handlers
+<p>Example: a function that modifies process-wide state such as signal handlers
 or environment variables, where concurrent calls from any threads, even with
 external locking, can conflict with the runtime or other libraries.</p>
 </section>
 <section id="compatible">
-<span id="threadsafety-level-compatible"></span><h3 data-msgid="65013ef3b45347aca1d5f7fe6d3902ba8d2f0f53" data-score="0" data-since="260608">Compatible<a class="headerlink" href="#compatible" title="Link to this heading">¶</a></h3>
-<p data-msgid="e83abd0f2680ef796a00e74f6230d65d77bb5c24" data-score="0" data-since="260608">A function or operation that is safe to call from multiple threads
+<span id="threadsafety-level-compatible"></span><h3>Compatible<a class="headerlink" href="#compatible" title="Link to this heading">¶</a></h3>
+<p>A function or operation that is safe to call from multiple threads
 <em>provided</em> the caller supplies appropriate external synchronization, for
 example by holding a <a class="reference internal" href="../glossary.html#term-lock"><span class="xref std std-term">lock</span></a> for the duration of each call. Without
 such synchronization, concurrent calls may produce <a class="reference internal" href="../glossary.html#term-race-condition"><span class="xref std std-term">race conditions</span></a> or <a class="reference internal" href="../glossary.html#term-data-race"><span class="xref std std-term">data races</span></a>.</p>
-<p data-msgid="4c0828c00544eed8ceae442a3a6f2b6d52acd861" data-score="0" data-since="260608">Example: a function that reads from or writes to an object whose internal
+<p>Example: a function that reads from or writes to an object whose internal
 state is not protected by a lock. Callers must ensure that no two threads
 access the same object at the same time.</p>
 </section>
 <section id="safe-on-distinct-objects">
-<span id="threadsafety-level-distinct"></span><h3 data-msgid="4f4a7420859e76042eeccfc3e2addfa0309253b3" data-score="0" data-since="260608">Safe on distinct objects<a class="headerlink" href="#safe-on-distinct-objects" title="Link to this heading">¶</a></h3>
-<p data-msgid="d006f94346132bc3dec8e0842ebc4b852752e5ae" data-score="0" data-since="260608">A function or operation that is safe to call from multiple threads without
+<span id="threadsafety-level-distinct"></span><h3>Safe on distinct objects<a class="headerlink" href="#safe-on-distinct-objects" title="Link to this heading">¶</a></h3>
+<p>A function or operation that is safe to call from multiple threads without
 external synchronization, as long as each thread operates on a <strong>different</strong>
 object. Two threads may call the function at the same time, but they must
 not pass the same object (or objects that share underlying state) as
 arguments.</p>
-<p data-msgid="4c025ed5b01a0ba511efbe3af2ba93458d5cc902" data-score="0" data-since="260608">Example: a function that modifies fields of a struct using non-atomic
+<p>Example: a function that modifies fields of a struct using non-atomic
 writes. Two threads can each call the function on their own struct
 instance safely, but concurrent calls on the <em>same</em> instance require
 external synchronization.</p>
 </section>
 <section id="safe-on-shared-objects">
-<span id="threadsafety-level-shared"></span><h3 data-msgid="b778464ef07bf77a2968d200f5ff58b1f1d643be" data-score="0" data-since="260608">Safe on shared objects<a class="headerlink" href="#safe-on-shared-objects" title="Link to this heading">¶</a></h3>
-<p data-msgid="312b8d843c635bfa129d2e84e5fc00edd8bc8634" data-score="0" data-since="260608">A function or operation that is safe for concurrent use on the <strong>same</strong>
+<span id="threadsafety-level-shared"></span><h3>Safe on shared objects<a class="headerlink" href="#safe-on-shared-objects" title="Link to this heading">¶</a></h3>
+<p>A function or operation that is safe for concurrent use on the <strong>same</strong>
 object. The implementation uses internal synchronization (such as
 <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object locks</span></a> or
 <a class="reference internal" href="../c-api/synchronization.html#python-critical-section-api"><span class="std std-ref">critical sections</span></a>) to protect shared
 mutable state, so callers do not need to supply their own locking.</p>
-<p data-msgid="bfee0bf30d30d7595f3c29b8d2faf28316bde588" data-score="0" data-since="260608">Example: <a class="reference internal" href="../c-api/list.html#c.PyList_GetItemRef" title="PyList_GetItemRef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyList_GetItemRef()</span></code></a> can be called from multiple threads on the
+<p>Example: <a class="reference internal" href="../c-api/list.html#c.PyList_GetItemRef" title="PyList_GetItemRef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyList_GetItemRef()</span></code></a> can be called from multiple threads on the
 same <a class="reference internal" href="../c-api/list.html#c.PyListObject" title="PyListObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyListObject</span></code></a> - it uses internal synchronization to serialize
 access.</p>
 </section>
 <section id="atomic">
-<span id="threadsafety-level-atomic"></span><h3 data-msgid="f3023cb8188912c321e51f84008e15af7ab75428" data-score="0" data-since="260608">Atomic<a class="headerlink" href="#atomic" title="Link to this heading">¶</a></h3>
-<p data-msgid="d79540641dcefb99b1f377e2f95b375ca2199035" data-score="0" data-since="260608">A function or operation that appears <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a> with
+<span id="threadsafety-level-atomic"></span><h3>Atomic<a class="headerlink" href="#atomic" title="Link to this heading">¶</a></h3>
+<p>A function or operation that appears <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a> with
 respect to other threads - it executes instantaneously from the perspective
 of other threads. This is the strongest form of thread safety.</p>
-<p data-msgid="03e58e3e5ecb157dddb00822800e5adae0776ee4" data-score="0" data-since="260608">Example: <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex_IsLocked" title="PyMutex_IsLocked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyMutex_IsLocked()</span></code></a> performs an atomic read of the mutex
+<p>Example: <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex_IsLocked" title="PyMutex_IsLocked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyMutex_IsLocked()</span></code></a> performs an atomic read of the mutex
 state and can be called from any thread at any time.</p>
 </section>
 </section>
 <section id="thread-safety-for-list-objects">
-<span id="thread-safety-list"></span><h2 data-msgid="8f7ca19387ceb8b6be9613aa2d3abe83e3398b19" data-score="0" data-since="260608">Thread safety for list objects<a class="headerlink" href="#thread-safety-for-list-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="34f4a6e897d98406ed1818a259e00c5a47e8ebc7" data-score="0" data-since="260608">Reading a single element from a <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> is
+<span id="thread-safety-list"></span><h2>Thread safety for list objects<a class="headerlink" href="#thread-safety-for-list-objects" title="Link to this heading">¶</a></h2>
+<p>Reading a single element from a <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> is
 <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>:</p>
-<div class="good highlight-python3 notranslate" data-msgid="2742eb4390e15c89bdae0b265b4d70dd2a9588fa" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>   <span class="c1"># list.__getitem__</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>   <span class="c1"># list.__getitem__</span>
 </pre></div>
 </div>
-<p data-msgid="9cd67dc24dbee23f88793d944ffa61720ed493ba" data-score="0" data-since="260608">The following methods traverse the list and use <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>
+<p>The following methods traverse the list and use <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>
 reads of each item to perform their function. That means that they may
 return results affected by concurrent modifications:</p>
-<div class="maybe highlight-python3 notranslate" data-msgid="758226dd5468341e9e9297a35ca0453ac73db480" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">item</span> <span class="ow">in</span> <span class="n">lst</span>
+<div class="maybe highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">item</span> <span class="ow">in</span> <span class="n">lst</span>
 <span class="n">lst</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 <span class="n">lst</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="2168b679b093d0b3bf0b6917680748af0e8a0afe" data-score="0" data-since="260608">All of the above operations avoid acquiring <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object locks</span></a>. They do not block concurrent modifications. Other
+<p>All of the above operations avoid acquiring <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object locks</span></a>. They do not block concurrent modifications. Other
 operations that hold a lock will not block these from observing intermediate
 states.</p>
-<p data-msgid="2a28187c95e35bafb9ce244f8f499ceb5eea5615" data-score="0" data-since="260608">All other operations from here on block using the <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object lock</span></a>.</p>
-<p data-msgid="0e911a47b1c671b28c14329070999f8d855be3dc" data-score="0" data-since="260608">Writing a single item via <code class="docutils literal notranslate"><span class="pre">lst[i]</span> <span class="pre">=</span> <span class="pre">x</span></code> is safe to call from multiple
+<p>All other operations from here on block using the <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object lock</span></a>.</p>
+<p>Writing a single item via <code class="docutils literal notranslate"><span class="pre">lst[i]</span> <span class="pre">=</span> <span class="pre">x</span></code> is safe to call from multiple
 threads and will not corrupt the list.</p>
-<p data-msgid="14012a9a8f090fbd8f23fd6faf513e218ec22156" data-score="0" data-since="260608">The following operations return new objects and appear
+<p>The following operations return new objects and appear
 <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a> to other threads:</p>
-<div class="good highlight-python3 notranslate" data-msgid="c9b726f4a939fd9f3147ffdfff6a5eeb2fc5a773" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">lst1</span> <span class="o">+</span> <span class="n">lst2</span>    <span class="c1"># concatenates two lists into a new list</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">lst1</span> <span class="o">+</span> <span class="n">lst2</span>    <span class="c1"># concatenates two lists into a new list</span>
 <span class="n">x</span> <span class="o">*</span> <span class="n">lst</span>        <span class="c1"># repeats lst x times into a new list</span>
 <span class="n">lst</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>     <span class="c1"># returns a shallow copy of the list</span>
 </pre></div>
 </div>
-<p data-msgid="a6ecbc6bcf92e68410314655edf1225ab3a672ba" data-score="0" data-since="260608">The following methods that only operate on a single element with no shifting
+<p>The following methods that only operate on a single element with no shifting
 required are <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>:</p>
-<div class="good highlight-python3 notranslate" data-msgid="da7e79237cc7c518e9129068da15e3844f7cc583" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># append to the end of the list, no shifting required</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># append to the end of the list, no shifting required</span>
 <span class="n">lst</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>      <span class="c1"># pop element from the end of the list, no shifting required</span>
 </pre></div>
 </div>
-<p data-msgid="c48fed4d60edf1d798d47831d049b8c2b81f2439" data-score="0" data-since="260608">The <a class="reference internal" href="stdtypes.html#list.clear" title="list.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> method is also <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.
+<p>The <a class="reference internal" href="stdtypes.html#list.clear" title="list.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> method is also <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.
 Other threads cannot observe elements being removed.</p>
-<p data-msgid="933c76ce6c161c5e60653abd1fed69cd5a1c4af2" data-score="0" data-since="260608">The <a class="reference internal" href="stdtypes.html#list.sort" title="list.sort"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sort()</span></code></a> method is not <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.
+<p>The <a class="reference internal" href="stdtypes.html#list.sort" title="list.sort"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sort()</span></code></a> method is not <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.
 Other threads cannot observe intermediate states during sorting, but the
 list appears empty for the duration of the sort.</p>
-<p data-msgid="e2fdf95d7b04a98f80de2a12be07e1c93a0918e6" data-score="0" data-since="260608">The following operations may allow <a class="reference internal" href="../glossary.html#term-lock-free"><span class="xref std std-term">lock-free</span></a> operations to observe
+<p>The following operations may allow <a class="reference internal" href="../glossary.html#term-lock-free"><span class="xref std std-term">lock-free</span></a> operations to observe
 intermediate states since they modify multiple elements in place:</p>
-<div class="maybe highlight-python3 notranslate" data-msgid="36a63bddf756bf5a329d060699d20d1ae9191032" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>  <span class="c1"># shifts elements</span>
+<div class="maybe highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>  <span class="c1"># shifts elements</span>
 <span class="n">lst</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>           <span class="c1"># idx not at the end of the list, shifts elements</span>
 <span class="n">lst</span> <span class="o">*=</span> <span class="n">x</span>               <span class="c1"># copies elements in place</span>
 </pre></div>
 </div>
-<p data-msgid="eb3060af34e0afaab94cc49277a13576b35931a1" data-score="0" data-since="260608">The <a class="reference internal" href="stdtypes.html#list.remove" title="list.remove"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove()</span></code></a> method may allow concurrent modifications since
+<p>The <a class="reference internal" href="stdtypes.html#list.remove" title="list.remove"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove()</span></code></a> method may allow concurrent modifications since
 element comparison may execute arbitrary Python code (via
 <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>).</p>
-<p data-msgid="e4328fcb6d6a5c05521ae450a80c2307b60c96b9" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#list.extend" title="list.extend"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extend()</span></code></a> is safe to call from multiple threads.  However, its
+<p><a class="reference internal" href="stdtypes.html#list.extend" title="list.extend"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extend()</span></code></a> is safe to call from multiple threads.  However, its
 guarantees depend on the iterable passed to it. If it is a <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>, a
 <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, a <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>, a <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>, a <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> or a
 <a class="reference internal" href="stdtypes.html#dict-views"><span class="std std-ref">dictionary view object</span></a> (but not their subclasses), the
@@ -241,12 +243,12 @@ guarantees depend on the iterable passed to it. If it is a <a class="reference i
 Otherwise, an iterator is created which can be concurrently modified by
 another thread.  The same applies to inplace concatenation of a list with
 other iterables when using <code class="docutils literal notranslate"><span class="pre">lst</span> <span class="pre">+=</span> <span class="pre">iterable</span></code>.</p>
-<p data-msgid="0d087d89c57f5ecfdd1b39beeb3606b8dcfcd7a5" data-score="0" data-since="260608">Similarly, assigning to a list slice with <code class="docutils literal notranslate"><span class="pre">lst[i:j]</span> <span class="pre">=</span> <span class="pre">iterable</span></code> is safe
+<p>Similarly, assigning to a list slice with <code class="docutils literal notranslate"><span class="pre">lst[i:j]</span> <span class="pre">=</span> <span class="pre">iterable</span></code> is safe
 to call from multiple threads, but <code class="docutils literal notranslate"><span class="pre">iterable</span></code> is only locked when it is
 also a <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> (but not its subclasses).</p>
-<p data-msgid="c65ea552c15cb9a1e50e629535b58752705933de" data-score="0" data-since="260608">Operations that involve multiple accesses, as well as iteration, are never
+<p>Operations that involve multiple accesses, as well as iteration, are never
 atomic. For example:</p>
-<div class="bad highlight-python3 notranslate" data-msgid="6492420d4441f4de5dcfe30523d32b4afa3df0b8" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: read-modify-write</span>
+<div class="bad highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: read-modify-write</span>
 <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
 
 <span class="c1"># NOT atomic: check-then-act</span>
@@ -258,81 +260,81 @@ atomic. For example:</p>
     <span class="n">process</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>  <span class="c1"># another thread may modify lst</span>
 </pre></div>
 </div>
-<p data-msgid="e2a1846b4a12a3619a3726a8845b0518944aea49" data-score="0" data-since="260608">Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> instances
+<p>Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> instances
 across threads.</p>
 </section>
 <section id="thread-safety-for-dict-objects">
-<span id="thread-safety-dict"></span><h2 data-msgid="eb1ec577bb326977f768d242881ef9790728f7dc" data-score="0" data-since="260608">Thread safety for dict objects<a class="headerlink" href="#thread-safety-for-dict-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="e35085b3b4833964f9d420c41ce868fdf9619b0c" data-score="0" data-since="260608">Creating a dictionary with the <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> constructor is atomic when the
+<span id="thread-safety-dict"></span><h2>Thread safety for dict objects<a class="headerlink" href="#thread-safety-for-dict-objects" title="Link to this heading">¶</a></h2>
+<p>Creating a dictionary with the <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> constructor is atomic when the
 argument to it is a <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> or a <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>. When using the
 <a class="reference internal" href="stdtypes.html#dict.fromkeys" title="dict.fromkeys"><code class="xref py py-meth docutils literal notranslate"><span class="pre">dict.fromkeys()</span></code></a> method, dictionary creation is atomic when the
 argument is a <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="stdtypes.html#tuple" title="tuple"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> or
 <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>.</p>
-<p data-msgid="47edeb0e08ec32dde77eb83c7cca92b2be572647" data-score="0" data-since="260608">The following operations and functions are <a class="reference internal" href="../glossary.html#term-lock-free"><span class="xref std std-term">lock-free</span></a> and
+<p>The following operations and functions are <a class="reference internal" href="../glossary.html#term-lock-free"><span class="xref std std-term">lock-free</span></a> and
 <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.</p>
-<div class="good highlight-python3 notranslate" data-msgid="f6f510c59b29a3e908b6a878558d57da017a0d5f" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>       <span class="c1"># dict.__getitem__</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>       <span class="c1"># dict.__getitem__</span>
 <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>   <span class="c1"># dict.get</span>
 <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span>     <span class="c1"># dict.__contains__</span>
 <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>       <span class="c1"># dict.__len__</span>
 </pre></div>
 </div>
-<p data-msgid="b7eae6a0891bae76abe960991724af87b73af7cb" data-score="0" data-since="260608">All other operations from here on hold the <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object lock</span></a>.</p>
-<p data-msgid="1351a273c607aee82f9f0c22dd0ee93abdefd85b" data-score="0" data-since="260608">Writing or removing a single item is safe to call from multiple threads
+<p>All other operations from here on hold the <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object lock</span></a>.</p>
+<p>Writing or removing a single item is safe to call from multiple threads
 and will not corrupt the dictionary:</p>
-<div class="good highlight-python3 notranslate" data-msgid="73027bfee24e6a2553dcdd51122cd3b58a32ad07" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>        <span class="c1"># write</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>        <span class="c1"># write</span>
 <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>            <span class="c1"># delete</span>
 <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>            <span class="c1"># remove and return</span>
 <span class="n">d</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>           <span class="c1"># remove and return last item</span>
 <span class="n">d</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>  <span class="c1"># insert if missing</span>
 </pre></div>
 </div>
-<p data-msgid="8179d6acd00df9dd2755cb0535d623fd1da5661f" data-score="0" data-since="260608">These operations may compare keys using <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>, which can
+<p>These operations may compare keys using <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>, which can
 execute arbitrary Python code. During such comparisons, the dictionary may
 be modified by another thread. For built-in types like <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>,
 <a class="reference internal" href="functions.html#int" title="int"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, and <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, that implement <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a> in C,
 the underlying lock is not released during comparisons and this is not a
 concern.</p>
-<p data-msgid="c39e30b6cf4e5e4b8bb7113f385440aae9b039e0" data-score="0" data-since="260608">The following operations return new objects and hold the <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object lock</span></a>
+<p>The following operations return new objects and hold the <a class="reference internal" href="../glossary.html#term-per-object-lock"><span class="xref std std-term">per-object lock</span></a>
 for the duration of the operation:</p>
-<div class="good highlight-python3 notranslate" data-msgid="955eaaafdba2977e97b8cb154d9ef20696c34109" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>      <span class="c1"># returns a shallow copy of the dictionary</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>      <span class="c1"># returns a shallow copy of the dictionary</span>
 <span class="n">d</span> <span class="o">|</span> <span class="n">other</span>     <span class="c1"># merges two dicts into a new dict</span>
 <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>      <span class="c1"># returns a new dict_keys view object</span>
 <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>    <span class="c1"># returns a new dict_values view object</span>
 <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>     <span class="c1"># returns a new dict_items view object</span>
 </pre></div>
 </div>
-<p data-msgid="41a6a24d3ea2139143e60ec9537bf84b0ec6be2c" data-score="0" data-since="260608">The <a class="reference internal" href="stdtypes.html#dict.clear" title="dict.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> method holds the lock for its duration. Other
+<p>The <a class="reference internal" href="stdtypes.html#dict.clear" title="dict.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> method holds the lock for its duration. Other
 threads cannot observe elements being removed.</p>
-<p data-msgid="3c846a92603b38637a8fbdb14836387ad2402311" data-score="0" data-since="260608">The following operations lock both dictionaries. For <a class="reference internal" href="stdtypes.html#dict.update" title="dict.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code></a>
+<p>The following operations lock both dictionaries. For <a class="reference internal" href="stdtypes.html#dict.update" title="dict.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code></a>
 and <code class="docutils literal notranslate"><span class="pre">|=</span></code>, this applies only when the other operand is a <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>
 that uses the standard dict iterator (but not subclasses that override
 iteration). For equality comparison, this applies to <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> and
 its subclasses:</p>
-<div class="good highlight-python3 notranslate" data-msgid="dd531d1593d7a042ddf53d1f7994fcd976529b65" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other_dict</span><span class="p">)</span>  <span class="c1"># both locked when other_dict is a dict</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other_dict</span><span class="p">)</span>  <span class="c1"># both locked when other_dict is a dict</span>
 <span class="n">d</span> <span class="o">|=</span> <span class="n">other_dict</span>       <span class="c1"># both locked when other_dict is a dict</span>
 <span class="n">d</span> <span class="o">==</span> <span class="n">other_dict</span>       <span class="c1"># both locked for dict and subclasses</span>
 </pre></div>
 </div>
-<p data-msgid="1a7b41f0fcb3ff58613fda651eb08b27abf62f32" data-score="0" data-since="260608">All comparison operations also compare values using <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>,
+<p>All comparison operations also compare values using <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>,
 so for non-built-in types the lock may be released during comparison.</p>
-<p data-msgid="ac53b0cca831f7a172d5f5f56875a8e3de53bd80" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#dict.fromkeys" title="dict.fromkeys"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fromkeys()</span></code></a> locks both the new dictionary and the iterable
+<p><a class="reference internal" href="stdtypes.html#dict.fromkeys" title="dict.fromkeys"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fromkeys()</span></code></a> locks both the new dictionary and the iterable
 when the iterable is exactly a <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>, or
 <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a> (not subclasses):</p>
-<div class="good highlight-python3 notranslate" data-msgid="815dd6923c9fff87847c700aee0c4db879e00979" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">a_dict</span><span class="p">)</span>      <span class="c1"># locks both</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">a_dict</span><span class="p">)</span>      <span class="c1"># locks both</span>
 <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">a_set</span><span class="p">)</span>       <span class="c1"># locks both</span>
 <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">a_frozenset</span><span class="p">)</span> <span class="c1"># locks both</span>
 </pre></div>
 </div>
-<p data-msgid="ac874746c56e29d7247e057f7518ce385d5c3f6a" data-score="0" data-since="260608">When updating from a non-dict iterable, only the target dictionary is
+<p>When updating from a non-dict iterable, only the target dictionary is
 locked. The iterable may be concurrently modified by another thread:</p>
-<div class="maybe highlight-python3 notranslate" data-msgid="b7466222a970857b330b43c4ecb5927abdf7acb3" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>        <span class="c1"># iterable is not a dict: only d locked</span>
+<div class="maybe highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>        <span class="c1"># iterable is not a dict: only d locked</span>
 <span class="n">d</span> <span class="o">|=</span> <span class="n">iterable</span>             <span class="c1"># iterable is not a dict: only d locked</span>
 <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>   <span class="c1"># iterable is not a dict/set/frozenset: only result locked</span>
 </pre></div>
 </div>
-<p data-msgid="f404cf1b370de2a454980558c2485c9d5c759d0f" data-score="0" data-since="260608">Operations that involve multiple accesses, as well as iteration, are never
+<p>Operations that involve multiple accesses, as well as iteration, are never
 atomic:</p>
-<div class="bad highlight-python3 notranslate" data-msgid="acf13dc116c75549ebb4ebbcc51e5c19cd2d9f39" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: read-modify-write</span>
+<div class="bad highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: read-modify-write</span>
 <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
 
 <span class="c1"># NOT atomic: check-then-act (TOCTOU)</span>
@@ -344,9 +346,9 @@ atomic:</p>
     <span class="n">process</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>  <span class="c1"># another thread may modify d</span>
 </pre></div>
 </div>
-<p data-msgid="e84bb49902550bcdbb5b69c972c4daa70e238eb9" data-score="0" data-since="260608">To avoid time-of-check to time-of-use (TOCTOU) issues, use atomic
+<p>To avoid time-of-check to time-of-use (TOCTOU) issues, use atomic
 operations or handle exceptions:</p>
-<div class="good highlight-python3 notranslate" data-msgid="646999f2dfcb5dcfcf555788a72fe39d3992fdf4" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Use pop() with default instead of check-then-delete</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use pop() with default instead of check-then-delete</span>
 <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 <span class="c1"># Or handle the exception</span>
@@ -356,48 +358,48 @@ operations or handle exceptions:</p>
     <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="1dc7a5a76938810e720d82fb6032c3cc22673101" data-score="0" data-since="260608">To safely iterate over a dictionary that may be modified by another
+<p>To safely iterate over a dictionary that may be modified by another
 thread, iterate over a copy:</p>
-<div class="good highlight-python3 notranslate" data-msgid="ab93fc44dfe0efebd4c9b1a8cb9577ee950e6714" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Make a copy to iterate safely</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a copy to iterate safely</span>
 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">process</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="eb89dbdc831be41f3830cb61f4a9607f9daabb8d" data-score="0" data-since="260608">Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> instances
+<p>Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> instances
 across threads.</p>
 </section>
 <section id="thread-safety-for-set-objects">
-<span id="thread-safety-set"></span><h2 data-msgid="2efc4a85f415e1d92cb11264c6048ba09ef486cb" data-score="0" data-since="260608">Thread safety for set objects<a class="headerlink" href="#thread-safety-for-set-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="5a2f2516f696b0b56e4fc9aa66cecf8ab42a7786" data-score="0" data-since="260608">The <a class="reference internal" href="functions.html#len" title="len"><code class="xref py py-func docutils literal notranslate"><span class="pre">len()</span></code></a> function is lock-free and <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.</p>
-<p data-msgid="88e1ef9061ab8725b58ac608c2ef9983d1ee6390" data-score="0" data-since="260608">The following read operation is lock-free. It does not block concurrent
+<span id="thread-safety-set"></span><h2>Thread safety for set objects<a class="headerlink" href="#thread-safety-for-set-objects" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="functions.html#len" title="len"><code class="xref py py-func docutils literal notranslate"><span class="pre">len()</span></code></a> function is lock-free and <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.</p>
+<p>The following read operation is lock-free. It does not block concurrent
 modifications and may observe intermediate states from operations that
 hold the per-object lock:</p>
-<div class="good highlight-python3 notranslate" data-msgid="e47fcbed3f9e335ef3a5b918f09382c7390d0264" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">elem</span> <span class="ow">in</span> <span class="n">s</span>    <span class="c1"># set.__contains__</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span> <span class="ow">in</span> <span class="n">s</span>    <span class="c1"># set.__contains__</span>
 </pre></div>
 </div>
-<p data-msgid="3a9234e9b3271b62ebeed635c36b8c7632260527" data-score="0" data-since="260608">This operation may compare elements using <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>, which can
+<p>This operation may compare elements using <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>, which can
 execute arbitrary Python code. During such comparisons, the set may be
 modified by another thread. For built-in types like <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>,
 <a class="reference internal" href="functions.html#int" title="int"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, and <a class="reference internal" href="functions.html#float" title="float"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code> does not release the
 underlying lock during comparisons and this is not a concern.</p>
-<p data-msgid="226bdf151bb032e9e541bb13056c27e02056f035" data-score="0" data-since="260608">All other operations from here on hold the per-object lock.</p>
-<p data-msgid="514cf1cc02f3aaac4932b07b8e8f64e911f2200e" data-score="0" data-since="260608">Adding or removing a single element is safe to call from multiple threads
+<p>All other operations from here on hold the per-object lock.</p>
+<p>Adding or removing a single element is safe to call from multiple threads
 and will not corrupt the set:</p>
-<div class="good highlight-python3 notranslate" data-msgid="87f6d3ed7d7a50d3a2c4cc8023e7098905a199ce" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>      <span class="c1"># add element</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>      <span class="c1"># add element</span>
 <span class="n">s</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>   <span class="c1"># remove element, raise if missing</span>
 <span class="n">s</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>  <span class="c1"># remove element if present</span>
 <span class="n">s</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>          <span class="c1"># remove and return arbitrary element</span>
 </pre></div>
 </div>
-<p data-msgid="13a94b9c463b2cbc9b9ff0b72981b02bae318734" data-score="0" data-since="260608">These operations also compare elements, so the same <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>
+<p>These operations also compare elements, so the same <a class="reference internal" href="../reference/datamodel.html#object.__eq__" title="object.__eq__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__eq__()</span></code></a>
 considerations as above apply.</p>
-<p data-msgid="fea91efc321e017efe7b45b779c7e4c3f869a605" data-score="0" data-since="260608">The <a class="reference internal" href="stdtypes.html#set.copy" title="set.copy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">copy()</span></code></a> method returns a new object and holds the per-object lock
+<p>The <a class="reference internal" href="stdtypes.html#set.copy" title="set.copy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">copy()</span></code></a> method returns a new object and holds the per-object lock
 for the duration so that it is always atomic.</p>
-<p data-msgid="0d6a87804789f00679b4669291cd26556f55b58b" data-score="0" data-since="260608">The <a class="reference internal" href="stdtypes.html#set.clear" title="set.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> method holds the lock for its duration. Other
+<p>The <a class="reference internal" href="stdtypes.html#set.clear" title="set.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> method holds the lock for its duration. Other
 threads cannot observe elements being removed.</p>
-<p data-msgid="907c9637cc2204c5c1454add178e4585d048b2bd" data-score="0" data-since="260608">The following operations only accept <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> or <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>
+<p>The following operations only accept <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> or <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>
 as operands and always lock both objects:</p>
-<div class="good highlight-python3 notranslate" data-msgid="1ef52575ab6be0a4bb213045e7614b04f2d668f8" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">|=</span> <span class="n">other</span>                   <span class="c1"># other must be set/frozenset</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">|=</span> <span class="n">other</span>                   <span class="c1"># other must be set/frozenset</span>
 <span class="n">s</span> <span class="o">&amp;=</span> <span class="n">other</span>                   <span class="c1"># other must be set/frozenset</span>
 <span class="n">s</span> <span class="o">-=</span> <span class="n">other</span>                   <span class="c1"># other must be set/frozenset</span>
 <span class="n">s</span> <span class="o">^=</span> <span class="n">other</span>                   <span class="c1"># other must be set/frozenset</span>
@@ -407,49 +409,49 @@ as operands and always lock both objects:</p>
 <span class="n">s</span> <span class="o">^</span> <span class="n">other</span>                    <span class="c1"># other must be set/frozenset</span>
 </pre></div>
 </div>
-<p data-msgid="0e69282c81fe41df995ced393c7df36e41717fc0" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#set.update" title="set.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.update()</span></code></a>, <a class="reference internal" href="stdtypes.html#set.union" title="set.union"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.union()</span></code></a>, <a class="reference internal" href="stdtypes.html#set.intersection" title="set.intersection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.intersection()</span></code></a> and
+<p><a class="reference internal" href="stdtypes.html#set.update" title="set.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.update()</span></code></a>, <a class="reference internal" href="stdtypes.html#set.union" title="set.union"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.union()</span></code></a>, <a class="reference internal" href="stdtypes.html#set.intersection" title="set.intersection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.intersection()</span></code></a> and
 <a class="reference internal" href="stdtypes.html#set.difference" title="set.difference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.difference()</span></code></a> can take multiple iterables as arguments. They all
 iterate through all the passed iterables and do the following:</p>
 <blockquote>
 <div><ul class="simple">
 <li><dl class="simple">
-<dt data-msgid="932fdfc2004f356b7907f5cf964c7ee4a82fd31d" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#set.update" title="set.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.update()</span></code></a> and <a class="reference internal" href="stdtypes.html#set.union" title="set.union"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.union()</span></code></a> lock both objects only when</dt><dd><p data-msgid="ae7b84707752cbaf53f85e87485039a59d6a6322" data-score="0" data-since="260608">the other operand is a <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>, <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>, or <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>.</p>
+<dt><a class="reference internal" href="stdtypes.html#set.update" title="set.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.update()</span></code></a> and <a class="reference internal" href="stdtypes.html#set.union" title="set.union"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.union()</span></code></a> lock both objects only when</dt><dd><p>the other operand is a <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>, <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>, or <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt data-msgid="d88dee936bbd8c68cf7221feb040b6bef8417fc8" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#set.intersection" title="set.intersection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.intersection()</span></code></a> and <a class="reference internal" href="stdtypes.html#set.difference" title="set.difference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.difference()</span></code></a> always try to lock</dt><dd><p data-msgid="179afb0603a7100f25a13209735221c6d03969f3" data-score="0" data-since="260608">all objects.</p>
+<dt><a class="reference internal" href="stdtypes.html#set.intersection" title="set.intersection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.intersection()</span></code></a> and <a class="reference internal" href="stdtypes.html#set.difference" title="set.difference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.difference()</span></code></a> always try to lock</dt><dd><p>all objects.</p>
 </dd>
 </dl>
 </li>
 </ul>
 </div></blockquote>
-<p data-msgid="0c9e2d700ea93da634ea337731d8a73f47758f99" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#set.symmetric_difference" title="set.symmetric_difference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.symmetric_difference()</span></code></a> tries to lock both objects.</p>
-<p data-msgid="759146715fb822aa3e093a69420e814774c9b313" data-score="0" data-since="260608">The update variants of the above methods also have some differences between
+<p><a class="reference internal" href="stdtypes.html#set.symmetric_difference" title="set.symmetric_difference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.symmetric_difference()</span></code></a> tries to lock both objects.</p>
+<p>The update variants of the above methods also have some differences between
 them:</p>
 <blockquote>
 <div><ul class="simple">
 <li><dl class="simple">
-<dt data-msgid="81e4db8803244e843f53e0fe61db397b7a8dbc0d" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#set.difference_update" title="set.difference_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.difference_update()</span></code></a> and <a class="reference internal" href="stdtypes.html#set.intersection_update" title="set.intersection_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.intersection_update()</span></code></a> try</dt><dd><p data-msgid="250e2c420f0093ce42819fb2e13ce2a43450dbca" data-score="0" data-since="260608">to lock all objects one-by-one.</p>
+<dt><a class="reference internal" href="stdtypes.html#set.difference_update" title="set.difference_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.difference_update()</span></code></a> and <a class="reference internal" href="stdtypes.html#set.intersection_update" title="set.intersection_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.intersection_update()</span></code></a> try</dt><dd><p>to lock all objects one-by-one.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt data-msgid="fbd55008f16840260a254cb324d2b3488f31f71c" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#set.symmetric_difference_update" title="set.symmetric_difference_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.symmetric_difference_update()</span></code></a> only locks the arguments if it is</dt><dd><p data-msgid="d8d746f711eeac594a0686addac52ef906a892f5" data-score="0" data-since="260608">of type <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>, <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>, or <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>.</p>
+<dt><a class="reference internal" href="stdtypes.html#set.symmetric_difference_update" title="set.symmetric_difference_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set.symmetric_difference_update()</span></code></a> only locks the arguments if it is</dt><dd><p>of type <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>, <a class="reference internal" href="stdtypes.html#frozenset" title="frozenset"><code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code></a>, or <a class="reference internal" href="stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>.</p>
 </dd>
 </dl>
 </li>
 </ul>
 </div></blockquote>
-<p data-msgid="963777838277e815b4b9a08d864b2e0f42222c1a" data-score="0" data-since="260608">The following methods always try to lock both objects:</p>
-<div class="good highlight-python3 notranslate" data-msgid="a1cdd29a526718dd69b7cdd5ce14b0226d127e61" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">s</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>          <span class="c1"># both locked</span>
+<p>The following methods always try to lock both objects:</p>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">s</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>          <span class="c1"># both locked</span>
 <span class="n">s</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>            <span class="c1"># both locked</span>
 <span class="n">s</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>          <span class="c1"># both locked</span>
 </pre></div>
 </div>
-<p data-msgid="f404cf1b370de2a454980558c2485c9d5c759d0f" data-score="0" data-since="260608">Operations that involve multiple accesses, as well as iteration, are never
+<p>Operations that involve multiple accesses, as well as iteration, are never
 atomic:</p>
-<div class="bad highlight-python3 notranslate" data-msgid="58fcb1fdf4868c4f5f2fd316a3048da7bcf494db" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: check-then-act</span>
+<div class="bad highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: check-then-act</span>
 <span class="k">if</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
       <span class="n">s</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
 
@@ -458,30 +460,30 @@ atomic:</p>
       <span class="n">process</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>  <span class="c1"># another thread may modify s</span>
 </pre></div>
 </div>
-<p data-msgid="1ea350f90dc9a7dda21173cbd7363b5fc5254301" data-score="0" data-since="260608">Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> instances
+<p>Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> instances
 across threads.  See <a class="reference internal" href="../howto/free-threading-python.html#freethreading-python-howto"><span class="std std-ref">Python support for free threading</span></a> for more information.</p>
 </section>
 <section id="thread-safety-for-bytearray-objects">
-<span id="thread-safety-bytearray"></span><h2 data-msgid="fbdacec405dd3dd5ed65db5373a90889f7fd9b39" data-score="0" data-since="260608">Thread safety for bytearray objects<a class="headerlink" href="#thread-safety-for-bytearray-objects" title="Link to this heading">¶</a></h2>
+<span id="thread-safety-bytearray"></span><h2>Thread safety for bytearray objects<a class="headerlink" href="#thread-safety-for-bytearray-objects" title="Link to this heading">¶</a></h2>
 <blockquote>
-<div><p data-msgid="5a2f2516f696b0b56e4fc9aa66cecf8ab42a7786" data-score="0" data-since="260608">The <a class="reference internal" href="functions.html#len" title="len"><code class="xref py py-func docutils literal notranslate"><span class="pre">len()</span></code></a> function is lock-free and <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.</p>
-<p data-msgid="a4abf1b5c5f2768382ac1b39eca6af6fe627f4a9" data-score="0" data-since="260608">Concatenation and comparisons use the buffer protocol, which prevents
+<div><p>The <a class="reference internal" href="functions.html#len" title="len"><code class="xref py py-func docutils literal notranslate"><span class="pre">len()</span></code></a> function is lock-free and <a class="reference internal" href="../glossary.html#term-atomic-operation"><span class="xref std std-term">atomic</span></a>.</p>
+<p>Concatenation and comparisons use the buffer protocol, which prevents
 resizing but does not hold the per-object lock. These operations may
 observe intermediate states from concurrent modifications:</p>
-<div class="maybe highlight-python3 notranslate" data-msgid="1711010811c92452846bb06b6aa2ebe4eed4d0fc" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">ba</span> <span class="o">+</span> <span class="n">other</span>    <span class="c1"># may observe concurrent writes</span>
+<div class="maybe highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ba</span> <span class="o">+</span> <span class="n">other</span>    <span class="c1"># may observe concurrent writes</span>
 <span class="n">ba</span> <span class="o">==</span> <span class="n">other</span>   <span class="c1"># may observe concurrent writes</span>
 <span class="n">ba</span> <span class="o">&lt;</span> <span class="n">other</span>    <span class="c1"># may observe concurrent writes</span>
 </pre></div>
 </div>
-<p data-msgid="226bdf151bb032e9e541bb13056c27e02056f035" data-score="0" data-since="260608">All other operations from here on hold the per-object lock.</p>
-<p data-msgid="c6007b249112253636527735c41784bd93c981d9" data-score="0" data-since="260608">Reading a single element or slice is safe to call from multiple threads:</p>
-<div class="good highlight-python3 notranslate" data-msgid="c53e2a17e3f45fadd3db99608af275cc44c8edaf" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>        <span class="c1"># bytearray.__getitem__</span>
+<p>All other operations from here on hold the per-object lock.</p>
+<p>Reading a single element or slice is safe to call from multiple threads:</p>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>        <span class="c1"># bytearray.__getitem__</span>
 <span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]</span>      <span class="c1"># slice</span>
 </pre></div>
 </div>
-<p data-msgid="3a4aa8b8e795aae8d70e1c56190d2d9258c2be93" data-score="0" data-since="260608">The following operations are safe to call from multiple threads and will
+<p>The following operations are safe to call from multiple threads and will
 not corrupt the bytearray:</p>
-<div class="good highlight-python3 notranslate" data-msgid="9b36aef356257d16d64890b9234bf23515d99ca5" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>         <span class="c1"># write single byte</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>         <span class="c1"># write single byte</span>
 <span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>  <span class="c1"># write slice</span>
 <span class="n">ba</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># append single byte</span>
 <span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>  <span class="c1"># extend with iterable</span>
@@ -493,27 +495,27 @@ not corrupt the bytearray:</p>
 <span class="n">ba</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>        <span class="c1"># remove all bytes</span>
 </pre></div>
 </div>
-<p data-msgid="a0388998ae4f84ecb079690446145dd566e5fb12" data-score="0" data-since="260608">Slice assignment locks both objects when <em>values</em> is a <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>:</p>
-<div class="good highlight-python3 notranslate" data-msgid="a7915abe806651c99e1c85cf07446573459cc09d" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_bytearray</span>  <span class="c1"># both locked</span>
+<p>Slice assignment locks both objects when <em>values</em> is a <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>:</p>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_bytearray</span>  <span class="c1"># both locked</span>
 </pre></div>
 </div>
-<p data-msgid="6b8b2ad60efd32dcf731b517f41859dd5980c54a" data-score="0" data-since="260608">The following operations return new objects and hold the per-object lock
+<p>The following operations return new objects and hold the per-object lock
 for the duration:</p>
-<div class="good highlight-python3 notranslate" data-msgid="c8fa68e6fa45fd63d8a0bf74458df549e35ea034" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>     <span class="c1"># returns a shallow copy</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ba</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>     <span class="c1"># returns a shallow copy</span>
 <span class="n">ba</span> <span class="o">*</span> <span class="n">n</span>        <span class="c1"># repeat into new bytearray</span>
 </pre></div>
 </div>
-<p data-msgid="7fc5961c3fb95627955b0b26a166a130e904eae1" data-score="0" data-since="260608">The membership test holds the lock for its duration:</p>
-<div class="good highlight-python3 notranslate" data-msgid="0227fc4bec1216421a2ee52cfa7dc88582551886" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="ow">in</span> <span class="n">ba</span>       <span class="c1"># bytearray.__contains__</span>
+<p>The membership test holds the lock for its duration:</p>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="ow">in</span> <span class="n">ba</span>       <span class="c1"># bytearray.__contains__</span>
 </pre></div>
 </div>
-<p data-msgid="a9ad58f7005a0cdee4f9b324db619de5021851ee" data-score="0" data-since="260608">All other bytearray methods (such as <a class="reference internal" href="stdtypes.html#bytearray.find" title="bytearray.find"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find()</span></code></a>,
+<p>All other bytearray methods (such as <a class="reference internal" href="stdtypes.html#bytearray.find" title="bytearray.find"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find()</span></code></a>,
 <a class="reference internal" href="stdtypes.html#bytearray.replace" title="bytearray.replace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">replace()</span></code></a>, <a class="reference internal" href="stdtypes.html#bytearray.split" title="bytearray.split"><code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code></a>,
 <a class="reference internal" href="stdtypes.html#bytearray.decode" title="bytearray.decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decode()</span></code></a>, etc.) hold the per-object lock for their
 duration.</p>
-<p data-msgid="f404cf1b370de2a454980558c2485c9d5c759d0f" data-score="0" data-since="260608">Operations that involve multiple accesses, as well as iteration, are never
+<p>Operations that involve multiple accesses, as well as iteration, are never
 atomic:</p>
-<div class="bad highlight-python3 notranslate" data-msgid="ab9148c2224b93a5f398b8ebb50fe06638701e5d" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: check-then-act</span>
+<div class="bad highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOT atomic: check-then-act</span>
 <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ba</span><span class="p">:</span>
     <span class="n">ba</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
@@ -522,49 +524,49 @@ atomic:</p>
     <span class="n">process</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span>  <span class="c1"># another thread may modify ba</span>
 </pre></div>
 </div>
-<p data-msgid="69aef03873555d7f8d336718fa79f855551cceea" data-score="0" data-since="260608">To safely iterate over a bytearray that may be modified by another
+<p>To safely iterate over a bytearray that may be modified by another
 thread, iterate over a copy:</p>
-<div class="good highlight-python3 notranslate" data-msgid="152eb8e087dac010e2ed2e50e8466a5df6d47b8f" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Make a copy to iterate safely</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a copy to iterate safely</span>
 <span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">ba</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
     <span class="n">process</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="3f708cc10e74954295bf24b551090f82297bbe61" data-score="0" data-since="260608">Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a> instances
+<p>Consider external synchronization when sharing <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a> instances
 across threads.  See <a class="reference internal" href="../howto/free-threading-python.html#freethreading-python-howto"><span class="std std-ref">Python support for free threading</span></a> for more information.</p>
 </div></blockquote>
 </section>
 <section id="thread-safety-for-memoryview-objects">
-<span id="thread-safety-memoryview"></span><h2 data-msgid="43994b0accca9119de80f05d54df1340b98c186f" data-score="0" data-since="260608">Thread safety for memoryview objects<a class="headerlink" href="#thread-safety-for-memoryview-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="1d4d650fd22916ca235ffb763157c5054621186c" data-score="0" data-since="260608"><a class="reference internal" href="stdtypes.html#memoryview" title="memoryview"><code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code></a> objects provide access to the internal data of an
+<span id="thread-safety-memoryview"></span><h2>Thread safety for memoryview objects<a class="headerlink" href="#thread-safety-for-memoryview-objects" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="stdtypes.html#memoryview" title="memoryview"><code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code></a> objects provide access to the internal data of an
 underlying object without copying. Thread safety depends on both the
 memoryview itself and the underlying buffer exporter.</p>
-<p data-msgid="dea8401a11725f4eceda912a2612f488f0439dbf" data-score="0" data-since="260608">The memoryview implementation uses atomic operations to track its own
+<p>The memoryview implementation uses atomic operations to track its own
 exports in the <a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded build</span></a>. Creating and
 releasing a memoryview are thread-safe. Attribute access (e.g.,
 <a class="reference internal" href="stdtypes.html#memoryview.shape" title="memoryview.shape"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code></a>, <a class="reference internal" href="stdtypes.html#memoryview.format" title="memoryview.format"><code class="xref py py-attr docutils literal notranslate"><span class="pre">format</span></code></a>) reads fields that
 are immutable for the lifetime of the memoryview, so concurrent reads
 are safe as long as the memoryview has not been released.</p>
-<p data-msgid="d3b851f90b544b1f823cdc326c0499490d97b814" data-score="0" data-since="260608">However, the actual data accessed through the memoryview is owned by the
+<p>However, the actual data accessed through the memoryview is owned by the
 underlying object. Concurrent access to this data is only safe if the
 underlying object supports it:</p>
 <ul class="simple">
-<li><p data-msgid="d1fa6284d784735a5b1469c4444d0ae26c8a7ee4" data-score="0" data-since="260608">For immutable objects like <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>, concurrent reads through
+<li><p>For immutable objects like <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>, concurrent reads through
 multiple memoryviews are safe.</p></li>
-<li><p data-msgid="c19fdaf32674e719a7a37a4d8520b05bb462b59b" data-score="0" data-since="260608">For mutable objects like <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>, reading and writing the
+<li><p>For mutable objects like <a class="reference internal" href="stdtypes.html#bytearray" title="bytearray"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytearray</span></code></a>, reading and writing the
 same memory region from multiple threads without external
 synchronization is not safe and may result in data corruption.
 Note that even read-only memoryviews of mutable objects do not
 prevent data races if the underlying object is modified from
 another thread.</p></li>
 </ul>
-<div class="bad highlight-python3 notranslate" data-msgid="3d15136503b9345d7657c8acfc25cb8c371e3ef4" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># NOT safe: concurrent writes to the same buffer</span>
+<div class="bad highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOT safe: concurrent writes to the same buffer</span>
 <span class="n">data</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
 <span class="n">view</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="c1"># Thread 1: view[0:500] = b&#39;x&#39; * 500</span>
 <span class="c1"># Thread 2: view[0:500] = b&#39;y&#39; * 500</span>
 </pre></div>
 </div>
-<div class="good highlight-python3 notranslate" data-msgid="5d9830d02c41447744d65044e3bb49f0f948ef8d" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Safe: use a lock for concurrent access</span>
+<div class="good highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Safe: use a lock for concurrent access</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 <span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 <span class="n">data</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
@@ -574,7 +576,7 @@ another thread.</p></li>
     <span class="n">view</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">500</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;x&#39;</span> <span class="o">*</span> <span class="mi">500</span>
 </pre></div>
 </div>
-<p data-msgid="31c62c2072fd1bcb8c4ad79f69bea49ba1f52289" data-score="0" data-since="260608">Resizing or reallocating the underlying object (such as calling
+<p>Resizing or reallocating the underlying object (such as calling
 <a class="reference internal" href="stdtypes.html#bytearray.resize" title="bytearray.resize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">bytearray.resize()</span></code></a>) while a memoryview is exported raises
 <a class="reference internal" href="exceptions.html#BufferError" title="BufferError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BufferError</span></code></a>. This is enforced regardless of threading.</p>
 </section>

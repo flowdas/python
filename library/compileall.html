@@ -8,9 +8,11 @@
     <title>compileall — 파이썬 라이브러리 바이트 컴파일하기 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -111,170 +113,174 @@
             <article class="document">
                 
   <section id="module-compileall">
-<span id="compileall-byte-compile-python-libraries"></span><h1 data-msgid="5a0c329309d8d112e634596ee48e91edb9a64be0" data-score="100" data-since="260603"><code class="xref py py-mod docutils literal notranslate"><span class="pre">compileall</span></code> — 파이썬 라이브러리 바이트 컴파일하기<a class="headerlink" href="#module-compileall" title="Link to this heading">¶</a></h1>
-<p data-msgid="4ffab7cb5c89a36be63467eb32ace207d084c690" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/compileall.py`</span></a></p>
+<span id="compileall-byte-compile-python-libraries"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">compileall</span></code> — 파이썬 라이브러리 바이트 컴파일하기<a class="headerlink" href="#module-compileall" title="Link to this heading">¶</a></h1>
+<p><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/compileall.py">Lib/compileall.py</a></p>
 <hr class="docutils" />
-<p data-msgid="5b3f482cf446d6e3750278217e64831168e82b45" data-score="81" data-since="260603">이 모듈은 파이썬 라이브러리 설치를 지원하는 몇 가지 유틸리티 함수를 제공합니다. 이 함수는 디렉터리 트리에서 파이썬 소스 파일을 컴파일합니다. 이 모듈을 사용하면 라이브러리 설치 시 캐시 된 바이트 코드 파일을 만들 수 있으므로, 라이브러리 디렉터리에 쓰기 권한이 없는 사용자도 사용할 수 있도록 합니다.</p>
+<p>이 모듈은 파이썬 라이브러리 설치를 지원하는 몇 가지 유틸리티 함수를 제공합니다. 이 함수는 디렉터리 트리에서 파이썬 소스 파일을 컴파일합니다. 이 모듈을 사용하면 라이브러리 설치 시 캐시 된 바이트 코드 파일을 만들 수 있으므로, 라이브러리 디렉터리에 쓰기 권한이 없는 사용자도 사용할 수 있도록 합니다.</p>
+<div class="availability docutils container">
+<p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: not WASI.</p>
+<p>이 모듈은 웹어셈블리에서 작동하지 않거나 제공되지 않습니다. 자세한 내용은 <a class="reference internal" href="intro.html#wasm-availability"><span class="std std-ref">웹어셈블리 플랫폼</span></a>을 참조하세요.</p>
+</div>
 <section id="command-line-use">
-<span id="compileall-cli"></span><h2 data-msgid="f5fade6f410b816f6fab771a6ff9476daabb47f9" data-score="71" data-since="260603">명령 줄 사용<a class="headerlink" href="#command-line-use" title="Link to this heading">¶</a></h2>
-<p data-msgid="efffb89273d611693812822f53ab23ead38315b1" data-score="94" data-since="260603">이 모듈은 파이썬 소스를 컴파일하는 스크립트로 작동할 수 있습니다 (<strong class="program">python -m compileall</strong>을 사용합니다).</p>
+<span id="compileall-cli"></span><h2>명령 줄 사용<a class="headerlink" href="#command-line-use" title="Link to this heading">¶</a></h2>
+<p>이 모듈은 파이썬 소스를 컴파일하는 스크립트로 작동할 수 있습니다 (<strong class="program">python -m compileall</strong>을 사용합니다).</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-arg-directory">
 <span class="sig-name descname"><span class="pre">directory</span></span><span class="sig-prename descclassname"> <span class="pre">...</span></span><a class="headerlink" href="#cmdoption-compileall-arg-directory" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object std" id="cmdoption-compileall-arg-file">
 <span class="sig-name descname"><span class="pre">file</span></span><span class="sig-prename descclassname"> <span class="pre">...</span></span><a class="headerlink" href="#cmdoption-compileall-arg-file" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4d3bb1f57587f1ce1721a71e411ef02cd1baa44d" data-score="73" data-since="260603">위치 인자는 컴파일할 파일이나 소스 파일을 포함하는 디렉터리이며 재귀적으로 탐색 됩니다. 인자가 주어지지 않으면, 명령 줄이 <code class="samp docutils literal notranslate"><span class="pre">-l</span> <em><span class="pre">&lt;directories</span> <span class="pre">from</span> <span class="pre">sys.path&gt;</span></em></code> 인 것처럼 행동합니다.</p>
+<dd><p>위치 인자는 컴파일할 파일이나 소스 파일을 포함하는 디렉터리이며 재귀적으로 탐색 됩니다. 인자가 주어지지 않으면, 명령 줄이 <code class="samp docutils literal notranslate"><span class="pre">-l</span> <em><span class="pre">&lt;directories</span> <span class="pre">from</span> <span class="pre">sys.path&gt;</span></em></code> 인 것처럼 행동합니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-l">
 <span class="sig-name descname"><span class="pre">-l</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-compileall-l" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5a4af04dfadd635864f1d47051a2f6d2d40a7326" data-score="89" data-since="260603">서브 디렉터리를 재귀적으로 탐색하지 않고, 이름이 지정되었거나 암시된 디렉터리에 직접 포함된 소스 코드 파일 만 컴파일합니다.</p>
+<dd><p>서브 디렉터리를 재귀적으로 탐색하지 않고, 이름이 지정되었거나 암시된 디렉터리에 직접 포함된 소스 코드 파일 만 컴파일합니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-f">
 <span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-compileall-f" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="af599334f590af897809afaeb762277ded4e96df" data-score="44" data-since="260603">타임스탬프가 최신일 때도 강제로 다시 빌드합니다.</p>
+<dd><p>타임스탬프가 최신일 때도 강제로 다시 빌드합니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-q">
 <span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-compileall-q" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="0b4612af08121b1f694f33409c38d70b014b7934" data-score="85" data-since="260603">컴파일된 파일 목록을 인쇄하지 않습니다. 한 번 전달하면, 에러 메시지는 여전히 인쇄됩니다. 두 번 전달하면 (<code class="docutils literal notranslate"><span class="pre">-qq</span></code>), 모든 출력이 억제됩니다.</p>
+<dd><p>컴파일된 파일 목록을 인쇄하지 않습니다. 한 번 전달하면, 에러 메시지는 여전히 인쇄됩니다. 두 번 전달하면 (<code class="docutils literal notranslate"><span class="pre">-qq</span></code>), 모든 출력이 억제됩니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-d">
 <span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"> <span class="pre">destdir</span></span><a class="headerlink" href="#cmdoption-compileall-d" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="0056e4a70fc3590a3e3a6617023fae6425642261" data-score="54" data-since="260603">디렉터리가 컴파일되는 각 파일의 경로 앞에 추가됩니다. 이것은 컴파일 시간 트레이스백에 나타나며, 바이트 코드 파일에 컴파일되어 들어가서, 바이트 코드 파일이 실행되는 시점에 소스 파일이 존재하지 않으면 트레이스백과 기타 메시지에 사용됩니다.</p>
+<dd><p>디렉터리가 컴파일되는 각 파일의 경로 앞에 추가됩니다. 이것은 컴파일 시간 트레이스백에 나타나며, 바이트 코드 파일에 컴파일되어 들어가서, 바이트 코드 파일이 실행되는 시점에 소스 파일이 존재하지 않으면 트레이스백과 기타 메시지에 사용됩니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-s">
 <span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"> <span class="pre">strip_prefix</span></span><a class="headerlink" href="#cmdoption-compileall-s" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b0c6db9e6de3de4c012952a2a83cd8e9d4059100" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일에 기록된 경로에서 주어진 접두사를 제거합니다. 경로는 접두사에 상대적입니다.</p>
-<p data-msgid="3c73b9182d6382995fa6999c06554045e8e4f434" data-score="100" data-since="260609">이 옵션은 <code class="docutils literal notranslate"><span class="pre">-p</span></code> 와 함께 사용할 수 있지만 <code class="docutils literal notranslate"><span class="pre">-d</span></code> 와는 사용할 수 없습니다.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일에 기록된 경로에서 주어진 접두사를 제거합니다. 경로는 접두사에 상대적입니다.</p>
+<p>이 옵션은 <code class="docutils literal notranslate"><span class="pre">-p</span></code> 와 함께 사용할 수 있지만 <code class="docutils literal notranslate"><span class="pre">-d</span></code> 와는 사용할 수 없습니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-p">
 <span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"> <span class="pre">prepend_prefix</span></span><a class="headerlink" href="#cmdoption-compileall-p" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="434a54f9839ea1f452dc5a6483f11112d59b7d31" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일에 기록된 경로에 주어진 접두사를 붙입니다. 경로를 절대 경로로 만들려면 <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">/</span></code> 를 사용하십시오.</p>
-<p data-msgid="4b8cbb8b936e1272996b28c9dba18f80c6e5fbbf" data-score="100" data-since="260609">이 옵션은 <code class="docutils literal notranslate"><span class="pre">-s</span></code> 와 함께 사용할 수 있지만 <code class="docutils literal notranslate"><span class="pre">-d</span></code> 와는 사용할 수 없습니다.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일에 기록된 경로에 주어진 접두사를 붙입니다. 경로를 절대 경로로 만들려면 <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">/</span></code> 를 사용하십시오.</p>
+<p>이 옵션은 <code class="docutils literal notranslate"><span class="pre">-s</span></code> 와 함께 사용할 수 있지만 <code class="docutils literal notranslate"><span class="pre">-d</span></code> 와는 사용할 수 없습니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-x">
 <span class="sig-name descname"><span class="pre">-x</span></span><span class="sig-prename descclassname"> <span class="pre">regex</span></span><a class="headerlink" href="#cmdoption-compileall-x" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="3a82c9cbc5c438aa24ad70a53589d985fd80b59d" data-score="81" data-since="260603">regex는 컴파일 대상으로 고려되는 각 파일의 전체 경로를 검색(search)하는 데 사용되며, 정규식이 일치를 생성하면 그 파일을 건너뜁니다.</p>
+<dd><p>regex는 컴파일 대상으로 고려되는 각 파일의 전체 경로를 검색(search)하는 데 사용되며, 정규식이 일치를 생성하면 그 파일을 건너뜁니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-i">
 <span class="sig-name descname"><span class="pre">-i</span></span><span class="sig-prename descclassname"> <span class="pre">list</span></span><a class="headerlink" href="#cmdoption-compileall-i" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="f05df516a2095c46c1e1dc328e440071b36ea557" data-score="77" data-since="260603">파일 <code class="docutils literal notranslate"><span class="pre">list</span></code>를 읽고 포함된 각 줄을 컴파일할 파일과 디렉터리 목록에 추가합니다. <code class="docutils literal notranslate"><span class="pre">list</span></code>가 <code class="docutils literal notranslate"><span class="pre">-</span></code>이면, <code class="docutils literal notranslate"><span class="pre">stdin</span></code>에서 줄을 읽습니다.</p>
+<dd><p>파일 <code class="docutils literal notranslate"><span class="pre">list</span></code>를 읽고 포함된 각 줄을 컴파일할 파일과 디렉터리 목록에 추가합니다. <code class="docutils literal notranslate"><span class="pre">list</span></code>가 <code class="docutils literal notranslate"><span class="pre">-</span></code>이면, <code class="docutils literal notranslate"><span class="pre">stdin</span></code>에서 줄을 읽습니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-b">
 <span class="sig-name descname"><span class="pre">-b</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-compileall-b" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2ed2a1effd203767c6e3696613bae84399cc248b" data-score="74" data-since="260603">바이트 코드 파일을 레거시 위치 및 이름에 써서, 다른 버전의 파이썬이 만든 바이트 코드 파일을 덮어쓸 수 있습니다. 기본값은 여러 버전의 파이썬의 바이트 코드 파일이 공존할 수 있는 <span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a> 위치와 이름에 파일을 쓰는 것입니다.</p>
+<dd><p>바이트 코드 파일을 레거시 위치 및 이름에 써서, 다른 버전의 파이썬이 만든 바이트 코드 파일을 덮어쓸 수 있습니다. 기본값은 여러 버전의 파이썬의 바이트 코드 파일이 공존할 수 있는 <span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a> 위치와 이름에 파일을 쓰는 것입니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-r">
 <span class="sig-name descname"><span class="pre">-r</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-compileall-r" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="db56048257d89680ed862373f0b59bcdbe062eb5" data-score="95" data-since="260603">서브 디렉터리의 최대 재귀 수준을 제어합니다. 이것이 주어지면, <code class="docutils literal notranslate"><span class="pre">-l</span></code> 옵션은 고려되지 않습니다. <strong class="program">python -m compileall &lt;directory&gt; -r 0</strong>은 <strong class="program">python -m compileall &lt;directory&gt; -l</strong>과 동등합니다.</p>
+<dd><p>서브 디렉터리의 최대 재귀 수준을 제어합니다. 이것이 주어지면, <code class="docutils literal notranslate"><span class="pre">-l</span></code> 옵션은 고려되지 않습니다. <strong class="program">python -m compileall &lt;directory&gt; -r 0</strong>은 <strong class="program">python -m compileall &lt;directory&gt; -l</strong>과 동등합니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-j">
 <span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"> <span class="pre">N</span></span><a class="headerlink" href="#cmdoption-compileall-j" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ae5e4cfbd845ce9b82703112b0f68b816838981f" data-score="84" data-since="260603">주어진 디렉터리 내의 파일을 컴파일하는 데 <em>N</em> 작업자를 사용합니다. <code class="docutils literal notranslate"><span class="pre">0</span></code>이 사용되면, <a class="reference internal" href="os.html#os.process_cpu_count" title="os.process_cpu_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.process_cpu_count()</span></code></a>의 결과가 사용됩니다.</p>
+<dd><p>주어진 디렉터리 내의 파일을 컴파일하는 데 <em>N</em> 작업자를 사용합니다. <code class="docutils literal notranslate"><span class="pre">0</span></code>이 사용되면, <a class="reference internal" href="os.html#os.process_cpu_count" title="os.process_cpu_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.process_cpu_count()</span></code></a>의 결과가 사용됩니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-invalidation-mode">
 <span class="sig-name descname"><span class="pre">--invalidation-mode</span></span><span class="sig-prename descclassname"> <span class="pre">[timestamp|checked-hash|unchecked-hash]</span></span><a class="headerlink" href="#cmdoption-compileall-invalidation-mode" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="caadd8ab48d6f22166ed9439ed03bbee44c0ef5a" data-score="89" data-since="260603">생성된 바이트 코드 파일이 실행 시간에 무효가 되는 방식을 제어합니다. <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> 값은 소스 타임스탬프와 크기가 포함된 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일이 생성됨을 의미합니다. <code class="docutils literal notranslate"><span class="pre">checked-hash</span></code>와 <code class="docutils literal notranslate"><span class="pre">unchecked-hash</span></code> 값은 해시 기반 pyc를 생성합니다. 해시 기반 pyc는 타임스탬프 대신 소스 파일 내용의 해시를 포함합니다. 파이썬이 실행 시간에 바이트 코드 캐시 파일의 유효성을 검사하는 방법에 대한 자세한 내용은 <a class="reference internal" href="../reference/import.html#pyc-invalidation"><span class="std std-ref">캐시된 바이트 코드 무효화</span></a>를 참조하십시오. 기본값은 <span class="target" id="index-9"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">SOURCE_DATE_EPOCH</span></code> 환경 변수가 설정되지 않으면 <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>이고, <code class="docutils literal notranslate"><span class="pre">SOURCE_DATE_EPOCH</span></code> 환경 변수가 설정되면 <code class="docutils literal notranslate"><span class="pre">checked-hash</span></code>입니다.</p>
+<dd><p>생성된 바이트 코드 파일이 실행 시간에 무효가 되는 방식을 제어합니다. <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> 값은 소스 타임스탬프와 크기가 포함된 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일이 생성됨을 의미합니다. <code class="docutils literal notranslate"><span class="pre">checked-hash</span></code>와 <code class="docutils literal notranslate"><span class="pre">unchecked-hash</span></code> 값은 해시 기반 pyc를 생성합니다. 해시 기반 pyc는 타임스탬프 대신 소스 파일 내용의 해시를 포함합니다. 파이썬이 실행 시간에 바이트 코드 캐시 파일의 유효성을 검사하는 방법에 대한 자세한 내용은 <a class="reference internal" href="../reference/import.html#pyc-invalidation"><span class="std std-ref">캐시된 바이트 코드 무효화</span></a>를 참조하십시오. 기본값은 <span class="target" id="index-9"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">SOURCE_DATE_EPOCH</span></code> 환경 변수가 설정되지 않으면 <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>이고, <code class="docutils literal notranslate"><span class="pre">SOURCE_DATE_EPOCH</span></code> 환경 변수가 설정되면 <code class="docutils literal notranslate"><span class="pre">checked-hash</span></code>입니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-o">
 <span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"> <span class="pre">level</span></span><a class="headerlink" href="#cmdoption-compileall-o" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2f7565a6ffe18e80d4908775533b87113ba5ce4b" data-score="80" data-since="260603">주어진 최적화 수준으로 컴파일합니다. 한 번에 여러 수준으로 컴파일하기 위해 여러 번 사용할 수 있습니다 (예를 들어, <code class="docutils literal notranslate"><span class="pre">compileall</span> <span class="pre">-o</span> <span class="pre">1</span> <span class="pre">-o</span> <span class="pre">2</span></code>).</p>
+<dd><p>주어진 최적화 수준으로 컴파일합니다. 한 번에 여러 수준으로 컴파일하기 위해 여러 번 사용할 수 있습니다 (예를 들어, <code class="docutils literal notranslate"><span class="pre">compileall</span> <span class="pre">-o</span> <span class="pre">1</span> <span class="pre">-o</span> <span class="pre">2</span></code>).</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-e">
 <span class="sig-name descname"><span class="pre">-e</span></span><span class="sig-prename descclassname"> <span class="pre">dir</span></span><a class="headerlink" href="#cmdoption-compileall-e" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d22e72dfca7f1eccbdaea639b681b1107c6155b3" data-score="94" data-since="260603">지정된 디렉터리 외부를 가리키는 심볼릭 링크를 무시합니다.</p>
+<dd><p>지정된 디렉터리 외부를 가리키는 심볼릭 링크를 무시합니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-compileall-hardlink-dupes">
 <span class="sig-name descname"><span class="pre">--hardlink-dupes</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-compileall-hardlink-dupes" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="60a5c7ee2ff40aec5070b51c67812818b12e71f4" data-score="68" data-since="260603">최적화 수준이 다른 두 개의 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일의 내용이 같으면, 하드 링크를 사용하여 중복 파일을 통합합니다.</p>
+<dd><p>최적화 수준이 다른 두 개의 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일의 내용이 같으면, 하드 링크를 사용하여 중복 파일을 통합합니다.</p>
 </dd></dl>
 
-<div class="versionchanged" data-msgid="bb55776235cf8b9c04b300c89040387448d7ffa5" data-score="94" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.2에서 변경: </span><code class="docutils literal notranslate"><span class="pre">-i</span></code>, <code class="docutils literal notranslate"><span class="pre">-b</span></code> 및 <code class="docutils literal notranslate"><span class="pre">-h</span></code> 옵션이 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="b6d39ca33e4fe9d6b9e40ee124dc708bfcf513ed" data-score="84" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><code class="docutils literal notranslate"><span class="pre">-j</span></code>, <code class="docutils literal notranslate"><span class="pre">-r</span></code> 및 <code class="docutils literal notranslate"><span class="pre">-qq</span></code> 옵션이 추가되었습니다. <code class="docutils literal notranslate"><span class="pre">-q</span></code> 옵션이 다중 수준 값으로 변경되었습니다. <code class="docutils literal notranslate"><span class="pre">-b</span></code>는 항상 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code>로 끝나는 바이트 코드 파일을 생성하며, 결코 <code class="docutils literal notranslate"><span class="pre">.pyo</span></code>를 생성하지 않습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="7ec27130b353c294207e0beb98670a4b9cd08797" data-score="100" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><code class="docutils literal notranslate"><span class="pre">--invalidation-mode</span></code> 옵션이 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="742feef66fbd81bc693e01dc8e54092adbb61418" data-score="88" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.9에서 변경: </span><code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">-p</span></code>, <code class="docutils literal notranslate"><span class="pre">-e</span></code> 및 <code class="docutils literal notranslate"><span class="pre">--hardlink-dupes</span></code> 옵션을 추가했습니다. 기본 재귀 제한을 10에서 <a class="reference internal" href="sys.html#sys.getrecursionlimit" title="sys.getrecursionlimit"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.getrecursionlimit()</span></code></a>로 올렸습니다. <code class="docutils literal notranslate"><span class="pre">-o</span></code> 옵션을 여러 번 지정할 수 있는 가능성이 추가되었습니다.</p>
 </div>
-<p data-msgid="4601ae22c7a149ead2fbccafa9bff31a2d0cb6f1" data-score="83" data-since="260603"><a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수가 사용하는 최적화 수준을 제어하는 명령 줄 옵션은 없습니다. 파이썬 인터프리터 자신이 그 옵션을 제공하고 있기 때문입니다: <strong class="program">python -O -m compileall</strong>.</p>
-<p data-msgid="dff28aba07860fa1d918ba2616c43c09c57adbcc" data-score="77" data-since="260603">마찬가지로, <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수는 <a class="reference internal" href="sys.html#sys.pycache_prefix" title="sys.pycache_prefix"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.pycache_prefix</span></code></a> 설정을 따릅니다. 생성된 바이트 코드 캐시는 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a>이 실행 시간에 사용될 것과 같은 <a class="reference internal" href="sys.html#sys.pycache_prefix" title="sys.pycache_prefix"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.pycache_prefix</span></code></a>(있다면)로 실행될 때만 유용합니다.</p>
+<p><a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수가 사용하는 최적화 수준을 제어하는 명령 줄 옵션은 없습니다. 파이썬 인터프리터 자신이 그 옵션을 제공하고 있기 때문입니다: <strong class="program">python -O -m compileall</strong>.</p>
+<p>마찬가지로, <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수는 <a class="reference internal" href="sys.html#sys.pycache_prefix" title="sys.pycache_prefix"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.pycache_prefix</span></code></a> 설정을 따릅니다. 생성된 바이트 코드 캐시는 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a>이 실행 시간에 사용될 것과 같은 <a class="reference internal" href="sys.html#sys.pycache_prefix" title="sys.pycache_prefix"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.pycache_prefix</span></code></a>(있다면)로 실행될 때만 유용합니다.</p>
 </section>
 <section id="public-functions">
-<h2 data-msgid="ab5297b4267339fff5c9910aec762c3934118955" data-score="100" data-since="260603">공용 함수<a class="headerlink" href="#public-functions" title="Link to this heading">¶</a></h2>
+<h2>공용 함수<a class="headerlink" href="#public-functions" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="compileall.compile_dir">
 <span class="sig-prename descclassname"><span class="pre">compileall.</span></span><span class="sig-name descname"><span class="pre">compile_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlevels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">sys.getrecursionlimit()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legacy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invalidation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">stripdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prependdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_sl_dest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardlink_dupes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#compileall.compile_dir" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="31c32ce358df7d61c2c97746ac33035794108871" data-score="80" data-since="260603"><em>dir</em>로 명명된 디렉터리 트리를 재귀적으로 탐색해 내려가면서, 발견되는 모든 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 컴파일합니다. 모든 파일이 성공적으로 컴파일되면 참값을 반환하고, 그렇지 않으면 거짓값을 반환합니다.</p>
-<p data-msgid="0980566b15e3a587fc8ba5eceab2c2d92b408a5d" data-score="91" data-since="260603"><em>maxlevels</em> 매개 변수는 재귀의 깊이를 제한하는 데 사용됩니다; 기본값은 <code class="docutils literal notranslate"><span class="pre">sys.getrecursionlimit()</span></code>입니다.</p>
-<p data-msgid="5cee2e899510c68e8c4d70f019ffc84561b25300" data-score="50" data-since="260603"><em>ddir</em>이 주어지면, 컴파일 시간 트레이스백에서 사용하기 위해 컴파일되는 각 파일의 경로 앞에 추가되며, 바이트 코드 파일에 컴파일되어 들어가서, 바이트 코드 파일이 실행되는 시점에 소스 파일이 존재하지 않으면 트레이스백과 기타 메시지에 사용됩니다.</p>
-<p data-msgid="e5856d4fb03549e88d8270fffe80d337c2f45284" data-score="63" data-since="260603"><em>force</em>가 참이면, 타임스탬프가 최신일 때도 모듈이 다시 컴파일됩니다.</p>
-<p data-msgid="5853bed1845286806436530cecf7dfcc9a03374a" data-score="69" data-since="260603"><em>rx</em>가 주어지면, 컴파일 대상으로 고려되는 각 파일의 전체 경로로 그것의 <code class="docutils literal notranslate"><span class="pre">search</span></code> 메서드를 호출하고, 참값을 반환하면 그 파일을 건너뜁니다. 이는 <a class="reference internal" href="re.html#re-objects"><span class="std std-ref">re.Pattern</span></a> 객체로 주어지는 정규식과 일치하는 파일을 제외하는 데 사용할 수 있습니다.</p>
-<p data-msgid="9a311dc2215879f72c3cc0189212ea52447443b5" data-score="69" data-since="260603"><em>quiet</em>가 <code class="docutils literal notranslate"><span class="pre">False</span></code>나 <code class="docutils literal notranslate"><span class="pre">0</span></code>(기본값)이면, 파일명과 기타 정보가 표준 출력에 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">1</span></code>로 설정하면, 에러만 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">2</span></code>로 설정하면, 모든 출력이 억제됩니다.</p>
-<p data-msgid="baf9d57eedeaa33298e4e0552938c46f265057d4" data-score="77" data-since="260603"><em>legacy</em>가 참이면, 바이트 코드 파일을 레거시 위치 및 이름에 써서, 다른 버전의 파이썬이 만든 바이트 코드 파일을 덮어쓸 수 있습니다. 기본값은 여러 버전의 파이썬의 바이트 코드 파일이 공존할 수 있는 <span class="target" id="index-10"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a> 위치와 이름에 파일을 쓰는 것입니다.</p>
-<p data-msgid="f1724fcdb1b619060240756d8af9027dd26248aa" data-score="88" data-since="260603"><em>optimize</em>는 컴파일러의 최적화 수준을 지정합니다. 내장 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수로 전달됩니다. 한 번의 호출로 하나의 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 여러 번 컴파일하도록 하는 최적화 수준의 시퀀스도 허용합니다.</p>
-<p data-msgid="c104617f747b6149e5207d6f1607caac2094c1e4" data-score="74" data-since="260603">인자 <em>workers</em>는 파일을 컴파일하는 데 병렬로 사용되는 작업자 수를 지정합니다. 기본값은 다중 작업자를 사용하지 않는 것입니다. 플랫폼이 다중 작업자를 사용할 수 없고 <em>workers</em> 인자가 주어지면, 순차 컴파일로 대체합니다. <em>workers</em>가 0이면 시스템의 코어 수가 사용됩니다. <em>workers</em>가 <code class="docutils literal notranslate"><span class="pre">0</span></code>보다 작으면, <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다.</p>
-<p data-msgid="8047d5e6666aed841aac1d550429bbea4eb6a1a1" data-score="88" data-since="260603"><em>invalidation_mode</em>는 <a class="reference internal" href="py_compile.html#py_compile.PycInvalidationMode" title="py_compile.PycInvalidationMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">py_compile.PycInvalidationMode</span></code></a> 열거형의 멤버여야 하며 실행 시간에 생성된 pyc가 무효가 되는 방식을 제어합니다.</p>
-<p data-msgid="f1abefd53bca4d2406c3ca290a11a5e3533fac47" data-score="91" data-since="260603"><em>stripdir</em>, <em>prependdir</em> 및 <em>limit_sl_dest</em> 인자는 위에서 설명한 <code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">-p</span></code> 및 <code class="docutils literal notranslate"><span class="pre">-e</span></code> 옵션에 해당합니다. <code class="docutils literal notranslate"><span class="pre">str</span></code> 이나 <a class="reference internal" href="os.html#os.PathLike" title="os.PathLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">os.PathLike</span></code></a>으로 지정할 수 있습니다.</p>
-<p data-msgid="b3f6b4e2a320066667634eb4e7631c016d53ece1" data-score="71" data-since="260603"><em>hardlink_dupes</em>가 참이고 최적화 수준이 다른 두 개의 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일의 내용이 같으면, 하드 링크를 사용하여 중복 파일을 통합합니다.</p>
-<div class="versionchanged" data-msgid="fb305b44348c3853a0b9244fa296c3ba9c05428f" data-score="95" data-since="260603">
+<dd><p><em>dir</em>로 명명된 디렉터리 트리를 재귀적으로 탐색해 내려가면서, 발견되는 모든 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 컴파일합니다. 모든 파일이 성공적으로 컴파일되면 참값을 반환하고, 그렇지 않으면 거짓값을 반환합니다.</p>
+<p><em>maxlevels</em> 매개 변수는 재귀의 깊이를 제한하는 데 사용됩니다; 기본값은 <code class="docutils literal notranslate"><span class="pre">sys.getrecursionlimit()</span></code>입니다.</p>
+<p><em>ddir</em>이 주어지면, 컴파일 시간 트레이스백에서 사용하기 위해 컴파일되는 각 파일의 경로 앞에 추가되며, 바이트 코드 파일에 컴파일되어 들어가서, 바이트 코드 파일이 실행되는 시점에 소스 파일이 존재하지 않으면 트레이스백과 기타 메시지에 사용됩니다.</p>
+<p><em>force</em>가 참이면, 타임스탬프가 최신일 때도 모듈이 다시 컴파일됩니다.</p>
+<p><em>rx</em>가 주어지면, 컴파일 대상으로 고려되는 각 파일의 전체 경로로 그것의 <code class="docutils literal notranslate"><span class="pre">search</span></code> 메서드를 호출하고, 참값을 반환하면 그 파일을 건너뜁니다. 이는 <a class="reference internal" href="re.html#re-objects"><span class="std std-ref">re.Pattern</span></a> 객체로 주어지는 정규식과 일치하는 파일을 제외하는 데 사용할 수 있습니다.</p>
+<p><em>quiet</em>가 <code class="docutils literal notranslate"><span class="pre">False</span></code>나 <code class="docutils literal notranslate"><span class="pre">0</span></code>(기본값)이면, 파일명과 기타 정보가 표준 출력에 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">1</span></code>로 설정하면, 에러만 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">2</span></code>로 설정하면, 모든 출력이 억제됩니다.</p>
+<p><em>legacy</em>가 참이면, 바이트 코드 파일을 레거시 위치 및 이름에 써서, 다른 버전의 파이썬이 만든 바이트 코드 파일을 덮어쓸 수 있습니다. 기본값은 여러 버전의 파이썬의 바이트 코드 파일이 공존할 수 있는 <span class="target" id="index-10"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a> 위치와 이름에 파일을 쓰는 것입니다.</p>
+<p><em>optimize</em>는 컴파일러의 최적화 수준을 지정합니다. 내장 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수로 전달됩니다. 한 번의 호출로 하나의 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 여러 번 컴파일하도록 하는 최적화 수준의 시퀀스도 허용합니다.</p>
+<p>인자 <em>workers</em>는 파일을 컴파일하는 데 병렬로 사용되는 작업자 수를 지정합니다. 기본값은 다중 작업자를 사용하지 않는 것입니다. 플랫폼이 다중 작업자를 사용할 수 없고 <em>workers</em> 인자가 주어지면, 순차 컴파일로 대체합니다. <em>workers</em>가 0이면 시스템의 코어 수가 사용됩니다. <em>workers</em>가 <code class="docutils literal notranslate"><span class="pre">0</span></code>보다 작으면, <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>가 발생합니다.</p>
+<p><em>invalidation_mode</em>는 <a class="reference internal" href="py_compile.html#py_compile.PycInvalidationMode" title="py_compile.PycInvalidationMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">py_compile.PycInvalidationMode</span></code></a> 열거형의 멤버여야 하며 실행 시간에 생성된 pyc가 무효가 되는 방식을 제어합니다.</p>
+<p><em>stripdir</em>, <em>prependdir</em> 및 <em>limit_sl_dest</em> 인자는 위에서 설명한 <code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">-p</span></code> 및 <code class="docutils literal notranslate"><span class="pre">-e</span></code> 옵션에 해당합니다. <code class="docutils literal notranslate"><span class="pre">str</span></code> 이나 <a class="reference internal" href="os.html#os.PathLike" title="os.PathLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">os.PathLike</span></code></a>으로 지정할 수 있습니다.</p>
+<p><em>hardlink_dupes</em>가 참이고 최적화 수준이 다른 두 개의 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일의 내용이 같으면, 하드 링크를 사용하여 중복 파일을 통합합니다.</p>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.2에서 변경: </span><em>legacy</em>와 <em>optimize</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="a3f27c16fd636daf6b1cac7561afa3d8065a36e2" data-score="96" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>workers</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="3e35b4b6f9ac4793b959f7d2fcf2fc996779aa2e" data-score="76" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>quiet</em> 매개 변수가 다중 수준 값으로 변경되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="4b29d63e09a4adcb3d419a6b9fd7bfe184421d02" data-score="88" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>legacy</em> 매개 변수는 <em>optimize</em> 값과 상관없이 <code class="docutils literal notranslate"><span class="pre">.pyo</span></code> 파일이 아니라 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일 만 기록합니다.</p>
 </div>
-<div class="versionchanged" data-msgid="268115c3e7485965296942a3b20798e109976395" data-score="81" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.6에서 변경: </span><a class="reference internal" href="../glossary.html#term-path-like-object"><span class="xref std std-term">경로류 객체</span></a>를 받아들입니다.</p>
 </div>
-<div class="versionchanged" data-msgid="04697027f9dab04c7c2c03616b0531f9eb75c80c" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>invalidation_mode</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="6230211e4b78adafaf91d4af4ffb7c6ac32cbeee" data-score="94" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7.2에서 변경: </span><em>invalidation_mode</em> 매개 변수의 기본값이 <code class="docutils literal notranslate"><span class="pre">None</span></code>으로 변경되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="db9fddd945a8844dc1e4af9a8679489c4938f831" data-score="92" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.8에서 변경: </span><em>workers</em>를 0으로 설정하면 최적의 코어 수가 선택됩니다.</p>
 </div>
-<div class="versionchanged" data-msgid="b0dbdcfa59d20e470d14cdf12fc2e5e7bbd1ee45" data-score="85" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.9에서 변경: </span><em>stripdir</em>, <em>prependdir</em>, <em>limit_sl_dest</em> 및 <em>hardlink_dupes</em> 인자가 추가되었습니다. <em>maxlevels</em>의 기본값이 <code class="docutils literal notranslate"><span class="pre">10</span></code>에서 <code class="docutils literal notranslate"><span class="pre">sys.getrecursionlimit()</span></code>으로 변경되었습니다.</p>
 </div>
 </dd></dl>
@@ -282,31 +288,31 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="compileall.compile_file">
 <span class="sig-prename descclassname"><span class="pre">compileall.</span></span><span class="sig-name descname"><span class="pre">compile_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legacy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invalidation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">stripdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prependdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_sl_dest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardlink_dupes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#compileall.compile_file" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="098053c6564a8d0d8224b43b9806977200efa167" data-score="73" data-since="260603">경로 <em>fullname</em>의 파일을 컴파일합니다. 파일이 성공적으로 컴파일되면 참값을 반환하고, 그렇지 않으면 거짓값을 반환합니다.</p>
-<p data-msgid="4ab6db9546e73179979cfe3a7a9132ebe4cc0b44" data-score="56" data-since="260603"><em>ddir</em>이 주어지면, 컴파일 시간 트레이스백에서 사용하기 위해 컴파일되는 파일의 경로 앞에 추가되며, 바이트 코드 파일에 컴파일되어 들어가서, 바이트 코드 파일이 실행되는 시점에 소스 파일이 존재하지 않으면 트레이스백과 기타 메시지에 사용됩니다.</p>
-<p data-msgid="b150d508e2660a17ee235bc1ffacf623a85708fd" data-score="75" data-since="260603"><em>rx</em>가 주어지면, 컴파일 중인 파일의 전체 경로가 그것의 <code class="docutils literal notranslate"><span class="pre">search</span></code> 메서드로 전달되고, 참값을 반환하면, 파일이 컴파일되지 않고 <code class="docutils literal notranslate"><span class="pre">True</span></code>가 반환됩니다. 이는 <a class="reference internal" href="re.html#re-objects"><span class="std std-ref">re.Pattern</span></a> 객체로 주어지는 정규식과 일치하는 파일을 제외하는 데 사용할 수 있습니다.</p>
-<p data-msgid="9a311dc2215879f72c3cc0189212ea52447443b5" data-score="69" data-since="260603"><em>quiet</em>가 <code class="docutils literal notranslate"><span class="pre">False</span></code>나 <code class="docutils literal notranslate"><span class="pre">0</span></code>(기본값)이면, 파일명과 기타 정보가 표준 출력에 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">1</span></code>로 설정하면, 에러만 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">2</span></code>로 설정하면, 모든 출력이 억제됩니다.</p>
-<p data-msgid="baf9d57eedeaa33298e4e0552938c46f265057d4" data-score="77" data-since="260603"><em>legacy</em>가 참이면, 바이트 코드 파일을 레거시 위치 및 이름에 써서, 다른 버전의 파이썬이 만든 바이트 코드 파일을 덮어쓸 수 있습니다. 기본값은 여러 버전의 파이썬의 바이트 코드 파일이 공존할 수 있는 <span class="target" id="index-11"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a> 위치와 이름에 파일을 쓰는 것입니다.</p>
-<p data-msgid="f1724fcdb1b619060240756d8af9027dd26248aa" data-score="88" data-since="260603"><em>optimize</em>는 컴파일러의 최적화 수준을 지정합니다. 내장 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수로 전달됩니다. 한 번의 호출로 하나의 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 여러 번 컴파일하도록 하는 최적화 수준의 시퀀스도 허용합니다.</p>
-<p data-msgid="8047d5e6666aed841aac1d550429bbea4eb6a1a1" data-score="88" data-since="260603"><em>invalidation_mode</em>는 <a class="reference internal" href="py_compile.html#py_compile.PycInvalidationMode" title="py_compile.PycInvalidationMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">py_compile.PycInvalidationMode</span></code></a> 열거형의 멤버여야 하며 실행 시간에 생성된 pyc가 무효가 되는 방식을 제어합니다.</p>
-<p data-msgid="f1abefd53bca4d2406c3ca290a11a5e3533fac47" data-score="91" data-since="260603"><em>stripdir</em>, <em>prependdir</em> 및 <em>limit_sl_dest</em> 인자는 위에서 설명한 <code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">-p</span></code> 및 <code class="docutils literal notranslate"><span class="pre">-e</span></code> 옵션에 해당합니다. <code class="docutils literal notranslate"><span class="pre">str</span></code> 이나 <a class="reference internal" href="os.html#os.PathLike" title="os.PathLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">os.PathLike</span></code></a>으로 지정할 수 있습니다.</p>
-<p data-msgid="b3f6b4e2a320066667634eb4e7631c016d53ece1" data-score="71" data-since="260603"><em>hardlink_dupes</em>가 참이고 최적화 수준이 다른 두 개의 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일의 내용이 같으면, 하드 링크를 사용하여 중복 파일을 통합합니다.</p>
+<dd><p>경로 <em>fullname</em>의 파일을 컴파일합니다. 파일이 성공적으로 컴파일되면 참값을 반환하고, 그렇지 않으면 거짓값을 반환합니다.</p>
+<p><em>ddir</em>이 주어지면, 컴파일 시간 트레이스백에서 사용하기 위해 컴파일되는 파일의 경로 앞에 추가되며, 바이트 코드 파일에 컴파일되어 들어가서, 바이트 코드 파일이 실행되는 시점에 소스 파일이 존재하지 않으면 트레이스백과 기타 메시지에 사용됩니다.</p>
+<p><em>rx</em>가 주어지면, 컴파일 중인 파일의 전체 경로가 그것의 <code class="docutils literal notranslate"><span class="pre">search</span></code> 메서드로 전달되고, 참값을 반환하면, 파일이 컴파일되지 않고 <code class="docutils literal notranslate"><span class="pre">True</span></code>가 반환됩니다. 이는 <a class="reference internal" href="re.html#re-objects"><span class="std std-ref">re.Pattern</span></a> 객체로 주어지는 정규식과 일치하는 파일을 제외하는 데 사용할 수 있습니다.</p>
+<p><em>quiet</em>가 <code class="docutils literal notranslate"><span class="pre">False</span></code>나 <code class="docutils literal notranslate"><span class="pre">0</span></code>(기본값)이면, 파일명과 기타 정보가 표준 출력에 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">1</span></code>로 설정하면, 에러만 인쇄됩니다. <code class="docutils literal notranslate"><span class="pre">2</span></code>로 설정하면, 모든 출력이 억제됩니다.</p>
+<p><em>legacy</em>가 참이면, 바이트 코드 파일을 레거시 위치 및 이름에 써서, 다른 버전의 파이썬이 만든 바이트 코드 파일을 덮어쓸 수 있습니다. 기본값은 여러 버전의 파이썬의 바이트 코드 파일이 공존할 수 있는 <span class="target" id="index-11"></span><a class="pep reference external" href="https://peps.python.org/pep-3147/"><strong>PEP 3147</strong></a> 위치와 이름에 파일을 쓰는 것입니다.</p>
+<p><em>optimize</em>는 컴파일러의 최적화 수준을 지정합니다. 내장 <a class="reference internal" href="functions.html#compile" title="compile"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile()</span></code></a> 함수로 전달됩니다. 한 번의 호출로 하나의 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 여러 번 컴파일하도록 하는 최적화 수준의 시퀀스도 허용합니다.</p>
+<p><em>invalidation_mode</em>는 <a class="reference internal" href="py_compile.html#py_compile.PycInvalidationMode" title="py_compile.PycInvalidationMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">py_compile.PycInvalidationMode</span></code></a> 열거형의 멤버여야 하며 실행 시간에 생성된 pyc가 무효가 되는 방식을 제어합니다.</p>
+<p><em>stripdir</em>, <em>prependdir</em> 및 <em>limit_sl_dest</em> 인자는 위에서 설명한 <code class="docutils literal notranslate"><span class="pre">-s</span></code>, <code class="docutils literal notranslate"><span class="pre">-p</span></code> 및 <code class="docutils literal notranslate"><span class="pre">-e</span></code> 옵션에 해당합니다. <code class="docutils literal notranslate"><span class="pre">str</span></code> 이나 <a class="reference internal" href="os.html#os.PathLike" title="os.PathLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">os.PathLike</span></code></a>으로 지정할 수 있습니다.</p>
+<p><em>hardlink_dupes</em>가 참이고 최적화 수준이 다른 두 개의 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일의 내용이 같으면, 하드 링크를 사용하여 중복 파일을 통합합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.2.</span></p>
 </div>
-<div class="versionchanged" data-msgid="3e35b4b6f9ac4793b959f7d2fcf2fc996779aa2e" data-score="76" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>quiet</em> 매개 변수가 다중 수준 값으로 변경되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="4b29d63e09a4adcb3d419a6b9fd7bfe184421d02" data-score="88" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>legacy</em> 매개 변수는 <em>optimize</em> 값과 상관없이 <code class="docutils literal notranslate"><span class="pre">.pyo</span></code> 파일이 아니라 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일 만 기록합니다.</p>
 </div>
-<div class="versionchanged" data-msgid="04697027f9dab04c7c2c03616b0531f9eb75c80c" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>invalidation_mode</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="6230211e4b78adafaf91d4af4ffb7c6ac32cbeee" data-score="94" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7.2에서 변경: </span><em>invalidation_mode</em> 매개 변수의 기본값이 <code class="docutils literal notranslate"><span class="pre">None</span></code>으로 변경되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="695ba1eb5c8ebbd0ff693f45492aa034a65c1ccc" data-score="88" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.9에서 변경: </span><em>stripdir</em>, <em>prependdir</em>, <em>limit_sl_dest</em> 및 <em>hardlink_dupes</em> 인자가 추가되었습니다.</p>
 </div>
 </dd></dl>
@@ -314,27 +320,27 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="compileall.compile_path">
 <span class="sig-prename descclassname"><span class="pre">compileall.</span></span><span class="sig-name descname"><span class="pre">compile_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skip_curdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlevels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legacy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invalidation_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#compileall.compile_path" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="f7dc2258a2c6d0e8bc87c6dfc5ebc63419543c0a" data-score="78" data-since="260603"><code class="docutils literal notranslate"><span class="pre">sys.path</span></code>에서 발견된 모든 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 바이트 컴파일합니다. 모든 파일이 성공적으로 컴파일되면 참값을 반환하고, 그렇지 않으면 거짓값을 반환합니다.</p>
-<p data-msgid="3fa7fe2f6eb6d4c8b426811a4864b27f2d10bed3" data-score="75" data-since="260603"><em>skip_curdir</em>가 참(기본값)이면, 현재 디렉터리가 검색에 포함되지 않습니다. 다른 모든 매개 변수는 <a class="reference internal" href="#compileall.compile_dir" title="compileall.compile_dir"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_dir()</span></code></a> 함수에 전달됩니다. 다른 컴파일 함수와 달리, <code class="docutils literal notranslate"><span class="pre">maxlevels</span></code>의 기본값은 <code class="docutils literal notranslate"><span class="pre">0</span></code>임에 유의하십시오.</p>
-<div class="versionchanged" data-msgid="fb305b44348c3853a0b9244fa296c3ba9c05428f" data-score="95" data-since="260603">
+<dd><p><code class="docutils literal notranslate"><span class="pre">sys.path</span></code>에서 발견된 모든 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 바이트 컴파일합니다. 모든 파일이 성공적으로 컴파일되면 참값을 반환하고, 그렇지 않으면 거짓값을 반환합니다.</p>
+<p><em>skip_curdir</em>가 참(기본값)이면, 현재 디렉터리가 검색에 포함되지 않습니다. 다른 모든 매개 변수는 <a class="reference internal" href="#compileall.compile_dir" title="compileall.compile_dir"><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_dir()</span></code></a> 함수에 전달됩니다. 다른 컴파일 함수와 달리, <code class="docutils literal notranslate"><span class="pre">maxlevels</span></code>의 기본값은 <code class="docutils literal notranslate"><span class="pre">0</span></code>임에 유의하십시오.</p>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.2에서 변경: </span><em>legacy</em>와 <em>optimize</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="3e35b4b6f9ac4793b959f7d2fcf2fc996779aa2e" data-score="76" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>quiet</em> 매개 변수가 다중 수준 값으로 변경되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="4b29d63e09a4adcb3d419a6b9fd7bfe184421d02" data-score="88" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span><em>legacy</em> 매개 변수는 <em>optimize</em> 값과 상관없이 <code class="docutils literal notranslate"><span class="pre">.pyo</span></code> 파일이 아니라 <code class="docutils literal notranslate"><span class="pre">.pyc</span></code> 파일 만 기록합니다.</p>
 </div>
-<div class="versionchanged" data-msgid="04697027f9dab04c7c2c03616b0531f9eb75c80c" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>invalidation_mode</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="6230211e4b78adafaf91d4af4ffb7c6ac32cbeee" data-score="94" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7.2에서 변경: </span><em>invalidation_mode</em> 매개 변수의 기본값이 <code class="docutils literal notranslate"><span class="pre">None</span></code>으로 변경되었습니다.</p>
 </div>
 </dd></dl>
 
-<p data-msgid="3c1e0f8625589f5ed4f200e8c5f4cf1daeed35f5" data-score="87" data-since="260603"><code class="file docutils literal notranslate"><span class="pre">Lib/</span></code> 서브 디렉터리와 그것의 모든 서브 디렉터리에 있는 모든 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 강제로 다시 컴파일하려면 다음과 같이 합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="e4ecda3aac66926b1538148775aa937a822102e4" data-score="99" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">compileall</span>
+<p><code class="file docutils literal notranslate"><span class="pre">Lib/</span></code> 서브 디렉터리와 그것의 모든 서브 디렉터리에 있는 모든 <code class="file docutils literal notranslate"><span class="pre">.py</span></code> 파일을 강제로 다시 컴파일하려면 다음과 같이 합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">compileall</span>
 
 <span class="n">compileall</span><span class="o">.</span><span class="n">compile_dir</span><span class="p">(</span><span class="s1">&#39;Lib/&#39;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -350,7 +356,7 @@
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <dl class="simple">
-<dt data-msgid="29d6f85999ecd799ed87c34900b74c8914488ad2" data-score="45" data-since="260603">모듈 <a class="reference internal" href="py_compile.html#module-py_compile" title="py_compile: Generate byte-code files from Python source files."><code class="xref py py-mod docutils literal notranslate"><span class="pre">py_compile</span></code></a></dt><dd><p data-msgid="4597d8ef411d59e1d9be06348c147c4dc042b844" data-score="100" data-since="260603">단일 소스 파일을 바이트 컴파일합니다.</p>
+<dt>모듈 <a class="reference internal" href="py_compile.html#module-py_compile" title="py_compile: Generate byte-code files from Python source files."><code class="xref py py-mod docutils literal notranslate"><span class="pre">py_compile</span></code></a></dt><dd><p>단일 소스 파일을 바이트 컴파일합니다.</p>
 </dd>
 </dl>
 </div>

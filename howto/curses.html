@@ -8,9 +8,11 @@
     <title>파이썬 curses 프로그래밍 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -23,7 +25,7 @@
     <link rel="prev" title="확장 모듈을 파이썬 3에 이식하기" href="cporting.html" />
     
       
-      <link rel="canonical" href="https://docs.python.org/3/howto/curses.html">
+      <link rel="canonical" href="https://python.flowdas.com/howto/curses.html">
       
     
 
@@ -119,26 +121,26 @@
             <article class="document">
                 
   <section id="curses-programming-with-python">
-<span id="curses-howto"></span><h1 data-msgid="58bb96395ecbf742d2b92f5dadcd7e86b0aeb76a" data-score="100" data-since="260603">파이썬 curses 프로그래밍<a class="headerlink" href="#curses-programming-with-python" title="Link to this heading">¶</a></h1>
+<span id="curses-howto"></span><h1>파이썬 curses 프로그래밍<a class="headerlink" href="#curses-programming-with-python" title="Link to this heading">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">저자<span class="colon">:</span></dt>
-<dd class="field-odd"><p data-msgid="b46bddab53139e9921bae2ac7a3a5278696e38bb" data-score="100" data-since="260603">A.M. Kuchling, Eric S. Raymond</p>
+<dd class="field-odd"><p>A.M. Kuchling, Eric S. Raymond</p>
 </dd>
 <dt class="field-even">버전<span class="colon">:</span></dt>
-<dd class="field-even"><p data-msgid="e8bedc45e51967a10c7ba05d56e6dc026509693a" data-score="100" data-since="260603">2.04</p>
+<dd class="field-even"><p>2.04</p>
 </dd>
 </dl>
 <aside class="topic">
-<p class="topic-title" data-msgid="d79da395b5d7a09c6439a5f2660d8c568186ab7e" data-score="100" data-since="260603">요약</p>
+<p class="topic-title">요약</p>
 <p>이 문서는 <a class="reference internal" href="../library/curses.html#module-curses" title="curses: An interface to the curses library, providing portable terminal handling."><code class="xref py py-mod docutils literal notranslate"><span class="pre">curses</span></code></a> 확장 모듈을 사용하여 텍스트 모드 디스플레이를 제어하는 방법을 설명합니다.</p>
 </aside>
 <section id="what-is-curses">
 <h2>curses란 무엇입니까?<a class="headerlink" href="#what-is-curses" title="Link to this heading">¶</a></h2>
 <p>curses 라이브러리는 텍스트 기반 터미널을 위한 터미널 독립적인 스크린 페인팅과 키보드 처리 기능을 제공합니다; 이러한 터미널에는 VT100, 리눅스 콘솔 및 다양한 프로그램에서 제공하는 시뮬레이트 된 터미널이 포함됩니다. 디스플레이 터미널은 커서 이동, 화면 스크롤 및 영역 지우기와 같은 일반적인 작업을 수행하기 위해 다양한 제어 코드를 지원합니다. 터미널마다 서로 다른 코드를 사용하며 종종 자신만의 사소한 문제가 있습니다.</p>
 <p>그래픽 디스플레이의 세계에서, 이렇게 물을 수 있습니다. “왜 신경 써야 하나요”? 문자 셀 디스플레이 터미널은 한물간 기술이지만, 사실 여전히 가치 있는 멋진 작업을 수행할 수 있는 틈새가 존재합니다. 한가지 틈새는 X 서버를 실행하지 않는 작은 크기 혹은 내장 유닉스입니다. 다른 것으로는 그래픽 지원을 사용할 수 있기 전에 실행해야 할 OS 설치 프로그램과 커널 구성기와 같은 도구가 있습니다.</p>
-<p>curses 라이브러리는 상당히 기본적인 기능을 제공하여, 프로그래머에게 겹치지 않는 여러 개의 텍스트 창을 포함하는 디스플레이의 추상화를 제공합니다. 창의 내용은 텍스트 추가, 삭제, 모양 변경 등 다양한 방법으로 변경될 수 있으며 curses 라이브러리는 올바른 출력을 생성하기 위해 터미널에 어떤 제어 코드를 보내야 하는지 파악합니다. curses는 버튼, 체크 박스 또는 대화 상자와 같은 많은 사용자 인터페이스 개념을 제공하지 않습니다; 이러한 기능이 필요하면 <a href="#id1"><span class="problematic" id="id2">:pypi:`Urwid`</span></a>와 같은 사용자 인터페이스 라이브러리를 고려하십시오.</p>
+<p>curses 라이브러리는 상당히 기본적인 기능을 제공하여, 프로그래머에게 겹치지 않는 여러 개의 텍스트 창을 포함하는 디스플레이의 추상화를 제공합니다. 창의 내용은 텍스트 추가, 삭제, 모양 변경 등 다양한 방법으로 변경될 수 있으며 curses 라이브러리는 올바른 출력을 생성하기 위해 터미널에 어떤 제어 코드를 보내야 하는지 파악합니다. curses는 버튼, 체크 박스 또는 대화 상자와 같은 많은 사용자 인터페이스 개념을 제공하지 않습니다; 이러한 기능이 필요하면 <a class="extlink-pypi reference external" href="https://pypi.org/project/Urwid/">Urwid</a>와 같은 사용자 인터페이스 라이브러리를 고려하십시오.</p>
 <p>curses 라이브러리는 원래 BSD 유닉스용으로 작성되었습니다; 그 이후 AT&amp;T의 유닉스 시스템 V 버전에는 많은 개선 사항과 새로운 기능이 추가되었습니다. BSD curses는 더는 유지되지 않고, AT&amp;T 인터페이스의 오픈 소스 구현인 ncurses로 대체되었습니다. 리눅스나 FreeBSD 와 같은 오픈 소스 유닉스를 사용하고 있다면, 시스템은 거의 확실히 ncurses를 사용합니다. 최신 상용 유닉스 버전은 대부분 시스템 V 코드를 기반으로 하므로, 여기에 설명된 모든 기능을 아마도 사용할 수 있을 것입니다. 그러나 일부 독점적 유닉스가 제공하는 이전 버전의 curses는 모든 것을 지원하지 않을 수 있습니다.</p>
-<p>윈도우 버전의 파이썬은 <a class="reference internal" href="../library/curses.html#module-curses" title="curses: An interface to the curses library, providing portable terminal handling."><code class="xref py py-mod docutils literal notranslate"><span class="pre">curses</span></code></a> 모듈을 포함하지 않습니다. 이식된 버전인 <a href="#id1"><span class="problematic" id="id2">:pypi:`UniCurses`</span></a>를 사용할 수 있습니다.</p>
+<p>윈도우 버전의 파이썬은 <a class="reference internal" href="../library/curses.html#module-curses" title="curses: An interface to the curses library, providing portable terminal handling."><code class="xref py py-mod docutils literal notranslate"><span class="pre">curses</span></code></a> 모듈을 포함하지 않습니다. 이식된 버전인 <a class="extlink-pypi reference external" href="https://pypi.org/project/UniCurses/">UniCurses</a>를 사용할 수 있습니다.</p>
 <section id="the-python-curses-module">
 <h3>파이썬 curses 모듈<a class="headerlink" href="#the-python-curses-module" title="Link to this heading">¶</a></h3>
 <p>파이썬 모듈은 curses가 제공하는 C 함수에 대한 상당히 간단한 래퍼입니다; C의 curses 프로그래밍에 이미 익숙하다면 이 지식을 파이썬으로 쉽게 옮길 수 있습니다. 가장 큰 차이점은 파이썬 인터페이스가 <code class="xref c c-func docutils literal notranslate"><span class="pre">addstr()</span></code>, <code class="xref c c-func docutils literal notranslate"><span class="pre">mvaddstr()</span></code> 및 <code class="xref c c-func docutils literal notranslate"><span class="pre">mvwaddstr()</span></code>와 같은 다른 C 함수를 단일 <a class="reference internal" href="../library/curses.html#curses.window.addstr" title="curses.window.addstr"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addstr()</span></code></a> 메서드로 병합하여 작업을 단순화한다는 것입니다. 나중에 자세히 다루겠습니다.</p>
@@ -196,7 +198,7 @@
 <p><a class="reference internal" href="../library/curses.html#curses.wrapper" title="curses.wrapper"><code class="xref py py-func docutils literal notranslate"><span class="pre">wrapper()</span></code></a> 함수는 콜러블 객체를 취하고 위에서 설명한 초기화를 수행합니다, 색상 지원이 있으면 색상도 초기화합니다. 그런 다음 <code class="xref py py-func docutils literal notranslate"><span class="pre">wrapper()</span></code>는 제공된 콜러블을 실행합니다. 일단 콜러블이 반환되면, <code class="xref py py-func docutils literal notranslate"><span class="pre">wrapper()</span></code>는 터미널의 원래 상태를 복원합니다. 콜러블은 예외를 잡는 <a class="reference internal" href="../reference/compound_stmts.html#try"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">try</span></code></a>…<a class="reference internal" href="../reference/compound_stmts.html#except"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">except</span></code></a> 내에서 호출되고, 터미널의 상태를 복원한 다음 예외를 다시 발생시킵니다. 따라서 터미널은 예외 상황에서 망가진 상태로 남지 않고 예외 메시지와 트레이스백을 읽을 수 있습니다.</p>
 </section>
 <section id="windows-and-pads">
-<span id="id5"></span><h2>창과 패드<a class="headerlink" href="#windows-and-pads" title="Link to this heading">¶</a></h2>
+<span id="id1"></span><h2>창과 패드<a class="headerlink" href="#windows-and-pads" title="Link to this heading">¶</a></h2>
 <p>창은 curses의 기본 추상화입니다. 창 객체는 화면의 사각형 영역을 나타내며, 텍스트를 표시하고, 지우고, 사용자가 문자열을 입력할 수 있도록 하는 등의 메서드를 지원합니다.</p>
 <p><a class="reference internal" href="../library/curses.html#curses.initscr" title="curses.initscr"><code class="xref py py-func docutils literal notranslate"><span class="pre">initscr()</span></code></a> 함수가 반환한 <code class="docutils literal notranslate"><span class="pre">stdscr</span></code> 객체는 전체 화면을 덮는 창 객체입니다. 많은 프로그램에서 이 창 하나만 필요할 수도 있지만, 따로 다시 그리거나 지우기 위해 화면을 작은 창으로 나누고 싶을 수 있습니다. <a class="reference internal" href="../library/curses.html#curses.newwin" title="curses.newwin"><code class="xref py py-func docutils literal notranslate"><span class="pre">newwin()</span></code></a> 함수는 지정된 크기의 새 창을 만들어 새 창 객체를 반환합니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">begin_x</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="n">begin_y</span> <span class="o">=</span> <span class="mi">7</span>
@@ -240,8 +242,8 @@
 <p>다행히 파이썬 인터페이스는 이러한 모든 세부 사항을 숨깁니다. <code class="docutils literal notranslate"><span class="pre">stdscr</span></code>은 다른 것과 마찬가지로 창 객체이며, <a class="reference internal" href="../library/curses.html#curses.window.addstr" title="curses.window.addstr"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addstr()</span></code></a>과 같은 메서드는 여러 인자 형식을 허용합니다. 일반적으로 네 가지 형식이 있습니다.</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80446347ede53cf9ce56b3d59fda4b5c96dc25c4">형식</p></th>
-<th class="head"><p data-msgid="55f8ebc805e65b5b71ddafdae390e3be2bcd69af">설명</p></th>
+<tr class="row-odd"><th class="head"><p>형식</p></th>
+<th class="head"><p>설명</p></th>
 </tr>
 </thead>
 <tbody>
@@ -271,8 +273,8 @@
 <p>속성은 정수이며, 각 비트는 다른 속성을 나타냅니다. 여러 속성 비트가 설정된 텍스트를 표시하려고 시도 할 수 있지만, curses는 가능한 모든 조합을 사용할 수 있거나 시각적으로 구별됨을 보증하지 않습니다. 사용하는 터미널의 기능에 따라 다르므로, 여기에 나열된 가장 일반적으로 사용 가능한 속성을 고수하는 것이 가장 안전합니다.</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="a086d942884a301b827479029ba19c2746237425">속성</p></th>
-<th class="head"><p data-msgid="55f8ebc805e65b5b71ddafdae390e3be2bcd69af">설명</p></th>
+<tr class="row-odd"><th class="head"><p>속성</p></th>
+<th class="head"><p>설명</p></th>
 </tr>
 </thead>
 <tbody>
@@ -325,7 +327,7 @@
 </section>
 <section id="user-input">
 <h2>사용자 입력<a class="headerlink" href="#user-input" title="Link to this heading">¶</a></h2>
-<p>C curses 라이브러리는 매우 간단한 입력 메커니즘만 제공합니다. 파이썬의 <a class="reference internal" href="../library/curses.html#module-curses" title="curses: An interface to the curses library, providing portable terminal handling."><code class="xref py py-mod docutils literal notranslate"><span class="pre">curses</span></code></a> 모듈은 기본 텍스트 입력 위젯을 추가합니다. (<a href="#id1"><span class="problematic" id="id2">:pypi:`Urwid`</span></a>와 같은 다른 라이브러리에는 더 광범위한 위젯 모음이 있습니다.)</p>
+<p>C curses 라이브러리는 매우 간단한 입력 메커니즘만 제공합니다. 파이썬의 <a class="reference internal" href="../library/curses.html#module-curses" title="curses: An interface to the curses library, providing portable terminal handling."><code class="xref py py-mod docutils literal notranslate"><span class="pre">curses</span></code></a> 모듈은 기본 텍스트 입력 위젯을 추가합니다. (<a class="extlink-pypi reference external" href="https://pypi.org/project/Urwid/">Urwid</a>와 같은 다른 라이브러리에는 더 광범위한 위젯 모음이 있습니다.)</p>
 <p>창에서 입력을 얻는 메서드는 두 가지가 있습니다.:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../library/curses.html#curses.window.getch" title="curses.window.getch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getch()</span></code></a>는 화면을 새로 고친 다음 사용자가 키를 누를 때까지 기다립니다. <a class="reference internal" href="../library/curses.html#curses.echo" title="curses.echo"><code class="xref py py-func docutils literal notranslate"><span class="pre">echo()</span></code></a>가 이전에 호출되었으면 키를 표시합니다. 일시 정지하기 전에 커서를 이동시킬 좌표를 선택적으로 지정할 수 있습니다.</p></li>
@@ -387,13 +389,7 @@
 </ul>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="5fda23d62015b99fb2a9f86b38bcdf2bdf7609c8" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="d41f56cea1ac933d25c57aebc6522e2b6c58eb87" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

@@ -8,9 +8,11 @@
     <title>트랜스포트와 프로토콜 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -138,130 +140,130 @@
             <article class="document">
                 
   <section id="transports-and-protocols">
-<span id="asyncio-transports-protocols"></span><h1 data-msgid="c1d7e246eaa462ae433bf46e7c1126b7c1acd3ea" data-score="100" data-since="260603">트랜스포트와 프로토콜<a class="headerlink" href="#transports-and-protocols" title="Link to this heading">¶</a></h1>
+<span id="asyncio-transports-protocols"></span><h1>트랜스포트와 프로토콜<a class="headerlink" href="#transports-and-protocols" title="Link to this heading">¶</a></h1>
 <p class="rubric">머리말</p>
-<p data-msgid="8a2ba8f69f2da9db5fb5436a5e41ab07fbc30aad" data-score="89" data-since="260603">트랜스포트와 프로토콜은 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>와 같은 <strong>저수준</strong> 이벤트 루프 API에서 사용됩니다. 그들은 콜백 기반 프로그래밍 스타일을 사용하고 네트워크 나 IPC 프로토콜(예를 들어 HTTP)의 고성능 구현을 가능하게 합니다.</p>
-<p data-msgid="b9603ee7bcecaa495cbf6687553a3756c705570d" data-score="95" data-since="260603">본질에서 트랜스포트와 프로토콜은 라이브러리와 프레임워크에서만 사용되어야 하며 고수준 asyncio 응용 프로그램에서는 사용되지 않아야 합니다.</p>
-<p data-msgid="1c511db9e2113637d39ca427586f4af24abd4cef" data-score="94" data-since="260603">이 문서 페이지는 <a class="reference internal" href="#transports">트랜스포트</a>와 <a class="reference internal" href="#protocols">프로토콜</a>을 모두 다룹니다.</p>
+<p>트랜스포트와 프로토콜은 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>와 같은 <strong>저수준</strong> 이벤트 루프 API에서 사용됩니다. 그들은 콜백 기반 프로그래밍 스타일을 사용하고 네트워크 나 IPC 프로토콜(예를 들어 HTTP)의 고성능 구현을 가능하게 합니다.</p>
+<p>본질에서 트랜스포트와 프로토콜은 라이브러리와 프레임워크에서만 사용되어야 하며 고수준 asyncio 응용 프로그램에서는 사용되지 않아야 합니다.</p>
+<p>이 문서 페이지는 <a class="reference internal" href="#transports">트랜스포트</a>와 <a class="reference internal" href="#protocols">프로토콜</a>을 모두 다룹니다.</p>
 <p class="rubric">소개</p>
-<p data-msgid="6eb229682c875b5afbced8a9ad99caff9d4408e5" data-score="94" data-since="260603">최상위 수준에서, 트랜스포트는 <em>어떻게(how)</em> 바이트를 전송할지를 다루지만, 프로토콜은 <em>어떤(which)</em> 바이트를 전송할지를 결정합니다 (그리고 어느 정도는 언제(when)도).</p>
-<p data-msgid="c9e3f7b11fa46f2fd447fa57378656fdd330cbcb" data-score="81" data-since="260603">같은 것을 다른 식으로 말하면: 트랜스포트는 소켓(또는 유사한 I/O 엔드포인트)의 추상화지만, 프로토콜은 트랜스포트의 관점에서 응용 프로그램의 추상화입니다.</p>
-<p data-msgid="4b7d9108b065dee3edad5735649aad18773cab07" data-score="90" data-since="260603">또 다른 시각은 트랜스포트와 프로토콜 인터페이스가 함께 네트워크 I/O와 프로세스 간 I/O를 사용하기 위한 추상 인터페이스를 정의한다는 것입니다.</p>
-<p data-msgid="d67e4f42d4de885a7414466b8f08bd4f8bc181d8" data-score="95" data-since="260603">트랜스포트 객체와 프로토콜 객체 간에는 항상 1:1 관계가 있습니다: 프로토콜은 트랜스포트 메서드를 호출하여 데이터를 보내지만, 트랜스포트는 프로토콜 메서드를 호출하여 받은 데이터를 전달합니다.</p>
-<p data-msgid="0240d490b5ae404cd35fac2f36639aa227fe6f13" data-score="95" data-since="260603">대부분의 연결 지향 이벤트 루프 메서드(가령 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>)는 <em>Transport</em> 객체로 표현되는 받아들인 연결을 위한 <em>Protocol</em> 객체를 만드는 데 사용되는 <em>protocol_factory</em> 인자를 받아들입니다. 이러한 메서드는 대개 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code>의 튜플을 반환합니다.</p>
+<p>최상위 수준에서, 트랜스포트는 <em>어떻게(how)</em> 바이트를 전송할지를 다루지만, 프로토콜은 <em>어떤(which)</em> 바이트를 전송할지를 결정합니다 (그리고 어느 정도는 언제(when)도).</p>
+<p>같은 것을 다른 식으로 말하면: 트랜스포트는 소켓(또는 유사한 I/O 엔드포인트)의 추상화지만, 프로토콜은 트랜스포트의 관점에서 응용 프로그램의 추상화입니다.</p>
+<p>또 다른 시각은 트랜스포트와 프로토콜 인터페이스가 함께 네트워크 I/O와 프로세스 간 I/O를 사용하기 위한 추상 인터페이스를 정의한다는 것입니다.</p>
+<p>트랜스포트 객체와 프로토콜 객체 간에는 항상 1:1 관계가 있습니다: 프로토콜은 트랜스포트 메서드를 호출하여 데이터를 보내지만, 트랜스포트는 프로토콜 메서드를 호출하여 받은 데이터를 전달합니다.</p>
+<p>대부분의 연결 지향 이벤트 루프 메서드(가령 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>)는 <em>Transport</em> 객체로 표현되는 받아들인 연결을 위한 <em>Protocol</em> 객체를 만드는 데 사용되는 <em>protocol_factory</em> 인자를 받아들입니다. 이러한 메서드는 대개 <code class="docutils literal notranslate"><span class="pre">(transport,</span> <span class="pre">protocol)</span></code>의 튜플을 반환합니다.</p>
 <p class="rubric">목차</p>
-<p data-msgid="6ea1780a291c39bade61c609ec38121b00edd92b" data-score="100" data-since="260603">이 설명서 페이지는 다음 절로 구성됩니다:</p>
+<p>이 설명서 페이지는 다음 절로 구성됩니다:</p>
 <ul class="simple">
-<li><p data-msgid="6794ecdc05fca825218a3bc2678ced34bc65ad3a" data-score="83" data-since="260603"><a class="reference internal" href="#transports">트랜스포트</a> 절은 asyncio <a class="reference internal" href="#asyncio.BaseTransport" title="asyncio.BaseTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTransport</span></code></a>, <a class="reference internal" href="#asyncio.ReadTransport" title="asyncio.ReadTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadTransport</span></code></a>, <a class="reference internal" href="#asyncio.WriteTransport" title="asyncio.WriteTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriteTransport</span></code></a>, <a class="reference internal" href="#asyncio.Transport" title="asyncio.Transport"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transport</span></code></a>, <a class="reference internal" href="#asyncio.DatagramTransport" title="asyncio.DatagramTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatagramTransport</span></code></a> 및 <a class="reference internal" href="#asyncio.SubprocessTransport" title="asyncio.SubprocessTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubprocessTransport</span></code></a> 클래스를 설명합니다.</p></li>
-<li><p data-msgid="ae843deb86b2f97596dbe9afba300dbc39fcf460" data-score="80" data-since="260603"><a class="reference internal" href="#protocols">프로토콜</a> 절은 asyncio <a class="reference internal" href="#asyncio.BaseProtocol" title="asyncio.BaseProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProtocol</span></code></a>, <a class="reference internal" href="#asyncio.Protocol" title="asyncio.Protocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a>, <a class="reference internal" href="#asyncio.BufferedProtocol" title="asyncio.BufferedProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">BufferedProtocol</span></code></a>, <a class="reference internal" href="#asyncio.DatagramProtocol" title="asyncio.DatagramProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatagramProtocol</span></code></a> 및 <a class="reference internal" href="#asyncio.SubprocessProtocol" title="asyncio.SubprocessProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubprocessProtocol</span></code></a> 클래스를 설명합니다.</p></li>
-<li><p data-msgid="f0e5f5e044a161d27b6acbfacbe6f4176279a24b" data-score="86" data-since="260603"><a class="reference internal" href="#examples">예제</a> 절은 트랜스포트, 프로토콜 및 저수준 이벤트 루프 API를 사용하는 방법을 보여줍니다.</p></li>
+<li><p><a class="reference internal" href="#transports">트랜스포트</a> 절은 asyncio <a class="reference internal" href="#asyncio.BaseTransport" title="asyncio.BaseTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTransport</span></code></a>, <a class="reference internal" href="#asyncio.ReadTransport" title="asyncio.ReadTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadTransport</span></code></a>, <a class="reference internal" href="#asyncio.WriteTransport" title="asyncio.WriteTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriteTransport</span></code></a>, <a class="reference internal" href="#asyncio.Transport" title="asyncio.Transport"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transport</span></code></a>, <a class="reference internal" href="#asyncio.DatagramTransport" title="asyncio.DatagramTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatagramTransport</span></code></a> 및 <a class="reference internal" href="#asyncio.SubprocessTransport" title="asyncio.SubprocessTransport"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubprocessTransport</span></code></a> 클래스를 설명합니다.</p></li>
+<li><p><a class="reference internal" href="#protocols">프로토콜</a> 절은 asyncio <a class="reference internal" href="#asyncio.BaseProtocol" title="asyncio.BaseProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProtocol</span></code></a>, <a class="reference internal" href="#asyncio.Protocol" title="asyncio.Protocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a>, <a class="reference internal" href="#asyncio.BufferedProtocol" title="asyncio.BufferedProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">BufferedProtocol</span></code></a>, <a class="reference internal" href="#asyncio.DatagramProtocol" title="asyncio.DatagramProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatagramProtocol</span></code></a> 및 <a class="reference internal" href="#asyncio.SubprocessProtocol" title="asyncio.SubprocessProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubprocessProtocol</span></code></a> 클래스를 설명합니다.</p></li>
+<li><p><a class="reference internal" href="#examples">예제</a> 절은 트랜스포트, 프로토콜 및 저수준 이벤트 루프 API를 사용하는 방법을 보여줍니다.</p></li>
 </ul>
 <section id="transports">
-<span id="asyncio-transport"></span><h2 data-msgid="fbd2edc0da02a266d5cdec2e57c47c688da6fda8" data-score="100" data-since="260603">트랜스포트<a class="headerlink" href="#transports" title="Link to this heading">¶</a></h2>
-<p data-msgid="ca3e56cbc0966f68dd21a48448c192cb6fa4451c" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/asyncio/transports.py`</span></a></p>
+<span id="asyncio-transport"></span><h2>트랜스포트<a class="headerlink" href="#transports" title="Link to this heading">¶</a></h2>
+<p><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/asyncio/transports.py">Lib/asyncio/transports.py</a></p>
 <hr class="docutils" />
-<p data-msgid="d62748d2d85cacaa083d93b967caafeb5a834db0" data-score="95" data-since="260603">트랜스포트는 다양한 종류의 통신 채널을 추상화하기 위해 <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a>에서 제공하는 클래스입니다.</p>
-<p data-msgid="7c6b4112e0e283f108a580373b0ddf28b1b29bfe" data-score="91" data-since="260603">트랜스포트 객체는 항상 <a class="reference internal" href="asyncio-eventloop.html#asyncio-event-loop"><span class="std std-ref">asyncio 이벤트 루프</span></a>에 의해 인스턴스로 만들어집니다.</p>
-<p data-msgid="b04a4d8cd75d9bd23b41353a80990f75c7f8793b" data-score="93" data-since="260603">asyncio는 TCP, UDP, SSL 및 서브 프로세스 파이프를 위한 트랜스포트를 구현합니다. 트랜스포트에서 사용할 수 있는 메서드는 트랜스포트의 종류에 따라 다릅니다.</p>
-<p data-msgid="3fad1e96770ff71fe92f844448579146b6ff62ff" data-score="100" data-since="260603">트랜스포트 클래스는 <a class="reference internal" href="asyncio-dev.html#asyncio-multithreading"><span class="std std-ref">스레드 안전하지 않습니다</span></a>.</p>
+<p>트랜스포트는 다양한 종류의 통신 채널을 추상화하기 위해 <a class="reference internal" href="asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a>에서 제공하는 클래스입니다.</p>
+<p>트랜스포트 객체는 항상 <a class="reference internal" href="asyncio-eventloop.html#asyncio-event-loop"><span class="std std-ref">asyncio 이벤트 루프</span></a>에 의해 인스턴스로 만들어집니다.</p>
+<p>asyncio는 TCP, UDP, SSL 및 서브 프로세스 파이프를 위한 트랜스포트를 구현합니다. 트랜스포트에서 사용할 수 있는 메서드는 트랜스포트의 종류에 따라 다릅니다.</p>
+<p>트랜스포트 클래스는 <a class="reference internal" href="asyncio-dev.html#asyncio-multithreading"><span class="std std-ref">스레드 안전하지 않습니다</span></a>.</p>
 <section id="transports-hierarchy">
-<h3 data-msgid="4761cb167f0448d6e20290552ca05bb90b3bb24d" data-score="100" data-since="260603">트랜스포트 계층 구조<a class="headerlink" href="#transports-hierarchy" title="Link to this heading">¶</a></h3>
+<h3>트랜스포트 계층 구조<a class="headerlink" href="#transports-hierarchy" title="Link to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.BaseTransport">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">BaseTransport</span></span><a class="headerlink" href="#asyncio.BaseTransport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="da6981573c65e79e8f07340299674ca6325846a7" data-score="91" data-since="260603">모든 트랜스포트의 베이스 클래스. 모든 asyncio 트랜스포트가 공유하는 메서드를 포함합니다.</p>
+<dd><p>모든 트랜스포트의 베이스 클래스. 모든 asyncio 트랜스포트가 공유하는 메서드를 포함합니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.WriteTransport">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">WriteTransport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseTransport</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4edff28f189d39b67166437daa554302bf286d6a" data-score="82" data-since="260603">쓰기 전용 연결을 위한 베이스 트랜스포트</p>
-<p data-msgid="55538f83a427b1c4530946611ea6007fcbeb519d" data-score="90" data-since="260603"><em>WriteTransport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_write_pipe" title="asyncio.loop.connect_write_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_write_pipe()</span></code></a> 이벤트 루프 메서드에서 반환되며 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a>와 같은 서브 프로세스 관련 메서드에서도 사용됩니다.</p>
+<dd><p>쓰기 전용 연결을 위한 베이스 트랜스포트</p>
+<p><em>WriteTransport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_write_pipe" title="asyncio.loop.connect_write_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_write_pipe()</span></code></a> 이벤트 루프 메서드에서 반환되며 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a>와 같은 서브 프로세스 관련 메서드에서도 사용됩니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.ReadTransport">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">ReadTransport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseTransport</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.ReadTransport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ecfe177994a5d3a20e0c5a378f8351fac8fde37a" data-score="82" data-since="260603">읽기 전용 연결을 위한 베이스 트랜스포트</p>
-<p data-msgid="55d623a98db9e47de10cf543be7e769e80bef65a" data-score="90" data-since="260603"><em>ReadTransport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_read_pipe" title="asyncio.loop.connect_read_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_read_pipe()</span></code></a> 이벤트 루프 메서드에서 반환되며 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a>와 같은 서브 프로세스 관련 메서드에서도 사용됩니다.</p>
+<dd><p>읽기 전용 연결을 위한 베이스 트랜스포트</p>
+<p><em>ReadTransport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_read_pipe" title="asyncio.loop.connect_read_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_read_pipe()</span></code></a> 이벤트 루프 메서드에서 반환되며 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a>와 같은 서브 프로세스 관련 메서드에서도 사용됩니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.Transport">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">Transport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">WriteTransport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReadTransport</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Transport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="009aeb4117871f36b8d07dbea81e88efde3f84c2" data-score="88" data-since="260603">TCP 연결과 같은 양방향 트랜스포트를 나타내는 인터페이스.</p>
-<p data-msgid="61191e6c79c749cd7aba4196b38f6b9a262afba8" data-score="83" data-since="260603">사용자는 트랜스포트를 직접 인스턴스로 만들지 않습니다; 유틸리티 함수를 호출하고, 프로토콜 팩토리와 트랜스포트와 프로토콜을 만드는 데 필요한 기타 정보를 전달합니다.</p>
-<p data-msgid="0804b59ee18d39827f7a2c7f878d679defa6d179" data-score="97" data-since="260603"><em>Transport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_connection" title="asyncio.loop.create_unix_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.sendfile" title="asyncio.loop.sendfile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.sendfile()</span></code></a> 등과 같은 이벤트 루프 메서드에서 반환되거나 사용됩니다.</p>
+<dd><p>TCP 연결과 같은 양방향 트랜스포트를 나타내는 인터페이스.</p>
+<p>사용자는 트랜스포트를 직접 인스턴스로 만들지 않습니다; 유틸리티 함수를 호출하고, 프로토콜 팩토리와 트랜스포트와 프로토콜을 만드는 데 필요한 기타 정보를 전달합니다.</p>
+<p><em>Transport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_connection" title="asyncio.loop.create_unix_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.sendfile" title="asyncio.loop.sendfile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.sendfile()</span></code></a> 등과 같은 이벤트 루프 메서드에서 반환되거나 사용됩니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.DatagramTransport">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">DatagramTransport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseTransport</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.DatagramTransport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c3c80f1590f49a12cd65c7f83bc6002d79bb9851" data-score="73" data-since="260603">데이터 그램 (UDP) 연결을 위한 트랜스포트.</p>
-<p data-msgid="f26f12de6987c38751aa31665cf1e9eff97d41ff" data-score="98" data-since="260603"><em>DatagramTransport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 이벤트 루프 메서드에서 반환됩니다.</p>
+<dd><p>데이터 그램 (UDP) 연결을 위한 트랜스포트.</p>
+<p><em>DatagramTransport</em> 클래스의 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 이벤트 루프 메서드에서 반환됩니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">SubprocessTransport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseTransport</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2b4487c478caae94a1d2a055c39dc744680ef17b" data-score="76" data-since="260603">부모와 그 자식 OS 프로세스 간의 연결을 나타내는 추상화.</p>
-<p data-msgid="732b2162f0e7bf7ea42dbcc5a9243b04beed7b88" data-score="95" data-since="260603"><em>SubprocessTransport</em> 클래스의 인스턴스는 이벤트 루프 메서드 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_shell" title="asyncio.loop.subprocess_shell"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_shell()</span></code></a>과 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a>에서 반환됩니다.</p>
+<dd><p>부모와 그 자식 OS 프로세스 간의 연결을 나타내는 추상화.</p>
+<p><em>SubprocessTransport</em> 클래스의 인스턴스는 이벤트 루프 메서드 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_shell" title="asyncio.loop.subprocess_shell"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_shell()</span></code></a>과 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a>에서 반환됩니다.</p>
 </dd></dl>
 
 </section>
 <section id="base-transport">
-<h3 data-msgid="b1fa70ba520aae580db170cd80267cedd66c66af" data-score="100" data-since="260603">베이스 트랜스포트<a class="headerlink" href="#base-transport" title="Link to this heading">¶</a></h3>
+<h3>베이스 트랜스포트<a class="headerlink" href="#base-transport" title="Link to this heading">¶</a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseTransport.close">
 <span class="sig-prename descclassname"><span class="pre">BaseTransport.</span></span><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseTransport.close" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="889ddbb3d484ced0f481e3bad3e2651e9acad250" data-score="50" data-since="260603">트랜스포트를 닫습니다.</p>
-<p data-msgid="9f6b6c57c579f5672d2d8161a9daa6e5d35118b8" data-score="88" data-since="260603">트랜스포트에 송신 데이터용 버퍼가 있으면, 버퍼 된 데이터는 비동기적으로 플러시 됩니다. 더는 데이터가 수신되지 않습니다. 버퍼 된 모든 데이터가 플러시 된 후, 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.connection_lost" title="asyncio.BaseProtocol.connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.connection_lost()</span></code></a> 메서드가 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 인자로 사용하여 호출됩니다. 트랜스포트가 닫힌 후에는 사용해서는 안 됩니다.</p>
+<dd><p>트랜스포트를 닫습니다.</p>
+<p>트랜스포트에 송신 데이터용 버퍼가 있으면, 버퍼 된 데이터는 비동기적으로 플러시 됩니다. 더는 데이터가 수신되지 않습니다. 버퍼 된 모든 데이터가 플러시 된 후, 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.connection_lost" title="asyncio.BaseProtocol.connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.connection_lost()</span></code></a> 메서드가 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 인자로 사용하여 호출됩니다. 트랜스포트가 닫힌 후에는 사용해서는 안 됩니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseTransport.is_closing">
 <span class="sig-prename descclassname"><span class="pre">BaseTransport.</span></span><span class="sig-name descname"><span class="pre">is_closing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseTransport.is_closing" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4123645fc767ccd29c64f774d33a711779825ca0" data-score="92" data-since="260603">트랜스포트가 닫히는 중이거나 닫혔으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
+<dd><p>트랜스포트가 닫히는 중이거나 닫혔으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseTransport.get_extra_info">
 <span class="sig-prename descclassname"><span class="pre">BaseTransport.</span></span><span class="sig-name descname"><span class="pre">get_extra_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseTransport.get_extra_info" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c71b79417d200962ca8b136121272ffafb6cdc0a" data-score="92" data-since="260603">트랜스포트나 그것이 사용하는 하부 자원에 대한 정보를 반환합니다.</p>
-<p data-msgid="54c0c5cc9323d7b52dfc50672c78bd2d1c4f5651" data-score="98" data-since="260603"><em>name</em>은 얻고자 하는 트랜스포트 특정 정보의 조각을 나타내는 문자열입니다.</p>
-<p data-msgid="f9b58bdb15db993542462a7ee254298fc9b8cee0" data-score="88" data-since="260603"><em>default</em>는 정보가 없거나 트랜스포트가 제삼자 이벤트 루프 구현이나 현재 플랫폼에서 조회를 지원하지 않을 때 반환 할 값입니다.</p>
-<p data-msgid="fab295dfd7e74627cea034c9818fef0b2f4149b4" data-score="95" data-since="260603">예를 들어, 다음 코드는 트랜스포트의 하부 소켓 객체를 가져오려고 시도합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="3b502f16f484d447f2c54d92e229e1d261357f3c" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">sock</span> <span class="o">=</span> <span class="n">transport</span><span class="o">.</span><span class="n">get_extra_info</span><span class="p">(</span><span class="s1">&#39;socket&#39;</span><span class="p">)</span>
+<dd><p>트랜스포트나 그것이 사용하는 하부 자원에 대한 정보를 반환합니다.</p>
+<p><em>name</em>은 얻고자 하는 트랜스포트 특정 정보의 조각을 나타내는 문자열입니다.</p>
+<p><em>default</em>는 정보가 없거나 트랜스포트가 제삼자 이벤트 루프 구현이나 현재 플랫폼에서 조회를 지원하지 않을 때 반환 할 값입니다.</p>
+<p>예를 들어, 다음 코드는 트랜스포트의 하부 소켓 객체를 가져오려고 시도합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">sock</span> <span class="o">=</span> <span class="n">transport</span><span class="o">.</span><span class="n">get_extra_info</span><span class="p">(</span><span class="s1">&#39;socket&#39;</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">sock</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">sock</span><span class="o">.</span><span class="n">getsockopt</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
 </pre></div>
 </div>
-<p data-msgid="d705192e4aa89da0d6179e32948da3e1643a4de1" data-score="26" data-since="260603">일부 트랜스포트에서 조회할 수 있는 정보의 범주:</p>
+<p>일부 트랜스포트에서 조회할 수 있는 정보의 범주:</p>
 <ul class="simple">
-<li><p data-msgid="8197c8b83c9eaa2a347146ceb4a83aa71cd17a12" data-score="100" data-since="260603">소켓:</p>
+<li><p>소켓:</p>
 <ul>
-<li><p data-msgid="8cb5f277c6a40678435f97584279e100ea1d5acf" data-score="84" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'peername'</span></code>: 소켓이 연결된 원격 주소, <a class="reference internal" href="socket.html#socket.socket.getpeername" title="socket.socket.getpeername"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.socket.getpeername()</span></code></a>의 결과 (에러 시 <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></li>
-<li><p data-msgid="df3321b8aabf7862e35fa32687734a40546f016e" data-score="100" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'socket'</span></code>: <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a> 인스턴스</p></li>
-<li><p data-msgid="544424a30f8e1d7fafde1717feaf0eaaee5d8886" data-score="91" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'sockname'</span></code>: 소켓 자체 주소, <a class="reference internal" href="socket.html#socket.socket.getsockname" title="socket.socket.getsockname"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.socket.getsockname()</span></code></a>의 결과</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'peername'</span></code>: 소켓이 연결된 원격 주소, <a class="reference internal" href="socket.html#socket.socket.getpeername" title="socket.socket.getpeername"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.socket.getpeername()</span></code></a>의 결과 (에러 시 <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'socket'</span></code>: <a class="reference internal" href="socket.html#socket.socket" title="socket.socket"><code class="xref py py-class docutils literal notranslate"><span class="pre">socket.socket</span></code></a> 인스턴스</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sockname'</span></code>: 소켓 자체 주소, <a class="reference internal" href="socket.html#socket.socket.getsockname" title="socket.socket.getsockname"><code class="xref py py-meth docutils literal notranslate"><span class="pre">socket.socket.getsockname()</span></code></a>의 결과</p></li>
 </ul>
 </li>
-<li><p data-msgid="d54dd8653f2e122b976f375dbe3b3316f03db029" data-score="100" data-since="260603">SSL 소켓:</p>
+<li><p>SSL 소켓:</p>
 <ul>
-<li><p data-msgid="b4c77b758e571bf8534e1d033fa8545ca140eaa7" data-score="63" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'compression'</span></code>: 문자열로 표현된 사용된 압축 알고리즘, 또는 연결이 압축되지 않았으면 <code class="docutils literal notranslate"><span class="pre">None</span></code>; <a class="reference internal" href="ssl.html#ssl.SSLSocket.compression" title="ssl.SSLSocket.compression"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ssl.SSLSocket.compression()</span></code></a>의 결과</p></li>
-<li><p data-msgid="f082037035e2ea04ac7788cb19d19c0d13aa550d" data-score="81" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'cipher'</span></code>: 사용되는 암호 체계의 이름, 이의 사용을 정의하는 SSL 프로토콜의 버전 및 사용되는 비밀 비트의 수를 포함하는 3-튜플; <a class="reference internal" href="ssl.html#ssl.SSLSocket.cipher" title="ssl.SSLSocket.cipher"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ssl.SSLSocket.cipher()</span></code></a>의 결과</p></li>
-<li><p data-msgid="07a7433c3925fed002d4da46e40cba706cb4e06b" data-score="85" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'peercert'</span></code>: 피어 인증서; <a class="reference internal" href="ssl.html#ssl.SSLSocket.getpeercert" title="ssl.SSLSocket.getpeercert"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ssl.SSLSocket.getpeercert()</span></code></a>의 결과</p></li>
-<li><p data-msgid="b4990c985dda600b22b3f37d3bcfe2a7293dd3e4" data-score="91" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'sslcontext'</span></code>: <a class="reference internal" href="ssl.html#ssl.SSLContext" title="ssl.SSLContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> 인스턴스</p></li>
-<li><p data-msgid="6743d0ddc5b6ca9bde665ebbb0249e09821426eb" data-score="89" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'ssl_object'</span></code>: <a class="reference internal" href="ssl.html#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLObject</span></code></a> 나 <a class="reference internal" href="ssl.html#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLSocket</span></code></a> 인스턴스</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'compression'</span></code>: 문자열로 표현된 사용된 압축 알고리즘, 또는 연결이 압축되지 않았으면 <code class="docutils literal notranslate"><span class="pre">None</span></code>; <a class="reference internal" href="ssl.html#ssl.SSLSocket.compression" title="ssl.SSLSocket.compression"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ssl.SSLSocket.compression()</span></code></a>의 결과</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cipher'</span></code>: 사용되는 암호 체계의 이름, 이의 사용을 정의하는 SSL 프로토콜의 버전 및 사용되는 비밀 비트의 수를 포함하는 3-튜플; <a class="reference internal" href="ssl.html#ssl.SSLSocket.cipher" title="ssl.SSLSocket.cipher"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ssl.SSLSocket.cipher()</span></code></a>의 결과</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'peercert'</span></code>: 피어 인증서; <a class="reference internal" href="ssl.html#ssl.SSLSocket.getpeercert" title="ssl.SSLSocket.getpeercert"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ssl.SSLSocket.getpeercert()</span></code></a>의 결과</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sslcontext'</span></code>: <a class="reference internal" href="ssl.html#ssl.SSLContext" title="ssl.SSLContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> 인스턴스</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'ssl_object'</span></code>: <a class="reference internal" href="ssl.html#ssl.SSLObject" title="ssl.SSLObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLObject</span></code></a> 나 <a class="reference internal" href="ssl.html#ssl.SSLSocket" title="ssl.SSLSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">ssl.SSLSocket</span></code></a> 인스턴스</p></li>
 </ul>
 </li>
-<li><p data-msgid="471d42c2105e3bfd3ddb7ed635ca51e17614026f" data-score="100" data-since="260603">파이프:</p>
+<li><p>파이프:</p>
 <ul>
-<li><p data-msgid="297d6e4347cfce718d5440c792b2acf1e0320838" data-score="78" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'pipe'</span></code>: 파이프 객체</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'pipe'</span></code>: 파이프 객체</p></li>
 </ul>
 </li>
-<li><p data-msgid="8294da0f11296be006dd093a8b220258a7eb0b8f" data-score="100" data-since="260603">서브 프로세스:</p>
+<li><p>서브 프로세스:</p>
 <ul>
-<li><p data-msgid="ba089d2bad19df0b66a7ca7d2e6bbac983dd498a" data-score="92" data-since="260603"><code class="docutils literal notranslate"><span class="pre">'subprocess'</span></code>: <a class="reference internal" href="subprocess.html#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">subprocess.Popen</span></code></a> 인스턴스</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'subprocess'</span></code>: <a class="reference internal" href="subprocess.html#subprocess.Popen" title="subprocess.Popen"><code class="xref py py-class docutils literal notranslate"><span class="pre">subprocess.Popen</span></code></a> 인스턴스</p></li>
 </ul>
 </li>
 </ul>
@@ -270,23 +272,23 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseTransport.set_protocol">
 <span class="sig-prename descclassname"><span class="pre">BaseTransport.</span></span><span class="sig-name descname"><span class="pre">set_protocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protocol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseTransport.set_protocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="93c271983fb753ff0f31b1b586cd24a561b65685" data-score="100" data-since="260603">새 프로토콜을 설정합니다.</p>
-<p data-msgid="2e0dcb00e65a28125117875b793974ff78034961" data-score="78" data-since="260603">프로토콜의 교환은 두 프로토콜이 교환을 지원한다고 문서화 되었을 때만 수행되어야 합니다.</p>
+<dd><p>새 프로토콜을 설정합니다.</p>
+<p>프로토콜의 교환은 두 프로토콜이 교환을 지원한다고 문서화 되었을 때만 수행되어야 합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseTransport.get_protocol">
 <span class="sig-prename descclassname"><span class="pre">BaseTransport.</span></span><span class="sig-name descname"><span class="pre">get_protocol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseTransport.get_protocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5bdce97b7160c0fe8c0ab2ec3c04c46d90e9cad8" data-score="100" data-since="260603">현재 프로토콜을 반환합니다.</p>
+<dd><p>현재 프로토콜을 반환합니다.</p>
 </dd></dl>
 
 </section>
 <section id="read-only-transports">
-<h3 data-msgid="da08100916e9f503e065d06037cb6883e9110bf4" data-score="100" data-since="260603">읽기 전용 트랜스포트<a class="headerlink" href="#read-only-transports" title="Link to this heading">¶</a></h3>
+<h3>읽기 전용 트랜스포트<a class="headerlink" href="#read-only-transports" title="Link to this heading">¶</a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.ReadTransport.is_reading">
 <span class="sig-prename descclassname"><span class="pre">ReadTransport.</span></span><span class="sig-name descname"><span class="pre">is_reading</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.ReadTransport.is_reading" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9419576d01a7106f94a91b5b220b34041ca29b61" data-score="68" data-since="260603">트랜스 포트가 새로운 데이터를 받고 있으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
+<dd><p>트랜스 포트가 새로운 데이터를 받고 있으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
@@ -295,8 +297,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.ReadTransport.pause_reading">
 <span class="sig-prename descclassname"><span class="pre">ReadTransport.</span></span><span class="sig-name descname"><span class="pre">pause_reading</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.ReadTransport.pause_reading" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="91cecdd9032579085fd6c33add199af3bd96c448" data-score="74" data-since="260603">트랜스포트의 수신 끝을 일시 중지합니다. <a class="reference internal" href="#asyncio.ReadTransport.resume_reading" title="asyncio.ReadTransport.resume_reading"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_reading()</span></code></a>이 호출 될 때까지 프로토콜의 <a class="reference internal" href="#asyncio.Protocol.data_received" title="asyncio.Protocol.data_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.data_received()</span></code></a> 메서드에 데이터가 전달되지 않습니다.</p>
-<div class="versionchanged" data-msgid="31f11c583eb8d2496e058554f91d4a157a406a7a" data-score="91" data-since="260603">
+<dd><p>트랜스포트의 수신 끝을 일시 중지합니다. <a class="reference internal" href="#asyncio.ReadTransport.resume_reading" title="asyncio.ReadTransport.resume_reading"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_reading()</span></code></a>이 호출 될 때까지 프로토콜의 <a class="reference internal" href="#asyncio.Protocol.data_received" title="asyncio.Protocol.data_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.data_received()</span></code></a> 메서드에 데이터가 전달되지 않습니다.</p>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span>이 메서드는 멱등적(idempotent)입니다. 즉, 트랜스포트가 이미 일시 중지되거나 닫혔을 때도 호출할 수 있습니다.</p>
 </div>
 </dd></dl>
@@ -304,38 +306,38 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.ReadTransport.resume_reading">
 <span class="sig-prename descclassname"><span class="pre">ReadTransport.</span></span><span class="sig-name descname"><span class="pre">resume_reading</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.ReadTransport.resume_reading" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c21954f9ecb5b6ec128ef504cb4a97a3eb678fcf" data-score="92" data-since="260603">수신 끝을 재개합니다. 읽을 수 있는 데이터가 있다면 프로토콜의 <a class="reference internal" href="#asyncio.Protocol.data_received" title="asyncio.Protocol.data_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.data_received()</span></code></a> 메서드가 다시 한번 호출됩니다.</p>
-<div class="versionchanged" data-msgid="f6c5554740ab4048a445d02469e05d0c24c0235f" data-score="85" data-since="260603">
+<dd><p>수신 끝을 재개합니다. 읽을 수 있는 데이터가 있다면 프로토콜의 <a class="reference internal" href="#asyncio.Protocol.data_received" title="asyncio.Protocol.data_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.data_received()</span></code></a> 메서드가 다시 한번 호출됩니다.</p>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span>이 메서드는 멱등적(idempotent)입니다. 즉, 트랜스포트가 이미 읽고 있을 때도 호출할 수 있습니다.</p>
 </div>
 </dd></dl>
 
 </section>
 <section id="write-only-transports">
-<h3 data-msgid="2f0ad1cd3dd03f0a6c9c662064a29f7888fb5ccf" data-score="100" data-since="260603">쓰기 전용 트랜스포트<a class="headerlink" href="#write-only-transports" title="Link to this heading">¶</a></h3>
+<h3>쓰기 전용 트랜스포트<a class="headerlink" href="#write-only-transports" title="Link to this heading">¶</a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.abort">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">abort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.abort" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9643b85350e2f9dc4f9f6d03c658baef0a0a147c" data-score="83" data-since="260603">계류 중인 작업이 완료될 때까지 기다리지 않고, 즉시 트랜스포트를 닫습니다. 버퍼 된 데이터는 손실됩니다. 더는 데이터가 수신되지 않습니다. 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.connection_lost" title="asyncio.BaseProtocol.connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.connection_lost()</span></code></a> 메서드는 결국 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 인자로 사용하여 호출됩니다.</p>
+<dd><p>계류 중인 작업이 완료될 때까지 기다리지 않고, 즉시 트랜스포트를 닫습니다. 버퍼 된 데이터는 손실됩니다. 더는 데이터가 수신되지 않습니다. 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.connection_lost" title="asyncio.BaseProtocol.connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.connection_lost()</span></code></a> 메서드는 결국 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 인자로 사용하여 호출됩니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.can_write_eof">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">can_write_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.can_write_eof" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="fd58c5e8fadc4951160b21b7649fd6c8190ed772" data-score="99" data-since="260603">트랜스포트가 <a class="reference internal" href="#asyncio.WriteTransport.write_eof" title="asyncio.WriteTransport.write_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_eof()</span></code></a>를 지원하면 <a class="reference internal" href="constants.html#True" title="True"><code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code></a>를 반환하고, 그렇지 않으면 <a class="reference internal" href="constants.html#False" title="False"><code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code></a>를 반환합니다.</p>
+<dd><p>트랜스포트가 <a class="reference internal" href="#asyncio.WriteTransport.write_eof" title="asyncio.WriteTransport.write_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_eof()</span></code></a>를 지원하면 <a class="reference internal" href="constants.html#True" title="True"><code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code></a>를 반환하고, 그렇지 않으면 <a class="reference internal" href="constants.html#False" title="False"><code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code></a>를 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.get_write_buffer_size">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">get_write_buffer_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.get_write_buffer_size" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="8a496e28d1bf7d6ccb5930bf4a870be2bd8c46ac" data-score="100" data-since="260603">트랜스포트가 사용하는 출력 버퍼의 현재 크기를 반환합니다.</p>
+<dd><p>트랜스포트가 사용하는 출력 버퍼의 현재 크기를 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.get_write_buffer_limits">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">get_write_buffer_limits</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.get_write_buffer_limits" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="95a098914f3a1a71f4dd91566706682578cf2291" data-score="95" data-since="260603">쓰기 흐름 제어를 위한 <em>high</em> 와 <em>low</em> 수위(watermark)를 가져옵니다. 튜플 <code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code>를 반환합니다. 여기서 <em>low</em> 와 <em>high</em>는 양의 바이트 수입니다.</p>
-<p data-msgid="dbc548938065ca577b01a5726c45b085c1bb301d" data-score="100" data-since="260603">제한을 설정하려면 <a class="reference internal" href="#asyncio.WriteTransport.set_write_buffer_limits" title="asyncio.WriteTransport.set_write_buffer_limits"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_write_buffer_limits()</span></code></a>를 사용하십시오.</p>
+<dd><p>쓰기 흐름 제어를 위한 <em>high</em> 와 <em>low</em> 수위(watermark)를 가져옵니다. 튜플 <code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code>를 반환합니다. 여기서 <em>low</em> 와 <em>high</em>는 양의 바이트 수입니다.</p>
+<p>제한을 설정하려면 <a class="reference internal" href="#asyncio.WriteTransport.set_write_buffer_limits" title="asyncio.WriteTransport.set_write_buffer_limits"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_write_buffer_limits()</span></code></a>를 사용하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.4.2.</span></p>
 </div>
@@ -344,42 +346,42 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.set_write_buffer_limits">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">set_write_buffer_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.set_write_buffer_limits" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ef725d20ecaba65f12bb4df2c4fbe07e6307d78a" data-score="98" data-since="260603">쓰기 흐름 제어를 위한 <em>high</em> 와 <em>low</em> 수위(watermark)를 설정합니다.</p>
-<p data-msgid="8b5bfe9da644fc60c5e395bd5157502d4c5d6bd7" data-score="90" data-since="260603">이 두 값(바이트 수로 측정)은 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.pause_writing()</span></code></a> 과 <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.resume_writing()</span></code></a> 메서드가 언제 호출될지를 제어합니다. 지정하면, low 수위는 high 수위보다 작거나 같아야 합니다. <em>high</em> 와 <em>low</em>는 음수가 될 수 없습니다.</p>
-<p data-msgid="d0a63ac6c23e22f802bf3bf566cf974d0f663629" data-score="80" data-since="260603">버퍼 크기가 <em>high</em> 값보다 크거나 같아질 때 <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pause_writing()</span></code></a>가 호출됩니다. 쓰기가 일시 중지되면, 버퍼 크기가 <em>low</em> 값보다 작거나 같아질 때 <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_writing()</span></code></a>이 호출됩니다.</p>
-<p data-msgid="238f1f6667398de2f20d8765f94e2a2f285b9df7" data-score="83" data-since="260603">기본값은 구현에 따라 다릅니다. high 수위만 주어지면, low 수위는 high 수위보다 작거나 같은 구현 특정 기본값이 사용됩니다. <em>high</em>를 0으로 설정하면, <em>low</em>도 0으로 설정되고, 버퍼가 비어있지 않게 될 때마다 <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pause_writing()</span></code></a>가 호출되도록 합니다. <em>low</em>를 0으로 설정하면 버퍼가 빌 때만 <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_writing()</span></code></a>이 호출됩니다. 두 제한 중 하나에 0을 사용하는 것은 I/O와 계산을 동시에 수행할 기회를 줄이기 때문에 일반적으로 최선이 아닙니다.</p>
-<p data-msgid="14e866f91baad1d557aea73dfc201530aa0cf3e8" data-score="100" data-since="260603">제한을 가져오려면 <a class="reference internal" href="#asyncio.WriteTransport.get_write_buffer_limits" title="asyncio.WriteTransport.get_write_buffer_limits"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_write_buffer_limits()</span></code></a>를 사용하십시오.</p>
+<dd><p>쓰기 흐름 제어를 위한 <em>high</em> 와 <em>low</em> 수위(watermark)를 설정합니다.</p>
+<p>이 두 값(바이트 수로 측정)은 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.pause_writing()</span></code></a> 과 <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.resume_writing()</span></code></a> 메서드가 언제 호출될지를 제어합니다. 지정하면, low 수위는 high 수위보다 작거나 같아야 합니다. <em>high</em> 와 <em>low</em>는 음수가 될 수 없습니다.</p>
+<p>버퍼 크기가 <em>high</em> 값보다 크거나 같아질 때 <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pause_writing()</span></code></a>가 호출됩니다. 쓰기가 일시 중지되면, 버퍼 크기가 <em>low</em> 값보다 작거나 같아질 때 <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_writing()</span></code></a>이 호출됩니다.</p>
+<p>기본값은 구현에 따라 다릅니다. high 수위만 주어지면, low 수위는 high 수위보다 작거나 같은 구현 특정 기본값이 사용됩니다. <em>high</em>를 0으로 설정하면, <em>low</em>도 0으로 설정되고, 버퍼가 비어있지 않게 될 때마다 <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pause_writing()</span></code></a>가 호출되도록 합니다. <em>low</em>를 0으로 설정하면 버퍼가 빌 때만 <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_writing()</span></code></a>이 호출됩니다. 두 제한 중 하나에 0을 사용하는 것은 I/O와 계산을 동시에 수행할 기회를 줄이기 때문에 일반적으로 최선이 아닙니다.</p>
+<p>제한을 가져오려면 <a class="reference internal" href="#asyncio.WriteTransport.get_write_buffer_limits" title="asyncio.WriteTransport.get_write_buffer_limits"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_write_buffer_limits()</span></code></a>를 사용하십시오.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.write">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.write" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="24f12a002be8d16d7b7d3984002c41b3416c1f54" data-score="100" data-since="260603">어떤 <em>data</em> 바이트열을 트랜스포트에 기록합니다.</p>
-<p data-msgid="6309e3677b4c32db7759a47b019d92bd0f697365" data-score="85" data-since="260603">이 메서드는 블록하지 않습니다; 데이터를 버퍼하고 비동기적으로 전송되도록 배치합니다.</p>
+<dd><p>어떤 <em>data</em> 바이트열을 트랜스포트에 기록합니다.</p>
+<p>이 메서드는 블록하지 않습니다; 데이터를 버퍼하고 비동기적으로 전송되도록 배치합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.writelines">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">writelines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_of_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.writelines" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6650d69c52914e3a29fe863f90e53790fd949dc1" data-score="89" data-since="260603">트랜스포트에 데이터 바이트열 리스트(또는 임의의 이터러블)를 기록합니다. 이것은 이터러블이 산출하는 각 요소에 대해 <a class="reference internal" href="#asyncio.WriteTransport.write" title="asyncio.WriteTransport.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>를 호출하는 것과 기능 면에서 동등하지만, 더 효율적으로 구현될 수 있습니다.</p>
+<dd><p>트랜스포트에 데이터 바이트열 리스트(또는 임의의 이터러블)를 기록합니다. 이것은 이터러블이 산출하는 각 요소에 대해 <a class="reference internal" href="#asyncio.WriteTransport.write" title="asyncio.WriteTransport.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>를 호출하는 것과 기능 면에서 동등하지만, 더 효율적으로 구현될 수 있습니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.WriteTransport.write_eof">
 <span class="sig-prename descclassname"><span class="pre">WriteTransport.</span></span><span class="sig-name descname"><span class="pre">write_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.WriteTransport.write_eof" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="cecdc5266f4bb5f7efb181990d26080bf12ec039" data-score="83" data-since="260603">버퍼 된 모든 데이터를 플러시 한 후 트랜스포트의 쓰기 끝을 닫습니다. 데이터가 여전히 수신될 수 있습니다.</p>
-<p data-msgid="81c4ae3eadc8052eefde8f9731045a094a301924" data-score="100" data-since="260603">이 메서드는 트랜스포트(예를 들어 SSL)가 반만 닫힌 연결을 지원하지 않으면 <a class="reference internal" href="exceptions.html#NotImplementedError" title="NotImplementedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a>를 발생시킬 수 있습니다.</p>
+<dd><p>버퍼 된 모든 데이터를 플러시 한 후 트랜스포트의 쓰기 끝을 닫습니다. 데이터가 여전히 수신될 수 있습니다.</p>
+<p>이 메서드는 트랜스포트(예를 들어 SSL)가 반만 닫힌 연결을 지원하지 않으면 <a class="reference internal" href="exceptions.html#NotImplementedError" title="NotImplementedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a>를 발생시킬 수 있습니다.</p>
 </dd></dl>
 
 </section>
 <section id="datagram-transports">
-<h3 data-msgid="3fb9422a6c51ffa5c41cb71edb326765ad36ed2f" data-score="100" data-since="260603">데이터 그램 트랜스포트<a class="headerlink" href="#datagram-transports" title="Link to this heading">¶</a></h3>
+<h3>데이터 그램 트랜스포트<a class="headerlink" href="#datagram-transports" title="Link to this heading">¶</a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.DatagramTransport.sendto">
 <span class="sig-prename descclassname"><span class="pre">DatagramTransport.</span></span><span class="sig-name descname"><span class="pre">sendto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.DatagramTransport.sendto" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9f4c1471a48656d5d1056f2216da6f9f0c664583" data-score="84" data-since="260603"><em>addr</em>(트랜스포트 종속적인 대상 주소)에 의해 주어진 원격 피어로 <em>data</em> 바이트열을 보냅니다. <em>addr</em>가 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>이면, 트랜스포트를 만들 때 지정된 대상 주소로 data가 전송됩니다.</p>
-<p data-msgid="6309e3677b4c32db7759a47b019d92bd0f697365" data-score="85" data-since="260603">이 메서드는 블록하지 않습니다; 데이터를 버퍼하고 비동기적으로 전송되도록 배치합니다.</p>
-<div class="versionchanged" data-msgid="9e92a36ce8e2b4d26f676d5bd1db993e28687b96" data-score="97" data-since="260609">
+<dd><p><em>addr</em>(트랜스포트 종속적인 대상 주소)에 의해 주어진 원격 피어로 <em>data</em> 바이트열을 보냅니다. <em>addr</em>가 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>이면, 트랜스포트를 만들 때 지정된 대상 주소로 data가 전송됩니다.</p>
+<p>이 메서드는 블록하지 않습니다; 데이터를 버퍼하고 비동기적으로 전송되도록 배치합니다.</p>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.13에서 변경: </span>이 메서드는 빈 바이트열 객체로 호출되어 길이 0의 데이터그램을 보낼 수 있습니다. 흐름 제어에 사용되는 버퍼 크기 계산도 데이터그램 헤더가 고려되도록 업데이트되었습니다.</p>
 </div>
 </dd></dl>
@@ -387,165 +389,165 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.DatagramTransport.abort">
 <span class="sig-prename descclassname"><span class="pre">DatagramTransport.</span></span><span class="sig-name descname"><span class="pre">abort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.DatagramTransport.abort" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="557e9322f02fbba0a3646fb6a0d289864c5a830d" data-score="83" data-since="260603">계류 중인 작업이 완료될 때까지 기다리지 않고, 즉시 트랜스포트를 닫습니다. 버퍼 된 데이터는 손실됩니다. 더는 데이터가 수신되지 않습니다. 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.connection_lost" title="asyncio.BaseProtocol.connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.connection_lost()</span></code></a> 메서드는 결국 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 인자로 사용하여 호출됩니다.</p>
+<dd><p>계류 중인 작업이 완료될 때까지 기다리지 않고, 즉시 트랜스포트를 닫습니다. 버퍼 된 데이터는 손실됩니다. 더는 데이터가 수신되지 않습니다. 프로토콜의 <a class="reference internal" href="#asyncio.BaseProtocol.connection_lost" title="asyncio.BaseProtocol.connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.connection_lost()</span></code></a> 메서드는 결국 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 인자로 사용하여 호출됩니다.</p>
 </dd></dl>
 
 </section>
 <section id="subprocess-transports">
-<span id="asyncio-subprocess-transports"></span><h3 data-msgid="608b4a549b42b619e2c116c4cfaca765547960d5" data-score="100" data-since="260603">서브 프로세스 트랜스포트<a class="headerlink" href="#subprocess-transports" title="Link to this heading">¶</a></h3>
+<span id="asyncio-subprocess-transports"></span><h3>서브 프로세스 트랜스포트<a class="headerlink" href="#subprocess-transports" title="Link to this heading">¶</a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.get_pid">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">get_pid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.get_pid" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d8842f6b326456ad3b6386006f83f6ee5c54b850" data-score="100" data-since="260603">서브 프로세스 ID를 정수로 반환합니다.</p>
+<dd><p>서브 프로세스 ID를 정수로 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.get_pipe_transport">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">get_pipe_transport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.get_pipe_transport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5834a3b7a28e7c3812d0519930101c2ac5891424" data-score="91" data-since="260603">정수 파일 기술자 <em>fd</em>에 대응하는 통신 파이프의 트랜스포트를 돌려줍니다:</p>
+<dd><p>정수 파일 기술자 <em>fd</em>에 대응하는 통신 파이프의 트랜스포트를 돌려줍니다:</p>
 <ul class="simple">
-<li><p data-msgid="e17b83e17fe18e5bef559b3698abbda1d588509f" data-score="96" data-since="260609"><code class="docutils literal notranslate"><span class="pre">0</span></code>: 표준 입력(<em>stdin</em>)\을 기록할 수 있는 스트리밍 전송 (또는 subprocess가 <code class="docutils literal notranslate"><span class="pre">stdin=PIPE</span></code>\으로 생성되지 않은 경우 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>).</p></li>
-<li><p data-msgid="3ecb624b2be9e370722b426c36beab981ee1c827" data-score="96" data-since="260609"><code class="docutils literal notranslate"><span class="pre">1</span></code>: 표준 출력(<em>stdout</em>)\을 읽을 수 있는 스트리밍 전송 (또는 subprocess가 <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code>\으로 생성되지 않은 경우 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>).</p></li>
-<li><p data-msgid="1cdf4a4ae7488a0354c11acd1a44721c860a4c51" data-score="95" data-since="260609"><code class="docutils literal notranslate"><span class="pre">2</span></code>: 표준 에러(<em>stderr</em>)\을 읽을 수 있는 스트리밍 전송 (또는 subprocess가 <code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code>\으로 생성되지 않은 경우 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>).</p></li>
-<li><p data-msgid="729cf60116d506df818b58d2473b54eb8883c127" data-score="100" data-since="260603">다른 <em>fd</em>: <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code>: 표준 입력(<em>stdin</em>)\을 기록할 수 있는 스트리밍 전송 (또는 subprocess가 <code class="docutils literal notranslate"><span class="pre">stdin=PIPE</span></code>\으로 생성되지 않은 경우 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code>: 표준 출력(<em>stdout</em>)\을 읽을 수 있는 스트리밍 전송 (또는 subprocess가 <code class="docutils literal notranslate"><span class="pre">stdout=PIPE</span></code>\으로 생성되지 않은 경우 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code>: 표준 에러(<em>stderr</em>)\을 읽을 수 있는 스트리밍 전송 (또는 subprocess가 <code class="docutils literal notranslate"><span class="pre">stderr=PIPE</span></code>\으로 생성되지 않은 경우 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>).</p></li>
+<li><p>다른 <em>fd</em>: <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a></p></li>
 </ul>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.get_returncode">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">get_returncode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.get_returncode" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4b7da968f278d8c08f5c8e272d5c179557c5e82e" data-score="83" data-since="260603">서브 프로세스 반환 값을 정수로, 혹은 반환되지 않았으면 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 반환합니다. <a class="reference internal" href="subprocess.html#subprocess.Popen.returncode" title="subprocess.Popen.returncode"><code class="xref py py-attr docutils literal notranslate"><span class="pre">subprocess.Popen.returncode</span></code></a> 어트리뷰트와 유사합니다.</p>
+<dd><p>서브 프로세스 반환 값을 정수로, 혹은 반환되지 않았으면 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>을 반환합니다. <a class="reference internal" href="subprocess.html#subprocess.Popen.returncode" title="subprocess.Popen.returncode"><code class="xref py py-attr docutils literal notranslate"><span class="pre">subprocess.Popen.returncode</span></code></a> 어트리뷰트와 유사합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.kill">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">kill</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.kill" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5eea27376f6c77dd4e7d334cd247a3c6708d22ec" data-score="100" data-since="260603">서브 프로세스를 죽입니다.</p>
-<p data-msgid="d8392d61ffb7ef566eb63106499cd6d0ba6a63f3" data-score="75" data-since="260603">POSIX 시스템에서, 이 함수는 SIGKILL을 서브 프로세스로 보냅니다. 윈도우에서, 이 메서드는 <a class="reference internal" href="#asyncio.SubprocessTransport.terminate" title="asyncio.SubprocessTransport.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">terminate()</span></code></a>의 별칭입니다.</p>
-<p data-msgid="0a4adee13e5033c7eb7aa73762fd76dd95ceca81" data-score="100" data-since="260603"><a class="reference internal" href="subprocess.html#subprocess.Popen.kill" title="subprocess.Popen.kill"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subprocess.Popen.kill()</span></code></a>도 참조하십시오.</p>
+<dd><p>서브 프로세스를 죽입니다.</p>
+<p>POSIX 시스템에서, 이 함수는 SIGKILL을 서브 프로세스로 보냅니다. 윈도우에서, 이 메서드는 <a class="reference internal" href="#asyncio.SubprocessTransport.terminate" title="asyncio.SubprocessTransport.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">terminate()</span></code></a>의 별칭입니다.</p>
+<p><a class="reference internal" href="subprocess.html#subprocess.Popen.kill" title="subprocess.Popen.kill"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subprocess.Popen.kill()</span></code></a>도 참조하십시오.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.send_signal">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">send_signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.send_signal" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c9539a0fe3b4c599b526fd6bc5830568c3edc8c0" data-score="99" data-since="260603"><a class="reference internal" href="subprocess.html#subprocess.Popen.send_signal" title="subprocess.Popen.send_signal"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subprocess.Popen.send_signal()</span></code></a>와 마찬가지로 <em>signal</em> 번호를 서브 프로세스로 보냅니다.</p>
+<dd><p><a class="reference internal" href="subprocess.html#subprocess.Popen.send_signal" title="subprocess.Popen.send_signal"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subprocess.Popen.send_signal()</span></code></a>와 마찬가지로 <em>signal</em> 번호를 서브 프로세스로 보냅니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.terminate">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.terminate" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9c940541144e008d5ebd24ea4c86a241e859116f" data-score="100" data-since="260603">서브 프로세스를 중지합니다.</p>
-<p data-msgid="105c52999e51fcf91a3edd7608625ef32ecb0a45" data-score="87" data-since="260603">POSIX 시스템에서, 이 메서드는 <a class="reference internal" href="signal.html#signal.SIGTERM" title="signal.SIGTERM"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGTERM</span></code></a>을 서브 프로세스로 보냅니다. 윈도에서, 서브 프로세스를 중지하기 위해 윈도우 API 함수 <code class="xref c c-func docutils literal notranslate"><span class="pre">TerminateProcess()</span></code>가 호출됩니다.</p>
-<p data-msgid="d2425bf712a2739928f06147763767800740528e" data-score="100" data-since="260603"><a class="reference internal" href="subprocess.html#subprocess.Popen.terminate" title="subprocess.Popen.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subprocess.Popen.terminate()</span></code></a>도 참조하십시오.</p>
+<dd><p>서브 프로세스를 중지합니다.</p>
+<p>POSIX 시스템에서, 이 메서드는 <a class="reference internal" href="signal.html#signal.SIGTERM" title="signal.SIGTERM"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGTERM</span></code></a>을 서브 프로세스로 보냅니다. 윈도에서, 서브 프로세스를 중지하기 위해 윈도우 API 함수 <code class="xref c c-func docutils literal notranslate"><span class="pre">TerminateProcess()</span></code>가 호출됩니다.</p>
+<p><a class="reference internal" href="subprocess.html#subprocess.Popen.terminate" title="subprocess.Popen.terminate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subprocess.Popen.terminate()</span></code></a>도 참조하십시오.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessTransport.close">
 <span class="sig-prename descclassname"><span class="pre">SubprocessTransport.</span></span><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessTransport.close" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="334de4e8813ba8a21fe01aa7890649bd7e054e17" data-score="100" data-since="260603"><a class="reference internal" href="#asyncio.SubprocessTransport.kill" title="asyncio.SubprocessTransport.kill"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kill()</span></code></a> 메서드를 호출하여 서브 프로세스를 죽입니다.</p>
-<p data-msgid="f4528fbea1b8b87fadae33cfcfbf0440b9128958" data-score="100" data-since="260603">서브 프로세스가 아직 반환하지 않았으면, <em>stdin</em>, <em>stdout</em> 및 <em>stderr</em> 파이프의 트랜스포트를 닫습니다.</p>
+<dd><p><a class="reference internal" href="#asyncio.SubprocessTransport.kill" title="asyncio.SubprocessTransport.kill"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kill()</span></code></a> 메서드를 호출하여 서브 프로세스를 죽입니다.</p>
+<p>서브 프로세스가 아직 반환하지 않았으면, <em>stdin</em>, <em>stdout</em> 및 <em>stderr</em> 파이프의 트랜스포트를 닫습니다.</p>
 </dd></dl>
 
 </section>
 </section>
 <section id="protocols">
-<span id="asyncio-protocol"></span><h2 data-msgid="2a6e3082f7bd2a56b001fbb1624e361e5599002d" data-score="100" data-since="260603">프로토콜<a class="headerlink" href="#protocols" title="Link to this heading">¶</a></h2>
-<p data-msgid="3168d4035629c68c202c723b1d740eaa2f3873a4" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/asyncio/protocols.py`</span></a></p>
+<span id="asyncio-protocol"></span><h2>프로토콜<a class="headerlink" href="#protocols" title="Link to this heading">¶</a></h2>
+<p><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/asyncio/protocols.py">Lib/asyncio/protocols.py</a></p>
 <hr class="docutils" />
-<p data-msgid="7ac57dc61a91386b8917e2e609f1a7f3d3585bda" data-score="100" data-since="260603">asyncio는 네트워크 프로토콜을 구현하는 데 사용해야 하는 추상 베이스 클래스 집합을 제공합니다. 이러한 클래스는 <a class="reference internal" href="#asyncio-transport"><span class="std std-ref">트랜스포트</span></a>와 함께 사용해야 합니다.</p>
-<p data-msgid="6832b4849b7b639f2215751a5cf27017e8540e90" data-score="67" data-since="260603">추상 베이스 프로토콜 클래스의 서브 클래스는 일부 또는 모든 메서드를 구현할 수 있습니다. 이 모든 메서드는 콜백입니다: 이것들은 특정 이벤트에서 트랜스포트에 의해 호출됩니다, 예를 들어 어떤 데이터가 수신될 때. 베이스 프로토콜 메서드는 해당 트랜스포트에 의해 호출되어야 합니다.</p>
+<p>asyncio는 네트워크 프로토콜을 구현하는 데 사용해야 하는 추상 베이스 클래스 집합을 제공합니다. 이러한 클래스는 <a class="reference internal" href="#asyncio-transport"><span class="std std-ref">트랜스포트</span></a>와 함께 사용해야 합니다.</p>
+<p>추상 베이스 프로토콜 클래스의 서브 클래스는 일부 또는 모든 메서드를 구현할 수 있습니다. 이 모든 메서드는 콜백입니다: 이것들은 특정 이벤트에서 트랜스포트에 의해 호출됩니다, 예를 들어 어떤 데이터가 수신될 때. 베이스 프로토콜 메서드는 해당 트랜스포트에 의해 호출되어야 합니다.</p>
 <section id="base-protocols">
-<h3 data-msgid="e7847ef64ed125924cd719af4769f2b49be1f954" data-score="100" data-since="260603">베이스 프로토콜<a class="headerlink" href="#base-protocols" title="Link to this heading">¶</a></h3>
+<h3>베이스 프로토콜<a class="headerlink" href="#base-protocols" title="Link to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.BaseProtocol">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">BaseProtocol</span></span><a class="headerlink" href="#asyncio.BaseProtocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="0691eb22ac03b573f0c69a50a9e4abca05842012" data-score="100" data-since="260603">모든 프로토콜이 공유하는 메서드를 가진 베이스 프로토콜.</p>
+<dd><p>모든 프로토콜이 공유하는 메서드를 가진 베이스 프로토콜.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.Protocol">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">Protocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseProtocol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Protocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="037876c88a29da839e41f411005cef5212fc3b7d" data-score="100" data-since="260603">스트리밍 프로토콜(TCP, 유닉스 소켓 등)을 구현하기 위한 베이스 클래스.</p>
+<dd><p>스트리밍 프로토콜(TCP, 유닉스 소켓 등)을 구현하기 위한 베이스 클래스.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.BufferedProtocol">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">BufferedProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseProtocol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BufferedProtocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="152742e7902056579ab38fb8c6ddfd9f303e6449" data-score="100" data-since="260603">수신 버퍼의 수동 제어로 스트리밍 프로토콜을 구현하기 위한 베이스 클래스.</p>
+<dd><p>수신 버퍼의 수동 제어로 스트리밍 프로토콜을 구현하기 위한 베이스 클래스.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.DatagramProtocol">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">DatagramProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseProtocol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.DatagramProtocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="37d870854fd3e6d86ede1e5e4056a04f59674dcc" data-score="100" data-since="260603">데이터 그램 (UDP) 프로토콜을 구현하기 위한 베이스 클래스.</p>
+<dd><p>데이터 그램 (UDP) 프로토콜을 구현하기 위한 베이스 클래스.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.SubprocessProtocol">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">SubprocessProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BaseProtocol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessProtocol" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="e6edb4bd859a927d0a782f77b29c7e76d77dfc75" data-score="96" data-since="260603">자식 프로세스와 통신하는 (단방향 파이프) 프로토콜을 구현하기 위한 베이스 클래스.</p>
+<dd><p>자식 프로세스와 통신하는 (단방향 파이프) 프로토콜을 구현하기 위한 베이스 클래스.</p>
 </dd></dl>
 
 </section>
 <section id="base-protocol">
-<h3 data-msgid="cbfa89884cf762b2c8452214a9cb7c8b56848102" data-score="100" data-since="260603">베이스 프로토콜<a class="headerlink" href="#base-protocol" title="Link to this heading">¶</a></h3>
-<p data-msgid="031f5a606c175280f66f531447d16bf78411e5be" data-score="100" data-since="260603">모든 asyncio 프로토콜은 베이스 프로토콜 콜백을 구현할 수 있습니다.</p>
+<h3>베이스 프로토콜<a class="headerlink" href="#base-protocol" title="Link to this heading">¶</a></h3>
+<p>모든 asyncio 프로토콜은 베이스 프로토콜 콜백을 구현할 수 있습니다.</p>
 <p class="rubric">연결 콜백</p>
-<p data-msgid="dce1122575ea563e4a783ccd656440f260fc2e02" data-score="95" data-since="260603">연결 콜백은 모든 프로토콜에서 성공적으로 연결될 때마다 정확히 한 번 호출됩니다. 다른 모든 프로토콜 콜백은 이 두 메서드 사이에서만 호출될 수 있습니다.</p>
+<p>연결 콜백은 모든 프로토콜에서 성공적으로 연결될 때마다 정확히 한 번 호출됩니다. 다른 모든 프로토콜 콜백은 이 두 메서드 사이에서만 호출될 수 있습니다.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseProtocol.connection_made">
 <span class="sig-prename descclassname"><span class="pre">BaseProtocol.</span></span><span class="sig-name descname"><span class="pre">connection_made</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseProtocol.connection_made" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="00da34713091416f249b29a3e0e2a884fef5439b" data-score="100" data-since="260603">연결이 이루어질 때 호출됩니다.</p>
-<p data-msgid="fcea5cac01ed4277daaa1833da2863a198809d18" data-score="100" data-since="260603"><em>transport</em> 인자는 연결을 나타내는 트랜스포트입니다. 트랜스포트에 대한 참조를 저장하는 것은 프로토콜의 책임입니다.</p>
+<dd><p>연결이 이루어질 때 호출됩니다.</p>
+<p><em>transport</em> 인자는 연결을 나타내는 트랜스포트입니다. 트랜스포트에 대한 참조를 저장하는 것은 프로토콜의 책임입니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseProtocol.connection_lost">
 <span class="sig-prename descclassname"><span class="pre">BaseProtocol.</span></span><span class="sig-name descname"><span class="pre">connection_lost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseProtocol.connection_lost" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="de2b9ca8645846a4d95bf9e4c667f941ca95e222" data-score="90" data-since="260603">연결이 끊어지거나 닫힐 때 호출됩니다.</p>
-<p data-msgid="b981078186c367d1e5f4aa60a34784a7695eb1e0" data-score="92" data-since="260603">인자는 예외 객체나 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>입니다. 후자는 정상적인 EOF가 수신되었거나, 연결의 이쪽에서 연결이 중단(abort)되거나 닫혔다는 것을 의미합니다.</p>
+<dd><p>연결이 끊어지거나 닫힐 때 호출됩니다.</p>
+<p>인자는 예외 객체나 <a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a>입니다. 후자는 정상적인 EOF가 수신되었거나, 연결의 이쪽에서 연결이 중단(abort)되거나 닫혔다는 것을 의미합니다.</p>
 </dd></dl>
 
 <p class="rubric">흐름 제어 콜백</p>
-<p data-msgid="71ba0aeeee03560a33571599cba3282543b48123" data-score="93" data-since="260603">흐름 제어 콜백은 프로토콜에 의해 수행되는 쓰기를 일시 중지하거나 다시 시작하도록 트랜스포트에 의해 호출될 수 있습니다.</p>
-<p data-msgid="6d3814270322f9984ee8c24214b93985cc2b9c13" data-score="100" data-since="260603">자세한 내용은 <a class="reference internal" href="#asyncio.WriteTransport.set_write_buffer_limits" title="asyncio.WriteTransport.set_write_buffer_limits"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_write_buffer_limits()</span></code></a> 메서드 설명서를 참조하십시오.</p>
+<p>흐름 제어 콜백은 프로토콜에 의해 수행되는 쓰기를 일시 중지하거나 다시 시작하도록 트랜스포트에 의해 호출될 수 있습니다.</p>
+<p>자세한 내용은 <a class="reference internal" href="#asyncio.WriteTransport.set_write_buffer_limits" title="asyncio.WriteTransport.set_write_buffer_limits"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_write_buffer_limits()</span></code></a> 메서드 설명서를 참조하십시오.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseProtocol.pause_writing">
 <span class="sig-prename descclassname"><span class="pre">BaseProtocol.</span></span><span class="sig-name descname"><span class="pre">pause_writing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseProtocol.pause_writing" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="551b8e7b7b17f7b7983280e028782538625355c8" data-score="89" data-since="260603">트랜스포트 버퍼가 높은 수위를 넘을 때 호출됩니다.</p>
+<dd><p>트랜스포트 버퍼가 높은 수위를 넘을 때 호출됩니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BaseProtocol.resume_writing">
 <span class="sig-prename descclassname"><span class="pre">BaseProtocol.</span></span><span class="sig-name descname"><span class="pre">resume_writing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BaseProtocol.resume_writing" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9b2eb599aaa4fb2dde34b8b0c9157c1dfd024bd6" data-score="100" data-since="260603">트랜스포트 버퍼가 낮은 수위 아래로 내려갈 때 호출됩니다.</p>
+<dd><p>트랜스포트 버퍼가 낮은 수위 아래로 내려갈 때 호출됩니다.</p>
 </dd></dl>
 
-<p data-msgid="ef454795fa2e3d92826e3ad9222ab91f55b0b9b2" data-score="91" data-since="260603">버퍼 크기가 높은 수위와 같으면, <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pause_writing()</span></code></a>이 호출되지 않습니다: 버퍼 크기는 엄격하게 초과해야 합니다.</p>
-<p data-msgid="d812ea91d89fc92f7cf1d409e0c193e278f83ade" data-score="88" data-since="260603">반대로, <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_writing()</span></code></a>은 버퍼 크기가 낮은 수위와 같거나 낮을 때 호출됩니다. 이러한 종료 조건은 수위가 0일 때 예상대로 진행되게 하려면 중요합니다.</p>
+<p>버퍼 크기가 높은 수위와 같으면, <a class="reference internal" href="#asyncio.BaseProtocol.pause_writing" title="asyncio.BaseProtocol.pause_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pause_writing()</span></code></a>이 호출되지 않습니다: 버퍼 크기는 엄격하게 초과해야 합니다.</p>
+<p>반대로, <a class="reference internal" href="#asyncio.BaseProtocol.resume_writing" title="asyncio.BaseProtocol.resume_writing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resume_writing()</span></code></a>은 버퍼 크기가 낮은 수위와 같거나 낮을 때 호출됩니다. 이러한 종료 조건은 수위가 0일 때 예상대로 진행되게 하려면 중요합니다.</p>
 </section>
 <section id="streaming-protocols">
-<h3 data-msgid="bc576801a31260eba0dc33b87d4bdb9c2c915354" data-score="100" data-since="260603">스트리밍 프로토콜<a class="headerlink" href="#streaming-protocols" title="Link to this heading">¶</a></h3>
-<p data-msgid="cc3eda6e17534d4a832aaa680e7f9eb2058a4207" data-score="97" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_server" title="asyncio.loop.create_unix_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_server()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_connection" title="asyncio.loop.create_unix_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_accepted_socket" title="asyncio.loop.connect_accepted_socket"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_accepted_socket()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_read_pipe" title="asyncio.loop.connect_read_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_read_pipe()</span></code></a> 및 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_write_pipe" title="asyncio.loop.connect_write_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_write_pipe()</span></code></a>와 같은 이벤트 메서드는 스트리밍 프로토콜을 반환하는 팩토리를 받아들입니다.</p>
+<h3>스트리밍 프로토콜<a class="headerlink" href="#streaming-protocols" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_server" title="asyncio.loop.create_unix_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_server()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_connection" title="asyncio.loop.create_unix_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_connection()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_accepted_socket" title="asyncio.loop.connect_accepted_socket"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_accepted_socket()</span></code></a>, <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_read_pipe" title="asyncio.loop.connect_read_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_read_pipe()</span></code></a> 및 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.connect_write_pipe" title="asyncio.loop.connect_write_pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.connect_write_pipe()</span></code></a>와 같은 이벤트 메서드는 스트리밍 프로토콜을 반환하는 팩토리를 받아들입니다.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.Protocol.data_received">
 <span class="sig-prename descclassname"><span class="pre">Protocol.</span></span><span class="sig-name descname"><span class="pre">data_received</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Protocol.data_received" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="f1ad0dd3c51fc41fb2a9ec063870b5c90ed683f4" data-score="92" data-since="260603">어떤 데이터가 수신될 때 호출됩니다. <em>data</em>는 수신 데이터가 들어있는 비어 있지 않은 바이트열 객체입니다.</p>
-<p data-msgid="6fd358fd5303dbef3046d12f67bcf0afa86e5f9a" data-score="75" data-since="260603">데이터가 버퍼 되고, 조각으로 나뉘고, 재조립되는지는 트랜스포트에 달려있습니다. 일반적으로, 특정 의미에 의존해서는 안 되며, 구문 분석을 일반적이고 유연하게 만들어야 합니다. 그러나, 데이터는 항상 올바른 순서로 수신됩니다.</p>
-<p data-msgid="3cf40ed487d91e7457380cd252e90de79708fd63" data-score="100" data-since="260603">이 메서드는 연결이 열려있는 동안 임의의 횟수만큼 호출될 수 있습니다.</p>
-<p data-msgid="3390bd62f7dce3f00ef530855cfd8549b7bbc561" data-score="78" data-since="260603">그러나, <a class="reference internal" href="#asyncio.Protocol.eof_received" title="asyncio.Protocol.eof_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.eof_received()</span></code></a>는 최대한 한 번만 호출됩니다. 일단 <code class="docutils literal notranslate"><span class="pre">eof_received()</span></code>가 호출되면, <code class="docutils literal notranslate"><span class="pre">data_received()</span></code>는 더는 호출되지 않습니다.</p>
+<dd><p>어떤 데이터가 수신될 때 호출됩니다. <em>data</em>는 수신 데이터가 들어있는 비어 있지 않은 바이트열 객체입니다.</p>
+<p>데이터가 버퍼 되고, 조각으로 나뉘고, 재조립되는지는 트랜스포트에 달려있습니다. 일반적으로, 특정 의미에 의존해서는 안 되며, 구문 분석을 일반적이고 유연하게 만들어야 합니다. 그러나, 데이터는 항상 올바른 순서로 수신됩니다.</p>
+<p>이 메서드는 연결이 열려있는 동안 임의의 횟수만큼 호출될 수 있습니다.</p>
+<p>그러나, <a class="reference internal" href="#asyncio.Protocol.eof_received" title="asyncio.Protocol.eof_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.eof_received()</span></code></a>는 최대한 한 번만 호출됩니다. 일단 <code class="docutils literal notranslate"><span class="pre">eof_received()</span></code>가 호출되면, <code class="docutils literal notranslate"><span class="pre">data_received()</span></code>는 더는 호출되지 않습니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.Protocol.eof_received">
 <span class="sig-prename descclassname"><span class="pre">Protocol.</span></span><span class="sig-name descname"><span class="pre">eof_received</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.Protocol.eof_received" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2c3da9b5b936254fd437b47b9f29873102c0ae78" data-score="77" data-since="260603">다른 쪽 끝이 더는 데이터를 보내지 않을 것이라는 신호를 보낼 때 호출됩니다 (예를 들어, 다른 쪽 끝도 asyncio를 사용하면, <a class="reference internal" href="#asyncio.WriteTransport.write_eof" title="asyncio.WriteTransport.write_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">transport.write_eof()</span></code></a>를 호출하여).</p>
-<p data-msgid="172c3f8e9f083c227fcbaf79b5d91c145f8327f6" data-score="89" data-since="260603">이 메서드는 거짓 값(<code class="docutils literal notranslate"><span class="pre">None</span></code> 포함)을 반환할 수 있으며, 이때 트랜스포트는 스스로 닫힙니다. 반대로, 이 메서드가 참값을 반환하면, 사용된 프로토콜이 트랜스포트를 닫을지를 결정합니다. 기본 구현이 <code class="docutils literal notranslate"><span class="pre">None</span></code>을 반환하기 때문에, 묵시적으로 연결을 닫습니다.</p>
-<p data-msgid="d91db954dc2f42e0f322c219b6007e5936dafde9" data-score="99" data-since="260603">SSL을 포함한 일부 트랜스포트는, 반만 닫힌 연결을 지원하지 않습니다. 이때, 이 메서드에서 참을 반환하면 연결이 닫힙니다.</p>
+<dd><p>다른 쪽 끝이 더는 데이터를 보내지 않을 것이라는 신호를 보낼 때 호출됩니다 (예를 들어, 다른 쪽 끝도 asyncio를 사용하면, <a class="reference internal" href="#asyncio.WriteTransport.write_eof" title="asyncio.WriteTransport.write_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">transport.write_eof()</span></code></a>를 호출하여).</p>
+<p>이 메서드는 거짓 값(<code class="docutils literal notranslate"><span class="pre">None</span></code> 포함)을 반환할 수 있으며, 이때 트랜스포트는 스스로 닫힙니다. 반대로, 이 메서드가 참값을 반환하면, 사용된 프로토콜이 트랜스포트를 닫을지를 결정합니다. 기본 구현이 <code class="docutils literal notranslate"><span class="pre">None</span></code>을 반환하기 때문에, 묵시적으로 연결을 닫습니다.</p>
+<p>SSL을 포함한 일부 트랜스포트는, 반만 닫힌 연결을 지원하지 않습니다. 이때, 이 메서드에서 참을 반환하면 연결이 닫힙니다.</p>
 </dd></dl>
 
-<p data-msgid="430c60086395ee890c04f06b9cff36007ad695cc" data-score="100" data-since="260603">상태 기계:</p>
-<div class="highlight-none notranslate" data-msgid="75c2fcbc5f1cfb1984dade00cbc6ccc4697a7a47" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>start -&gt; connection_made
+<p>상태 기계:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>start -&gt; connection_made
     [-&gt; data_received]*
     [-&gt; eof_received]?
 -&gt; connection_lost -&gt; end
@@ -553,37 +555,37 @@
 </div>
 </section>
 <section id="buffered-streaming-protocols">
-<h3 data-msgid="574102792f7c7c7e47baae36d954590700cb065f" data-score="93" data-since="260603">버퍼 된 스트리밍 프로토콜<a class="headerlink" href="#buffered-streaming-protocols" title="Link to this heading">¶</a></h3>
+<h3>버퍼 된 스트리밍 프로토콜<a class="headerlink" href="#buffered-streaming-protocols" title="Link to this heading">¶</a></h3>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
-<p data-msgid="13f922b56e1353f0da8b372cc3b392493f069387" data-score="96" data-since="260603">버퍼 된 프로토콜은 <a class="reference internal" href="#streaming-protocols">스트리밍 프로토콜</a>을 지원하는 모든 이벤트 루프 메서드와 함께 사용할 수 있습니다.</p>
-<p data-msgid="38e49bd9616629257b513cf77461839f5ede41f6" data-score="82" data-since="260603"><code class="docutils literal notranslate"><span class="pre">BufferedProtocol</span></code> 구현은 수신 버퍼의 명시적 수동 할당과 제어를 허용합니다. 이벤트 루프는 프로토콜에서 제공하는 버퍼를 사용하여 불필요한 데이터 복사를 피할 수 있습니다. 이로 인해 대량의 데이터를 수신하는 프로토콜의 성능이 크게 향상될 수 있습니다. 정교한 프로토콜 구현은 버퍼 할당 수를 크게 줄일 수 있습니다.</p>
-<p data-msgid="b9ede9d6d12d5da31b82ebde33b1b20f21676214" data-score="98" data-since="260603">다음 콜백은 <a class="reference internal" href="#asyncio.BufferedProtocol" title="asyncio.BufferedProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">BufferedProtocol</span></code></a> 인스턴스에 호출됩니다.:</p>
+<p>버퍼 된 프로토콜은 <a class="reference internal" href="#streaming-protocols">스트리밍 프로토콜</a>을 지원하는 모든 이벤트 루프 메서드와 함께 사용할 수 있습니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BufferedProtocol</span></code> 구현은 수신 버퍼의 명시적 수동 할당과 제어를 허용합니다. 이벤트 루프는 프로토콜에서 제공하는 버퍼를 사용하여 불필요한 데이터 복사를 피할 수 있습니다. 이로 인해 대량의 데이터를 수신하는 프로토콜의 성능이 크게 향상될 수 있습니다. 정교한 프로토콜 구현은 버퍼 할당 수를 크게 줄일 수 있습니다.</p>
+<p>다음 콜백은 <a class="reference internal" href="#asyncio.BufferedProtocol" title="asyncio.BufferedProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">BufferedProtocol</span></code></a> 인스턴스에 호출됩니다.:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BufferedProtocol.get_buffer">
 <span class="sig-prename descclassname"><span class="pre">BufferedProtocol.</span></span><span class="sig-name descname"><span class="pre">get_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizehint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BufferedProtocol.get_buffer" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="99180e6e064ef2e1830ee080f5f17fb849c73d41" data-score="96" data-since="260603">새로운 수신 버퍼를 할당하기 위해서 호출됩니다.</p>
-<p data-msgid="9e3b29c7ee6a63ada8aab1507fe5200d0779f1ea" data-score="92" data-since="260603"><em>sizehint</em>는 반환되는 버퍼에 대해 권장되는 최소 크기입니다. <em>sizehint</em>가 제안하는 것보다 더 작거나 큰 버퍼를 반환하는 것이 허용됩니다. -1로 설정하면 버퍼 크기는 임의적일 수 있습니다. 크기가 0인 버퍼를 반환하는 것은 에러입니다.</p>
-<p data-msgid="ef38f9f42ced29988f981e5078e52f971c76286d" data-score="96" data-since="260603"><code class="docutils literal notranslate"><span class="pre">get_buffer()</span></code>는 <a class="reference internal" href="../c-api/buffer.html#bufferobjects"><span class="std std-ref">버퍼 프로토콜</span></a>을 구현하는 객체를 반환해야 합니다.</p>
+<dd><p>새로운 수신 버퍼를 할당하기 위해서 호출됩니다.</p>
+<p><em>sizehint</em>는 반환되는 버퍼에 대해 권장되는 최소 크기입니다. <em>sizehint</em>가 제안하는 것보다 더 작거나 큰 버퍼를 반환하는 것이 허용됩니다. -1로 설정하면 버퍼 크기는 임의적일 수 있습니다. 크기가 0인 버퍼를 반환하는 것은 에러입니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">get_buffer()</span></code>는 <a class="reference internal" href="../c-api/buffer.html#bufferobjects"><span class="std std-ref">버퍼 프로토콜</span></a>을 구현하는 객체를 반환해야 합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BufferedProtocol.buffer_updated">
 <span class="sig-prename descclassname"><span class="pre">BufferedProtocol.</span></span><span class="sig-name descname"><span class="pre">buffer_updated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nbytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BufferedProtocol.buffer_updated" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="33318d6af2ebe985c2637e467125192cbc339cd8" data-score="100" data-since="260603">수신된 데이터로 버퍼가 갱신될 때 호출됩니다.</p>
-<p data-msgid="d0acb5dbdcc652d0d6283730241ca49aabe6d945" data-score="97" data-since="260603"><em>nbytes</em>는 버퍼에 기록된 총 바이트 수입니다.</p>
+<dd><p>수신된 데이터로 버퍼가 갱신될 때 호출됩니다.</p>
+<p><em>nbytes</em>는 버퍼에 기록된 총 바이트 수입니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.BufferedProtocol.eof_received">
 <span class="sig-prename descclassname"><span class="pre">BufferedProtocol.</span></span><span class="sig-name descname"><span class="pre">eof_received</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.BufferedProtocol.eof_received" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="287206a4a6530c1e57aaad1174df157e793c44cd" data-score="100" data-since="260603"><a class="reference internal" href="#asyncio.Protocol.eof_received" title="asyncio.Protocol.eof_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.eof_received()</span></code></a> 메서드의 설명서를 참조하십시오.</p>
+<dd><p><a class="reference internal" href="#asyncio.Protocol.eof_received" title="asyncio.Protocol.eof_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.eof_received()</span></code></a> 메서드의 설명서를 참조하십시오.</p>
 </dd></dl>
 
-<p data-msgid="24568573123703b6bfbc60b3569a25e7c17624d4" data-score="87" data-since="260603"><a class="reference internal" href="#asyncio.BufferedProtocol.get_buffer" title="asyncio.BufferedProtocol.get_buffer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_buffer()</span></code></a>는 연결 중에 임의의 횟수만큼 호출될 수 있습니다. 그러나, <a class="reference internal" href="#asyncio.Protocol.eof_received" title="asyncio.Protocol.eof_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.eof_received()</span></code></a>는 최대한 한 번만 호출되며, 호출되면 <a class="reference internal" href="#asyncio.BufferedProtocol.get_buffer" title="asyncio.BufferedProtocol.get_buffer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_buffer()</span></code></a>와 <a class="reference internal" href="#asyncio.BufferedProtocol.buffer_updated" title="asyncio.BufferedProtocol.buffer_updated"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buffer_updated()</span></code></a>는 그 이후로 호출되지 않습니다.</p>
-<p data-msgid="430c60086395ee890c04f06b9cff36007ad695cc" data-score="100" data-since="260603">상태 기계:</p>
-<div class="highlight-none notranslate" data-msgid="ed5b10ccc91b0b775c7eac24771d6be508da147a" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>start -&gt; connection_made
+<p><a class="reference internal" href="#asyncio.BufferedProtocol.get_buffer" title="asyncio.BufferedProtocol.get_buffer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_buffer()</span></code></a>는 연결 중에 임의의 횟수만큼 호출될 수 있습니다. 그러나, <a class="reference internal" href="#asyncio.Protocol.eof_received" title="asyncio.Protocol.eof_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">protocol.eof_received()</span></code></a>는 최대한 한 번만 호출되며, 호출되면 <a class="reference internal" href="#asyncio.BufferedProtocol.get_buffer" title="asyncio.BufferedProtocol.get_buffer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_buffer()</span></code></a>와 <a class="reference internal" href="#asyncio.BufferedProtocol.buffer_updated" title="asyncio.BufferedProtocol.buffer_updated"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buffer_updated()</span></code></a>는 그 이후로 호출되지 않습니다.</p>
+<p>상태 기계:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>start -&gt; connection_made
     [-&gt; get_buffer
         [-&gt; buffer_updated]?
     ]*
@@ -593,60 +595,60 @@
 </div>
 </section>
 <section id="datagram-protocols">
-<h3 data-msgid="31c42ac5cbe7594cf4a4b67dfcb589cbbdab654b" data-score="91" data-since="260603">데이터 그램 프로토콜<a class="headerlink" href="#datagram-protocols" title="Link to this heading">¶</a></h3>
-<p data-msgid="ce6d38818d852cce89654a0f527a1c1075c36c22" data-score="94" data-since="260603">데이터 그램 프로토콜 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 메서드에 전달된 프로토콜 팩토리에 의해 만들어져야 합니다.</p>
+<h3>데이터 그램 프로토콜<a class="headerlink" href="#datagram-protocols" title="Link to this heading">¶</a></h3>
+<p>데이터 그램 프로토콜 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 메서드에 전달된 프로토콜 팩토리에 의해 만들어져야 합니다.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.DatagramProtocol.datagram_received">
 <span class="sig-prename descclassname"><span class="pre">DatagramProtocol.</span></span><span class="sig-name descname"><span class="pre">datagram_received</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.DatagramProtocol.datagram_received" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6d4918c66fd2206d9ead86959824f1618f91d41b" data-score="93" data-since="260603">데이터 그램이 수신될 때 호출됩니다. <em>data</em>는 수신 데이터를 포함하는 바이트열 객체입니다. <em>addr</em>는 데이터를 보내는 피어의 주소입니다; 정확한 형식은 트랜스포트에 따라 다릅니다.</p>
+<dd><p>데이터 그램이 수신될 때 호출됩니다. <em>data</em>는 수신 데이터를 포함하는 바이트열 객체입니다. <em>addr</em>는 데이터를 보내는 피어의 주소입니다; 정확한 형식은 트랜스포트에 따라 다릅니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.DatagramProtocol.error_received">
 <span class="sig-prename descclassname"><span class="pre">DatagramProtocol.</span></span><span class="sig-name descname"><span class="pre">error_received</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.DatagramProtocol.error_received" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2c55b68af29b98fba3e843bee1aea416778c7633" data-score="81" data-since="260603">이전의 송신이나 수신 연산이 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a>를 일으킬 때 호출됩니다. <em>exc</em>는 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a> 인스턴스입니다.</p>
-<p data-msgid="0a02c40de1371e57d58beb2caa096cce464a3453" data-score="57" data-since="260603">이 메서드는 드문 조건에서 호출됩니다, 트랜스포트(예를 들어 UDP)가 데이터 그램을 수신자에게 전달할 수 없음을 감지했을 때입니다. 하지만 대부분 전달할 수 없는 데이터 그램은 조용히 삭제됩니다.</p>
+<dd><p>이전의 송신이나 수신 연산이 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a>를 일으킬 때 호출됩니다. <em>exc</em>는 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a> 인스턴스입니다.</p>
+<p>이 메서드는 드문 조건에서 호출됩니다, 트랜스포트(예를 들어 UDP)가 데이터 그램을 수신자에게 전달할 수 없음을 감지했을 때입니다. 하지만 대부분 전달할 수 없는 데이터 그램은 조용히 삭제됩니다.</p>
 </dd></dl>
 
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="cdac50d7ab041ede3970502d373d1b546c0fc224" data-score="82" data-since="260603">BSD 시스템(macOS, FreeBSD 등)에서는, 너무 많은 패킷을 쓰는 것으로 인한 전송 실패를 감지하는 신뢰성 있는 방법이 없으므로 데이터 그램 프로토콜에 대한 흐름 제어가 지원되지 않습니다.</p>
-<p data-msgid="a534edd0c237773f14fa03aacbffcf0bffe0868d" data-score="91" data-since="260603">소켓은 항상 ‘ready’로 나타나고 여분의 패킷은 삭제됩니다. <code class="docutils literal notranslate"><span class="pre">errno</span></code>가 <a class="reference internal" href="errno.html#errno.ENOBUFS" title="errno.ENOBUFS"><code class="xref py py-const docutils literal notranslate"><span class="pre">errno.ENOBUFS</span></code></a>로 설정된 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a>가 발생할 수도 그렇지 않을 수도 있습니다; 발생하면, <a class="reference internal" href="#asyncio.DatagramProtocol.error_received" title="asyncio.DatagramProtocol.error_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DatagramProtocol.error_received()</span></code></a>에게 보고되지만 그렇지 않으면 무시됩니다.</p>
+<p>BSD 시스템(macOS, FreeBSD 등)에서는, 너무 많은 패킷을 쓰는 것으로 인한 전송 실패를 감지하는 신뢰성 있는 방법이 없으므로 데이터 그램 프로토콜에 대한 흐름 제어가 지원되지 않습니다.</p>
+<p>소켓은 항상 ‘ready’로 나타나고 여분의 패킷은 삭제됩니다. <code class="docutils literal notranslate"><span class="pre">errno</span></code>가 <a class="reference internal" href="errno.html#errno.ENOBUFS" title="errno.ENOBUFS"><code class="xref py py-const docutils literal notranslate"><span class="pre">errno.ENOBUFS</span></code></a>로 설정된 <a class="reference internal" href="exceptions.html#OSError" title="OSError"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></a>가 발생할 수도 그렇지 않을 수도 있습니다; 발생하면, <a class="reference internal" href="#asyncio.DatagramProtocol.error_received" title="asyncio.DatagramProtocol.error_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DatagramProtocol.error_received()</span></code></a>에게 보고되지만 그렇지 않으면 무시됩니다.</p>
 </div>
 </section>
 <section id="subprocess-protocols">
-<span id="asyncio-subprocess-protocols"></span><h3 data-msgid="a2fd7a46bccc45b90a9301f87ca488c4e8c89a7a" data-score="100" data-since="260603">서브 프로세스 프로토콜<a class="headerlink" href="#subprocess-protocols" title="Link to this heading">¶</a></h3>
-<p data-msgid="435154eacdaa8d8dcbd0f6f0901b96dda07151bb" data-score="92" data-since="260603">서브 프로세스 프로토콜 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a> 와 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_shell" title="asyncio.loop.subprocess_shell"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_shell()</span></code></a> 메서드에 전달된 프로토콜 팩토리에 의해 만들어져야 합니다.</p>
+<span id="asyncio-subprocess-protocols"></span><h3>서브 프로세스 프로토콜<a class="headerlink" href="#subprocess-protocols" title="Link to this heading">¶</a></h3>
+<p>서브 프로세스 프로토콜 인스턴스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a> 와 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_shell" title="asyncio.loop.subprocess_shell"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_shell()</span></code></a> 메서드에 전달된 프로토콜 팩토리에 의해 만들어져야 합니다.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessProtocol.pipe_data_received">
 <span class="sig-prename descclassname"><span class="pre">SubprocessProtocol.</span></span><span class="sig-name descname"><span class="pre">pipe_data_received</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessProtocol.pipe_data_received" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1686e3fdec5180bf19f3cb72d575edd1dbb61a00" data-score="96" data-since="260603">자식 프로세스가 stdout 이나 stderr 파이프에 데이터를 쓸 때 호출됩니다.</p>
-<p data-msgid="eeb4ddeb97536f6caee27e6e014e0c9e0438e7f3" data-score="96" data-since="260603"><em>fd</em>는 파이프의 정수 파일 기술자입니다.</p>
-<p data-msgid="4d706ddf3a6f2e0299efaea4f96b662be91301fa" data-score="95" data-since="260603"><em>data</em>는 수신 된 데이터를 포함하는 비어 있지 않은 바이트열 객체입니다.</p>
+<dd><p>자식 프로세스가 stdout 이나 stderr 파이프에 데이터를 쓸 때 호출됩니다.</p>
+<p><em>fd</em>는 파이프의 정수 파일 기술자입니다.</p>
+<p><em>data</em>는 수신 된 데이터를 포함하는 비어 있지 않은 바이트열 객체입니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessProtocol.pipe_connection_lost">
 <span class="sig-prename descclassname"><span class="pre">SubprocessProtocol.</span></span><span class="sig-name descname"><span class="pre">pipe_connection_lost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessProtocol.pipe_connection_lost" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="00f56e20a5f519f2df2677ed26f8bbdfc4194b95" data-score="100" data-since="260603">자식 프로세스와 통신하는 파이프 중 하나가 닫히면 호출됩니다.</p>
-<p data-msgid="2b804f2585b59ffd94e2722dd582918f23eb1727" data-score="96" data-since="260603"><em>fd</em>는 닫힌 정수 파일 기술자입니다.</p>
+<dd><p>자식 프로세스와 통신하는 파이프 중 하나가 닫히면 호출됩니다.</p>
+<p><em>fd</em>는 닫힌 정수 파일 기술자입니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.SubprocessProtocol.process_exited">
 <span class="sig-prename descclassname"><span class="pre">SubprocessProtocol.</span></span><span class="sig-name descname"><span class="pre">process_exited</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.SubprocessProtocol.process_exited" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ab708144e4a924706380437c0bb8e5327c6947eb" data-score="95" data-since="260603">자식 프로세스가 종료할 때 호출됩니다.</p>
-<p data-msgid="01b7e5d457cbe4b8a8dde5f7ff1df02c0b287f84" data-score="90" data-since="260609">이 메서드는 <a class="reference internal" href="#asyncio.SubprocessProtocol.pipe_data_received" title="asyncio.SubprocessProtocol.pipe_data_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pipe_data_received()</span></code></a>\ 와 <a class="reference internal" href="#asyncio.SubprocessProtocol.pipe_connection_lost" title="asyncio.SubprocessProtocol.pipe_connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pipe_connection_lost()</span></code></a>\ 메서드 전에 호출될 수 있습니다.</p>
+<dd><p>자식 프로세스가 종료할 때 호출됩니다.</p>
+<p>이 메서드는 <a class="reference internal" href="#asyncio.SubprocessProtocol.pipe_data_received" title="asyncio.SubprocessProtocol.pipe_data_received"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pipe_data_received()</span></code></a>\ 와 <a class="reference internal" href="#asyncio.SubprocessProtocol.pipe_connection_lost" title="asyncio.SubprocessProtocol.pipe_connection_lost"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pipe_connection_lost()</span></code></a>\ 메서드 전에 호출될 수 있습니다.</p>
 </dd></dl>
 
 </section>
 </section>
 <section id="examples">
-<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="100" data-since="260603">예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<h2>예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
 <section id="tcp-echo-server">
-<span id="asyncio-example-tcp-echo-server-protocol"></span><h3 data-msgid="5b0877d2c21a8a83292debfb59a6c929390d3c9c" data-score="100" data-since="260603">TCP 메아리 서버<a class="headerlink" href="#tcp-echo-server" title="Link to this heading">¶</a></h3>
-<p data-msgid="aff0f4d0d61d9b1a83f7398797ecc4b1c10a3200" data-score="91" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a> 메서드를 사용하여 TCP 메아리 서버를 만들고, 받은 데이터를 다시 보내고, 연결을 닫습니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="4a17fe8c7b2b049d7a6cea2e363a6b5c8bd3980b" data-score="97" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-example-tcp-echo-server-protocol"></span><h3>TCP 메아리 서버<a class="headerlink" href="#tcp-echo-server" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a> 메서드를 사용하여 TCP 메아리 서버를 만들고, 받은 데이터를 다시 보내고, 연결을 닫습니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">EchoServerProtocol</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Protocol</span><span class="p">):</span>
@@ -684,13 +686,13 @@
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="abc8699dfff0c50cd8064b2e814201f2264213e1" data-score="100" data-since="260603"><a class="reference internal" href="asyncio-stream.html#asyncio-tcp-echo-server-streams"><span class="std std-ref">스트림을 사용하는 TCP 메아리 서버</span></a> 예제는 고수준 <a class="reference internal" href="asyncio-stream.html#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.start_server()</span></code></a> 함수를 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-stream.html#asyncio-tcp-echo-server-streams"><span class="std std-ref">스트림을 사용하는 TCP 메아리 서버</span></a> 예제는 고수준 <a class="reference internal" href="asyncio-stream.html#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.start_server()</span></code></a> 함수를 사용합니다.</p>
 </div>
 </section>
 <section id="tcp-echo-client">
-<span id="asyncio-example-tcp-echo-client-protocol"></span><h3 data-msgid="d1ffc191533bb2cbb8bf40d3119d9fe2916278fe" data-score="100" data-since="260603">TCP 메아리 클라이언트<a class="headerlink" href="#tcp-echo-client" title="Link to this heading">¶</a></h3>
-<p data-msgid="ad6e3ff7eaa467f33bd71b012ed17826f920a73f" data-score="71" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용하는 TCP 메아리 클라이언트, 데이터를 보내고 연결이 닫힐 때까지 기다립니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="13c52096d6cef4aacf07b7774cbdcca09f170ae9" data-score="99" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-example-tcp-echo-client-protocol"></span><h3>TCP 메아리 클라이언트<a class="headerlink" href="#tcp-echo-client" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용하는 TCP 메아리 클라이언트, 데이터를 보내고 연결이 닫힐 때까지 기다립니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">EchoClientProtocol</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Protocol</span><span class="p">):</span>
@@ -735,13 +737,13 @@
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="a320e8ec6ceed7d9d496852240e3b4bc3c4312ac" data-score="100" data-since="260603"><a class="reference internal" href="asyncio-stream.html#asyncio-tcp-echo-client-streams"><span class="std std-ref">스트림을 사용하는 TCP 메아리 클라이언트</span></a> 예제는 고수준 <a class="reference internal" href="asyncio-stream.html#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.open_connection()</span></code></a> 함수를 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-stream.html#asyncio-tcp-echo-client-streams"><span class="std std-ref">스트림을 사용하는 TCP 메아리 클라이언트</span></a> 예제는 고수준 <a class="reference internal" href="asyncio-stream.html#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.open_connection()</span></code></a> 함수를 사용합니다.</p>
 </div>
 </section>
 <section id="udp-echo-server">
-<span id="asyncio-udp-echo-server-protocol"></span><h3 data-msgid="343e5cce60ceccd79ae37a898828ecb0fca0950a" data-score="100" data-since="260603">UDP 메아리 서버<a class="headerlink" href="#udp-echo-server" title="Link to this heading">¶</a></h3>
-<p data-msgid="fbd9c05edb644cea453ad4a2336719231efa993c" data-score="85" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 메서드를 사용하는 UDP 메아리 서버, 수신된 데이터를 다시 보냅니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="58315872082d6b8b25cab6b7bc85f9803aae6def" data-score="98" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-udp-echo-server-protocol"></span><h3>UDP 메아리 서버<a class="headerlink" href="#udp-echo-server" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 메서드를 사용하는 UDP 메아리 서버, 수신된 데이터를 다시 보냅니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">EchoServerProtocol</span><span class="p">:</span>
@@ -779,9 +781,9 @@
 </div>
 </section>
 <section id="udp-echo-client">
-<span id="asyncio-udp-echo-client-protocol"></span><h3 data-msgid="6acf01764f7a6626f0891a32f61a073dc0762d8b" data-score="100" data-since="260603">UDP 메아리 클라이언트<a class="headerlink" href="#udp-echo-client" title="Link to this heading">¶</a></h3>
-<p data-msgid="ba6f8f0268c67533712815a2df74c58bd40ec6e5" data-score="86" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 메서드를 사용하는 UDP 메아리 클라이언트, 데이터를 보내고 응답을 받으면 트랜스포트를 닫습니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="f28647eff41f6a297fe3e249b1b1e2c166836a62" data-score="99" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-udp-echo-client-protocol"></span><h3>UDP 메아리 클라이언트<a class="headerlink" href="#udp-echo-client" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_datagram_endpoint" title="asyncio.loop.create_datagram_endpoint"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_datagram_endpoint()</span></code></a> 메서드를 사용하는 UDP 메아리 클라이언트, 데이터를 보내고 응답을 받으면 트랜스포트를 닫습니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">EchoClientProtocol</span><span class="p">:</span>
@@ -832,9 +834,9 @@
 </div>
 </section>
 <section id="connecting-existing-sockets">
-<span id="asyncio-example-create-connection"></span><h3 data-msgid="0c3e7796e468f44129a6efd9d7ebe023f9e3c4e7" data-score="100" data-since="260603">기존 소켓 연결하기<a class="headerlink" href="#connecting-existing-sockets" title="Link to this heading">¶</a></h3>
-<p data-msgid="a2faa017d059108aba1070b99a4a3caab836f955" data-score="97" data-since="260603">프로토콜과 함께 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용하여 소켓이 데이터를 수신할 때까지 기다립니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="6eb3fa15d1a1c431f25b79a5068b3b46101796a5" data-score="97" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-example-create-connection"></span><h3>기존 소켓 연결하기<a class="headerlink" href="#connecting-existing-sockets" title="Link to this heading">¶</a></h3>
+<p>프로토콜과 함께 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용하여 소켓이 데이터를 수신할 때까지 기다립니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
 
 
@@ -886,15 +888,15 @@
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="5f6a408fa935dcb36b349812a91e87547dee2bb8" data-score="87" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio-example-watch-fd"><span class="std std-ref">파일 기술자에서 읽기 이벤트를 관찰하기</span></a> 예제는 저수준의 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.add_reader" title="asyncio.loop.add_reader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.add_reader()</span></code></a> 메서드를 사용하여 FD를 등록합니다.</p>
-<p data-msgid="4acaf66e20e6a009670ca5e93545011b6f6628ec" data-score="97" data-since="260603"><a class="reference internal" href="asyncio-stream.html#asyncio-example-create-connection-streams"><span class="std std-ref">스트림을 사용하여 데이터를 기다리는 열린 소켓 등록</span></a> 예제는 코루틴에서 <a class="reference internal" href="asyncio-stream.html#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a> 함수에 의해 생성된 고수준 스트림을 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio-example-watch-fd"><span class="std std-ref">파일 기술자에서 읽기 이벤트를 관찰하기</span></a> 예제는 저수준의 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.add_reader" title="asyncio.loop.add_reader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.add_reader()</span></code></a> 메서드를 사용하여 FD를 등록합니다.</p>
+<p><a class="reference internal" href="asyncio-stream.html#asyncio-example-create-connection-streams"><span class="std std-ref">스트림을 사용하여 데이터를 기다리는 열린 소켓 등록</span></a> 예제는 코루틴에서 <a class="reference internal" href="asyncio-stream.html#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a> 함수에 의해 생성된 고수준 스트림을 사용합니다.</p>
 </div>
 </section>
 <section id="loop-subprocess-exec-and-subprocessprotocol">
-<span id="asyncio-example-subprocess-proto"></span><h3 data-msgid="fb8c47ae576acbdf5be865909be794bebaadea50" data-score="86" data-since="260603">loop.subprocess_exec() 와 SubprocessProtocol<a class="headerlink" href="#loop-subprocess-exec-and-subprocessprotocol" title="Link to this heading">¶</a></h3>
-<p data-msgid="16f4febaa13c59704ab69ba35886f8105bd56383" data-score="79" data-since="260603">서브 프로세스의 출력을 가져오고 서브 프로세스가 끝날 때까지 대기하는 데 사용되는 서브 프로세스 프로토콜의 예.</p>
-<p data-msgid="aae63117616b65c61286f1372fb64758ba171ae5" data-score="89" data-since="260603">서브 프로세스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a> 메서드에 의해 만들어집니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="897d2ccaf09ddc046ef623ea46b262c286387801" data-score="99" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-example-subprocess-proto"></span><h3>loop.subprocess_exec() 와 SubprocessProtocol<a class="headerlink" href="#loop-subprocess-exec-and-subprocessprotocol" title="Link to this heading">¶</a></h3>
+<p>서브 프로세스의 출력을 가져오고 서브 프로세스가 끝날 때까지 대기하는 데 사용되는 서브 프로세스 프로토콜의 예.</p>
+<p>서브 프로세스는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.subprocess_exec" title="asyncio.loop.subprocess_exec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.subprocess_exec()</span></code></a> 메서드에 의해 만들어집니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">DateProtocol</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">SubprocessProtocol</span><span class="p">):</span>
@@ -952,20 +954,11 @@
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;현재 날짜: </span><span class="si">{</span><span class="n">date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="9d9300c4d7d6d46f137e3f69087a4603b7de4368" data-score="91" data-since="260603">고수준 API를 사용하여 작성된 <a class="reference internal" href="asyncio-subprocess.html#asyncio-example-create-subprocess-exec"><span class="std std-ref">같은 예제</span></a>도 참조하십시오.</p>
+<p>고수준 API를 사용하여 작성된 <a class="reference internal" href="asyncio-subprocess.html#asyncio-example-create-subprocess-exec"><span class="std std-ref">같은 예제</span></a>도 참조하십시오.</p>
 </section>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="0693c8a5c8ecb50a7a38a20549795a6f793dc1be" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="2473e96bc614a911821242119918a241a41836d6" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="707ddefda8b9d501a1d63dad3fcb74d0cb28b51a" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="aca48106439509e9b50a5fef43d595f5e650540d" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="f5cbdf6bfb51439be085b5c6b7460a7c91eabc3c" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

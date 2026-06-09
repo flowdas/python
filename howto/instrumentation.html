@@ -8,9 +8,11 @@
     <title>DTrace와 SystemTap으로 CPython 계측하기 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -23,7 +25,7 @@
     <link rel="prev" title="ipaddress 모듈에 대한 소개" href="ipaddress.html" />
     
       
-      <link rel="canonical" href="https://docs.python.org/3/howto/instrumentation.html">
+      <link rel="canonical" href="https://python.flowdas.com/howto/instrumentation.html">
       
     
 
@@ -117,39 +119,42 @@
             <article class="document">
                 
   <section id="instrumenting-cpython-with-dtrace-and-systemtap">
-<span id="instrumentation"></span><h1 data-msgid="ac07ffbec1eb74a86061a9d85ce2615004f7f481" data-score="69" data-since="260603">DTrace와 SystemTap으로 CPython 계측하기<a class="headerlink" href="#instrumenting-cpython-with-dtrace-and-systemtap" title="Link to this heading">¶</a></h1>
+<span id="instrumentation"></span><h1>DTrace와 SystemTap으로 CPython 계측하기<a class="headerlink" href="#instrumenting-cpython-with-dtrace-and-systemtap" title="Link to this heading">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">저자<span class="colon">:</span></dt>
-<dd class="field-odd"><p data-msgid="78b292d13198edf91cc6d8623fa79ed28a8bb378" data-score="100" data-since="260603">David Malcolm</p>
+<dd class="field-odd"><p>David Malcolm</p>
 </dd>
 <dt class="field-even">저자<span class="colon">:</span></dt>
-<dd class="field-even"><p data-msgid="2eb3fd426e9752fa82aa95506ab9a9de7e16258b" data-score="100" data-since="260603">Łukasz Langa</p>
+<dd class="field-even"><p>Łukasz Langa</p>
 </dd>
 </dl>
-<p data-msgid="4977365c5d276b18bf2adf1e07c6c954cee595a9" data-score="87" data-since="260603">DTrace와 SystemTap은 컴퓨터 시스템의 프로세스가 하는 일을 검사할 수 있는 모니터링 도구입니다. 둘 다 도메인 특정 언어를 사용하여 다음과 같은 작업을 하는 스크립트를 작성할 수 있도록 합니다:</p>
+<p>DTrace와 SystemTap은 컴퓨터 시스템의 프로세스가 하는 일을 검사할 수 있는 모니터링 도구입니다. 둘 다 도메인 특정 언어를 사용하여 다음과 같은 작업을 하는 스크립트를 작성할 수 있도록 합니다:</p>
 <ul class="simple">
-<li><p data-msgid="66991f095d3ece02ad833d103e8b0aab9aabd673" data-score="36" data-since="260603">관찰할 프로세스를 걸러내기</p></li>
-<li><p data-msgid="2c4e3d0b60e553b2c297ef52300a4f5f7582cf38" data-score="71" data-since="260603">관심 있는 프로세스에서 자료를 수집하기</p></li>
-<li><p data-msgid="67b6b0d9f9ed67115cf93d9ce40be6d41cf01aab" data-score="71" data-since="260603">데이터에 대한 보고서를 생성하기</p></li>
+<li><p>관찰할 프로세스를 걸러내기</p></li>
+<li><p>관심 있는 프로세스에서 자료를 수집하기</p></li>
+<li><p>데이터에 대한 보고서를 생성하기</p></li>
 </ul>
-<p data-msgid="8dddb196f94bcafbc1b4826f4dcff8d03614b5ed" data-score="74" data-since="260603">파이썬 3.6부터, CPython은 DTrace나 SystemTap 스크립트에서 볼 수 있는 “마커(markers)”(“프로브(probes)”라고도 합니다)를 내장하도록 빌드할 수 있어서, 시스템에서 CPython 프로세스가 수행하고 있는 작업을 쉽게 관찰할 수 있습니다.</p>
+<p>파이썬 3.6부터, CPython은 DTrace나 SystemTap 스크립트에서 볼 수 있는 “마커(markers)”(“프로브(probes)”라고도 합니다)를 내장하도록 빌드할 수 있어서, 시스템에서 CPython 프로세스가 수행하고 있는 작업을 쉽게 관찰할 수 있습니다.</p>
+<div class="impl-detail compound">
+<p>DTrace 마커는 CPython 인터프리터의 구현 세부 사항입니다. CPython 버전 간의 프로브 호환성에 대한 보장은 없습니다. CPython 버전을 변경할 때 경고 없이 DTrace 스크립트가 작동하지 않거나 올바르게 작동하지 않을 수 있습니다.</p>
+</div>
 <section id="enabling-the-static-markers">
-<h2 data-msgid="d02e4b9d9cb715f3dcfa6580fdcf46860f25dddb" data-score="100" data-since="260603">정적 마커 활성화하기<a class="headerlink" href="#enabling-the-static-markers" title="Link to this heading">¶</a></h2>
-<p data-msgid="c419f7aeb1109afdde54a31bc7e72c7010bfa654" data-score="91" data-since="260603">macOS는 DTrace를 기본적으로 지원합니다. 리눅스에서는, SystemTap을 위한 마커를 내장하도록 CPython을 빌드하려면, SystemTap 개발 도구를 설치해야 합니다.</p>
-<p data-msgid="dac775de365ec70b8d20713c8a919f3cd8beaf15" data-score="36" data-since="260603">리눅스 기계에서, 이렇게 하면 됩니다:</p>
-<div class="highlight-shell-session notranslate" data-msgid="d140e9d83f1253ad78801e3679dacb77650d3556" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>yum<span class="w"> </span>install<span class="w"> </span>systemtap-sdt-devel
+<h2>정적 마커 활성화하기<a class="headerlink" href="#enabling-the-static-markers" title="Link to this heading">¶</a></h2>
+<p>macOS는 DTrace를 기본적으로 지원합니다. 리눅스에서는, SystemTap을 위한 마커를 내장하도록 CPython을 빌드하려면, SystemTap 개발 도구를 설치해야 합니다.</p>
+<p>리눅스 기계에서, 이렇게 하면 됩니다:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>yum<span class="w"> </span>install<span class="w"> </span>systemtap-sdt-devel
 </pre></div>
 </div>
-<p data-msgid="bd4fbb9a3381924e68e2b234938c53403f4da060" data-score="100" data-since="260603">또는:</p>
-<div class="highlight-shell-session notranslate" data-msgid="68b1ce7dc51e330dbe27fa6f389aafa32e1068fc" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>systemtap-sdt-dev
+<p>또는:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>systemtap-sdt-dev
 </pre></div>
 </div>
-<p data-msgid="18c08413c7f9e94ef741f5446e4202e2d86ec78c" data-score="94" data-since="260603">그런 다음 CPython은 <a class="reference internal" href="../using/configure.html#cmdoption-with-dtrace"><code class="xref std std-option docutils literal notranslate"><span class="pre">--with-dtrace</span> <span class="pre">옵션으로</span> <span class="pre">구성</span></code></a>되어야 합니다:</p>
-<div class="highlight-none notranslate" data-msgid="255cb56089ba93e29993c71ccd4838fce8f7868e" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>checking for --with-dtrace... yes
+<p>그런 다음 CPython은 <a class="reference internal" href="../using/configure.html#cmdoption-with-dtrace"><code class="xref std std-option docutils literal notranslate"><span class="pre">--with-dtrace</span> <span class="pre">옵션으로</span> <span class="pre">구성</span></code></a>되어야 합니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>checking for --with-dtrace... yes
 </pre></div>
 </div>
-<p data-msgid="77431843f31398656aa3c536b400f509665882cc" data-score="78" data-since="260603">macOS에서, 배경에서 파이썬 프로세스를 실행하고 파이썬 공급자가 제공 한 모든 프로브를 나열하여 사용 가능한 DTrace 프로브를 나열할 수 있습니다:</p>
-<div class="highlight-shell-session notranslate" data-msgid="a737d13ede584f52dc54cbd3a2c4404f7e121525" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>python3.6<span class="w"> </span>-q<span class="w"> </span><span class="p">&amp;</span>
+<p>macOS에서, 배경에서 파이썬 프로세스를 실행하고 파이썬 공급자가 제공 한 모든 프로브를 나열하여 사용 가능한 DTrace 프로브를 나열할 수 있습니다:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python3.6<span class="w"> </span>-q<span class="w"> </span><span class="p">&amp;</span>
 <span class="gp">$ </span>sudo<span class="w"> </span>dtrace<span class="w"> </span>-l<span class="w"> </span>-P<span class="w"> </span>python<span class="nv">$!</span><span class="w">  </span><span class="c1"># or: dtrace -l -m python3.6</span>
 
 <span class="go">   ID   PROVIDER            MODULE                          FUNCTION NAME</span>
@@ -163,18 +168,18 @@
 <span class="go">29571 python18035        python3.6                 maybe_dtrace_line line</span>
 </pre></div>
 </div>
-<p data-msgid="b1d85ce09fb4861b7be406777a16cf83f055a01b" data-score="85" data-since="260603">리눅스에서, “.note.stapsdt” 섹션이 있는지 확인하여 빌드 된 바이너리에 SystemTap 정적 마커가 있는지 확인할 수 있습니다.</p>
-<div class="highlight-shell-session notranslate" data-msgid="8e25d3d5eb2989e28bcb72a47876d8b1a16c9efb" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>readelf<span class="w"> </span>-S<span class="w"> </span>./python<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>.note.stapsdt
+<p>리눅스에서, “.note.stapsdt” 섹션이 있는지 확인하여 빌드 된 바이너리에 SystemTap 정적 마커가 있는지 확인할 수 있습니다.</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>readelf<span class="w"> </span>-S<span class="w"> </span>./python<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>.note.stapsdt
 <span class="go">[30] .note.stapsdt        NOTE         0000000000000000 00308d78</span>
 </pre></div>
 </div>
-<p data-msgid="0201f6375038c2360bf2d8b09d65132d0df7ef42" data-score="93" data-since="260603">파이썬을 (<a class="reference internal" href="../using/configure.html#cmdoption-enable-shared"><code class="xref std std-option docutils literal notranslate"><span class="pre">--enable-shared</span></code></a> 구성 옵션으로) 공유 라이브러리로 빌드했다면, 공유 라이브러리 내에서 대신 찾아야 합니다. 예를 들면:</p>
-<div class="highlight-shell-session notranslate" data-msgid="55be5cb37f36c8cfe6c28d94087c40ba0fb8ba5d" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>readelf<span class="w"> </span>-S<span class="w"> </span>libpython3.3dm.so.1.0<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>.note.stapsdt
+<p>파이썬을 (<a class="reference internal" href="../using/configure.html#cmdoption-enable-shared"><code class="xref std std-option docutils literal notranslate"><span class="pre">--enable-shared</span></code></a> 구성 옵션으로) 공유 라이브러리로 빌드했다면, 공유 라이브러리 내에서 대신 찾아야 합니다. 예를 들면:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>readelf<span class="w"> </span>-S<span class="w"> </span>libpython3.3dm.so.1.0<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>.note.stapsdt
 <span class="go">[29] .note.stapsdt        NOTE         0000000000000000 00365b68</span>
 </pre></div>
 </div>
-<p data-msgid="ff93f72df3528736882079d08d1c167b7bf2a45f" data-score="81" data-since="260603">충분히 최신의 readelf는 메타 데이터를 인쇄할 수 있습니다:</p>
-<div class="highlight-shell-session notranslate" data-msgid="b5e74802942fc88f5e7c4d1be3ebdbc33102be99" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>readelf<span class="w"> </span>-n<span class="w"> </span>./python
+<p>충분히 최신의 readelf는 메타 데이터를 인쇄할 수 있습니다:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>readelf<span class="w"> </span>-n<span class="w"> </span>./python
 
 <span class="go">Displaying notes found at file offset 0x00000254 with length 0x00000020:</span>
 <span class="go">    Owner                 Data size          Description</span>
@@ -210,12 +215,12 @@
 <span class="go">        Arguments: 8@%rbp 8@%r12 -4@%eax</span>
 </pre></div>
 </div>
-<p data-msgid="123286fa4b9d82be263376d1a40994bed6968d69" data-score="89" data-since="260603">위의 메타 데이터에는 SystemTap 스크립트에서 사용되는 추적 훅을 활성화하도록 전략적으로 배치된 기계 코드 명령어를 패치하는 방법을 설명하는 SystemTap에 대한 정보가 포함되어 있습니다.</p>
+<p>위의 메타 데이터에는 SystemTap 스크립트에서 사용되는 추적 훅을 활성화하도록 전략적으로 배치된 기계 코드 명령어를 패치하는 방법을 설명하는 SystemTap에 대한 정보가 포함되어 있습니다.</p>
 </section>
 <section id="static-dtrace-probes">
-<h2 data-msgid="48a4dca892358f537424d58515884badae8f66bf" data-score="100" data-since="260603">정적 DTrace 프로브<a class="headerlink" href="#static-dtrace-probes" title="Link to this heading">¶</a></h2>
-<p data-msgid="8ba9b66bc586eb25a0d10dfcf808c0a65fb5b4a6" data-score="82" data-since="260603">다음 예제 DTrace 스크립트는 파이썬 스크립트의 호출/반환 계층 구조를 표시하는 데 사용할 수 있습니다. “start”라는 함수의 호출 내부에서만 추적합니다. 즉, 임포트 시점의 함수 호출은 나열되지 않습니다:</p>
-<div class="highlight-none notranslate" data-msgid="b9c41851e4f33598ece93377c2fc94f8e43a7a39" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>self int indent;
+<h2>정적 DTrace 프로브<a class="headerlink" href="#static-dtrace-probes" title="Link to this heading">¶</a></h2>
+<p>다음 예제 DTrace 스크립트는 파이썬 스크립트의 호출/반환 계층 구조를 표시하는 데 사용할 수 있습니다. “start”라는 함수의 호출 내부에서만 추적합니다. 즉, 임포트 시점의 함수 호출은 나열되지 않습니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>self int indent;
 
 python$target:::function-entry
 /copyinstr(arg1) == &quot;start&quot;/
@@ -248,12 +253,12 @@ python$target:::function-return
 }
 </pre></div>
 </div>
-<p data-msgid="4862c49c8ab9235e0705b18653b6ad892548cb49" data-score="78" data-since="260603">다음과 같은 식으로 호출할 수 있습니다:</p>
-<div class="highlight-shell-session notranslate" data-msgid="885f7c750c537cc7d28ec0f43e9e733affe413b2" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>dtrace<span class="w"> </span>-q<span class="w"> </span>-s<span class="w"> </span>call_stack.d<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;python3.6 script.py&quot;</span>
+<p>다음과 같은 식으로 호출할 수 있습니다:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>dtrace<span class="w"> </span>-q<span class="w"> </span>-s<span class="w"> </span>call_stack.d<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;python3.6 script.py&quot;</span>
 </pre></div>
 </div>
-<p data-msgid="931ac897fa8f6aaf44b01b73d678c842b993097c" data-score="58" data-since="260603">출력은 이런 식입니다:</p>
-<div class="highlight-none notranslate" data-msgid="0248d9a14940bc299caf11c3fe385d74efadf9e4" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>156641360502280  function-entry:call_stack.py:start:23
+<p>출력은 이런 식입니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>156641360502280  function-entry:call_stack.py:start:23
 156641360518804  function-entry: call_stack.py:function_1:1
 156641360532797  function-entry:  call_stack.py:function_3:9
 156641360546807 function-return:  call_stack.py:function_3:10
@@ -275,10 +280,10 @@ python$target:::function-return
 </div>
 </section>
 <section id="static-systemtap-markers">
-<h2 data-msgid="35d3a9ecb9dcf270f3141214b16445509650a634" data-score="100" data-since="260603">정적 SystemTap 마커<a class="headerlink" href="#static-systemtap-markers" title="Link to this heading">¶</a></h2>
-<p data-msgid="4d1549ecc0a35fd8b5d6d4fbcd19cf7644fe3171" data-score="89" data-since="260603">SystemTap 통합을 사용하는 저수준의 방법은 정적 마커를 직접 사용하는 것입니다. 이를 포함하는 바이너리 파일을 명시적으로 지정해야 합니다.</p>
-<p data-msgid="402e6d16b5d79340a788adc8aca954f1f57d322a" data-score="100" data-since="260603">예를 들어, 이 SystemTap 스크립트는 파이썬 스크립트의 호출/반환 계층 구조를 표시하는 데 사용할 수 있습니다:</p>
-<div class="highlight-none notranslate" data-msgid="1e78e106fee7a4fb1c23ea42fbd42c2acf5cd2b6" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>probe process(&quot;python&quot;).mark(&quot;function__entry&quot;) {
+<h2>정적 SystemTap 마커<a class="headerlink" href="#static-systemtap-markers" title="Link to this heading">¶</a></h2>
+<p>SystemTap 통합을 사용하는 저수준의 방법은 정적 마커를 직접 사용하는 것입니다. 이를 포함하는 바이너리 파일을 명시적으로 지정해야 합니다.</p>
+<p>예를 들어, 이 SystemTap 스크립트는 파이썬 스크립트의 호출/반환 계층 구조를 표시하는 데 사용할 수 있습니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>probe process(&quot;python&quot;).mark(&quot;function__entry&quot;) {
      filename = user_string($arg1);
      funcname = user_string($arg2);
      lineno = $arg3;
@@ -297,14 +302,14 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 }
 </pre></div>
 </div>
-<p data-msgid="4862c49c8ab9235e0705b18653b6ad892548cb49" data-score="78" data-since="260603">다음과 같은 식으로 호출할 수 있습니다:</p>
-<div class="highlight-shell-session notranslate" data-msgid="46964bd6f56d569fc6bf3bdd1a674c6787e0a035" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span>stap<span class="w"> </span><span class="se">\</span>
+<p>다음과 같은 식으로 호출할 수 있습니다:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>stap<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>show-call-hierarchy.stp<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;./python test.py&quot;</span>
 </pre></div>
 </div>
-<p data-msgid="931ac897fa8f6aaf44b01b73d678c842b993097c" data-score="58" data-since="260603">출력은 이런 식입니다:</p>
-<div class="highlight-none notranslate" data-msgid="eba94ec898617273afacc5401625a0b0dd9efab1" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>11408 python(8274):        =&gt; __contains__ in Lib/_abcoll.py:362
+<p>출력은 이런 식입니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>11408 python(8274):        =&gt; __contains__ in Lib/_abcoll.py:362
 11414 python(8274):         =&gt; __getitem__ in Lib/os.py:425
 11418 python(8274):          =&gt; encode in Lib/os.py:490
 11424 python(8274):          &lt;= encode in Lib/os.py:493
@@ -312,35 +317,35 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 11433 python(8274):        &lt;= __contains__ in Lib/_abcoll.py:366
 </pre></div>
 </div>
-<p data-msgid="0aea05b9251291473c69064e3f417a2821dc0e90" data-score="93" data-since="260603">이때 열은 다음과 같습니다:</p>
+<p>이때 열은 다음과 같습니다:</p>
 <ul class="simple">
-<li><p data-msgid="a2c99abc5cbb953d787ee4d17ea11f89d0dfbf44" data-score="38" data-since="260603">스크립트 시작으로부터 마이크로초 단위의 시간</p></li>
-<li><p data-msgid="604b6b55cd3c489ad7bec3aa67be0724f4f1bc36" data-score="56" data-since="260603">실행 파일의 이름</p></li>
-<li><p data-msgid="c1937c735131969800fa6cfd87afa46767413acb" data-score="56" data-since="260603">프로세스의 PID</p></li>
+<li><p>스크립트 시작으로부터 마이크로초 단위의 시간</p></li>
+<li><p>실행 파일의 이름</p></li>
+<li><p>프로세스의 PID</p></li>
 </ul>
-<p data-msgid="f893680b3abdfdea576a2747de900320eed0dc2d" data-score="72" data-since="260603">나머지는 스크립트가 실행될 때 호출/반환 계층 구조를 나타냅니다.</p>
-<p data-msgid="e6baac16df37eeffcc880fe57b78867fbde0d8aa" data-score="83" data-since="260603">CPython의 <a class="reference internal" href="../using/configure.html#cmdoption-enable-shared"><code class="xref std std-option docutils literal notranslate"><span class="pre">--enable-shared</span></code></a> 빌드의 경우, 마커는 libpython 공유 라이브러리 내에 포함되어 있으며, 프로브의 점으로 구분된 경로는 이를 반영해야 합니다. 예를 들어, 위의 예제에서 다음과 같은 줄은:</p>
-<div class="highlight-none notranslate" data-msgid="e793203c638fe61e2b067e49644b50ce18b88f8d" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>probe process(&quot;python&quot;).mark(&quot;function__entry&quot;) {
+<p>나머지는 스크립트가 실행될 때 호출/반환 계층 구조를 나타냅니다.</p>
+<p>CPython의 <a class="reference internal" href="../using/configure.html#cmdoption-enable-shared"><code class="xref std std-option docutils literal notranslate"><span class="pre">--enable-shared</span></code></a> 빌드의 경우, 마커는 libpython 공유 라이브러리 내에 포함되어 있으며, 프로브의 점으로 구분된 경로는 이를 반영해야 합니다. 예를 들어, 위의 예제에서 다음과 같은 줄은:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>probe process(&quot;python&quot;).mark(&quot;function__entry&quot;) {
 </pre></div>
 </div>
-<p data-msgid="0d7c5a6f8cf790672e9f470d8548ec7e818099a4" data-score="47" data-since="260603">대신 이렇게 되어야 합니다:</p>
-<div class="highlight-none notranslate" data-msgid="40013f268b255f714aa0bd6775b0918a0f741c8b" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>probe process(&quot;python&quot;).library(&quot;libpython3.6dm.so.1.0&quot;).mark(&quot;function__entry&quot;) {
+<p>대신 이렇게 되어야 합니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>probe process(&quot;python&quot;).library(&quot;libpython3.6dm.so.1.0&quot;).mark(&quot;function__entry&quot;) {
 </pre></div>
 </div>
-<p data-msgid="34534a52eb9090777f999aaba8f8efc38e0ee56a" data-score="89" data-since="260603">(CPython 3.6의 <a class="reference internal" href="../using/configure.html#debug-build"><span class="std std-ref">디버그 빌드</span></a>를 가정하고 있습니다)</p>
+<p>(CPython 3.6의 <a class="reference internal" href="../using/configure.html#debug-build"><span class="std std-ref">디버그 빌드</span></a>를 가정하고 있습니다)</p>
 </section>
 <section id="available-static-markers">
-<span id="static-markers"></span><h2 data-msgid="d94e8305cdfcb016c6a5e4113a6fbe3b0008c3b8" data-score="75" data-since="260603">사용 가능한 정적 마커<a class="headerlink" href="#available-static-markers" title="Link to this heading">¶</a></h2>
+<span id="static-markers"></span><h2>사용 가능한 정적 마커<a class="headerlink" href="#available-static-markers" title="Link to this heading">¶</a></h2>
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">function__entry(str</span> <span class="pre">filename,</span> <span class="pre">str</span> <span class="pre">funcname,</span> <span class="pre">int</span> <span class="pre">lineno)</span></span></dt>
-<dd><p data-msgid="719663bde77b1dbafd53f63d1071a3435a1bb3fc" data-score="84" data-since="260603">이 마커는 파이썬 함수의 실행이 시작되었음을 나타냅니다. 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
-<p data-msgid="b6ee2bc59cb9759c14a61f94dacdd412712069ac" data-score="56" data-since="260603">파일명, 함수 이름 및 줄 번호가 위치 인자로 추적 스크립트에 제공됩니다. <code class="docutils literal notranslate"><span class="pre">$arg1</span></code>, <code class="docutils literal notranslate"><span class="pre">$arg2</span></code>, <code class="docutils literal notranslate"><span class="pre">$arg3</span></code>를 사용하여 액세스해야 합니다:</p>
+<dd><p>이 마커는 파이썬 함수의 실행이 시작되었음을 나타냅니다. 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
+<p>파일명, 함수 이름 및 줄 번호가 위치 인자로 추적 스크립트에 제공됩니다. <code class="docutils literal notranslate"><span class="pre">$arg1</span></code>, <code class="docutils literal notranslate"><span class="pre">$arg2</span></code>, <code class="docutils literal notranslate"><span class="pre">$arg3</span></code>를 사용하여 액세스해야 합니다:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p data-msgid="71e36ad8cea1418fc9b49012124b488fa61b749c" data-score="92" data-since="260603"><code class="docutils literal notranslate"><span class="pre">$arg1</span></code> : <code class="docutils literal notranslate"><span class="pre">(const</span> <span class="pre">char</span> <span class="pre">*)</span></code> 파일명, <code class="docutils literal notranslate"><span class="pre">user_string($arg1)</span></code>를 사용하여 액세스할 수 있습니다</p></li>
-<li><p data-msgid="a9f72d577db08039732a2b3ee6ce7d68b30e6e34" data-score="92" data-since="260603"><code class="docutils literal notranslate"><span class="pre">$arg2</span></code> : <code class="docutils literal notranslate"><span class="pre">(const</span> <span class="pre">char</span> <span class="pre">*)</span></code> 함수 이름, <code class="docutils literal notranslate"><span class="pre">user_string($arg2)</span></code>를 사용하여 액세스할 수 있습니다</p></li>
-<li><p data-msgid="485de3f2173c3dfdbe1da2d63fcbbb82d3d6fec8" data-score="96" data-since="260603"><code class="docutils literal notranslate"><span class="pre">$arg3</span></code> : <code class="docutils literal notranslate"><span class="pre">int</span></code> 줄 번호</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$arg1</span></code> : <code class="docutils literal notranslate"><span class="pre">(const</span> <span class="pre">char</span> <span class="pre">*)</span></code> 파일명, <code class="docutils literal notranslate"><span class="pre">user_string($arg1)</span></code>를 사용하여 액세스할 수 있습니다</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$arg2</span></code> : <code class="docutils literal notranslate"><span class="pre">(const</span> <span class="pre">char</span> <span class="pre">*)</span></code> 함수 이름, <code class="docutils literal notranslate"><span class="pre">user_string($arg2)</span></code>를 사용하여 액세스할 수 있습니다</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$arg3</span></code> : <code class="docutils literal notranslate"><span class="pre">int</span></code> 줄 번호</p></li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -348,33 +353,33 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">function__return(str</span> <span class="pre">filename,</span> <span class="pre">str</span> <span class="pre">funcname,</span> <span class="pre">int</span> <span class="pre">lineno)</span></span></dt>
-<dd><p data-msgid="3851773c5cd1ebc88ead4a7f56792fa17c05b43d" data-score="81" data-since="260603">이 마커는 <code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code>의 반대이며, 파이썬 함수의 실행이 종료되었음을 나타냅니다 (<code class="docutils literal notranslate"><span class="pre">return</span></code>를 통해서나 예외를 통해). 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
-<p data-msgid="83e1992ce587606fa350a6778b891b4f47cc516a" data-score="89" data-since="260603">인자는 <code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code>와 같습니다.</p>
+<dd><p>이 마커는 <code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code>의 반대이며, 파이썬 함수의 실행이 종료되었음을 나타냅니다 (<code class="docutils literal notranslate"><span class="pre">return</span></code>를 통해서나 예외를 통해). 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
+<p>인자는 <code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code>와 같습니다.</p>
 </dd></dl>
 
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">line(str</span> <span class="pre">filename,</span> <span class="pre">str</span> <span class="pre">funcname,</span> <span class="pre">int</span> <span class="pre">lineno)</span></span></dt>
-<dd><p data-msgid="129cb8e65538f48bb1e19ad22bc47282147c051c" data-score="52" data-since="260603">이 마커는 파이썬 줄이 실행되려고 함을 나타냅니다. 파이썬 프로파일러를 사용하는 줄 단위 추적과 동등합니다. C 함수 내에서는 트리거 되지 않습니다.</p>
-<p data-msgid="b762244b9a060c02360c6cec5f45e7ca499e20c5" data-score="89" data-since="260603">인자는 <code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code>와 같습니다.</p>
+<dd><p>이 마커는 파이썬 줄이 실행되려고 함을 나타냅니다. 파이썬 프로파일러를 사용하는 줄 단위 추적과 동등합니다. C 함수 내에서는 트리거 되지 않습니다.</p>
+<p>인자는 <code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code>와 같습니다.</p>
 </dd></dl>
 
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">gc__start(int</span> <span class="pre">generation)</span></span></dt>
-<dd><p data-msgid="34acd53038161817b34bf5b0d38037464c8db2bd" data-score="71" data-since="260603">파이썬 인터프리터가 가비지 수집 사이클을 시작할 때 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a>처럼 스캔할 세대(generation)입니다.</p>
+<dd><p>파이썬 인터프리터가 가비지 수집 사이클을 시작할 때 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a>처럼 스캔할 세대(generation)입니다.</p>
 </dd></dl>
 
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">gc__done(long</span> <span class="pre">collected)</span></span></dt>
-<dd><p data-msgid="d9138e895ff99a1a8805eff042dda43d5b8752ee" data-score="93" data-since="260603">파이썬 인터프리터가 가비지 수집 사이클을 끝낼 때 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 수집된 객체 수입니다.</p>
+<dd><p>파이썬 인터프리터가 가비지 수집 사이클을 끝낼 때 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 수집된 객체 수입니다.</p>
 </dd></dl>
 
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">import__find__load__start(str</span> <span class="pre">modulename)</span></span></dt>
-<dd><p data-msgid="34182d5fe5a6f2e77ba3dda9a3602d4697217195" data-score="95" data-since="260603"><a class="reference internal" href="../library/importlib.html#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a>가 모듈을 찾고 로드하기 전에 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 모듈 이름입니다.</p>
+<dd><p><a class="reference internal" href="../library/importlib.html#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a>가 모듈을 찾고 로드하기 전에 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 모듈 이름입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
@@ -383,7 +388,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">import__find__load__done(str</span> <span class="pre">modulename,</span> <span class="pre">int</span> <span class="pre">found)</span></span></dt>
-<dd><p data-msgid="ed39877be29062c296cac63ea8bb53089cc5ddff" data-score="83" data-since="260603"><a class="reference internal" href="../library/importlib.html#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a>의 모듈을 찾고 로드하는 함수가 호출 된 후에 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 모듈 이름이고, <code class="docutils literal notranslate"><span class="pre">arg1</span></code>은 모듈이 성공적으로 로드되었는지를 나타냅니다.</p>
+<dd><p><a class="reference internal" href="../library/importlib.html#module-importlib" title="importlib: The implementation of the import machinery."><code class="xref py py-mod docutils literal notranslate"><span class="pre">importlib</span></code></a>의 모듈을 찾고 로드하는 함수가 호출 된 후에 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>은 모듈 이름이고, <code class="docutils literal notranslate"><span class="pre">arg1</span></code>은 모듈이 성공적으로 로드되었는지를 나타냅니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
@@ -392,16 +397,16 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">audit(str</span> <span class="pre">event,</span> <span class="pre">void</span> <span class="pre">*tuple)</span></span></dt>
-<dd><p data-msgid="749e92407abe81096c96088045638402af297428" data-score="82" data-since="260603"><a class="reference internal" href="../library/sys.html#sys.audit" title="sys.audit"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.audit()</span></code></a>나 <a class="reference internal" href="../c-api/sys.html#c.PySys_Audit" title="PySys_Audit"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_Audit()</span></code></a>가 호출될 때 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>는 C 문자열로 된 이벤트 이름이고, <code class="docutils literal notranslate"><span class="pre">arg1</span></code>은 튜플 객체를 가리키는 <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> 포인터입니다.</p>
+<dd><p><a class="reference internal" href="../library/sys.html#sys.audit" title="sys.audit"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.audit()</span></code></a>나 <a class="reference internal" href="../c-api/sys.html#c.PySys_Audit" title="PySys_Audit"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_Audit()</span></code></a>가 호출될 때 발생합니다. <code class="docutils literal notranslate"><span class="pre">arg0</span></code>는 C 문자열로 된 이벤트 이름이고, <code class="docutils literal notranslate"><span class="pre">arg1</span></code>은 튜플 객체를 가리키는 <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> 포인터입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.8.</span></p>
 </div>
 </dd></dl>
 
 <section id="c-entry-points">
-<h3 data-msgid="75fde31da0db9574356aace2be95a304c01289fc" data-score="100" data-since="260609">C 진입점<a class="headerlink" href="#c-entry-points" title="Link to this heading">¶</a></h3>
-<p data-msgid="866a94f071bff49c9e0ab811785b46b7cd3a4aa8" data-score="69" data-since="260609">DTrace 마커 트리거를 단순화하기 위해, Python의 C API는 각 정적 마커를 반영하는 여러 헬퍼 함수를 제공합니다. DTrace가 활성화되지 않은 Python 빌드에서는 이 함수들이 아무것도 하지 않습니다.</p>
-<p data-msgid="8566d28247d413d9936c0259187f68e58b7be294" data-score="90" data-since="260609">일반적으로 직접 호출할 필요는 없습니다. Python이 자동으로 처리합니다.</p>
+<h3>C 진입점<a class="headerlink" href="#c-entry-points" title="Link to this heading">¶</a></h3>
+<p>DTrace 마커 트리거를 단순화하기 위해, Python의 C API는 각 정적 마커를 반영하는 여러 헬퍼 함수를 제공합니다. DTrace가 활성화되지 않은 Python 빌드에서는 이 함수들이 아무것도 하지 않습니다.</p>
+<p>일반적으로 직접 호출할 필요는 없습니다. Python이 자동으로 처리합니다.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 50.0%" />
@@ -409,9 +414,9 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <col style="width: 25.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="3188c504d583543f2e909ed679b407a05cbdb713" data-score="100" data-since="260609">C API 함수</p></th>
-<th class="head"><p data-msgid="c3ad5edad90980e49f1e6439f77783ca1b194711" data-score="100" data-since="260609">정적 마커</p></th>
-<th class="head"><p data-msgid="70440046a3dc2e079f23ee1c57dfa76669b732aa" data-score="100" data-since="260609">참고 사항</p></th>
+<tr class="row-odd"><th class="head"><p>C API 함수</p></th>
+<th class="head"><p>정적 마커</p></th>
+<th class="head"><p>참고 사항</p></th>
 </tr>
 </thead>
 <tbody>
@@ -421,7 +426,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="e15c01ce8068f45ca17518e29b4e1a01da31577d" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">line()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">line()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><dl class="c function">
@@ -430,7 +435,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="53a19fd4b7dc2ef77a86e47dc0a5fd993bca8851" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">function__entry()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><dl class="c function">
@@ -439,7 +444,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="56ea1fbd665e9832d93f25a5811e4b6d421c923d" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">function__return()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">function__return()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><dl class="c function">
@@ -448,7 +453,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="037cbb751a5302c3dc09213d927e498bbb729dab" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">gc__start()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">gc__start()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><dl class="c function">
@@ -457,7 +462,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="aea238ca633f49b1a14c0d12e11d0cc365072e15" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">gc__done()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">gc__done()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><dl class="c function">
@@ -466,8 +471,8 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="01beabf30211fbde47280f9502db273631645a79" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__new__start()</span></code></p></td>
-<td><p data-msgid="f419842e4bfb2f40169a6b48c610a02039471b08" data-score="100" data-since="260609">Python에서 사용하지 않음</p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__new__start()</span></code></p></td>
+<td><p>Python에서 사용하지 않음</p></td>
 </tr>
 <tr class="row-even"><td><dl class="c function">
 <dt class="sig sig-object c" id="c.PyDTrace_INSTANCE_NEW_DONE">
@@ -475,8 +480,8 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="c4d5c3ddade7517173f34efe61d58fd8032c1f17" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__new__done()</span></code></p></td>
-<td><p data-msgid="f419842e4bfb2f40169a6b48c610a02039471b08" data-score="100" data-since="260609">Python에서 사용하지 않음</p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__new__done()</span></code></p></td>
+<td><p>Python에서 사용하지 않음</p></td>
 </tr>
 <tr class="row-odd"><td><dl class="c function">
 <dt class="sig sig-object c" id="c.PyDTrace_INSTANCE_DELETE_START">
@@ -484,8 +489,8 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="e1fef36034ba4927c999e6829175977536383260" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__delete__start()</span></code></p></td>
-<td><p data-msgid="f419842e4bfb2f40169a6b48c610a02039471b08" data-score="100" data-since="260609">Python에서 사용하지 않음</p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__delete__start()</span></code></p></td>
+<td><p>Python에서 사용하지 않음</p></td>
 </tr>
 <tr class="row-even"><td><dl class="c function">
 <dt class="sig sig-object c" id="c.PyDTrace_INSTANCE_DELETE_DONE">
@@ -493,8 +498,8 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="3d576b9b644822cfbd14c87b49083ec4e67f3722" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__delete__done()</span></code></p></td>
-<td><p data-msgid="f419842e4bfb2f40169a6b48c610a02039471b08" data-score="100" data-since="260609">Python에서 사용하지 않음</p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">instance__delete__done()</span></code></p></td>
+<td><p>Python에서 사용하지 않음</p></td>
 </tr>
 <tr class="row-odd"><td><dl class="c function">
 <dt class="sig sig-object c" id="c.PyDTrace_IMPORT_FIND_LOAD_START">
@@ -502,7 +507,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="746fea712a4928fb00ede39b9b8a1828e5baeecb" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">import__find__load__start()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">import__find__load__start()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><dl class="c function">
@@ -511,7 +516,7 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="99e30f91aab08a75b65f5a684a90133b7b42c832" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">import__find__load__done()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">import__find__load__done()</span></code></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><dl class="c function">
@@ -520,14 +525,14 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="0cee4c799460742f3743c27f1023ae5abc4685c1" data-score="100" data-since="260609"><code class="xref c c-func docutils literal notranslate"><span class="pre">audit()</span></code></p></td>
+<td><p><code class="xref c c-func docutils literal notranslate"><span class="pre">audit()</span></code></p></td>
 <td></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="c-probing-checks">
-<h3 data-msgid="64a013899625356baac527177a4d8a4479f25808" data-score="100" data-since="260609">C 프로빙 검사<a class="headerlink" href="#c-probing-checks" title="Link to this heading">¶</a></h3>
+<h3>C 프로빙 검사<a class="headerlink" href="#c-probing-checks" title="Link to this heading">¶</a></h3>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyDTrace_LINE_ENABLED">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyDTrace_LINE_ENABLED</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyDTrace_LINE_ENABLED" title="Link to this definition">¶</a><br /></dt>
@@ -586,17 +591,17 @@ probe process(&quot;python&quot;).mark(&quot;function__return&quot;) {
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyDTrace_AUDIT_ENABLED">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyDTrace_AUDIT_ENABLED</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyDTrace_AUDIT_ENABLED" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="b026c3cdc701bde82428db4a94e58ffbdc4f4dbd" data-score="67" data-since="260609"><code class="docutils literal notranslate"><span class="pre">PyDTrace</span></code> 함수에 대한 모든 호출은 이 함수들 중 하나를 호출하여 보호되어야 합니다. 이렇게 하면 프로빙이 비활성화되었을 때 Python이 성능 영향을 최소화할 수 있습니다.</p>
-<p data-msgid="ee886f10171cc6ad9ca51c6cfeac1229198fb540" data-score="100" data-since="260609">DTrace가 활성화되지 않은 빌드에서는 이 함수들이 아무것도 하지 않고 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환합니다.</p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">PyDTrace</span></code> 함수에 대한 모든 호출은 이 함수들 중 하나를 호출하여 보호되어야 합니다. 이렇게 하면 프로빙이 비활성화되었을 때 Python이 성능 영향을 최소화할 수 있습니다.</p>
+<p>DTrace가 활성화되지 않은 빌드에서는 이 함수들이 아무것도 하지 않고 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환합니다.</p>
 </dd></dl>
 
 </section>
 </section>
 <section id="systemtap-tapsets">
-<h2 data-msgid="c2002bede7a84e91c594e3dd01e8b7ab38d9e7c8" data-score="100" data-since="260603">SystemTap 탭셋<a class="headerlink" href="#systemtap-tapsets" title="Link to this heading">¶</a></h2>
-<p data-msgid="1f6bf344e7f3867e95fe3d89e00bddc08eeb4afa" data-score="77" data-since="260603">SystemTap 통합을 사용하는 고수준의 방법은 “탭셋(tapset)”을 사용하는 것입니다: SystemTap의 라이브러리에 해당하는 것입니다, 정적 마커의 저수준 세부 정보를 숨깁니다.</p>
-<p data-msgid="32af723c2e9e5cc75fe50275f01b6d42e0ac1843" data-score="88" data-since="260603">다음은 CPython의 비공유 빌드에 기반한 탭셋 파일입니다:</p>
-<div class="highlight-none notranslate" data-msgid="84bda99a203e10f46c539b2da1b314270979b1d0" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>/*
+<h2>SystemTap 탭셋<a class="headerlink" href="#systemtap-tapsets" title="Link to this heading">¶</a></h2>
+<p>SystemTap 통합을 사용하는 고수준의 방법은 “탭셋(tapset)”을 사용하는 것입니다: SystemTap의 라이브러리에 해당하는 것입니다, 정적 마커의 저수준 세부 정보를 숨깁니다.</p>
+<p>다음은 CPython의 비공유 빌드에 기반한 탭셋 파일입니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>/*
    function__entry 와 function__return 마커를 감싸는
    고수준 래핑을 제공합니다:
  \*/
@@ -616,24 +621,24 @@ probe python.function.return = process(&quot;python&quot;).mark(&quot;function__
 }
 </pre></div>
 </div>
-<p data-msgid="ce9fbdc4cc4f11992ff1f38c27c4aa4594aee814" data-score="93" data-since="260603">이 파일을 SystemTap의 tapset 디렉터리(예를 들어, <code class="docutils literal notranslate"><span class="pre">/usr/share/systemtap/tapset</span></code>)에 설치하면, 다음과 같은 추가 프로브 포인트를 사용할 수 있습니다:</p>
+<p>이 파일을 SystemTap의 tapset 디렉터리(예를 들어, <code class="docutils literal notranslate"><span class="pre">/usr/share/systemtap/tapset</span></code>)에 설치하면, 다음과 같은 추가 프로브 포인트를 사용할 수 있습니다:</p>
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">python.function.entry(str</span> <span class="pre">filename,</span> <span class="pre">str</span> <span class="pre">funcname,</span> <span class="pre">int</span> <span class="pre">lineno,</span> <span class="pre">frameptr)</span></span></dt>
-<dd><p data-msgid="3a112041d88a26a2420c7a1f072bffbdec1c2b31" data-score="91" data-since="260603">이 프로브 포인트는 파이썬 함수의 실행이 시작되었음을 나타냅니다. 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
+<dd><p>이 프로브 포인트는 파이썬 함수의 실행이 시작되었음을 나타냅니다. 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
 </dd></dl>
 
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">python.function.return(str</span> <span class="pre">filename,</span> <span class="pre">str</span> <span class="pre">funcname,</span> <span class="pre">int</span> <span class="pre">lineno,</span> <span class="pre">frameptr)</span></span></dt>
-<dd><p data-msgid="6bfcbb091ae2220a9d0d75a67a3c8917f5062ee4" data-score="83" data-since="260603">이 프로브 포인트는 <code class="docutils literal notranslate"><span class="pre">python.function.return</span></code>의 반대이며, 파이썬 함수의 실행이 종료되었음을 나타냅니다 (<code class="docutils literal notranslate"><span class="pre">return</span></code>를 통해서나 예외를 통해). 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
+<dd><p>이 프로브 포인트는 <code class="docutils literal notranslate"><span class="pre">python.function.return</span></code>의 반대이며, 파이썬 함수의 실행이 종료되었음을 나타냅니다 (<code class="docutils literal notranslate"><span class="pre">return</span></code>를 통해서나 예외를 통해). 순수 파이썬 (바이트 코드) 함수에서만 트리거 됩니다.</p>
 </dd></dl>
 
 </section>
 <section id="examples">
-<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="50" data-since="260603">예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
-<p data-msgid="c56fe340c30e144515eb0969e150d39854e50a26" data-score="96" data-since="260603">이 SystemTap 스크립트는 위의 탭셋을 사용하여, 정적 마커의 이름을 직접 지정하지 않고도, 파이썬 함수 호출 계층 구조를 추적하는 위의 예제를 보다 명확하게 구현합니다.:</p>
-<div class="highlight-none notranslate" data-msgid="e230e6e0c31201a3b03fdb600459c1248aa5d961" data-score="100" data-since="260603"><div class="highlight"><pre><span></span>probe python.function.entry
+<h2>예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>이 SystemTap 스크립트는 위의 탭셋을 사용하여, 정적 마커의 이름을 직접 지정하지 않고도, 파이썬 함수 호출 계층 구조를 추적하는 위의 예제를 보다 명확하게 구현합니다.:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>probe python.function.entry
 {
   printf(&quot;%s =&gt; %s in %s:%d\n&quot;,
          thread_indent(1), funcname, filename, lineno);
@@ -646,8 +651,8 @@ probe python.function.return
 }
 </pre></div>
 </div>
-<p data-msgid="bde96bd3d161fc54ff1fbebad6b216743a252898" data-score="71" data-since="260603">다음 스크립트는 위의 탭셋을 사용하여 실행 중인 모든 CPython 코드의 top과 비슷한 보기를 제공합니다. 전체 시스템에서 1초마다 가장 자주 진입하는 바이트 코드 프레임 20개를 표시합니다:</p>
-<div class="highlight-none notranslate" data-msgid="02d9eecc897f0305e675e9e0571aed257e308fa0" data-score="98" data-since="260603"><div class="highlight"><pre><span></span>global fn_calls;
+<p>다음 스크립트는 위의 탭셋을 사용하여 실행 중인 모든 CPython 코드의 top과 비슷한 보기를 제공합니다. 전체 시스템에서 1초마다 가장 자주 진입하는 바이트 코드 프레임 20개를 표시합니다:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>global fn_calls;
 
 probe python.function.entry
 {
@@ -669,13 +674,7 @@ probe timer.ms(1000) {
 </div>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="4a3bfdc7ed9ca9b4fad3b984320a816fffe02f05" data-score="82" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="f64cd8e32f5ac7553c150bd05d6f2252bb73f68d" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

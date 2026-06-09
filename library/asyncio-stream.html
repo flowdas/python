@@ -8,9 +8,11 @@
     <title>스트림 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -120,12 +122,12 @@
             <article class="document">
                 
   <section id="streams">
-<span id="asyncio-streams"></span><h1 data-msgid="74985da267c6803b262f117de72af2d02e48029f" data-score="100" data-since="260603">스트림<a class="headerlink" href="#streams" title="Link to this heading">¶</a></h1>
-<p data-msgid="ff73527d8f732d3ec858b9336a2fb350be1a45b5" data-score="100" data-since="260603"><strong>소스 코드:</strong> <a href="#id1"><span class="problematic" id="id2">:source:`Lib/asyncio/streams.py`</span></a></p>
+<span id="asyncio-streams"></span><h1>스트림<a class="headerlink" href="#streams" title="Link to this heading">¶</a></h1>
+<p><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/asyncio/streams.py">Lib/asyncio/streams.py</a></p>
 <hr class="docutils" />
-<p data-msgid="a4ad0552b451bf328ea856cae87582f3d35f151e" data-score="88" data-since="260603">스트림은 네트워크 연결로 작업하기 위해, async/await에서 사용할 수 있는 고수준 프리미티브입니다. 스트림은 콜백이나 저수준 프로토콜과 트랜스포트를 사용하지 않고 데이터를 송수신할 수 있게 합니다.</p>
-<p data-msgid="ae098ef1b240a2ac03ee8c945665b38831ad4816" data-score="74" data-since="260603" id="asyncio-example-stream">다음은 asyncio 스트림을 사용하여 작성된 TCP 메아리 클라이언트의 예입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="43030be0fa197c6962f214c1cea71dfaa2a0df97" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<p>스트림은 네트워크 연결로 작업하기 위해, async/await에서 사용할 수 있는 고수준 프리미티브입니다. 스트림은 콜백이나 저수준 프로토콜과 트랜스포트를 사용하지 않고 데이터를 송수신할 수 있게 합니다.</p>
+<p id="asyncio-example-stream">다음은 asyncio 스트림을 사용하여 작성된 TCP 메아리 클라이언트의 예입니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">tcp_echo_client</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
     <span class="n">reader</span><span class="p">,</span> <span class="n">writer</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">open_connection</span><span class="p">(</span>
@@ -145,32 +147,30 @@
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">tcp_echo_client</span><span class="p">(</span><span class="s1">&#39;Hello World!&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<p data-msgid="e67e1363fd4946a7db83b9ad75072e12d59ce75c" data-score="97" data-since="260603">아래의 <a class="reference internal" href="#examples">예제</a> 절도 참조하십시오.</p>
+<p>아래의 <a class="reference internal" href="#examples">예제</a> 절도 참조하십시오.</p>
 <p class="rubric">스트림 함수</p>
-<p data-msgid="bef6f18ce38f019728dd0666b0d66e0a8d5ae438" data-score="91" data-since="260603">다음 최상위 asyncio 함수를 사용하여 스트림을 만들고 작업할 수 있습니다.:</p>
+<p>다음 최상위 asyncio 함수를 사용하여 스트림을 만들고 작업할 수 있습니다.:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio.open_connection">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">open_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_addr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_handshake_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_shutdown_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">happy_eyeballs_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interleave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.open_connection" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="584175ab76c86ce65b47f4dac78992a581568fac" data-score="93" data-since="260603">네트워크 연결을 만들고 <code class="docutils literal notranslate"><span class="pre">(reader,</span> <span class="pre">writer)</span></code> 객체 쌍을 반환합니다.</p>
-<p data-msgid="e0dc9165819f8fdf0d27c79a4c7afccb866f302f" data-score="98" data-since="260603">반환된 <em>reader</em> 와 <em>writer</em> 객체는 <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 와 <a class="reference internal" href="#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> 클래스의 인스턴스입니다.</p>
-<p data-msgid="77c4dc574b6a0354cb6ebac6bf198073bb01446b" data-score="92" data-since="260603"><em>limit</em>는 반환된 <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 인스턴스가 사용하는 버퍼 크기 한계를 결정합니다. 기본적으로 <em>limit</em>는 64KiB로 설정됩니다.</p>
-<p data-msgid="ebe55114e5cb9bbf6800e98e47fdda83440a8afa" data-score="92" data-since="260603">나머지 인자는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>로 직접 전달됩니다.</p>
+<dd><p>네트워크 연결을 만들고 <code class="docutils literal notranslate"><span class="pre">(reader,</span> <span class="pre">writer)</span></code> 객체 쌍을 반환합니다.</p>
+<p>반환된 <em>reader</em> 와 <em>writer</em> 객체는 <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 와 <a class="reference internal" href="#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> 클래스의 인스턴스입니다.</p>
+<p><em>limit</em>는 반환된 <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 인스턴스가 사용하는 버퍼 크기 한계를 결정합니다. 기본적으로 <em>limit</em>는 64KiB로 설정됩니다.</p>
+<p>나머지 인자는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a>로 직접 전달됩니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="4c32d63af66ca85b9412985c4effece5d00be889" data-score="0" data-since="260603">The <em>sock</em> argument transfers ownership of the socket to the
-<a class="reference internal" href="#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> created. To close the socket, call its
-<a class="reference internal" href="#asyncio.StreamWriter.close" title="asyncio.StreamWriter.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> method.</p>
+<p><em>sock</em> 인수는 소켓의 소유권을 생성된 <code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter`로</span> <span class="pre">전송합니다.</span> <span class="pre">소켓을</span> <span class="pre">닫으려면,</span> <span class="pre">해당</span> <span class="pre">:meth:`~asyncio.StreamWriter.close</span></code> 메서드를 호출하십시오.</p>
 </div>
-<div class="versionchanged" data-msgid="d0b0fa90873816646ca7e3c39628a40bbea4358f" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>ssl_handshake_timeout</em> 매개 변수를 추가했습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="2712ab80bd73649af9ef9b278e675018a2ec75ea" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Added the <em>happy_eyeballs_delay</em> and <em>interleave</em> parameters.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span><em>happy_eyeballs_delay</em> 및 <em>interleave</em> 매개 변수가 추가되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="f4791d6d3f87e9099c0734123ed4286556195e4e" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.10에서 변경: </span>Removed the <em>loop</em> parameter.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.10에서 변경: </span><em>loop</em> 매개 변수가 제거되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="5c130d6c4636a99c91ce181b99f610e3e194b0d6" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.11에서 변경: </span><em>ssl_shutdown_timeout</em> 매개 변수를 추가했습니다.</p>
 </div>
 </dd></dl>
@@ -178,27 +178,25 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio.start_server">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">start_server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_connected_cb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">socket.AF_UNSPEC</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">socket.AI_PASSIVE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reuse_address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reuse_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_alive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_handshake_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_shutdown_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_serving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.start_server" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="634c4ed2d5cdc870fc476dee56d52ea8875696c2" data-score="100" data-since="260603">소켓 서버를 시작합니다.</p>
-<p data-msgid="2e37c4b151684b35cf1de04b22fcaec964c86cd8" data-score="89" data-since="260603">새 클라이언트 연결이 만들어질 때마다 <em>client_connected_cb</em> 콜백이 호출됩니다. 이 콜백은 두 개의 인자로 <code class="docutils literal notranslate"><span class="pre">(reader,</span> <span class="pre">writer)</span></code> 쌍을 받는데, <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 와 <a class="reference internal" href="#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> 클래스의 인스턴스입니다.</p>
-<p data-msgid="a5ade5b1fc40e52fd5392f8b232fa017eee8c855" data-score="92" data-since="260603"><em>client_connected_cb</em>는 일반 콜러블이나 <a class="reference internal" href="asyncio-task.html#coroutine"><span class="std std-ref">코루틴 함수</span></a> 일 수 있습니다; 코루틴 함수면, 자동으로 <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>로 예약됩니다.</p>
-<p data-msgid="77c4dc574b6a0354cb6ebac6bf198073bb01446b" data-score="92" data-since="260603"><em>limit</em>는 반환된 <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 인스턴스가 사용하는 버퍼 크기 한계를 결정합니다. 기본적으로 <em>limit</em>는 64KiB로 설정됩니다.</p>
-<p data-msgid="f4cffb760e44e93973de1e2b8e8fd5423b19c3f2" data-score="98" data-since="260603">나머지 인자는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>로 직접 전달됩니다.</p>
+<dd><p>소켓 서버를 시작합니다.</p>
+<p>새 클라이언트 연결이 만들어질 때마다 <em>client_connected_cb</em> 콜백이 호출됩니다. 이 콜백은 두 개의 인자로 <code class="docutils literal notranslate"><span class="pre">(reader,</span> <span class="pre">writer)</span></code> 쌍을 받는데, <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 와 <a class="reference internal" href="#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> 클래스의 인스턴스입니다.</p>
+<p><em>client_connected_cb</em>는 일반 콜러블이나 <a class="reference internal" href="asyncio-task.html#coroutine"><span class="std std-ref">코루틴 함수</span></a> 일 수 있습니다; 코루틴 함수면, 자동으로 <a class="reference internal" href="asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>로 예약됩니다.</p>
+<p><em>limit</em>는 반환된 <a class="reference internal" href="#asyncio.StreamReader" title="asyncio.StreamReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamReader</span></code></a> 인스턴스가 사용하는 버퍼 크기 한계를 결정합니다. 기본적으로 <em>limit</em>는 64KiB로 설정됩니다.</p>
+<p>나머지 인자는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a>로 직접 전달됩니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="842cc27bdbcdb1cdbffa1a4efe7e24f613e5ffe3" data-score="0" data-since="260603">The <em>sock</em> argument transfers ownership of the socket to the
-server created. To close the socket, call the server’s
-<a class="reference internal" href="asyncio-eventloop.html#asyncio.Server.close" title="asyncio.Server.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> method.</p>
+<p><em>sock</em> 인수는 소켓 소유권을 생성된 서버로 전송합니다. 소켓을 닫으려면 서버의 <code class="xref py py-meth docutils literal notranslate"><span class="pre">close`()</span></code> 메서드를 호출하십시오.</p>
 </div>
-<div class="versionchanged" data-msgid="1e182529aa10e8e6f5d2e488a52839fa49b54fbb" data-score="98" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>ssl_handshake_timeout</em> 와 <em>start_serving</em> 매개 변수를 추가했습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="f4791d6d3f87e9099c0734123ed4286556195e4e" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.10에서 변경: </span>Removed the <em>loop</em> parameter.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.10에서 변경: </span><em>loop</em> 매개 변수가 제거되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="5c130d6c4636a99c91ce181b99f610e3e194b0d6" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.11에서 변경: </span><em>ssl_shutdown_timeout</em> 매개 변수를 추가했습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="5776c5620f8b3aa99b1e84a3d898e1274f31f417" data-score="100" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.13에서 변경: </span><em>keep_alive</em> 매개 변수를 추가했습니다.</p>
 </div>
 </dd></dl>
@@ -207,22 +205,23 @@ server created. To close the socket, call the server’s
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio.open_unix_connection">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">open_unix_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_handshake_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_shutdown_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.open_unix_connection" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d142d8073d1e187eccaebac4a0eb0373f93eabf9" data-score="93" data-since="260603">유닉스 소켓 연결을 만들고 <code class="docutils literal notranslate"><span class="pre">(reader,</span> <span class="pre">writer)</span></code> 쌍을 반환합니다.</p>
-<p data-msgid="4a38afe31a385938fae5716eb5a95964e19db7ef" data-score="85" data-since="260603"><a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a>과 비슷하지만, 유닉스 소켓에서 작동합니다.</p>
-<p data-msgid="a08276b81900b17f46d4de2eeb4a981e90c59a41" data-score="98" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_connection" title="asyncio.loop.create_unix_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_connection()</span></code></a>의 설명서도 참조하십시오.</p>
+<dd><p>유닉스 소켓 연결을 만들고 <code class="docutils literal notranslate"><span class="pre">(reader,</span> <span class="pre">writer)</span></code> 쌍을 반환합니다.</p>
+<p><a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a>과 비슷하지만, 유닉스 소켓에서 작동합니다.</p>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_connection" title="asyncio.loop.create_unix_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_connection()</span></code></a>의 설명서도 참조하십시오.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="4c32d63af66ca85b9412985c4effece5d00be889" data-score="0" data-since="260603">The <em>sock</em> argument transfers ownership of the socket to the
-<a class="reference internal" href="#asyncio.StreamWriter" title="asyncio.StreamWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter</span></code></a> created. To close the socket, call its
-<a class="reference internal" href="#asyncio.StreamWriter.close" title="asyncio.StreamWriter.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> method.</p>
+<p><em>sock</em> 인수는 소켓의 소유권을 생성된 <code class="xref py py-class docutils literal notranslate"><span class="pre">StreamWriter`로</span> <span class="pre">전송합니다.</span> <span class="pre">소켓을</span> <span class="pre">닫으려면,</span> <span class="pre">해당</span> <span class="pre">:meth:`~asyncio.StreamWriter.close</span></code> 메서드를 호출하십시오.</p>
 </div>
-<div class="versionchanged" data-msgid="7837f685240674cd30b936465519fadf77c067ab" data-score="99" data-since="260603">
+<div class="availability docutils container">
+<p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
+</div>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>ssl_handshake_timeout</em> 매개 변수를 추가했습니다. <em>path</em> 매개 변수는 이제 <a class="reference internal" href="../glossary.html#term-path-like-object"><span class="xref std std-term">경로류 객체</span></a>가 될 수 있습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="f4791d6d3f87e9099c0734123ed4286556195e4e" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.10에서 변경: </span>Removed the <em>loop</em> parameter.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.10에서 변경: </span><em>loop</em> 매개 변수가 제거되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="5c130d6c4636a99c91ce181b99f610e3e194b0d6" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.11에서 변경: </span><em>ssl_shutdown_timeout</em> 매개 변수를 추가했습니다.</p>
 </div>
 </dd></dl>
@@ -230,84 +229,76 @@ server created. To close the socket, call the server’s
 <dl class="py function">
 <dt class="sig sig-object py" id="asyncio.start_unix_server">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">start_unix_server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_connected_cb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_handshake_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_shutdown_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_serving</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cleanup_socket</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.start_unix_server" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="56553e7371cfcbc8672dacd0494a328944ecefe0" data-score="100" data-since="260603">유닉스 소켓 서버를 시작합니다.</p>
-<p data-msgid="a6a8897c73d3b4495291526a62adfa83a956e057" data-score="87" data-since="260603"><a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>와 비슷하지만, 유닉스 소켓에서 작동합니다.</p>
-<p data-msgid="6ebb0eb0f1fdb5e7fd0a7ea17d5484b8c6f00834" data-score="0" data-since="260603">If <em>cleanup_socket</em> is true then the Unix socket will automatically
-be removed from the filesystem when the server is closed, unless the
-socket has been replaced after the server has been created.</p>
-<p data-msgid="71719ef78972443889b917a0ab6050e96883c936" data-score="98" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_server" title="asyncio.loop.create_unix_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_server()</span></code></a>의 설명서도 참조하십시오.</p>
+<dd><p>유닉스 소켓 서버를 시작합니다.</p>
+<p><a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>와 비슷하지만, 유닉스 소켓에서 작동합니다.</p>
+<p><em>cleanup_socket</em> 이 true인 경우, 서버가 닫힐 때 Unix 소켓은 파일 시스템에서 자동으로 제거됩니다. 단, 서버가 생성된 후에 소켓이 다시 설정된 경우는 제외합니다.</p>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_unix_server" title="asyncio.loop.create_unix_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_unix_server()</span></code></a>의 설명서도 참조하십시오.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="842cc27bdbcdb1cdbffa1a4efe7e24f613e5ffe3" data-score="0" data-since="260603">The <em>sock</em> argument transfers ownership of the socket to the
-server created. To close the socket, call the server’s
-<a class="reference internal" href="asyncio-eventloop.html#asyncio.Server.close" title="asyncio.Server.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> method.</p>
+<p><em>sock</em> 인수는 소켓 소유권을 생성된 서버로 전송합니다. 소켓을 닫으려면 서버의 <code class="xref py py-meth docutils literal notranslate"><span class="pre">close`()</span></code> 메서드를 호출하십시오.</p>
 </div>
-<div class="versionchanged" data-msgid="7e66c7caa5ec23429438f6daf9c6fa7ac57f2e7c" data-score="98" data-since="260603">
+<div class="availability docutils container">
+<p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
+</div>
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><em>ssl_handshake_timeout</em> 와 <em>start_serving</em> 매개 변수를 추가했습니다. <em>path</em> 매개 변수는 이제 <a class="reference internal" href="../glossary.html#term-path-like-object"><span class="xref std std-term">경로류 객체</span></a>가 될 수 있습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="f4791d6d3f87e9099c0734123ed4286556195e4e" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.10에서 변경: </span>Removed the <em>loop</em> parameter.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.10에서 변경: </span><em>loop</em> 매개 변수가 제거되었습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="5c130d6c4636a99c91ce181b99f610e3e194b0d6" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.11에서 변경: </span><em>ssl_shutdown_timeout</em> 매개 변수를 추가했습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="98ea7f37ee79ae72b10232269a2f7ac687310893" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.13에서 변경: </span>Added the <em>cleanup_socket</em> parameter.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">버전 3.13에서 변경: </span><em>cleanup_socket</em> 매개 변수가 추가되었습니다.</p>
 </div>
 </dd></dl>
 
 <section id="streamreader">
-<h2 data-msgid="cab8594aca23f91dcc0728ca91d9d20dcd26b690" data-score="100" data-since="260603">StreamReader<a class="headerlink" href="#streamreader" title="Link to this heading">¶</a></h2>
+<h2>StreamReader<a class="headerlink" href="#streamreader" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.StreamReader">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">StreamReader</span></span><a class="headerlink" href="#asyncio.StreamReader" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="fd23b079556757d9de9fcbbf257298371d3cb3cf" data-score="97" data-since="260603">IO 스트림에서 데이터를 읽는 API를 제공하는 판독기(reader) 객체를 나타냅니다. <a class="reference internal" href="../glossary.html#term-asynchronous-iterable"><span class="xref std std-term">비동기 이터러블</span></a>로서, 객체는 <a class="reference internal" href="../reference/compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code></a> 문을 지원합니다.</p>
-<p data-msgid="ba210fb3ee3de0f634645135129a87419be45cd1" data-score="95" data-since="260603"><em>StreamReader</em> 객체를 직접 인스턴스로 만드는 것은 권장되지 않습니다. 대신 <a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a>과 <a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>를 사용하십시오.</p>
+<dd><p>IO 스트림에서 데이터를 읽는 API를 제공하는 판독기(reader) 객체를 나타냅니다. <a class="reference internal" href="../glossary.html#term-asynchronous-iterable"><span class="xref std std-term">비동기 이터러블</span></a>로서, 객체는 <a class="reference internal" href="../reference/compound_stmts.html#async-for"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code></a> 문을 지원합니다.</p>
+<p><em>StreamReader</em> 객체를 직접 인스턴스로 만드는 것은 권장되지 않습니다. 대신 <a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a>과 <a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>를 사용하십시오.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamReader.feed_eof">
 <span class="sig-name descname"><span class="pre">feed_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamReader.feed_eof" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1de12bab373eb7c534f607f6cc09d121699a9126" data-score="0" data-since="260603">Acknowledge the EOF.</p>
+<dd><p>EOF를 확인합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamReader.read">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamReader.read" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="fdaf58044daa2ec2e85607ce70fff40ebf30ece6" data-score="0" data-since="260603">Read up to <em>n</em> bytes from the stream.</p>
-<p data-msgid="8f481be716c2d24cdf3f1f11ef6c25f29459b674" data-score="85" data-since="260603"><em>n</em>이 제공되지 않거나 <code class="docutils literal notranslate"><span class="pre">-1</span></code>로 설정되면, EOF까지 읽은 다음, 모든 읽어들인 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>를 반환합니다. EOF를 수신했고 내부 버퍼가 비어 있으면, 빈 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 객체를 반환합니다.</p>
-<p data-msgid="d10720979dc97ec33a1f591d9e5e11e1eeb5acfe" data-score="0" data-since="260603">If <em>n</em> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, return an empty <code class="docutils literal notranslate"><span class="pre">bytes</span></code> object immediately.</p>
-<p data-msgid="203367dd9aa0704800d0bf0191f80773fe9931fc" data-score="0" data-since="260603">If <em>n</em> is positive, return at most <em>n</em> available <code class="docutils literal notranslate"><span class="pre">bytes</span></code>
-as soon as at least 1 byte is available in the internal buffer.
-If EOF is received before any byte is read, return an empty
-<code class="docutils literal notranslate"><span class="pre">bytes</span></code> object.</p>
+<dd><p>스트림에서 최대 <em>n</em> 바이트까지 읽습니다.</p>
+<p><em>n</em>이 제공되지 않거나 <code class="docutils literal notranslate"><span class="pre">-1</span></code>로 설정되면, EOF까지 읽은 다음, 모든 읽어들인 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>를 반환합니다. EOF를 수신했고 내부 버퍼가 비어 있으면, 빈 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 객체를 반환합니다.</p>
+<p><em>n</em> 이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 즉시 빈 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 객체를 반환합니다.</p>
+<p><em>n</em> 이 양수이면, 내부 버퍼에 최소 1바이트가 사용 가능해지는 즉시 최대 <em>n</em> 개의 사용 가능한 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 를 반환합니다. 아무 바이트도 읽기 전에 EOF가 수신되면 빈 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamReader.readline">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">readline</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamReader.readline" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="8ad9bc4f5973e00231fb1b97b16a69392f76f5e2" data-score="98" data-since="260603">한 줄을 읽습니다. 여기서 “줄”은 <code class="docutils literal notranslate"><span class="pre">\n</span></code>로 끝나는 바이트의 시퀀스입니다.</p>
-<p data-msgid="87cc4789be380c85dd4a2c526272456a68a656fd" data-score="95" data-since="260603">EOF를 수신했고, <code class="docutils literal notranslate"><span class="pre">\n</span></code>를 찾을 수 없으면, 이 메서드는 부분적으로 읽은 데이터를 반환합니다.</p>
-<p data-msgid="9cf9ef3e24df960639a7d1dbf918dcbaeb7b9f59" data-score="96" data-since="260603">EOF를 수신했고, 내부 버퍼가 비어 있으면 빈 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 객체를 반환합니다.</p>
+<dd><p>한 줄을 읽습니다. 여기서 “줄”은 <code class="docutils literal notranslate"><span class="pre">\n</span></code>로 끝나는 바이트의 시퀀스입니다.</p>
+<p>EOF를 수신했고, <code class="docutils literal notranslate"><span class="pre">\n</span></code>를 찾을 수 없으면, 이 메서드는 부분적으로 읽은 데이터를 반환합니다.</p>
+<p>EOF를 수신했고, 내부 버퍼가 비어 있으면 빈 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamReader.readexactly">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">readexactly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamReader.readexactly" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="297df55c1a9518051ecd2c194d148d6798387052" data-score="100" data-since="260603">정확히 <em>n</em> 바이트를 읽습니다.</p>
-<p data-msgid="7d6d0bf53bdf8b8533d142c930b75571eab7c550" data-score="95" data-since="260603"><em>n</em> 바이트를 읽기 전에 EOF에 도달하면, <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError" title="asyncio.IncompleteReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">IncompleteReadError</span></code></a>를 일으킵니다. 부분적으로 읽은 데이터를 가져오려면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError.partial" title="asyncio.IncompleteReadError.partial"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IncompleteReadError.partial</span></code></a> 어트리뷰트를 사용하십시오.</p>
+<dd><p>정확히 <em>n</em> 바이트를 읽습니다.</p>
+<p><em>n</em> 바이트를 읽기 전에 EOF에 도달하면, <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError" title="asyncio.IncompleteReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">IncompleteReadError</span></code></a>를 일으킵니다. 부분적으로 읽은 데이터를 가져오려면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError.partial" title="asyncio.IncompleteReadError.partial"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IncompleteReadError.partial</span></code></a> 어트리뷰트를 사용하십시오.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamReader.readuntil">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">readuntil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">separator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b'\n'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamReader.readuntil" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d09878d22dff360d7633417033ef9f7334546c3d" data-score="97" data-since="260603"><em>separator</em>가 발견될 때까지 스트림에서 데이터를 읽습니다.</p>
-<p data-msgid="c6110a82223307cc8967bdb9b6a267ed5e823067" data-score="89" data-since="260603">성공하면, 데이터와 separator가 내부 버퍼에서 제거됩니다 (소비됩니다). 반환된 데이터에는 끝에 separator가 포함됩니다.</p>
-<p data-msgid="6e60a64fb14cb620359c53935e6fd1ae4c2db963" data-score="95" data-since="260603">읽은 데이터의 양이 구성된 스트림 제한을 초과하면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.LimitOverrunError" title="asyncio.LimitOverrunError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LimitOverrunError</span></code></a> 예외가 발생하고, 데이터는 내부 버퍼에 그대로 남아 있으며 다시 읽을 수 있습니다.</p>
-<p data-msgid="7866a9499273b99c7cf6cc20de7a0f1cfcfe12ff" data-score="99" data-since="260603">완전한 separator가 발견되기 전에 EOF에 도달하면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError" title="asyncio.IncompleteReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">IncompleteReadError</span></code></a> 예외가 발생하고, 내부 버퍼가 재설정됩니다. <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError.partial" title="asyncio.IncompleteReadError.partial"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IncompleteReadError.partial</span></code></a> 어트리뷰트에는 separator 일부가 포함될 수 있습니다.</p>
-<p data-msgid="78692f2bd455845b052b76e2b55acf113169b10f" data-score="0" data-since="260603">The <em>separator</em> may also be a tuple of separators. In this
-case the return value will be the shortest possible that has any
-separator as the suffix. For the purposes of <a class="reference internal" href="asyncio-exceptions.html#asyncio.LimitOverrunError" title="asyncio.LimitOverrunError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LimitOverrunError</span></code></a>,
-the shortest possible separator is considered to be the one that
-matched.</p>
+<dd><p><em>separator</em>가 발견될 때까지 스트림에서 데이터를 읽습니다.</p>
+<p>성공하면, 데이터와 separator가 내부 버퍼에서 제거됩니다 (소비됩니다). 반환된 데이터에는 끝에 separator가 포함됩니다.</p>
+<p>읽은 데이터의 양이 구성된 스트림 제한을 초과하면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.LimitOverrunError" title="asyncio.LimitOverrunError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LimitOverrunError</span></code></a> 예외가 발생하고, 데이터는 내부 버퍼에 그대로 남아 있으며 다시 읽을 수 있습니다.</p>
+<p>완전한 separator가 발견되기 전에 EOF에 도달하면 <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError" title="asyncio.IncompleteReadError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">IncompleteReadError</span></code></a> 예외가 발생하고, 내부 버퍼가 재설정됩니다. <a class="reference internal" href="asyncio-exceptions.html#asyncio.IncompleteReadError.partial" title="asyncio.IncompleteReadError.partial"><code class="xref py py-attr docutils literal notranslate"><span class="pre">IncompleteReadError.partial</span></code></a> 어트리뷰트에는 separator 일부가 포함될 수 있습니다.</p>
+<p><em>separator</em> 는 구분자들의 튜플일 수도 있습니다. 이 경우 반환 값은 접미사로 어떤 구분자라도 포함할 수 있는 가장 짧은 값이 됩니다. <a class="reference internal" href="asyncio-exceptions.html#asyncio.LimitOverrunError" title="asyncio.LimitOverrunError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LimitOverrunError</span></code></a> 의 목적을 위해, 가장 짧은 구분자는 일치하는 것으로 간주됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.2.</span></p>
 </div>
@@ -319,27 +310,26 @@ matched.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamReader.at_eof">
 <span class="sig-name descname"><span class="pre">at_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamReader.at_eof" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ba3528faca1952f586559a8477f97f7ae0a74660" data-score="89" data-since="260603">버퍼가 비어 있고 <a class="reference internal" href="#asyncio.StreamReader.feed_eof" title="asyncio.StreamReader.feed_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">feed_eof()</span></code></a>가 호출되었으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
+<dd><p>버퍼가 비어 있고 <a class="reference internal" href="#asyncio.StreamReader.feed_eof" title="asyncio.StreamReader.feed_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">feed_eof()</span></code></a>가 호출되었으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
 </dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="streamwriter">
-<h2 data-msgid="232a89f73446348f72f684c82d07ed788b848a3a" data-score="100" data-since="260603">StreamWriter<a class="headerlink" href="#streamwriter" title="Link to this heading">¶</a></h2>
+<h2>StreamWriter<a class="headerlink" href="#streamwriter" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asyncio.StreamWriter">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asyncio.</span></span><span class="sig-name descname"><span class="pre">StreamWriter</span></span><a class="headerlink" href="#asyncio.StreamWriter" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6cfc34832a11bb051619fc9790f9df0953623075" data-score="94" data-since="260603">IO 스트림에 데이터를 쓰는 API를 제공하는 기록기(writer) 객체를 나타냅니다.</p>
-<p data-msgid="ed88e97a5c69c4f8c800bb789fdce19bbfe62f8f" data-score="95" data-since="260603"><em>StreamWriter</em> 객체를 직접 인스턴스로 만드는 것은 권장되지 않습니다. 대신 <a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a>과 <a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>를 사용하십시오.</p>
+<dd><p>IO 스트림에 데이터를 쓰는 API를 제공하는 기록기(writer) 객체를 나타냅니다.</p>
+<p><em>StreamWriter</em> 객체를 직접 인스턴스로 만드는 것은 권장되지 않습니다. 대신 <a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a>과 <a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>를 사용하십시오.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.write">
 <span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.write" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="7824d31774c90798754041347103cb03be88c67d" data-score="94" data-since="260603">이 메서드는 하부 소켓에 <em>data</em>를 즉시 기록하려고 시도합니다. 실패하면, data는 보낼 수 있을 때까지 내부 쓰기 버퍼에 계류됩니다.</p>
-<p data-msgid="4373e648a61f2048de7330c21d5344590bd3274e" data-score="0" data-since="260603">The <em>data</em> buffer should be a bytes, bytearray, or C-contiguous one-dimensional
-memoryview object.</p>
-<p data-msgid="e6af7d95a2bc30b61d3cef6c4f61adb08b14ac4d" data-score="95" data-since="260603">이 메서드는 <code class="docutils literal notranslate"><span class="pre">drain()</span></code> 메서드와 함께 사용해야 합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="574470a5427c1fe0ce4504903b8fb8fe3c12feec" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<dd><p>이 메서드는 하부 소켓에 <em>data</em>를 즉시 기록하려고 시도합니다. 실패하면, data는 보낼 수 있을 때까지 내부 쓰기 버퍼에 계류됩니다.</p>
+<p><em>data</em> 버퍼는 bytes, bytearray, 또는 C-contiguous한 1차원 메모리 뷰 객체여야 합니다.</p>
+<p>이 메서드는 <code class="docutils literal notranslate"><span class="pre">drain()</span></code> 메서드와 함께 사용해야 합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -348,9 +338,9 @@ memoryview object.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.writelines">
 <span class="sig-name descname"><span class="pre">writelines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.writelines" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="cc2a40ae8205a9d07f2b34d726a06bef532b3722" data-score="95" data-since="260603">이 메서드는 하부 소켓에 바이트열의 리스트(또는 임의의 이터러블)를 즉시 기록합니다. 실패하면, data는 보낼 수 있을 때까지 내부 쓰기 버퍼에 계류됩니다.</p>
-<p data-msgid="e6af7d95a2bc30b61d3cef6c4f61adb08b14ac4d" data-score="95" data-since="260603">이 메서드는 <code class="docutils literal notranslate"><span class="pre">drain()</span></code> 메서드와 함께 사용해야 합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="acac5019f1bea20438a818d4c162ae39aa2672f5" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">stream</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+<dd><p>이 메서드는 하부 소켓에 바이트열의 리스트(또는 임의의 이터러블)를 즉시 기록합니다. 실패하면, data는 보낼 수 있을 때까지 내부 쓰기 버퍼에 계류됩니다.</p>
+<p>이 메서드는 <code class="docutils literal notranslate"><span class="pre">drain()</span></code> 메서드와 함께 사용해야 합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">stream</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -359,9 +349,9 @@ memoryview object.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.close">
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.close" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b29ab645cf2448985ba39cd190f32ec53a7459b5" data-score="100" data-since="260603">이 메서드는 스트림과 하부 소켓을 닫습니다.</p>
-<p data-msgid="65555e0038b6da7424d62d148c6ebe6782737808" data-score="96" data-since="260603">이 메서드는 필수는 아니지만 <code class="docutils literal notranslate"><span class="pre">wait_closed()</span></code> 메서드와 함께 사용해야 합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="5483700b615de41bddcd761989524f0e84370654" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<dd><p>이 메서드는 스트림과 하부 소켓을 닫습니다.</p>
+<p>이 메서드는 필수는 아니지만 <code class="docutils literal notranslate"><span class="pre">wait_closed()</span></code> 메서드와 함께 사용해야 합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">wait_closed</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -370,58 +360,53 @@ memoryview object.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.can_write_eof">
 <span class="sig-name descname"><span class="pre">can_write_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.can_write_eof" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="3a14e96f1d678c8c47549a5b58669b1774e5364f" data-score="98" data-since="260603">하부 트랜스포트가 <a class="reference internal" href="#asyncio.StreamWriter.write_eof" title="asyncio.StreamWriter.write_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_eof()</span></code></a> 메서드를 지원하면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환하고, 그렇지 않으면 <code class="docutils literal notranslate"><span class="pre">False</span></code>를 반환합니다.</p>
+<dd><p>하부 트랜스포트가 <a class="reference internal" href="#asyncio.StreamWriter.write_eof" title="asyncio.StreamWriter.write_eof"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_eof()</span></code></a> 메서드를 지원하면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환하고, 그렇지 않으면 <code class="docutils literal notranslate"><span class="pre">False</span></code>를 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.write_eof">
 <span class="sig-name descname"><span class="pre">write_eof</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.write_eof" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6287d3207f53bcfa352b32dcde21d6eef690aa0f" data-score="95" data-since="260603">버퍼링 된 쓰기 데이터가 플러시 된 후에 스트림의 쓰기 끝을 닫습니다.</p>
+<dd><p>버퍼링 된 쓰기 데이터가 플러시 된 후에 스트림의 쓰기 끝을 닫습니다.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.transport">
 <span class="sig-name descname"><span class="pre">transport</span></span><a class="headerlink" href="#asyncio.StreamWriter.transport" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="895c18526b50fdd2877b39606b264683d24a13b3" data-score="100" data-since="260603">하부 asyncio 트랜스포트를 돌려줍니다.</p>
+<dd><p>하부 asyncio 트랜스포트를 돌려줍니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.get_extra_info">
 <span class="sig-name descname"><span class="pre">get_extra_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.get_extra_info" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="947f53dbba7fa9ce18055fdb4981bfa94fac37a8" data-score="93" data-since="260603">선택적 트랜스포트 정보에 액세스합니다; 자세한 내용은 <a class="reference internal" href="asyncio-protocol.html#asyncio.BaseTransport.get_extra_info" title="asyncio.BaseTransport.get_extra_info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseTransport.get_extra_info()</span></code></a>를 참조하십시오.</p>
+<dd><p>선택적 트랜스포트 정보에 액세스합니다; 자세한 내용은 <a class="reference internal" href="asyncio-protocol.html#asyncio.BaseTransport.get_extra_info" title="asyncio.BaseTransport.get_extra_info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseTransport.get_extra_info()</span></code></a>를 참조하십시오.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.drain">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">drain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.drain" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="98b3b4e79db5935599595b53351391c0889b6a07" data-score="97" data-since="260603">스트림에 기록을 다시 시작하는 것이 적절할 때까지 기다립니다. 예:</p>
-<div class="highlight-python3 notranslate" data-msgid="9439fe2f41494b688fd55d26bc533f8027e4b942" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<dd><p>스트림에 기록을 다시 시작하는 것이 적절할 때까지 기다립니다. 예:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="k">await</span> <span class="n">writer</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="f3bec17927018ce2b1f22e448a72165f352cd18e" data-score="82" data-since="260603">이것은 하부 IO 쓰기 버퍼와 상호 작용하는 흐름 제어 메서드입니다. 버퍼의 크기가 높은 수위에 도달하면, 버퍼 크기가 낮은 수위까지 내려가서 쓰기가 다시 시작될 수 있을 때까지 <em>drain()</em>은 블록합니다. 기다릴 것이 없으면, <a class="reference internal" href="#asyncio.StreamWriter.drain" title="asyncio.StreamWriter.drain"><code class="xref py py-meth docutils literal notranslate"><span class="pre">drain()</span></code></a>은 즉시 반환합니다.</p>
+<p>이것은 하부 IO 쓰기 버퍼와 상호 작용하는 흐름 제어 메서드입니다. 버퍼의 크기가 높은 수위에 도달하면, 버퍼 크기가 낮은 수위까지 내려가서 쓰기가 다시 시작될 수 있을 때까지 <em>drain()</em>은 블록합니다. 기다릴 것이 없으면, <a class="reference internal" href="#asyncio.StreamWriter.drain" title="asyncio.StreamWriter.drain"><code class="xref py py-meth docutils literal notranslate"><span class="pre">drain()</span></code></a>은 즉시 반환합니다.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.start_tls">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_tls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sslcontext</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_hostname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_handshake_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssl_shutdown_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.start_tls" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="4310d057652965595b9aeb9d6c8c226351f34f26" data-score="0" data-since="260603">Upgrade an existing stream-based connection to TLS.</p>
-<p data-msgid="381c775599d6e4185d4410725809e360928357cd" data-score="0" data-since="260603">Parameters:</p>
+<dd><p>기존 스트림 기반 연결을 TLS로 업그레이드합니다.</p>
+<p>매개변수:</p>
 <ul class="simple">
-<li><p data-msgid="26359bea46699384bf09d0d4586d2444b36305a3" data-score="0" data-since="260603"><em>sslcontext</em>: a configured instance of <a class="reference internal" href="ssl.html#ssl.SSLContext" title="ssl.SSLContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSLContext</span></code></a>.</p></li>
-<li><p data-msgid="acb00c72920b1eb1889230a2e859ad055f1c81ff" data-score="0" data-since="260603"><em>server_hostname</em>: sets or overrides the host name that the target
-server’s certificate will be matched against.</p></li>
-<li><p data-msgid="8e109c7301e701a985b796ca00fa1a1aa613806d" data-score="0" data-since="260603"><em>ssl_handshake_timeout</em> is the time in seconds to wait for the TLS
-handshake to complete before aborting the connection.  <code class="docutils literal notranslate"><span class="pre">60.0</span></code> seconds
-if <code class="docutils literal notranslate"><span class="pre">None</span></code> (default).</p></li>
-<li><p data-msgid="0ebe10b0078768c333a8d418f5a35d0f99c63383" data-score="0" data-since="260603"><em>ssl_shutdown_timeout</em> is the time in seconds to wait for the SSL shutdown
-to complete before aborting the connection. <code class="docutils literal notranslate"><span class="pre">30.0</span></code> seconds if <code class="docutils literal notranslate"><span class="pre">None</span></code>
-(default).</p></li>
+<li><p><em>sslcontext</em>: :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>~ssl.SSLContext``로 구성된 인스턴스입니다.</p></li>
+<li><p><em>server_hostname</em>: 대상 서버의 인증서가 일치될 호스트 이름을 설정하거나 대체합니다.</p></li>
+<li><p><em>ssl_handshake_timeout</em> 은 연결을 중단하기 전에 TLS 핸드 셰이크가 완료될 때까지 대기하는 시간(초)입니다. <code class="docutils literal notranslate"><span class="pre">None</span></code> (기본값)이면 <code class="docutils literal notranslate"><span class="pre">60.0</span></code> 초가 사용됩니다.</p></li>
+<li><p><em>ssl_shutdown_timeout</em> 은 연결을 중단하기 전에 SSL 종료가 완료될 때까지 대기하는 시간(초)입니다. <code class="docutils literal notranslate"><span class="pre">None</span></code> (기본값)이면 <code class="docutils literal notranslate"><span class="pre">30.0</span></code> 초가 사용됩니다.</p></li>
 </ul>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.11.</span></p>
 </div>
-<div class="versionchanged" data-msgid="5c130d6c4636a99c91ce181b99f610e3e194b0d6" data-score="97" data-since="260603">
+<div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.12에서 변경: </span><em>ssl_shutdown_timeout</em> 매개 변수를 추가했습니다.</p>
 </div>
 </dd></dl>
@@ -429,7 +414,7 @@ to complete before aborting the connection. <code class="docutils literal notran
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.is_closing">
 <span class="sig-name descname"><span class="pre">is_closing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.is_closing" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="02f366b682766094e19c73e3db6b601fb900d0dd" data-score="97" data-since="260603">스트림이 닫혔거나 닫히고 있으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
+<dd><p>스트림이 닫혔거나 닫히고 있으면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
@@ -438,8 +423,8 @@ to complete before aborting the connection. <code class="docutils literal notran
 <dl class="py method">
 <dt class="sig sig-object py" id="asyncio.StreamWriter.wait_closed">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wait_closed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncio.StreamWriter.wait_closed" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ec111d4c42deb0f141e5bb12ebeed4601999588c" data-score="100" data-since="260603">스트림이 닫힐 때까지 기다립니다.</p>
-<p data-msgid="fffeaf396b39402f74260655a3eb42547f845355" data-score="58" data-since="260603">가령 프로그램 종료 전에 모든 데이터가 플러시되었음을 확인하기위해, 하부 연결이 닫힐 때까지 기다리려면 <a class="reference internal" href="#asyncio.StreamWriter.close" title="asyncio.StreamWriter.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> 뒤에 호출해야 합니다.</p>
+<dd><p>스트림이 닫힐 때까지 기다립니다.</p>
+<p>가령 프로그램 종료 전에 모든 데이터가 플러시되었음을 확인하기위해, 하부 연결이 닫힐 때까지 기다리려면 <a class="reference internal" href="#asyncio.StreamWriter.close" title="asyncio.StreamWriter.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> 뒤에 호출해야 합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
@@ -449,11 +434,11 @@ to complete before aborting the connection. <code class="docutils literal notran
 
 </section>
 <section id="examples">
-<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="100" data-since="260603">예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<h2>예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
 <section id="tcp-echo-client-using-streams">
-<span id="asyncio-tcp-echo-client-streams"></span><h3 data-msgid="5ef15cad06042dc4a49f48eedea031e55b9ecf0c" data-score="100" data-since="260603">스트림을 사용하는 TCP 메아리 클라이언트<a class="headerlink" href="#tcp-echo-client-using-streams" title="Link to this heading">¶</a></h3>
-<p data-msgid="22e15f538d6595f525b1484fd8ba0928eb567024" data-score="96" data-since="260603"><a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.open_connection()</span></code></a> 함수를 사용하는 TCP 메아리 클라이언트:</p>
-<div class="highlight-python3 notranslate" data-msgid="43030be0fa197c6962f214c1cea71dfaa2a0df97" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-tcp-echo-client-streams"></span><h3>스트림을 사용하는 TCP 메아리 클라이언트<a class="headerlink" href="#tcp-echo-client-using-streams" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.open_connection()</span></code></a> 함수를 사용하는 TCP 메아리 클라이언트:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">tcp_echo_client</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
     <span class="n">reader</span><span class="p">,</span> <span class="n">writer</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">open_connection</span><span class="p">(</span>
@@ -475,13 +460,13 @@ to complete before aborting the connection. <code class="docutils literal notran
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="8cc43ea4cd07f18258198d087ef5c5c2af5909dd" data-score="100" data-since="260603"><a class="reference internal" href="asyncio-protocol.html#asyncio-example-tcp-echo-client-protocol"><span class="std std-ref">TCP 메아리 클라이언트 프로토콜</span></a> 예제는 저수준 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-protocol.html#asyncio-example-tcp-echo-client-protocol"><span class="std std-ref">TCP 메아리 클라이언트 프로토콜</span></a> 예제는 저수준 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용합니다.</p>
 </div>
 </section>
 <section id="tcp-echo-server-using-streams">
-<span id="asyncio-tcp-echo-server-streams"></span><h3 data-msgid="2c08259ebc5b31cf20f523f0ca4fc480ddcb6886" data-score="100" data-since="260603">스트림을 사용하는 TCP 메아리 서버<a class="headerlink" href="#tcp-echo-server-using-streams" title="Link to this heading">¶</a></h3>
-<p data-msgid="251b735b15b446ed3b4652b80592b8757493b529" data-score="84" data-since="260603"><a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.start_server()</span></code></a> 함수를 사용하는 TCP 메아리 서버:</p>
-<div class="highlight-python3 notranslate" data-msgid="d3313a478d91c02634d32dcff14061c7a5c15ad7" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-tcp-echo-server-streams"></span><h3>스트림을 사용하는 TCP 메아리 서버<a class="headerlink" href="#tcp-echo-server-using-streams" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="#asyncio.start_server" title="asyncio.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.start_server()</span></code></a> 함수를 사용하는 TCP 메아리 서버:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handle_echo</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
@@ -513,13 +498,13 @@ to complete before aborting the connection. <code class="docutils literal notran
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="2e095597a5a5c20f131c9a732270f2b9a8f1d585" data-score="97" data-since="260603"><a class="reference internal" href="asyncio-protocol.html#asyncio-example-tcp-echo-server-protocol"><span class="std std-ref">TCP 메아리 서버 프로토콜</span></a> 예제는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a> 메서드를 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-protocol.html#asyncio-example-tcp-echo-server-protocol"><span class="std std-ref">TCP 메아리 서버 프로토콜</span></a> 예제는 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_server" title="asyncio.loop.create_server"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_server()</span></code></a> 메서드를 사용합니다.</p>
 </div>
 </section>
 <section id="get-http-headers">
-<h3 data-msgid="5e3619ade03466db61cd043463581c6cfbb2ff29" data-score="100" data-since="260603">HTTP 헤더 가져오기<a class="headerlink" href="#get-http-headers" title="Link to this heading">¶</a></h3>
-<p data-msgid="43295a45b97723ce28662ec7f31d60491bdc272d" data-score="92" data-since="260603">명령 줄로 전달된 URL의 HTTP 헤더를 조회하는 간단한 예제:</p>
-<div class="highlight-python3 notranslate" data-msgid="e778451837fc38cd692392cdc4df85c55594b74b" data-score="97" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<h3>HTTP 헤더 가져오기<a class="headerlink" href="#get-http-headers" title="Link to this heading">¶</a></h3>
+<p>명령 줄로 전달된 URL의 HTTP 헤더를 조회하는 간단한 예제:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
@@ -556,19 +541,19 @@ to complete before aborting the connection. <code class="docutils literal notran
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">print_http_headers</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
 </pre></div>
 </div>
-<p data-msgid="f452cb1d477a893f93179bd9d7c538586830b0fb" data-score="100" data-since="260603">사용법:</p>
-<div class="highlight-python3 notranslate" data-msgid="f20b84c7ab581bcbcea0d0ebc20560c65f73c994" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">example</span><span class="o">.</span><span class="n">py</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">page</span><span class="o">.</span><span class="n">html</span>
+<p>사용법:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">example</span><span class="o">.</span><span class="n">py</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">page</span><span class="o">.</span><span class="n">html</span>
 </pre></div>
 </div>
-<p data-msgid="cdcb5c770123626aaf13d809c859aebeba448e90" data-score="75" data-since="260603">또는 HTTPS를 사용하면:</p>
-<div class="highlight-python3 notranslate" data-msgid="3bd0aaf0790d103db335bc203931ca9166f81ff0" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">example</span><span class="o">.</span><span class="n">py</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">page</span><span class="o">.</span><span class="n">html</span>
+<p>또는 HTTPS를 사용하면:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">example</span><span class="o">.</span><span class="n">py</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">page</span><span class="o">.</span><span class="n">html</span>
 </pre></div>
 </div>
 </section>
 <section id="register-an-open-socket-to-wait-for-data-using-streams">
-<span id="asyncio-example-create-connection-streams"></span><h3 data-msgid="e63339c20e691d44cfc9696ee457196f1582944e" data-score="100" data-since="260603">스트림을 사용하여 데이터를 기다리는 열린 소켓 등록<a class="headerlink" href="#register-an-open-socket-to-wait-for-data-using-streams" title="Link to this heading">¶</a></h3>
-<p data-msgid="1ed7f09ca952203190493a25a6c3afac5e96f8e7" data-score="85" data-since="260603"><a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a> 함수를 사용하여 소켓이 데이터를 수신할 때까지 기다리는 코루틴:</p>
-<div class="highlight-python3 notranslate" data-msgid="55dc485355df1a789429817b36e32edb2f760f94" data-score="67" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span id="asyncio-example-create-connection-streams"></span><h3>스트림을 사용하여 데이터를 기다리는 열린 소켓 등록<a class="headerlink" href="#register-an-open-socket-to-wait-for-data-using-streams" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="#asyncio.open_connection" title="asyncio.open_connection"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_connection()</span></code></a> 함수를 사용하여 소켓이 데이터를 수신할 때까지 기다리는 코루틴:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">wait_for_data</span><span class="p">():</span>
@@ -600,21 +585,13 @@ to complete before aborting the connection. <code class="docutils literal notran
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="6cbd57adf93d669f26288e34253017a04a10e9bc" data-score="100" data-since="260603"><a class="reference internal" href="asyncio-protocol.html#asyncio-example-create-connection"><span class="std std-ref">프로토콜을 사용하여 데이터를 기다리는 열린 소켓 등록</span></a> 예제는 저수준 프로토콜과 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용합니다.</p>
-<p data-msgid="0f36696ea028d29300800f9ffb3edee855061c18" data-score="98" data-since="260603"><a class="reference internal" href="asyncio-eventloop.html#asyncio-example-watch-fd"><span class="std std-ref">파일 기술자에서 읽기 이벤트를 관찰하기</span></a> 예제는 저수준 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.add_reader" title="asyncio.loop.add_reader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.add_reader()</span></code></a> 메서드를 사용하여 파일 기술자를 관찰합니다.</p>
+<p><a class="reference internal" href="asyncio-protocol.html#asyncio-example-create-connection"><span class="std std-ref">프로토콜을 사용하여 데이터를 기다리는 열린 소켓 등록</span></a> 예제는 저수준 프로토콜과 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.create_connection" title="asyncio.loop.create_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.create_connection()</span></code></a> 메서드를 사용합니다.</p>
+<p><a class="reference internal" href="asyncio-eventloop.html#asyncio-example-watch-fd"><span class="std std-ref">파일 기술자에서 읽기 이벤트를 관찰하기</span></a> 예제는 저수준 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.add_reader" title="asyncio.loop.add_reader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.add_reader()</span></code></a> 메서드를 사용하여 파일 기술자를 관찰합니다.</p>
 </div>
 </section>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="306220573b2dec748881abc2f6708654e81b0934" data-score="90" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="6816141193a0e3dc3b48a84b10bea2489b164992" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="681b5b5ae10b994e61d9fc53cf8a95498ff0df39" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="92d194342b619452081763477da579413c4ad438" data-score="100" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

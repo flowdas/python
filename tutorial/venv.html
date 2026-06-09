@@ -8,9 +8,11 @@
     <title>12. 가상 환경 및 패키지 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -110,35 +112,35 @@
             <article class="document">
                 
   <section id="virtual-environments-and-packages">
-<span id="tut-venv"></span><h1 data-msgid="281ed426598bfd4754e39ebc790149f81d48d9f0" data-score="100" data-since="260603"><span class="section-number">12. </span>가상 환경 및 패키지<a class="headerlink" href="#virtual-environments-and-packages" title="Link to this heading">¶</a></h1>
+<span id="tut-venv"></span><h1><span class="section-number">12. </span>가상 환경 및 패키지<a class="headerlink" href="#virtual-environments-and-packages" title="Link to this heading">¶</a></h1>
 <section id="introduction">
-<h2 data-msgid="2473e96bc614a911821242119918a241a41836d6" data-score="100" data-since="260603"><span class="section-number">12.1. </span>소개<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
-<p data-msgid="9b604902340e86deef2cd8c0a4d65a778321d250" data-score="70" data-since="260603">파이썬 응용 프로그램은 종종 표준 라이브러리의 일부로 제공되지 않는 패키지와 모듈을 사용합니다. 응용 프로그램에 특정 버전의 라이브러리가 필요할 수 있는데, 응용 프로그램에 특정 버그가 수정된 버전이 필요하거나, 라이브러리 인터페이스의 구식 버전을 사용하여 응용 프로그램을 작성할 수도 있기 때문입니다.</p>
-<p data-msgid="bc2d460c2e2f7c055027fb034c80d4ca30b7e0b0" data-score="66" data-since="260603">즉, 하나의 파이썬 설치가 모든 응용 프로그램의 요구 사항을 충족시키는 것이 불가능할 수도 있습니다. 응용 프로그램 A에 특정 모듈의 버전 1.0이 필요하지만, 응용 프로그램 B에 버전 2.0이 필요한 경우, 요구 사항이 충돌하고, 버전 1.0 또는 2.0을 설치하면 어느 한 응용 프로그램은 실행할 수 없게 됩니다.</p>
-<p data-msgid="5a7366b390b50b0f3438de5fc0ccd80493b46ba5" data-score="62" data-since="260603">이 문제에 대한 해결책은 <a class="reference internal" href="../glossary.html#term-virtual-environment"><span class="xref std std-term">가상 환경</span></a> 을 만드는 것입니다. 이 가상 환경은 특정 버전 파이썬 설치와 여러 추가 패키지를 포함하는 완비된 디렉터리 트리입니다.</p>
-<p data-msgid="4cf6584cd6260a78f1b228f4025cb4d2153a56fd" data-score="77" data-since="260603">서로 다른 응용 프로그램은 서로 다른 가상 환경을 사용할 수 있습니다. 앞서 본 상충하는 요구 사항의 예를 해결하기 위해, 응용 프로그램 A에는 버전 1.0이 설치된 자체 가상 환경이 있고, 응용 프로그램 B에는 버전 2.0이 있는 다른 가상 환경이 있을 수 있습니다. 응용 프로그램 B에서 라이브러리를 버전 3.0으로 업그레이드해야 하는 경우, 응용 프로그램 A의 환경에 영향을 미치지 않습니다.</p>
+<h2><span class="section-number">12.1. </span>소개<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>파이썬 응용 프로그램은 종종 표준 라이브러리의 일부로 제공되지 않는 패키지와 모듈을 사용합니다. 응용 프로그램에 특정 버전의 라이브러리가 필요할 수 있는데, 응용 프로그램에 특정 버그가 수정된 버전이 필요하거나, 라이브러리 인터페이스의 구식 버전을 사용하여 응용 프로그램을 작성할 수도 있기 때문입니다.</p>
+<p>즉, 하나의 파이썬 설치가 모든 응용 프로그램의 요구 사항을 충족시키는 것이 불가능할 수도 있습니다. 응용 프로그램 A에 특정 모듈의 버전 1.0이 필요하지만, 응용 프로그램 B에 버전 2.0이 필요한 경우, 요구 사항이 충돌하고, 버전 1.0 또는 2.0을 설치하면 어느 한 응용 프로그램은 실행할 수 없게 됩니다.</p>
+<p>이 문제에 대한 해결책은 <a class="reference internal" href="../glossary.html#term-virtual-environment"><span class="xref std std-term">가상 환경</span></a> 을 만드는 것입니다. 이 가상 환경은 특정 버전 파이썬 설치와 여러 추가 패키지를 포함하는 완비된 디렉터리 트리입니다.</p>
+<p>서로 다른 응용 프로그램은 서로 다른 가상 환경을 사용할 수 있습니다. 앞서 본 상충하는 요구 사항의 예를 해결하기 위해, 응용 프로그램 A에는 버전 1.0이 설치된 자체 가상 환경이 있고, 응용 프로그램 B에는 버전 2.0이 있는 다른 가상 환경이 있을 수 있습니다. 응용 프로그램 B에서 라이브러리를 버전 3.0으로 업그레이드해야 하는 경우, 응용 프로그램 A의 환경에 영향을 미치지 않습니다.</p>
 </section>
 <section id="creating-virtual-environments">
-<h2 data-msgid="3fc7a0610e596aa5981b6ddb2242f69b9d19f346" data-score="100" data-since="260603"><span class="section-number">12.2. </span>가상 환경 만들기<a class="headerlink" href="#creating-virtual-environments" title="Link to this heading">¶</a></h2>
-<p data-msgid="c2d3bb9a18a206f25a3d4c9b13257e5c18ee8d08" data-score="65" data-since="260603">가상 환경을 만들고 관리하는 데 사용되는 모듈은 <a class="reference internal" href="../library/venv.html#module-venv" title="venv: Creation of virtual environments."><code class="xref py py-mod docutils literal notranslate"><span class="pre">venv</span></code></a> 라고 합니다. <a class="reference internal" href="../library/venv.html#module-venv" title="venv: Creation of virtual environments."><code class="xref py py-mod docutils literal notranslate"><span class="pre">venv</span></code></a> 는 명령이 실행된 (<a class="reference internal" href="../using/cmdline.html#cmdoption-version"><code class="xref std std-option docutils literal notranslate"><span class="pre">--version</span></code></a> 옵션으로 확인할 수 있는) 파이썬 버전을 설치합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">python3.12</span></code>로 명령을 실행하면 버전 3.12가 설치됩니다.</p>
-<p data-msgid="7bf0af1b4f99a9cf3eccd4ff34d3a1660e47f448" data-score="90" data-since="260603">가상 환경을 만들려면, 원하는 디렉터리를 결정하고, <a class="reference internal" href="../library/venv.html#module-venv" title="venv: Creation of virtual environments."><code class="xref py py-mod docutils literal notranslate"><span class="pre">venv</span></code></a> 모듈을 스크립트로 실행하는데 디렉터리 경로를 명령행 인자로 전달합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="56af8a35cdfeb8715c02ba8330fbc3faa8305f08" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">tutorial</span><span class="o">-</span><span class="n">env</span>
+<h2><span class="section-number">12.2. </span>가상 환경 만들기<a class="headerlink" href="#creating-virtual-environments" title="Link to this heading">¶</a></h2>
+<p>가상 환경을 만들고 관리하는 데 사용되는 모듈은 <a class="reference internal" href="../library/venv.html#module-venv" title="venv: Creation of virtual environments."><code class="xref py py-mod docutils literal notranslate"><span class="pre">venv</span></code></a> 라고 합니다. <a class="reference internal" href="../library/venv.html#module-venv" title="venv: Creation of virtual environments."><code class="xref py py-mod docutils literal notranslate"><span class="pre">venv</span></code></a> 는 명령이 실행된 (<a class="reference internal" href="../using/cmdline.html#cmdoption-version"><code class="xref std std-option docutils literal notranslate"><span class="pre">--version</span></code></a> 옵션으로 확인할 수 있는) 파이썬 버전을 설치합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">python3.12</span></code>로 명령을 실행하면 버전 3.12가 설치됩니다.</p>
+<p>가상 환경을 만들려면, 원하는 디렉터리를 결정하고, <a class="reference internal" href="../library/venv.html#module-venv" title="venv: Creation of virtual environments."><code class="xref py py-mod docutils literal notranslate"><span class="pre">venv</span></code></a> 모듈을 스크립트로 실행하는데 디렉터리 경로를 명령행 인자로 전달합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">tutorial</span><span class="o">-</span><span class="n">env</span>
 </pre></div>
 </div>
-<p data-msgid="520b51ebfd2b83b1d9d9233db455621302a7d2e2" data-score="73" data-since="260603">존재하지 않는다면 <code class="docutils literal notranslate"><span class="pre">tutorial-env</span></code> 디렉터리를 만들고, 그 안에 파이썬 인터프리터의 사본과 다양한 지원 파일이 들어있는 디렉터리들을 만듭니다.</p>
-<p data-msgid="f8f5394037079c5641d0652640dfe1ab8524269c" data-score="57" data-since="260603">가상 환경의 일반적인 디렉터리 위치는 <code class="docutils literal notranslate"><span class="pre">.venv</span></code>입니다. 이 이름은 디렉터리가 보통 셸에서 숨겨져 있도록 하므로, 디렉터리가 존재하는 이유를 설명하는 이름을 제공하면서도 방해받지 않습니다. 또한 일부 툴링(tooling)이 지원하는 <code class="docutils literal notranslate"><span class="pre">.env</span></code> 환경 변수 정의 파일과의 충돌을 방지합니다.</p>
-<p data-msgid="284fff15cb3df259aac683c298f3c9dd6803de44" data-score="70" data-since="260603">가상 환경을 만들었으면, 가상 환경을 활성화할 수 있습니다.</p>
-<p data-msgid="bf923e3169c3c7f64e0f1c5d47cd59a3af90f1ea" data-score="0" data-since="260603">윈도우에서 이렇게 실행합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="8a385d5dd0e719d61b6029b744e8516476d5ee72" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">tutorial</span><span class="o">-</span><span class="n">env</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+<p>존재하지 않는다면 <code class="docutils literal notranslate"><span class="pre">tutorial-env</span></code> 디렉터리를 만들고, 그 안에 파이썬 인터프리터의 사본과 다양한 지원 파일이 들어있는 디렉터리들을 만듭니다.</p>
+<p>가상 환경의 일반적인 디렉터리 위치는 <code class="docutils literal notranslate"><span class="pre">.venv</span></code>입니다. 이 이름은 디렉터리가 보통 셸에서 숨겨져 있도록 하므로, 디렉터리가 존재하는 이유를 설명하는 이름을 제공하면서도 방해받지 않습니다. 또한 일부 툴링(tooling)이 지원하는 <code class="docutils literal notranslate"><span class="pre">.env</span></code> 환경 변수 정의 파일과의 충돌을 방지합니다.</p>
+<p>가상 환경을 만들었으면, 가상 환경을 활성화할 수 있습니다.</p>
+<p>윈도우에서 이렇게 실행합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">tutorial</span><span class="o">-</span><span class="n">env</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
 </pre></div>
 </div>
-<p data-msgid="e0a001ff323ead7e083781f3d8b772fea812ff12" data-score="59" data-since="260603">Unix 또는 MacOS에서 이렇게 실행합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="52e7768f61907e856b242cc794dd296071281244" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">tutorial</span><span class="o">-</span><span class="n">env</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<p>Unix 또는 MacOS에서 이렇게 실행합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">tutorial</span><span class="o">-</span><span class="n">env</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
 </pre></div>
 </div>
-<p data-msgid="10afbc6d09aa6a18b483a7ec3d593fdd69f51fb7" data-score="88" data-since="260603">(이 스크립트는 bash 셸을 위해 작성된 것으로, <strong class="program">csh</strong> 또는 <strong class="program">fish</strong> 셸을 사용하는 경우에는, 대신 <code class="docutils literal notranslate"><span class="pre">activate.csh</span></code> 와 <code class="docutils literal notranslate"><span class="pre">activate.fish</span></code> 스크립트를 사용해야 합니다.)</p>
-<p data-msgid="6a20397e67bce8d3199dde9292879d158ef9e48d" data-score="46" data-since="260603">가상 환경을 활성화하면, 셸의 프롬프트가 변경되어 사용 중인 가상 환경을 보여주고, 환경을 수정하여 <code class="docutils literal notranslate"><span class="pre">python</span></code> 을 실행하면 특정 버전의 파이썬이 실행되도록 합니다. 예를 들어:</p>
-<div class="highlight-console notranslate" data-msgid="9e3d7c65f8ec2da5398c6f63e3c3f11caca381f3" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>~/envs/tutorial-env/bin/activate
+<p>(이 스크립트는 bash 셸을 위해 작성된 것으로, <strong class="program">csh</strong> 또는 <strong class="program">fish</strong> 셸을 사용하는 경우에는, 대신 <code class="docutils literal notranslate"><span class="pre">activate.csh</span></code> 와 <code class="docutils literal notranslate"><span class="pre">activate.fish</span></code> 스크립트를 사용해야 합니다.)</p>
+<p>가상 환경을 활성화하면, 셸의 프롬프트가 변경되어 사용 중인 가상 환경을 보여주고, 환경을 수정하여 <code class="docutils literal notranslate"><span class="pre">python</span></code> 을 실행하면 특정 버전의 파이썬이 실행되도록 합니다. 예를 들어:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>~/envs/tutorial-env/bin/activate
 <span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python
 <span class="go">Python 3.5.1 (default, May  6 2016, 10:59:36)</span>
 <span class="go">  ...</span>
@@ -149,18 +151,18 @@
 <span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
-<p data-msgid="4a69de1c443a16de3418400ef8bccf5570b408c2" data-score="69" data-since="260603">가상 환경을 비활성화하려면, 다음과 같이 터미널에 입력합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="5d310091f52b45f4f934e07e2dcd85dc77eee56a" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">deactivate</span>
+<p>가상 환경을 비활성화하려면, 다음과 같이 터미널에 입력합니다:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">deactivate</span>
 </pre></div>
 </div>
-<p data-msgid="bbb70bd2f7372006a3d09441cd1942773208b4de" data-score="100" data-since="260603">.</p>
+<p>.</p>
 </section>
 <section id="managing-packages-with-pip">
-<h2 data-msgid="ad631ff4090c7fd32b0826768b37aa36ce597dc0" data-score="46" data-since="260603"><span class="section-number">12.3. </span>pip로 패키지 관리하기<a class="headerlink" href="#managing-packages-with-pip" title="Link to this heading">¶</a></h2>
-<p data-msgid="d3098288d3a32a34285f966424a21960e07b09b4" data-score="73" data-since="260603"><strong class="program">pip</strong> 라는 프로그램을 사용하여 패키지를 설치, 업그레이드 및 제거할 수 있습니다. 기본적으로 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 는 <a class="reference external" href="https://pypi.org">파이썬 패키지 색인</a>에서 패키지를 설치합니다. 웹 브라우저에서 파이썬 패키지 색인을 살펴볼 수 있습니다.</p>
-<p data-msgid="165141db1231e743ff19d78d9a174906905680e6" data-score="77" data-since="260603"><code class="docutils literal notranslate"><span class="pre">pip</span></code> 는 “install”, “uninstall”, “freeze” 등 많은 부속 명령을 갖고 있습니다. (<code class="docutils literal notranslate"><span class="pre">pip</span></code> 에 대한 완전한 문서는 <a class="reference internal" href="../installing/index.html#installing-index"><span class="std std-ref">Installing Python modules</span></a> 지침을 보면 됩니다.)</p>
-<p data-msgid="84c95611b2f11a6eab7659b564df155444394a20" data-score="3" data-since="260603">패키지 이름을 지정하여 최신 버전의 패키지를 설치할 수 있습니다:</p>
-<div class="highlight-console notranslate" data-msgid="1d497a307a901aba5495962957c86c8e1dd9f61b" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>novas
+<h2><span class="section-number">12.3. </span>pip로 패키지 관리하기<a class="headerlink" href="#managing-packages-with-pip" title="Link to this heading">¶</a></h2>
+<p><strong class="program">pip</strong> 라는 프로그램을 사용하여 패키지를 설치, 업그레이드 및 제거할 수 있습니다. 기본적으로 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 는 <a class="reference external" href="https://pypi.org">파이썬 패키지 색인</a>에서 패키지를 설치합니다. 웹 브라우저에서 파이썬 패키지 색인을 살펴볼 수 있습니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span></code> 는 “install”, “uninstall”, “freeze” 등 많은 부속 명령을 갖고 있습니다. (<code class="docutils literal notranslate"><span class="pre">pip</span></code> 에 대한 완전한 문서는 <a class="reference internal" href="../installing/index.html#installing-index"><span class="std std-ref">파이썬 모듈 설치하기</span></a> 지침을 보면 됩니다.)</p>
+<p>패키지 이름을 지정하여 최신 버전의 패키지를 설치할 수 있습니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>novas
 <span class="go">Collecting novas</span>
 <span class="go">  Downloading novas-3.1.1.3.tar.gz (136kB)</span>
 <span class="go">Installing collected packages: novas</span>
@@ -168,16 +170,16 @@
 <span class="go">Successfully installed novas-3.1.1.3</span>
 </pre></div>
 </div>
-<p data-msgid="50e47831707bc3b8ba5a76d77330fbffa957df8f" data-score="17" data-since="260603">패키지 이름 뒤에 <code class="docutils literal notranslate"><span class="pre">==</span></code> 과 버전 번호를 붙여 특정 버전의 패키지를 설치할 수도 있습니다:</p>
-<div class="highlight-console notranslate" data-msgid="4a174c9e5a6056e6ca403efa38836c905b40810f" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">requests</span><span class="o">==</span><span class="m">2</span>.6.0
+<p>패키지 이름 뒤에 <code class="docutils literal notranslate"><span class="pre">==</span></code> 과 버전 번호를 붙여 특정 버전의 패키지를 설치할 수도 있습니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">requests</span><span class="o">==</span><span class="m">2</span>.6.0
 <span class="go">Collecting requests==2.6.0</span>
 <span class="go">  Using cached requests-2.6.0-py2.py3-none-any.whl</span>
 <span class="go">Installing collected packages: requests</span>
 <span class="go">Successfully installed requests-2.6.0</span>
 </pre></div>
 </div>
-<p data-msgid="01a10d5a11f48073e7c79c0673410e1ac4166778" data-score="61" data-since="260603">이 명령을 다시 실행하면, <code class="docutils literal notranslate"><span class="pre">pip</span></code> 는 요청한 버전이 이미 설치되어 있음을 알리고, 아무것도 하지 않습니다. 다른 버전 번호를 지정해서 그 버전을 얻거나 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span></code> 를 실행하여 패키지를 최신 버전으로 업그레이드할 수 있습니다:</p>
-<div class="highlight-console notranslate" data-msgid="59cfe03d5047f386398bba9f0ebb433f9f594673" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>requests
+<p>이 명령을 다시 실행하면, <code class="docutils literal notranslate"><span class="pre">pip</span></code> 는 요청한 버전이 이미 설치되어 있음을 알리고, 아무것도 하지 않습니다. 다른 버전 번호를 지정해서 그 버전을 얻거나 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span></code> 를 실행하여 패키지를 최신 버전으로 업그레이드할 수 있습니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>requests
 <span class="go">Collecting requests</span>
 <span class="go">Installing collected packages: requests</span>
 <span class="go">  Found existing installation: requests 2.6.0</span>
@@ -186,9 +188,9 @@
 <span class="go">Successfully installed requests-2.7.0</span>
 </pre></div>
 </div>
-<p data-msgid="cec50a75a345d3366afb0fe949811c6a327ac029" data-score="71" data-since="260603"><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">uninstall</span></code> 다음에 하나 이상의 패키지 이름이 오면 가상 환경에서 패키지가 제거됩니다.</p>
-<p data-msgid="7ac1beb4a077cff51b68aabd0fd78c0d4196ab6e" data-score="85" data-since="260603"><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">show</span></code> 는 특정 패키지에 대한 정보를 표시합니다:</p>
-<div class="highlight-console notranslate" data-msgid="d961ece528f38fc4de15ce60016129f003d2a1f7" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>requests
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">uninstall</span></code> 다음에 하나 이상의 패키지 이름이 오면 가상 환경에서 패키지가 제거됩니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">show</span></code> 는 특정 패키지에 대한 정보를 표시합니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>requests
 <span class="go">---</span>
 <span class="go">Metadata-Version: 2.0</span>
 <span class="go">Name: requests</span>
@@ -202,8 +204,8 @@
 <span class="go">Requires:</span>
 </pre></div>
 </div>
-<p data-msgid="0b21d54e0435f1b67e013dcd6f8af6a1b7440265" data-score="80" data-since="260603"><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">list</span></code> 는 가상 환경에 설치된 모든 패키지를 표시합니다:</p>
-<div class="highlight-console notranslate" data-msgid="133cf0e2f0848df9059788e096fe507e9c43229e" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>list
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">list</span></code> 는 가상 환경에 설치된 모든 패키지를 표시합니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>list
 <span class="go">novas (3.1.1.3)</span>
 <span class="go">numpy (1.9.2)</span>
 <span class="go">pip (7.0.3)</span>
@@ -211,16 +213,16 @@
 <span class="go">setuptools (16.0)</span>
 </pre></div>
 </div>
-<p data-msgid="66e287cfe87397e9e65556feb3364568760ceefa" data-score="77" data-since="260603"><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">freeze</span></code> 는 설치된 패키지의 비슷한 목록을 만들지만, <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span></code> 이 기대하는 형식을 사용합니다. 일반적인 규칙은 이 목록을 <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> 파일에 넣는 것입니다:</p>
-<div class="highlight-console notranslate" data-msgid="97f0b541650ee46af00ca180aaee3e01b36e57ea" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>freeze<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">freeze</span></code> 는 설치된 패키지의 비슷한 목록을 만들지만, <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span></code> 이 기대하는 형식을 사용합니다. 일반적인 규칙은 이 목록을 <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> 파일에 넣는 것입니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>freeze<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
 <span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>cat<span class="w"> </span>requirements.txt
 <span class="go">novas==3.1.1.3</span>
 <span class="go">numpy==1.9.2</span>
 <span class="go">requests==2.7.0</span>
 </pre></div>
 </div>
-<p data-msgid="33e40d829cda7262595dbb1897bfd3957c92a2d1" data-score="69" data-since="260603"><code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> 는 버전 제어에 커밋되어 응용 프로그램 일부로 제공될 수 있습니다. 사용자는 <code class="docutils literal notranslate"><span class="pre">install</span> <span class="pre">-r</span></code> 로 모든 필요한 패키지를 설치할 수 있습니다:</p>
-<div class="highlight-console notranslate" data-msgid="146114e8a50b5fe568243a37790369f3e76c4488" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<p><code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> 는 버전 제어에 커밋되어 응용 프로그램 일부로 제공될 수 있습니다. 사용자는 <code class="docutils literal notranslate"><span class="pre">install</span> <span class="pre">-r</span></code> 로 모든 필요한 패키지를 설치할 수 있습니다:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(tutorial-env)</span> <span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 <span class="go">Collecting novas==3.1.1.3 (from -r requirements.txt (line 1))</span>
 <span class="go">  ...</span>
 <span class="go">Collecting numpy==1.9.2 (from -r requirements.txt (line 2))</span>
@@ -232,7 +234,7 @@
 <span class="go">Successfully installed novas-3.1.1.3 numpy-1.9.2 requests-2.7.0</span>
 </pre></div>
 </div>
-<p data-msgid="622819792a80d150f33ba4323b8fb1c336797158" data-score="93" data-since="260603"><code class="docutils literal notranslate"><span class="pre">pip</span></code> 에는 더 많은 옵션이 있습니다. <code class="docutils literal notranslate"><span class="pre">pip</span></code> 에 대한 완전한 문서는 <a class="reference internal" href="../installing/index.html#installing-index"><span class="std std-ref">Installing Python modules</span></a> 지침을 참고하세요. 패키지를 작성했을 때 파이썬 패키지 색인에서 사용할 수 있게 하려면, <a class="reference external" href="https://packaging.python.org/en/latest/tutorials/packaging-projects/">Python packaging user guide</a>를 참고하세요.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span></code> 에는 더 많은 옵션이 있습니다. <code class="docutils literal notranslate"><span class="pre">pip</span></code> 에 대한 완전한 문서는 <a class="reference internal" href="../installing/index.html#installing-index"><span class="std std-ref">파이썬 모듈 설치하기</span></a> 지침을 참고하세요. 패키지를 작성했을 때 파이썬 패키지 색인에서 사용할 수 있게 하려면, <a class="reference external" href="https://packaging.python.org/en/latest/tutorials/packaging-projects/">Python packaging user guide</a>를 참고하세요.</p>
 </section>
 </section>
 

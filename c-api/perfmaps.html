@@ -5,12 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Support for Perf Maps &#8212; Python 3.16.0a0 문서</title>
+    <title>성능 맵 지원 &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -23,7 +25,7 @@
     <link rel="prev" title="PyTime C API" href="time.html" />
     
       
-      <link rel="canonical" href="https://docs.python.org/3/c-api/perfmaps.html">
+      <link rel="canonical" href="https://python.flowdas.com/c-api/perfmaps.html">
       
     
 
@@ -71,7 +73,7 @@
             </div>
             <nav class="toc">
                 <ul>
-<li><a class="reference internal" href="#">Support for Perf Maps</a></li>
+<li><a class="reference internal" href="#">성능 맵 지원</a></li>
 </ul>
 
             </nav>
@@ -100,33 +102,35 @@
                     
                         <li><a href="utilities.html">유틸리티</a></li>
                     
-                    <li class="current">Support for Perf Maps</li>
+                    <li class="current">성능 맵 지원</li>
                 </ol>
             </nav>
 
             <article class="document">
                 
   <section id="support-for-perf-maps">
-<span id="perfmaps"></span><h1 data-msgid="b0d86a246675b75e1afb0ea64ad59dcb8d661034" data-score="0" data-since="260603">Support for Perf Maps<a class="headerlink" href="#support-for-perf-maps" title="Link to this heading">¶</a></h1>
-<p data-msgid="39862984c29eef1877b711d37f2989ad480cd20f" data-score="0" data-since="260608">On supported platforms (Linux and macOS), the runtime can take
+<span id="perfmaps"></span><h1>성능 맵 지원<a class="headerlink" href="#support-for-perf-maps" title="Link to this heading">¶</a></h1>
+<p>On supported platforms (Linux and macOS), the runtime can take
 advantage of <em>perf map files</em> to make Python functions visible to an external
 profiling tool (such as <a class="reference external" href="https://perf.wiki.kernel.org/index.php/Main_Page">perf</a> or
 <a class="reference external" href="https://github.com/mstange/samply/">samply</a>). A running process may create a
 file in the <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> directory, which contains entries that can map a section
 of executable code to a name. This interface is described in the
 <a class="reference external" href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/Documentation/jit-interface.txt">documentation of the Linux Perf tool</a>.</p>
-<p data-msgid="431df7156533b8fe96d812543e86f47c89cf1a84" data-score="0" data-since="260603">In Python, these helper APIs can be used by libraries and features that rely
+<p>In Python, these helper APIs can be used by libraries and features that rely
 on generating machine code on the fly.</p>
-<p data-msgid="45a0448d5019b8c763715b214649d4f19ece4f4e" data-score="0" data-since="260603">Note that holding an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> is not required for these APIs.</p>
+<p>Note that holding an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> is not required for these APIs.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_PerfMapState_Init">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_PerfMapState_Init</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_PerfMapState_Init" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="e250c46124601ced4acc0a4f90e10267ba3b27b7" data-score="0" data-since="260603">Open the <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$pid.map</span></code> file, unless it’s already opened, and create
+<dd><div class="unstable-c-api warning admonition">
+<em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$pid.map</span></code> file, unless it’s already opened, and create
 a lock to ensure thread-safe writes to the file (provided the writes are
 done through <a class="reference internal" href="#c.PyUnstable_WritePerfMapEntry" title="PyUnstable_WritePerfMapEntry"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_WritePerfMapEntry()</span></code></a>). Normally, there’s no need
 to call this explicitly; just use <a class="reference internal" href="#c.PyUnstable_WritePerfMapEntry" title="PyUnstable_WritePerfMapEntry"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_WritePerfMapEntry()</span></code></a>
 and it will initialize the state on first call.</p>
-<p data-msgid="31cec55cbe39a461ee28df6478736954df87588b" data-score="0" data-since="260603">Returns <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, <code class="docutils literal notranslate"><span class="pre">-1</span></code> on failure to create/open the perf map file,
+<p>Returns <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, <code class="docutils literal notranslate"><span class="pre">-1</span></code> on failure to create/open the perf map file,
 or <code class="docutils literal notranslate"><span class="pre">-2</span></code> on failure to create a lock. Check <code class="docutils literal notranslate"><span class="pre">errno</span></code> for more information
 about the cause of a failure.</p>
 </dd></dl>
@@ -134,13 +138,15 @@ about the cause of a failure.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_WritePerfMapEntry">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_WritePerfMapEntry</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">code_addr</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">code_size</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">entry_name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_WritePerfMapEntry" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="4956bdd84b862a3656827eecafe64efffaac6568" data-score="0" data-since="260603">Write one single entry to the <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$pid.map</span></code> file. This function is
+<dd><div class="unstable-c-api warning admonition">
+<em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
+<p>Write one single entry to the <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$pid.map</span></code> file. This function is
 thread safe. Here is what an example entry looks like:</p>
-<div class="highlight-c notranslate" data-msgid="e874be837cb330a9846eac37bc762e7aca9e6963" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="cp"># address      size  name</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp"># address      size  name</span>
 <span class="mf">7f3529f</span><span class="n">cf759</span><span class="w"> </span><span class="n">b</span><span class="w">     </span><span class="n">py</span><span class="o">::</span><span class="n">bar</span><span class="o">:/</span><span class="n">run</span><span class="o">/</span><span class="n">t</span><span class="p">.</span><span class="n">py</span>
 </pre></div>
 </div>
-<p data-msgid="8a0f148f05e986d79aaf48a2495ae588e08e3e88" data-score="0" data-since="260603">Will call <a class="reference internal" href="#c.PyUnstable_PerfMapState_Init" title="PyUnstable_PerfMapState_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_PerfMapState_Init()</span></code></a> before writing the entry, if
+<p>Will call <a class="reference internal" href="#c.PyUnstable_PerfMapState_Init" title="PyUnstable_PerfMapState_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_PerfMapState_Init()</span></code></a> before writing the entry, if
 the perf map file is not already opened. Returns <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, or the
 same error codes as <a class="reference internal" href="#c.PyUnstable_PerfMapState_Init" title="PyUnstable_PerfMapState_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_PerfMapState_Init()</span></code></a> on failure.</p>
 </dd></dl>
@@ -148,7 +154,9 @@ same error codes as <a class="reference internal" href="#c.PyUnstable_PerfMapSta
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_PerfMapState_Fini">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_PerfMapState_Fini</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_PerfMapState_Fini" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="ea9a40a42c950c1e84321451ed720acbb8708999" data-score="0" data-since="260603">Close the perf map file opened by <a class="reference internal" href="#c.PyUnstable_PerfMapState_Init" title="PyUnstable_PerfMapState_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_PerfMapState_Init()</span></code></a>.
+<dd><div class="unstable-c-api warning admonition">
+<em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
+<p>Close the perf map file opened by <a class="reference internal" href="#c.PyUnstable_PerfMapState_Init" title="PyUnstable_PerfMapState_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_PerfMapState_Init()</span></code></a>.
 This is called by the runtime itself during interpreter shut-down. In
 general, there shouldn’t be a reason to explicitly call this, except to
 handle specific scenarios such as forking.</p>
@@ -157,22 +165,26 @@ handle specific scenarios such as forking.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_CopyPerfMapFile">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_CopyPerfMapFile</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">parent_filename</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_CopyPerfMapFile" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="4560c9de0210fbdae234e75e1e835b19c98d96a7" data-score="0" data-since="260608">Open the <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$pid.map</span></code> file and append the content of <em>parent_filename</em>
+<dd><div class="unstable-c-api warning admonition">
+<em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">/tmp/perf-$pid.map</span></code> file and append the content of <em>parent_filename</em>
 to it.</p>
-<p data-msgid="0d000731d00580a21d3c0625e762275bdbfc1516" data-score="0" data-since="260608">This function is available on all platforms but only generates output on platforms
+<p>This function is available on all platforms but only generates output on platforms
 that support perf maps (currently only Linux). On other platforms, it does nothing.</p>
-<div class="versionadded" data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff">
-<p data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff"><span class="versionmodified added">Added in version 3.13.</span></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.13.</span></p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_PerfTrampoline_CompileCode">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_PerfTrampoline_CompileCode</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="code.html#c.PyCodeObject" title="PyCodeObject"><span class="n"><span class="pre">PyCodeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">code</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_PerfTrampoline_CompileCode" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="f0b2e0cd0757b4fb2eea5ec12a0ca25085a47e15" data-score="0" data-since="260608">Compile the given code object using the current perf trampoline.</p>
-<p data-msgid="ba570e770dd8105c96b4259f0ce0b700d931d2b1" data-score="0" data-since="260608">The “current” trampoline is the one set by the runtime or the most recent
+<dd><div class="unstable-c-api warning admonition">
+<em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
+<p>Compile the given code object using the current perf trampoline.</p>
+<p>The “current” trampoline is the one set by the runtime or the most recent
 <a class="reference internal" href="#c.PyUnstable_PerfTrampoline_SetPersistAfterFork" title="PyUnstable_PerfTrampoline_SetPersistAfterFork"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_PerfTrampoline_SetPersistAfterFork()</span></code></a> call.</p>
-<p data-msgid="e84b7f56af68648cc42e3737343f37e9a63313b0" data-score="0" data-since="260608">If no trampoline is set, falls back to normal compilation (no perf map entry).</p>
+<p>If no trampoline is set, falls back to normal compilation (no perf map entry).</p>
 <dl class="field-list simple">
 <dt class="field-odd">매개변수<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -180,25 +192,27 @@ that support perf maps (currently only Linux). On other platforms, it does nothi
 </ul>
 </dd>
 <dt class="field-even">반환<span class="colon">:</span></dt>
-<dd class="field-even"><p data-msgid="c1710a62f142b6626a1d07f415a324efd847bc20" data-score="0" data-since="260608">0 on success, -1 on failure.</p>
+<dd class="field-even"><p>0 on success, -1 on failure.</p>
 </dd>
 </dl>
-<div class="versionadded" data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff">
-<p data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff"><span class="versionmodified added">Added in version 3.13.</span></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.13.</span></p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_PerfTrampoline_SetPersistAfterFork">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_PerfTrampoline_SetPersistAfterFork</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_PerfTrampoline_SetPersistAfterFork" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="f09f0b3503f3e77c0b34e2715c764f997b3e4e9a" data-score="0" data-since="260608">Set whether the perf trampoline should persist after a fork.</p>
+<dd><div class="unstable-c-api warning admonition">
+<em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
+<p>Set whether the perf trampoline should persist after a fork.</p>
 <ul class="simple">
-<li><p data-msgid="8ac247e7747b790f025a17d71e15336f8ecb2105" data-score="0" data-since="260608">If <code class="docutils literal notranslate"><span class="pre">enable</span></code> is true (non-zero): perf map file remains open/valid post-fork.
+<li><p>If <code class="docutils literal notranslate"><span class="pre">enable</span></code> is true (non-zero): perf map file remains open/valid post-fork.
 Child process inherits all existing perf map entries.</p></li>
-<li><p data-msgid="3d6bbdd4e30993ec54b9b5f070144d55e952956a" data-score="0" data-since="260608">If <code class="docutils literal notranslate"><span class="pre">enable</span></code> is false (zero): perf map closes post-fork.
+<li><p>If <code class="docutils literal notranslate"><span class="pre">enable</span></code> is false (zero): perf map closes post-fork.
 Child process gets empty perf map.</p></li>
 </ul>
-<p data-msgid="3255c938aec154c3ed5df32e4c81569136c34895" data-score="0" data-since="260608">Default: false (clears on fork).</p>
+<p>Default: false (clears on fork).</p>
 <dl class="field-list simple">
 <dt class="field-odd">매개변수<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -206,24 +220,16 @@ Child process gets empty perf map.</p></li>
 </ul>
 </dd>
 <dt class="field-even">반환<span class="colon">:</span></dt>
-<dd class="field-even"><p data-msgid="c1710a62f142b6626a1d07f415a324efd847bc20" data-score="0" data-since="260608">0 on success, -1 on failure.</p>
+<dd class="field-even"><p>0 on success, -1 on failure.</p>
 </dd>
 </dl>
-<div class="versionadded" data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff">
-<p data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff"><span class="versionmodified added">Added in version 3.13.</span></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.13.</span></p>
 </div>
 </dd></dl>
 
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="37e0f0d9c0f43bbdba2912f11e920dc67ead8add" data-score="0" data-since="260608" class="lost-and-found-item"></span>
-        <span data-msgid="9582a02f141fc4b345b2936eba691cd0654efebc" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="a57afb498bafbc5296d84df09a924b1b591507e1" data-score="0" data-since="260608" class="lost-and-found-item"></span>
-        <span data-msgid="a975eea30db9fa05003e3b5097688bd49ec7e01b" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->

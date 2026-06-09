@@ -8,9 +8,11 @@
     <title>The Python 2.3 Method Resolution Order &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <link rel="stylesheet" type="text/css" href="../_static/profiling-sampling-visualization.css?v=0c2600ae" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/profiling-sampling-visualization.js?v=9811ed04"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Python 3.16.0a0 문서에서 찾기"
@@ -23,7 +25,7 @@
     <link rel="prev" title="타이머 파일 디스크립터 사용법" href="timerfd.html" />
     
       
-      <link rel="canonical" href="https://docs.python.org/3/howto/mro.html">
+      <link rel="canonical" href="https://python.flowdas.com/howto/mro.html">
       
     
 
@@ -113,34 +115,34 @@
             <article class="document">
                 
   <section id="the-python-2-3-method-resolution-order">
-<span id="python-2-3-mro"></span><h1 data-msgid="ef32bb52e298bb8612a46023268175919a0961e7" data-score="0" data-since="260603">The Python 2.3 Method Resolution Order<a class="headerlink" href="#the-python-2-3-method-resolution-order" title="Link to this heading">¶</a></h1>
+<span id="python-2-3-mro"></span><h1>The Python 2.3 Method Resolution Order<a class="headerlink" href="#the-python-2-3-method-resolution-order" title="Link to this heading">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="385dd4247999e5b0d84da207e2f5cd507ae64c27" data-score="0" data-since="260603">This is a historical document, provided as an appendix to the official
+<p>This is a historical document, provided as an appendix to the official
 documentation.
 The Method Resolution Order discussed here was <em>introduced</em> in Python 2.3,
 but it is still used in later versions – including Python 3.</p>
 </div>
-<p data-msgid="e52127ab04e57b8f31a6eb3a21893ba1d9046c9a" data-score="0" data-since="260603">By <a class="reference external" href="https://www.phyast.pitt.edu/~micheles/">Michele Simionato</a>.</p>
+<p>By <a class="reference external" href="https://www.phyast.pitt.edu/~micheles/">Michele Simionato</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Abstract<span class="colon">:</span></dt>
-<dd class="field-odd"><p data-msgid="b8e212e85195717554659392703966ed21af6973" data-score="0" data-since="260603"><em>This document is intended for Python programmers who want to
+<dd class="field-odd"><p><em>This document is intended for Python programmers who want to
 understand the C3 Method Resolution Order used in Python 2.3.
 Although it is not intended for newbies, it is quite pedagogical with
 many worked out examples.  I am not aware of other publicly available
 documents with the same scope, therefore it should be useful.</em></p>
 </dd>
 </dl>
-<p data-msgid="7f874ced60563f83d28f2df2d03c0de6fcba4ab8" data-score="0" data-since="260603">Disclaimer:</p>
+<p>Disclaimer:</p>
 <blockquote>
-<div><p data-msgid="05e68baa004a09cf0536f73911ae4ae4bdd6a5df" data-score="0" data-since="260603"><em>I donate this document to the Python Software Foundation, under the
+<div><p><em>I donate this document to the Python Software Foundation, under the
 Python 2.3 license.  As usual in these circumstances, I warn the
 reader that what follows</em> should <em>be correct, but I don’t give any
 warranty.  Use it at your own risk and peril!</em></p>
 </div></blockquote>
-<p data-msgid="0340e6600600e36dbb7a439e0b3a902e6610c5dd" data-score="0" data-since="260603">Acknowledgments:</p>
+<p>Acknowledgments:</p>
 <blockquote>
-<div><p data-msgid="27cf031fd9d2b66ae850f39101ad652582a3ce7a" data-score="0" data-since="260603"><em>All the people of the Python mailing list who sent me their support.
+<div><p><em>All the people of the Python mailing list who sent me their support.
 Paul Foley who pointed out various imprecisions and made me to add the
 part on local precedence ordering. David Goodger for help with the
 formatting in reStructuredText. David Mertz for help with the editing.
@@ -148,11 +150,11 @@ Finally, Guido van Rossum who enthusiastically added this document to
 the official Python 2.3 home-page.</em></p>
 </div></blockquote>
 <section id="the-beginning">
-<h2 data-msgid="207e16af4e5210b0e3d91db94a56a984ecbe98bf" data-score="0" data-since="260603">The beginning<a class="headerlink" href="#the-beginning" title="Link to this heading">¶</a></h2>
+<h2>The beginning<a class="headerlink" href="#the-beginning" title="Link to this heading">¶</a></h2>
 <blockquote>
-<div><p data-msgid="580b622cb064424899fbc7c2e3bde3453c96acff" data-score="0" data-since="260603"><em>Felix qui potuit rerum cognoscere causas</em> – Virgilius</p>
+<div><p><em>Felix qui potuit rerum cognoscere causas</em> – Virgilius</p>
 </div></blockquote>
-<p data-msgid="97fc4c9a424e4ff8b1ecf551bf4c8fc54f989542" data-score="0" data-since="260603">Everything started with a post by Samuele Pedroni to the Python
+<p>Everything started with a post by Samuele Pedroni to the Python
 development mailing list <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.  In his post, Samuele showed that the
 Python 2.2 method resolution order is not monotonic and he proposed to
 replace it with the C3 method resolution order.  Guido agreed with his
@@ -162,7 +164,7 @@ on Dylan and it is described in a paper intended for lispers <a class="footnote-
 present paper gives a (hopefully) readable discussion of the C3
 algorithm for Pythonistas who want to understand the reasons for the
 change.</p>
-<p data-msgid="0cf8da00c5d894fb75dd6c4dec9d460e97a58803" data-score="0" data-since="260603">First of all, let me point out that what I am going to say only applies
+<p>First of all, let me point out that what I am going to say only applies
 to the <em>new style classes</em> introduced in Python 2.2:  <em>classic classes</em>
 maintain their old method resolution order, depth first and then left to
 right.  Therefore, there is no breaking of old code for classic classes;
@@ -171,45 +173,45 @@ new style classes, in practice the cases in which the C3 resolution
 order differs from the Python 2.2 method resolution order are so rare
 that no real breaking of code is expected.  Therefore:</p>
 <blockquote>
-<div><p data-msgid="c2dcfc8042b03b3e57f974c7849306973018e178" data-score="0" data-since="260603"><em>Don’t be scared!</em></p>
+<div><p><em>Don’t be scared!</em></p>
 </div></blockquote>
-<p data-msgid="fd453c87e1db8fcaab9a25b9d76caf8705ed3c53" data-score="0" data-since="260603">Moreover, unless you make strong use of multiple inheritance and you
+<p>Moreover, unless you make strong use of multiple inheritance and you
 have non-trivial hierarchies, you don’t need to understand the C3
 algorithm, and you can easily skip this paper.  On the other hand, if
 you really want to know how multiple inheritance works, then this paper
 is for you.  The good news is that things are not as complicated as you
 might expect.</p>
-<p data-msgid="b2616708bdf46edb3ff53990e21215bd2e28d368" data-score="0" data-since="260603">Let me begin with some basic definitions.</p>
+<p>Let me begin with some basic definitions.</p>
 <ol class="arabic simple">
-<li><p data-msgid="017cda729b41b7f941b80ab481ff85e8902d2043" data-score="0" data-since="260603">Given a class C in a complicated multiple inheritance hierarchy, it
+<li><p>Given a class C in a complicated multiple inheritance hierarchy, it
 is a non-trivial task to specify the order in which methods are
 overridden, i.e. to specify the order of the ancestors of C.</p></li>
-<li><p data-msgid="36046ed1e5c217ece8a2327ef83c74bfa10c1ca4" data-score="0" data-since="260603">The list of the ancestors of a class C, including the class itself,
+<li><p>The list of the ancestors of a class C, including the class itself,
 ordered from the nearest ancestor to the furthest, is called the
 class precedence list or the <em>linearization</em> of C.</p></li>
-<li><p data-msgid="e87a234d3e4f1d49c4e58265ea7081b9e0b6ac4f" data-score="0" data-since="260603">The <em>Method Resolution Order</em> (MRO) is the set of rules that
+<li><p>The <em>Method Resolution Order</em> (MRO) is the set of rules that
 construct the linearization.  In the Python literature, the idiom
 “the MRO of C” is also used as a synonymous for the linearization of
 the class C.</p></li>
-<li><p data-msgid="aa13201087ceb9c5a4e3337e83ae72670fa95aaa" data-score="0" data-since="260603">For instance, in the case of single inheritance hierarchy, if C is a
+<li><p>For instance, in the case of single inheritance hierarchy, if C is a
 subclass of C1, and C1 is a subclass of C2, then the linearization of
 C is simply the list [C, C1 , C2].  However, with multiple
 inheritance hierarchies, the construction of the linearization is
 more cumbersome, since it is more difficult to construct a
 linearization that respects <em>local precedence ordering</em> and
 <em>monotonicity</em>.</p></li>
-<li><p data-msgid="47e0625dea194c4c6dd667931a45e68d3f386e45" data-score="0" data-since="260603">I will discuss the local precedence ordering later, but I can give
+<li><p>I will discuss the local precedence ordering later, but I can give
 the definition of monotonicity here.  A MRO is monotonic when the
 following is true:  <em>if C1 precedes C2 in the linearization of C,
 then C1 precedes C2 in the linearization of any subclass of C</em>.
 Otherwise, the innocuous operation of deriving a new class could
 change the resolution order of methods, potentially introducing very
 subtle bugs.  Examples where this happens will be shown later.</p></li>
-<li><p data-msgid="6e3cb84395f8473e82cfbab046fd1d3ebc07a0ff" data-score="0" data-since="260603">Not all classes admit a linearization.  There are cases, in
+<li><p>Not all classes admit a linearization.  There are cases, in
 complicated hierarchies, where it is not possible to derive a class
 such that its linearization respects all the desired properties.</p></li>
 </ol>
-<p data-msgid="f0613f14fcccbada87aca2e2bb0405a1a2848af1" data-score="0" data-since="260603">Here I give an example of this situation. Consider the hierarchy</p>
+<p>Here I give an example of this situation. Consider the hierarchy</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">O</span> <span class="o">=</span> <span class="nb">object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">X</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Y</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -217,11 +219,11 @@ such that its linearization respects all the desired properties.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="n">X</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="7435b8caa884f87f2fe09d2e4b5e03cb67c8b83c" data-score="0" data-since="260603">which can be represented with the following inheritance graph, where I
+<p>which can be represented with the following inheritance graph, where I
 have denoted with O the <code class="docutils literal notranslate"><span class="pre">object</span></code> class, which is the beginning of any
 hierarchy for new style classes:</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="1b3ae689fc834e7045babace61e842117008c0ac" data-score="100" data-since="260607"><div class="highlight"><pre><span></span> -----------
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span> -----------
 |           |
 |    O      |
 |  /   \    |
@@ -234,57 +236,57 @@ hierarchy for new style classes:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="10c93e8df97ffc2dd6a4fc7a39692216dee2f4e6" data-score="0" data-since="260603">In this case, it is not possible to derive a new class C from A and B,
+<p>In this case, it is not possible to derive a new class C from A and B,
 since X precedes Y in A, but Y precedes X in B, therefore the method
 resolution order would be ambiguous in C.</p>
-<p data-msgid="f0eb263c89e3b7d30035ac5842efa7d6293e052c" data-score="0" data-since="260603">Python 2.3 raises an exception in this situation (TypeError:  MRO
+<p>Python 2.3 raises an exception in this situation (TypeError:  MRO
 conflict among bases Y, X) forbidding the naive programmer from creating
 ambiguous hierarchies.  Python 2.2 instead does not raise an exception,
 but chooses an <em>ad hoc</em> ordering (CABXYO in this case).</p>
 </section>
 <section id="the-c3-method-resolution-order">
-<h2 data-msgid="e2f3a90686e9299cc4b13bcc20a662618a034e69" data-score="0" data-since="260603">The C3 Method Resolution Order<a class="headerlink" href="#the-c3-method-resolution-order" title="Link to this heading">¶</a></h2>
-<p data-msgid="ec702382bc2ac2e2f76a4dd3dc204f38dc5de4a2" data-score="0" data-since="260603">Let me introduce a few simple notations which will be useful for the
+<h2>The C3 Method Resolution Order<a class="headerlink" href="#the-c3-method-resolution-order" title="Link to this heading">¶</a></h2>
+<p>Let me introduce a few simple notations which will be useful for the
 following discussion.  I will use the shortcut notation:</p>
-<div class="highlight-python3 notranslate" data-msgid="16461d449e52a740e2839c9ba20be2ba87bb0787" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
 </pre></div>
 </div>
-<p data-msgid="3d5aff83b8181249d7c7953cdbac6e1604a4c3f2" data-score="0" data-since="260603">to indicate the list of classes [C1, C2, … , CN].</p>
-<p data-msgid="cfc53a4f74597265fc8d65625a13050356c411a8" data-score="0" data-since="260603">The <em>head</em> of the list is its first element:</p>
-<div class="highlight-python3 notranslate" data-msgid="fc912c42fdde12c2b71e2551756875de9335bb5a" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">head</span> <span class="o">=</span> <span class="n">C1</span>
+<p>to indicate the list of classes [C1, C2, … , CN].</p>
+<p>The <em>head</em> of the list is its first element:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">head</span> <span class="o">=</span> <span class="n">C1</span>
 </pre></div>
 </div>
-<p data-msgid="0102f4c86b716401ae5bd6f1fc00b25906c6f391" data-score="0" data-since="260603">whereas the <em>tail</em> is the rest of the list:</p>
-<div class="highlight-python3 notranslate" data-msgid="1ce7d08474d1f368e667d04b098e34cb79fcedde" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="o">=</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="o">.</span>
+<p>whereas the <em>tail</em> is the rest of the list:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="o">=</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="o">.</span>
 </pre></div>
 </div>
-<p data-msgid="3bbb82da06e50030bc45ca174b890735bc4b66c2" data-score="0" data-since="260603">I shall also use the notation:</p>
-<div class="highlight-python3 notranslate" data-msgid="26155d973265c038d5352f39d21f8013599578fd" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">C</span> <span class="o">+</span> <span class="p">(</span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
+<p>I shall also use the notation:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">C</span> <span class="o">+</span> <span class="p">(</span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
 </pre></div>
 </div>
-<p data-msgid="9d12e5b4df5555ee96616aaa650f38e439469a6f" data-score="0" data-since="260603">to denote the sum of the lists [C] + [C1, C2, … ,CN].</p>
-<p data-msgid="b228baae251d50d49c61e74c2a1b0adca5ae52e9" data-score="0" data-since="260603">Now I can explain how the MRO works in Python 2.3.</p>
-<p data-msgid="8a88253753f2d11ed54628e777ab4bbbea3bb5cd" data-score="0" data-since="260603">Consider a class C in a multiple inheritance hierarchy, with C
+<p>to denote the sum of the lists [C] + [C1, C2, … ,CN].</p>
+<p>Now I can explain how the MRO works in Python 2.3.</p>
+<p>Consider a class C in a multiple inheritance hierarchy, with C
 inheriting from the base classes B1, B2, …  , BN.  We want to
 compute the linearization L[C] of the class C. The rule is the
 following:</p>
 <blockquote>
-<div><p data-msgid="65a3b501fd6175728a5e6e4b405f50f669a5c0bd" data-score="0" data-since="260603"><em>the linearization of C is the sum of C plus the merge of the
+<div><p><em>the linearization of C is the sum of C plus the merge of the
 linearizations of the parents and the list of the parents.</em></p>
 </div></blockquote>
-<p data-msgid="4e2cc371e9cc94f02c9e9e836311e5eaa5603767" data-score="0" data-since="260603">In symbolic notation:</p>
-<div class="highlight-python3 notranslate" data-msgid="55a50d3a0d75e5f88a30d90776252cc33872f50b" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B1</span><span class="p">]</span> <span class="o">...</span> <span class="n">L</span><span class="p">[</span><span class="n">BN</span><span class="p">],</span> <span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)</span>
+<p>In symbolic notation:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B1</span><span class="p">]</span> <span class="o">...</span> <span class="n">L</span><span class="p">[</span><span class="n">BN</span><span class="p">],</span> <span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="b0fb99e55c387ea73ef8a9b9e10a4f5113c1dc88" data-score="0" data-since="260603">In particular, if C is the <code class="docutils literal notranslate"><span class="pre">object</span></code> class, which has no parents, the
+<p>In particular, if C is the <code class="docutils literal notranslate"><span class="pre">object</span></code> class, which has no parents, the
 linearization is trivial:</p>
-<div class="highlight-python3 notranslate" data-msgid="d1a5a7c8322c48eca3cb07472ae9c7db67167102" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span>
 </pre></div>
 </div>
-<p data-msgid="1e504a8014c031c8b0c6618a4c323b3ccdab9cd3" data-score="0" data-since="260603">However, in general one has to compute the merge according to the following
+<p>However, in general one has to compute the merge according to the following
 prescription:</p>
 <blockquote>
-<div><p data-msgid="1c403ed83f3ceca9ca2eea93c774bfbbc13153c7" data-score="0" data-since="260603"><em>take the head of the first list, i.e L[B1][0]; if this head is not in
+<div><p><em>take the head of the first list, i.e L[B1][0]; if this head is not in
 the tail of any of the other lists, then add it to the linearization
 of C and remove it from the lists in the merge, otherwise look at the
 head of the next list and take it, if it is a good head.  Then repeat
@@ -293,22 +295,22 @@ find good heads.  In this case, it is impossible to construct the
 merge, Python 2.3 will refuse to create the class C and will raise an
 exception.</em></p>
 </div></blockquote>
-<p data-msgid="3fd0282a58977a73bf52aa00c5caff4a7cc81c1c" data-score="0" data-since="260603">This prescription ensures that the merge operation <em>preserves</em> the
+<p>This prescription ensures that the merge operation <em>preserves</em> the
 ordering, if the ordering can be preserved.  On the other hand, if the
 order cannot be preserved (as in the example of serious order
 disagreement discussed above) then the merge cannot be computed.</p>
-<p data-msgid="8c145a1a0ea38f6499b1cd4fc9e6dd83503aa5d7" data-score="0" data-since="260603">The computation of the merge is trivial if C has only one parent
+<p>The computation of the merge is trivial if C has only one parent
 (single inheritance); in this case:</p>
-<div class="highlight-python3 notranslate" data-msgid="91d1242a885fc789023c1221f9524b2d033ef1dc" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">],</span><span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">],</span><span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span>
 </pre></div>
 </div>
-<p data-msgid="a409b1d691694eb80cbf01e020c9f621d6db9a36" data-score="0" data-since="260603">However, in the case of multiple inheritance things are more cumbersome
+<p>However, in the case of multiple inheritance things are more cumbersome
 and I don’t expect you can understand the rule without a couple of
 examples ;-)</p>
 </section>
 <section id="examples">
-<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="0" data-since="260603">Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
-<p data-msgid="484d6ec6265f52d190f871ed2ea38fbcfd60cd22" data-score="0" data-since="260603">First example. Consider the following hierarchy:</p>
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>First example. Consider the following hierarchy:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">O</span> <span class="o">=</span> <span class="nb">object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">E</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -318,9 +320,9 @@ examples ;-)</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="462d2a121c5180ad1c923ab14f83cb95d47797b3" data-score="0" data-since="260603">In this case the inheritance graph can be drawn as:</p>
+<p>In this case the inheritance graph can be drawn as:</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="70d514ca272f8d1fc1e7f8d8b1a19130d8591984" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>                          6
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                          6
                          ---
 Level 3                 | O |                  (more general)
                       /  ---  \
@@ -344,34 +346,34 @@ Level 0                 0 | A |                (more specialized)
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="4887f0ae39d192c4bb9dd3d21dcc9b09ddadaf0a" data-score="0" data-since="260603">The linearizations of O,D,E and F are trivial:</p>
-<div class="highlight-python3 notranslate" data-msgid="88afc7a78fb45629e09f4b87b164ac73f7f16cee" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">O</span><span class="p">]</span> <span class="o">=</span> <span class="n">O</span>
+<p>The linearizations of O,D,E and F are trivial:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">O</span><span class="p">]</span> <span class="o">=</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">E</span><span class="p">]</span> <span class="o">=</span> <span class="n">E</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">F</span><span class="p">]</span> <span class="o">=</span> <span class="n">F</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="219e6c2de799448855e902df89eee34cf6ddc0a2" data-score="0" data-since="260603">The linearization of B can be computed as:</p>
-<div class="highlight-python3 notranslate" data-msgid="6d4a2b49eb76a458a34161ae0a8f61944aad5bd3" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span> <span class="n">EO</span><span class="p">,</span> <span class="n">DE</span><span class="p">)</span>
+<p>The linearization of B can be computed as:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span> <span class="n">EO</span><span class="p">,</span> <span class="n">DE</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="73c197df43a4db69795d7c3f11573a7493da9a84" data-score="0" data-since="260603">We see that D is a good head, therefore we take it and we are reduced to
+<p>We see that D is a good head, therefore we take it and we are reduced to
 compute <code class="docutils literal notranslate"><span class="pre">merge(O,EO,E)</span></code>.  Now O is not a good head, since it is in the
 tail of the sequence EO.  In this case the rule says that we have to
 skip to the next sequence.  Then we see that E is a good head; we take
 it and we are reduced to compute <code class="docutils literal notranslate"><span class="pre">merge(O,O)</span></code> which gives O. Therefore:</p>
-<div class="highlight-python3 notranslate" data-msgid="326bc1b2b28050486d080dced9880088441cd963" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span>  <span class="n">B</span> <span class="n">D</span> <span class="n">E</span> <span class="n">O</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span>  <span class="n">B</span> <span class="n">D</span> <span class="n">E</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="c2b6e361d2870bc7f9703b2f090f23b0f7fe1e53" data-score="0" data-since="260603">Using the same procedure one finds:</p>
-<div class="highlight-python3 notranslate" data-msgid="b67de5ebd8f07b7b9aa85f44fbd519e7654153f5" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span><span class="n">FO</span><span class="p">,</span><span class="n">DF</span><span class="p">)</span>
+<p>Using the same procedure one finds:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span><span class="n">FO</span><span class="p">,</span><span class="n">DF</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">O</span><span class="p">,</span><span class="n">FO</span><span class="p">,</span><span class="n">F</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span> <span class="o">+</span> <span class="n">F</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">O</span><span class="p">,</span><span class="n">O</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="n">D</span> <span class="n">F</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="acd6b5feb77bf2d4493d17bd5fe291148f022b16" data-score="0" data-since="260603">Now we can compute:</p>
-<div class="highlight-python3 notranslate" data-msgid="3da8bfb7879033558d4e6a858f78efb52376c266" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">A</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">BDEO</span><span class="p">,</span><span class="n">CDFO</span><span class="p">,</span><span class="n">BC</span><span class="p">)</span>
+<p>Now we can compute:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">A</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">BDEO</span><span class="p">,</span><span class="n">CDFO</span><span class="p">,</span><span class="n">BC</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DEO</span><span class="p">,</span><span class="n">CDFO</span><span class="p">,</span><span class="n">C</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DEO</span><span class="p">,</span><span class="n">DFO</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">EO</span><span class="p">,</span><span class="n">FO</span><span class="p">)</span>
@@ -380,11 +382,11 @@ it and we are reduced to compute <code class="docutils literal notranslate"><spa
      <span class="o">=</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span> <span class="n">D</span> <span class="n">E</span> <span class="n">F</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="c6316882965a62695a511ac5bb28059d61ddf2f1" data-score="0" data-since="260603">In this example, the linearization is ordered in a pretty nice way
+<p>In this example, the linearization is ordered in a pretty nice way
 according to the inheritance level, in the sense that lower levels (i.e.
 more specialized classes) have higher precedence (see the inheritance
 graph).  However, this is not the general case.</p>
-<p data-msgid="f41f1473a86849411ae3917e0d86881bd3b0847c" data-score="0" data-since="260603">I leave as an exercise for the reader to compute the linearization for
+<p>I leave as an exercise for the reader to compute the linearization for
 my second example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">O</span> <span class="o">=</span> <span class="nb">object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -395,11 +397,11 @@ my second example:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="cd123d782fbcc9905b25090a3aefba1f9e7df691" data-score="0" data-since="260603">The only difference with the previous example is the change B(D,E) –&gt;
+<p>The only difference with the previous example is the change B(D,E) –&gt;
 B(E,D); however even such a little modification completely changes the
 ordering of the hierarchy:</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="1775ceb8dce27423589d456a8753077b9875b811" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>                           6
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                           6
                           ---
 Level 3                  | O |
                        /  ---  \
@@ -423,10 +425,10 @@ Level 0                0 | A |
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="00cc6316f8d5dd1eae3a3b6e8b4d1282bcb611fe" data-score="0" data-since="260603">Notice that the class E, which is in the second level of the hierarchy,
+<p>Notice that the class E, which is in the second level of the hierarchy,
 precedes the class C, which is in the first level of the hierarchy, i.e.
 E is more specialized than C, even if it is in a higher level.</p>
-<p data-msgid="150e0d5df457769296a11dde915d17e3568202dd" data-score="0" data-since="260603">A lazy programmer can obtain the MRO directly from Python 2.2, since in
+<p>A lazy programmer can obtain the MRO directly from Python 2.2, since in
 this case it coincides with the Python 2.3 linearization.  It is enough
 to invoke the <a class="reference internal" href="../reference/datamodel.html#type.mro" title="type.mro"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mro()</span></code></a> method of class A:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">mro</span><span class="p">()</span>
@@ -435,11 +437,11 @@ to invoke the <a class="reference internal" href="../reference/datamodel.html#ty
 <span class="go">&lt;class &#39;object&#39;&gt;]</span>
 </pre></div>
 </div>
-<p data-msgid="d3cad6a38849a434a38c1c21d6457d279e92c400" data-score="0" data-since="260603">Finally, let me consider the example discussed in the first section,
+<p>Finally, let me consider the example discussed in the first section,
 involving a serious order disagreement.  In this case, it is
 straightforward to compute the linearizations of O, X, Y, A and B:</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="226059bbfef1663993d9b64f2bd419e98277b9d9" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>L[O] = 0
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>L[O] = 0
 L[X] = X O
 L[Y] = Y O
 L[A] = A X Y O
@@ -447,34 +449,34 @@ L[B] = B Y X O
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="8f7a4efb30ea6d9c4fdbd976c0196e94f6f9135c" data-score="0" data-since="260603">However, it is impossible to compute the linearization for a class C
+<p>However, it is impossible to compute the linearization for a class C
 that inherits from A and B:</p>
-<div class="highlight-python3 notranslate" data-msgid="74ec1cf309dd4cd72684d395b6920320c3213362" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">AXYO</span><span class="p">,</span> <span class="n">BYXO</span><span class="p">,</span> <span class="n">AB</span><span class="p">)</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">AXYO</span><span class="p">,</span> <span class="n">BYXO</span><span class="p">,</span> <span class="n">AB</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">A</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">XYO</span><span class="p">,</span> <span class="n">BYXO</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">XYO</span><span class="p">,</span> <span class="n">YXO</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="8a3be765aa02e73b836fc214c76beebe5a008ab1" data-score="0" data-since="260603">At this point we cannot merge the lists XYO and YXO, since X is in the
+<p>At this point we cannot merge the lists XYO and YXO, since X is in the
 tail of YXO whereas Y is in the tail of XYO:  therefore there are no
 good heads and the C3 algorithm stops.  Python 2.3 raises an error and
 refuses to create the class C.</p>
 </section>
 <section id="bad-method-resolution-orders">
-<h2 data-msgid="08e495be47b6ce7f9b3ab3d7f81071e149f27abc" data-score="0" data-since="260603">Bad Method Resolution Orders<a class="headerlink" href="#bad-method-resolution-orders" title="Link to this heading">¶</a></h2>
-<p data-msgid="81e34021e3a9a3f7b98dbae6f0905a7d2d7399a6" data-score="0" data-since="260603">A MRO is <em>bad</em> when it breaks such fundamental properties as local
+<h2>Bad Method Resolution Orders<a class="headerlink" href="#bad-method-resolution-orders" title="Link to this heading">¶</a></h2>
+<p>A MRO is <em>bad</em> when it breaks such fundamental properties as local
 precedence ordering and monotonicity.  In this section, I will show
 that both the MRO for classic classes and the MRO for new style classes
 in Python 2.2 are bad.</p>
-<p data-msgid="5010fa2009ad9103d8f074911c180f2cd8b4fb58" data-score="0" data-since="260603">It is easier to start with the local precedence ordering.  Consider the
+<p>It is easier to start with the local precedence ordering.  Consider the
 following example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;Food&#39;</span><span class="p">,(),{</span><span class="s1">&#39;remember2buy&#39;</span><span class="p">:</span><span class="s1">&#39;spam&#39;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">E</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;Eggs&#39;</span><span class="p">,(</span><span class="n">F</span><span class="p">,),{</span><span class="s1">&#39;remember2buy&#39;</span><span class="p">:</span><span class="s1">&#39;eggs&#39;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">G</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;GoodFood&#39;</span><span class="p">,(</span><span class="n">F</span><span class="p">,</span><span class="n">E</span><span class="p">),{})</span> <span class="c1"># under Python 2.3 this is an error!</span>
 </pre></div>
 </div>
-<p data-msgid="b91aca82f29a070a65c0cfe0afd9cb8a78297549" data-score="0" data-since="260603">with inheritance diagram</p>
+<p>with inheritance diagram</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="64105dd73e11b98c5ea9a16dbaa6b5bef1b4519b" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>             O
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>             O
              |
 (buy spam)   F
              | \
@@ -486,7 +488,7 @@ following example:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="51096cc966bcc7796034156224119afd8adac840" data-score="0" data-since="260603">We see that class G inherits from F and E, with F <em>before</em> E:  therefore
+<p>We see that class G inherits from F and E, with F <em>before</em> E:  therefore
 we would expect the attribute <em>G.remember2buy</em> to be inherited by
 <em>F.remember2buy</em> and not by <em>E.remember2buy</em>:  nevertheless Python 2.2
 gives</p>
@@ -494,13 +496,13 @@ gives</p>
 <span class="go">&#39;eggs&#39;</span>
 </pre></div>
 </div>
-<p data-msgid="1cecf4d60b2eb18c1c161e6de15270df3a6da01d" data-score="0" data-since="260603">This is a breaking of local precedence ordering since the order in the
+<p>This is a breaking of local precedence ordering since the order in the
 local precedence list, i.e. the list of the parents of G, is not
 preserved in the Python 2.2 linearization of G:</p>
-<div class="highlight-python3 notranslate" data-msgid="e6c23bd98ff204d0e2e8c52d324585e9dcffe11e" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">G</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span><span class="o">=</span> <span class="n">G</span> <span class="n">E</span> <span class="n">F</span> <span class="nb">object</span>   <span class="c1"># F *follows* E</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">G</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span><span class="o">=</span> <span class="n">G</span> <span class="n">E</span> <span class="n">F</span> <span class="nb">object</span>   <span class="c1"># F *follows* E</span>
 </pre></div>
 </div>
-<p data-msgid="b30bf48dcf085d2d0c1e2f1dc7649a7bebe58026" data-score="0" data-since="260603">One could argue that the reason why F follows E in the Python 2.2
+<p>One could argue that the reason why F follows E in the Python 2.2
 linearization is that F is less specialized than E, since F is the
 superclass of E; nevertheless the breaking of local precedence ordering
 is quite non-intuitive and error prone.  This is particularly true since
@@ -512,24 +514,24 @@ it is a different from old style classes:</p>
 <span class="go">&#39;spam&#39;</span>
 </pre></div>
 </div>
-<p data-msgid="9037b3d570201280a2ff53be48f1360cc9c7375b" data-score="0" data-since="260603">In this case the MRO is GFEF and the local precedence ordering is
+<p>In this case the MRO is GFEF and the local precedence ordering is
 preserved.</p>
-<p data-msgid="607103506183b1240d8b1dc48b07b22d59ac6a24" data-score="0" data-since="260603">As a general rule, hierarchies such as the previous one should be
+<p>As a general rule, hierarchies such as the previous one should be
 avoided, since it is unclear if F should override E or vice-versa.
 Python 2.3 solves the ambiguity by raising an exception in the creation
 of class G, effectively stopping the programmer from generating
 ambiguous hierarchies.  The reason for that is that the C3 algorithm
 fails when the merge:</p>
-<div class="highlight-python3 notranslate" data-msgid="9072c53b0da99fbf52806b2787852c192a2d7216" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">merge</span><span class="p">(</span><span class="n">FO</span><span class="p">,</span><span class="n">EFO</span><span class="p">,</span><span class="n">FE</span><span class="p">)</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">merge</span><span class="p">(</span><span class="n">FO</span><span class="p">,</span><span class="n">EFO</span><span class="p">,</span><span class="n">FE</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="7099a0b228acb537c8038b126d1a86679ece83fb" data-score="0" data-since="260603">cannot be computed, because F is in the tail of EFO and E is in the tail
+<p>cannot be computed, because F is in the tail of EFO and E is in the tail
 of FE.</p>
-<p data-msgid="bf0a6769f65784bffbeb73cdd6d0e88c88b1652f" data-score="0" data-since="260603">The real solution is to design a non-ambiguous hierarchy, i.e. to derive
+<p>The real solution is to design a non-ambiguous hierarchy, i.e. to derive
 G from E and F (the more specific first) and not from F and E; in this
 case the MRO is GEF without any doubt.</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="61b59aeb69c53852ef7017f1ec864d6970ef9271" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>           O
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>           O
            |
            F (spam)
          / |
@@ -540,9 +542,9 @@ case the MRO is GEF without any doubt.</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="f768b42e4e32aa96dff46243768c0b1c408b976f" data-score="0" data-since="260603">Python 2.3 forces the programmer to write good hierarchies (or, at
+<p>Python 2.3 forces the programmer to write good hierarchies (or, at
 least, less error-prone ones).</p>
-<p data-msgid="497ba4076b6e745fdca57794e825a611c0157dce" data-score="0" data-since="260603">On a related note, let me point out that the Python 2.3 algorithm is
+<p>On a related note, let me point out that the Python 2.3 algorithm is
 smart enough to recognize obvious mistakes, as the duplication of
 classes in the list of parents:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="k">pass</span>
@@ -552,24 +554,24 @@ classes in the list of parents:</p>
 <span class="gr">TypeError</span>: <span class="n">duplicate base class A</span>
 </pre></div>
 </div>
-<p data-msgid="de79b3f1b0b100233f0f0b43a336915ff2526fe4" data-score="0" data-since="260603">Python 2.2 (both for classic classes and new style classes) in this
+<p>Python 2.2 (both for classic classes and new style classes) in this
 situation, would not raise any exception.</p>
-<p data-msgid="ba565c677ef59c23e3f826d1c43e7fa18df18743" data-score="0" data-since="260603">Finally, I would like to point out two lessons we have learned from this
+<p>Finally, I would like to point out two lessons we have learned from this
 example:</p>
 <ol class="arabic simple">
-<li><p data-msgid="6a4adfc998c0771ca303afae4ad43c6333e41cdd" data-score="0" data-since="260603">despite the name, the MRO determines the resolution order of
+<li><p>despite the name, the MRO determines the resolution order of
 attributes, not only of methods;</p></li>
-<li><p data-msgid="1e80b14c30c6051ea8dda0bf5c50b3135fbdfed7" data-score="0" data-since="260603">the default food for Pythonistas is spam !  (but you already knew
+<li><p>the default food for Pythonistas is spam !  (but you already knew
 that ;-)</p></li>
 </ol>
-<p data-msgid="833c3d1305bf9d677924d27c3f20755bb8e1abf0" data-score="0" data-since="260603">Having discussed the issue of local precedence ordering, let me now
+<p>Having discussed the issue of local precedence ordering, let me now
 consider the issue of monotonicity.  My goal is to show that neither the
 MRO for classic classes nor that for Python 2.2 new style classes is
 monotonic.</p>
-<p data-msgid="d58ef645364f31e06303a6fd764ed9321a63749a" data-score="0" data-since="260603">To prove that the MRO for classic classes is non-monotonic is rather
+<p>To prove that the MRO for classic classes is non-monotonic is rather
 trivial, it is enough to look at the diamond diagram:</p>
 <blockquote>
-<div><div class="highlight-text notranslate" data-msgid="0d51e298814ac2bfaca198338e2cf4b0c223c0fe" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>   C
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>   C
   / \
  /   \
 A     B
@@ -579,22 +581,22 @@ A     B
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="b9fae8b4c4ebd22fc87208c97bc86dc6ee9f3bf8" data-score="0" data-since="260603">One easily discerns the inconsistency:</p>
-<div class="highlight-python3 notranslate" data-msgid="25c965713d764b356a727a2dd539adea55f604d6" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">C</span>        <span class="c1"># B precedes C : B&#39;s methods win</span>
+<p>One easily discerns the inconsistency:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">C</span>        <span class="c1"># B precedes C : B&#39;s methods win</span>
 <span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">C</span> <span class="n">B</span> <span class="n">C</span>  <span class="c1"># B follows C  : C&#39;s methods win!</span>
 </pre></div>
 </div>
-<p data-msgid="1cbb847a4dbf4051e2d0f0c920254c7f557aa270" data-score="0" data-since="260603">On the other hand, there are no problems with the Python 2.2 and 2.3
+<p>On the other hand, there are no problems with the Python 2.2 and 2.3
 MROs, they give both:</p>
-<div class="highlight-python3 notranslate" data-msgid="7fc3690a3d57cde2f554b0cc0084f5b2d8cc3f88" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span>
 </pre></div>
 </div>
-<p data-msgid="bc8e84321589562c8a2928a8f5f1ed3535586dbc" data-score="0" data-since="260603">Guido points out in his essay <a class="footnote-reference brackets" href="#id6" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> that the classic MRO is not so bad in
+<p>Guido points out in his essay <a class="footnote-reference brackets" href="#id6" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> that the classic MRO is not so bad in
 practice, since one can typically avoids diamonds for classic classes.
 But all new style classes inherit from <code class="docutils literal notranslate"><span class="pre">object</span></code>, therefore diamonds are
 unavoidable and inconsistencies shows up in every multiple inheritance
 graph.</p>
-<p data-msgid="f8b4e5e81809a77962121a7df0225084f2b5b7c0" data-score="0" data-since="260603">The MRO of Python 2.2 makes breaking monotonicity difficult, but not
+<p>The MRO of Python 2.2 makes breaking monotonicity difficult, but not
 impossible.  The following example, originally provided by Samuele
 Pedroni, shows that the MRO of Python 2.2 is non-monotonic:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="k">pass</span>
@@ -608,10 +610,10 @@ Pedroni, shows that the MRO of Python 2.2 is non-monotonic:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Z</span><span class="p">(</span><span class="n">K1</span><span class="p">,</span><span class="n">K2</span><span class="p">,</span><span class="n">K3</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="d6071c1bb4cce7fede53c4ba0ce76d193fe92903" data-score="0" data-since="260603">Here are the linearizations according to the C3 MRO (the reader should
+<p>Here are the linearizations according to the C3 MRO (the reader should
 verify these linearizations as an exercise and draw the inheritance
 diagram ;-)</p>
-<div class="highlight-python3 notranslate" data-msgid="90f4d59aeec0d41e79cc775c82e0bb5cdad66217" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">A</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="n">O</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">A</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">O</span>
@@ -622,12 +624,12 @@ diagram ;-)</p>
 <span class="n">L</span><span class="p">[</span><span class="n">Z</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span> <span class="n">K1</span> <span class="n">K2</span> <span class="n">K3</span> <span class="n">D</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span> <span class="n">E</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="c853ef09faab5dd9d9f287984db9b45ea59c91b9" data-score="0" data-since="260603">Python 2.2 gives exactly the same linearizations for A, B, C, D, E, K1,
+<p>Python 2.2 gives exactly the same linearizations for A, B, C, D, E, K1,
 K2 and K3, but a different linearization for Z:</p>
-<div class="highlight-python3 notranslate" data-msgid="1dca42408536ad2ce9d57e96c77e97794274944e" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">Z</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span> <span class="n">K1</span> <span class="n">K3</span> <span class="n">A</span> <span class="n">K2</span> <span class="n">D</span> <span class="n">B</span> <span class="n">C</span> <span class="n">E</span> <span class="n">O</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">Z</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span> <span class="n">K1</span> <span class="n">K3</span> <span class="n">A</span> <span class="n">K2</span> <span class="n">D</span> <span class="n">B</span> <span class="n">C</span> <span class="n">E</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="03b09e65ea2297e3e93eb01f0063cd92a0bf5508" data-score="0" data-since="260603">It is clear that this linearization is <em>wrong</em>, since A comes before D
+<p>It is clear that this linearization is <em>wrong</em>, since A comes before D
 whereas in the linearization of K3 A comes <em>after</em> D. In other words, in
 K3 methods derived by D override methods derived by A, but in Z, which
 still is a subclass of K3, methods derived by A override methods derived
@@ -639,8 +641,8 @@ problems explain why the 2.2 rule has been dismissed in favor of the C3
 rule.</p>
 </section>
 <section id="the-end">
-<h2 data-msgid="73e47d4a5ad24b600e1d823e4fb2f7f9b37a4db5" data-score="0" data-since="260603">The end<a class="headerlink" href="#the-end" title="Link to this heading">¶</a></h2>
-<p data-msgid="fa2ac2574a0ffa82e9ea45abd1fac0504bc44136" data-score="0" data-since="260603">This section is for the impatient reader, who skipped all the previous
+<h2>The end<a class="headerlink" href="#the-end" title="Link to this heading">¶</a></h2>
+<p>This section is for the impatient reader, who skipped all the previous
 sections and jumped immediately to the end.  This section is for the
 lazy programmer too, who didn’t want to exercise her/his brain.
 Finally, it is for the programmer with some hubris, otherwise s/he would
@@ -650,7 +652,7 @@ inheritance hierarchies ;-) These three virtues taken all together (and
 script that allows you to compute the 2.3 MRO without risk to your
 brain.  Simply change the last line to play with the various examples I
 have discussed in this paper.:</p>
-<div class="highlight-python3 notranslate" data-msgid="b958f1fd1bf613429648ff624f49f6879ed34656" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="c1">#&lt;mro.py&gt;</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#&lt;mro.py&gt;</span>
 
 <span class="sd">&quot;&quot;&quot;C3 algorithm by Samuele Pedroni (with readability enhanced by me).&quot;&quot;&quot;</span>
 
@@ -733,38 +735,33 @@ have discussed in this paper.:</p>
 <span class="c1">#&lt;/mro.py&gt;</span>
 </pre></div>
 </div>
-<p data-msgid="6b72f12fad9c1717a10ebe2921fbb0a27df6df88" data-score="0" data-since="260603">That’s all folks,</p>
+<p>That’s all folks,</p>
 <blockquote>
-<div><p data-msgid="dd6d8bdbbbc4baff520d9affaf0d75ba7c238a0b" data-score="0" data-since="260603">enjoy !</p>
+<div><p>enjoy !</p>
 </div></blockquote>
 </section>
 <section id="resources">
-<h2 data-msgid="87df60de337fb58864343e396696d74611e0d403" data-score="0" data-since="260603">Resources<a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<h2>Resources<a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id4" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p data-msgid="56140e684e03a7f37082ce83b9b5649d58508b54" data-score="0" data-since="260603">The thread on python-dev started by Samuele Pedroni:
+<p>The thread on python-dev started by Samuele Pedroni:
 <a class="reference external" href="https://mail.python.org/pipermail/python-dev/2002-October/029035.html">https://mail.python.org/pipermail/python-dev/2002-October/029035.html</a></p>
 </aside>
 <aside class="footnote brackets" id="id5" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
-<p data-msgid="666fc564aaa0c9e328a72bbcfe1ca7fcc292cfad" data-score="0" data-since="260603">The paper <em>A Monotonic Superclass Linearization for Dylan</em>:
+<p>The paper <em>A Monotonic Superclass Linearization for Dylan</em>:
 <a class="reference external" href="https://doi.org/10.1145/236337.236343">https://doi.org/10.1145/236337.236343</a></p>
 </aside>
 <aside class="footnote brackets" id="id6" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
-<p data-msgid="924c0585bcb09f261bed71193363fe31187c89ab" data-score="0" data-since="260603">Guido van Rossum’s essay, <em>Unifying types and classes in Python 2.2</em>:
+<p>Guido van Rossum’s essay, <em>Unifying types and classes in Python 2.2</em>:
 <a class="reference external" href="https://web.archive.org/web/20140210194412/http://www.python.org/download/releases/2.2.2/descrintro">https://web.archive.org/web/20140210194412/http://www.python.org/download/releases/2.2.2/descrintro</a></p>
 </aside>
 </aside>
 </section>
 </section>
-<div class="lost-and-found-section">
-    <h4>분실물 보관소</h4>
-    <div class="lost-and-found-items">
-        <span data-msgid="d79da395b5d7a09c6439a5f2660d8c568186ab7e" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-    </div>
-</div>
+
 
                 
                 <!-- Giscus Comments -->
