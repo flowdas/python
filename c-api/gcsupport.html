@@ -118,28 +118,28 @@
             <article class="document">
                 
   <section id="supporting-cyclic-garbage-collection">
-<span id="supporting-cycle-detection"></span><h1>순환 가비지 수집 지원<a class="headerlink" href="#supporting-cyclic-garbage-collection" title="Link to this heading">¶</a></h1>
-<p>순환 참조를 포함하는 가비지를 탐지하고 수집하는 파이썬의 지원은 역시 컨테이너일 수 있는 다른 객체의 “컨테이너” 인 객체 형의 지원이 필요합니다. 다른 객체에 대한 참조를 저장하지 않거나, 원자 형(가령 숫자나 문자열)에 대한 참조만 저장하는 형은 가비지 수집에 대한 어떤 명시적인 지원을 제공할 필요가 없습니다.</p>
-<p>컨테이너형을 만들려면, 형 객체의 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_flags" title="PyTypeObject.tp_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_flags</span></code></a> 필드가 <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a>를 포함해야 하고 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기 구현을 제공해야 합니다. 형의 인스턴스가 가변이면, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 구현도 제공해야 합니다.</p>
+<span id="supporting-cycle-detection"></span><h1 data-msgid="414fc7d557cea323f340fa64ffbbe39e61154f8c" data-score="100" data-since="260603">순환 가비지 수집 지원<a class="headerlink" href="#supporting-cyclic-garbage-collection" title="Link to this heading">¶</a></h1>
+<p data-msgid="156dddaed1cf8c3ca25e28024db0a1c6bd3e6692" data-score="75" data-since="260603">순환 참조를 포함하는 가비지를 탐지하고 수집하는 파이썬의 지원은 역시 컨테이너일 수 있는 다른 객체의 “컨테이너” 인 객체 형의 지원이 필요합니다. 다른 객체에 대한 참조를 저장하지 않거나, 원자 형(가령 숫자나 문자열)에 대한 참조만 저장하는 형은 가비지 수집에 대한 어떤 명시적인 지원을 제공할 필요가 없습니다.</p>
+<p data-msgid="f79467395d9acf5067b6377068dd1522af545243" data-score="91" data-since="260603">컨테이너형을 만들려면, 형 객체의 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_flags" title="PyTypeObject.tp_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_flags</span></code></a> 필드가 <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a>를 포함해야 하고 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기 구현을 제공해야 합니다. 형의 인스턴스가 가변이면, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 구현도 제공해야 합니다.</p>
 <dl class="simple">
-<dt><a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a></dt><dd><p>이 플래그가 설정된 형의 객체는 여기에 설명된 규칙을 준수해야 합니다. 편의를 위해 이러한 객체를 컨테이너 객체라고 하겠습니다.</p>
+<dt data-msgid="f5546844b6dd4286ec5d6956476fe901a577422d" data-score="100" data-since="260603"><a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a></dt><dd><p data-msgid="90787a31e5222352d36cf3b2e25d6767b8c0a5ab" data-score="92" data-since="260603">이 플래그가 설정된 형의 객체는 여기에 설명된 규칙을 준수해야 합니다. 편의를 위해 이러한 객체를 컨테이너 객체라고 하겠습니다.</p>
 </dd>
 </dl>
-<p>컨테이너형의 생성자는 두 가지 규칙을 준수해야 합니다:</p>
+<p data-msgid="1f32ece41ce65e6268acc5d4d1d5dd96d7722831" data-score="90" data-since="260603">컨테이너형의 생성자는 두 가지 규칙을 준수해야 합니다:</p>
 <ol class="arabic simple">
-<li><p>객체의 메모리는 <a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> 나 <a class="reference internal" href="#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a>를 사용하여 할당해야 합니다.</p></li>
-<li><p>다른 컨테이너에 대한 참조를 포함할 수 있는 모든 필드가 초기화되면, <a class="reference internal" href="#c.PyObject_GC_Track" title="PyObject_GC_Track"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Track()</span></code></a>를 호출해야 합니다.</p></li>
+<li><p data-msgid="41f4f8927e4fb0d227431e511502f3724521d6eb" data-score="98" data-since="260603">객체의 메모리는 <a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> 나 <a class="reference internal" href="#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a>를 사용하여 할당해야 합니다.</p></li>
+<li><p data-msgid="daa54b9610c457e73bb927d0af5052b6664ce52c" data-score="100" data-since="260603">다른 컨테이너에 대한 참조를 포함할 수 있는 모든 필드가 초기화되면, <a class="reference internal" href="#c.PyObject_GC_Track" title="PyObject_GC_Track"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Track()</span></code></a>를 호출해야 합니다.</p></li>
 </ol>
-<p>마찬가지로, 객체의 할당해제자(deallocator)는 비슷한 규칙 쌍을 준수해야 합니다:</p>
+<p data-msgid="fb4120e1147573165547568b480830b44c417caf" data-score="88" data-since="260603">마찬가지로, 객체의 할당해제자(deallocator)는 비슷한 규칙 쌍을 준수해야 합니다:</p>
 <ol class="arabic">
-<li><p>다른 컨테이너를 참조하는 필드가 무효화 되기 전에, <a class="reference internal" href="#c.PyObject_GC_UnTrack" title="PyObject_GC_UnTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_UnTrack()</span></code></a>를 호출해야 합니다.</p></li>
-<li><p>객체의 메모리는 <a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a>를 사용하여 할당 해제되어야 합니다.</p>
+<li><p data-msgid="6b5f8c02b94ea6ad6f77ca0bd26712692fd25280" data-score="91" data-since="260603">다른 컨테이너를 참조하는 필드가 무효화 되기 전에, <a class="reference internal" href="#c.PyObject_GC_UnTrack" title="PyObject_GC_UnTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_UnTrack()</span></code></a>를 호출해야 합니다.</p></li>
+<li><p data-msgid="2522065f9a6310d989183cb0c739d54c01d29efc" data-score="95" data-since="260603">객체의 메모리는 <a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a>를 사용하여 할당 해제되어야 합니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>If a type adds the Py_TPFLAGS_HAVE_GC, then it <em>must</em> implement at least
+<p data-msgid="5d868fe8c87c1b097f6244b02c3ff29adde25e30" data-score="0" data-since="260603">If a type adds the Py_TPFLAGS_HAVE_GC, then it <em>must</em> implement at least
 a <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> handler or explicitly use one
 from its subclass or subclasses.</p>
-<p>When calling <a class="reference internal" href="type.html#c.PyType_Ready" title="PyType_Ready"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Ready()</span></code></a> or some of the APIs that indirectly
+<p data-msgid="6394eb4e7d6ab61d5bad4645dc39387dcb0e9c55" data-score="0" data-since="260603">When calling <a class="reference internal" href="type.html#c.PyType_Ready" title="PyType_Ready"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Ready()</span></code></a> or some of the APIs that indirectly
 call it like <a class="reference internal" href="type.html#c.PyType_FromSpecWithBases" title="PyType_FromSpecWithBases"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpecWithBases()</span></code></a> or
 <a class="reference internal" href="type.html#c.PyType_FromSpec" title="PyType_FromSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpec()</span></code></a> the interpreter will automatically populate the
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_flags" title="PyTypeObject.tp_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_flags</span></code></a>, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>
@@ -152,22 +152,22 @@ does <em>not</em> include the <a class="reference internal" href="typeobj.html#c
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.PyObject_GC_New">
 <span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_New</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TYPE</span></span>, <span class="n"><span class="pre">typeobj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_New" title="Link to this definition">¶</a><br /></dt>
-<dd><p><a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_New</span></code></a>와 유사하지만, <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그가 설정된 컨테이너 객체를 위한 것.</p>
-<p>Do not call this directly to allocate memory for an object; call the type’s
+<dd><p data-msgid="bdaccc40becb25272daba83a3aff187769ea3edd" data-score="91" data-since="260603"><a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_New</span></code></a>와 유사하지만, <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그가 설정된 컨테이너 객체를 위한 것.</p>
+<p data-msgid="a40889daa58d5367a99957a43135f525c9793492" data-score="0" data-since="260603">Do not call this directly to allocate memory for an object; call the type’s
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot instead.</p>
-<p>When populating a type’s <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot,
+<p data-msgid="9a5666981d239220db8120591b623f517a5d220b" data-score="0" data-since="260603">When populating a type’s <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot,
 <a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a> is preferred over a custom function that
 simply calls this macro.</p>
-<p>Memory allocated by this macro must be freed with
+<p data-msgid="60e2faca330c0086e70bfbaa1ded062cf70b1c56" data-score="0" data-since="260603">Memory allocated by this macro must be freed with
 <a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> (usually called via the object’s
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> slot).</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a></p></li>
-<li><p><a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_New</span></code></a></p></li>
-<li><p><a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a></p></li>
-<li><p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a></p></li>
+<li><p data-msgid="2eb31f19f63e55567d2a3beca299fcb288df9636" data-score="100" data-since="260607"><a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a></p></li>
+<li><p data-msgid="f0ba36c8ea3525e1e6444a47ecc2f63b3a2dc903" data-score="100" data-since="260607"><a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_New</span></code></a></p></li>
+<li><p data-msgid="fe01550c427c63029ed46b369d99605c79660521" data-score="100" data-since="260607"><a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a></p></li>
+<li><p data-msgid="517a0368edc56bbb8c2827d094931595fa38defb" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a></p></li>
 </ul>
 </div>
 </dd></dl>
@@ -175,22 +175,22 @@ simply calls this macro.</p>
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.PyObject_GC_NewVar">
 <span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_NewVar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TYPE</span></span>, <span class="n"><span class="pre">typeobj</span></span>, <span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_NewVar" title="Link to this definition">¶</a><br /></dt>
-<dd><p><a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a>와 유사하지만, <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그가 설정된 컨테이너 객체를 위한 것.</p>
-<p>Do not call this directly to allocate memory for an object; call the type’s
+<dd><p data-msgid="7d8f8a6e96f07c600349eb1e10a9d60d69b59590" data-score="91" data-since="260603"><a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a>와 유사하지만, <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그가 설정된 컨테이너 객체를 위한 것.</p>
+<p data-msgid="a40889daa58d5367a99957a43135f525c9793492" data-score="0" data-since="260603">Do not call this directly to allocate memory for an object; call the type’s
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot instead.</p>
-<p>When populating a type’s <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot,
+<p data-msgid="9a5666981d239220db8120591b623f517a5d220b" data-score="0" data-since="260603">When populating a type’s <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot,
 <a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a> is preferred over a custom function that
 simply calls this macro.</p>
-<p>Memory allocated by this macro must be freed with
+<p data-msgid="60e2faca330c0086e70bfbaa1ded062cf70b1c56" data-score="0" data-since="260603">Memory allocated by this macro must be freed with
 <a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> (usually called via the object’s
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> slot).</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a></p></li>
-<li><p><a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a></p></li>
-<li><p><a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a></p></li>
-<li><p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a></p></li>
+<li><p data-msgid="2eb31f19f63e55567d2a3beca299fcb288df9636" data-score="100" data-since="260607"><a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a></p></li>
+<li><p data-msgid="054edb07a1ff1ef02682352197a30118444d527f" data-score="100" data-since="260607"><a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a></p></li>
+<li><p data-msgid="fe01550c427c63029ed46b369d99605c79660521" data-score="100" data-since="260607"><a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a></p></li>
+<li><p data-msgid="517a0368edc56bbb8c2827d094931595fa38defb" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a></p></li>
 </ul>
 </div>
 </dd></dl>
@@ -200,19 +200,19 @@ simply calls this macro.</p>
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_Object_GC_NewWithExtraData</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">extra_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_Object_GC_NewWithExtraData" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="unstable-c-api warning admonition">
 <em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
-<p>Analogous to <a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> but allocates <em>extra_size</em>
+<p data-msgid="724c7146f2852e72fa372b16a9f315e5054ac0d9" data-score="0" data-since="260603">Analogous to <a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> but allocates <em>extra_size</em>
 bytes at the end of the object (at offset
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_basicsize" title="PyTypeObject.tp_basicsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_basicsize</span></code></a>).
 The allocated memory is initialized to zeros,
 except for the <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">Python</span> <span class="pre">object</span> <span class="pre">header</span></code></a>.</p>
-<p>The extra data will be deallocated with the object, but otherwise it is
+<p data-msgid="5decd24af0d919133973c18e7a7731b3a8e687ba" data-score="0" data-since="260603">The extra data will be deallocated with the object, but otherwise it is
 not managed by Python.</p>
-<p>Memory allocated by this function must be freed with
+<p data-msgid="1f9bdf875a762d07286927804fee1c4241e921de" data-score="0" data-since="260603">Memory allocated by this function must be freed with
 <a class="reference internal" href="#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> (usually called via the object’s
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> slot).</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>The function is marked as unstable because the final mechanism
+<p data-msgid="fe406f3081bd07c7ebd96c6c11093bf6d5409173" data-score="0" data-since="260603">The function is marked as unstable because the final mechanism
 for reserving extra data after an instance is not yet decided.
 For allocating a variable number of fields, prefer using
 <a class="reference internal" href="structures.html#c.PyVarObject" title="PyVarObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyVarObject</span></code></a> and <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_itemsize</span></code></a>
@@ -226,28 +226,28 @@ instead.</p>
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.PyObject_GC_Resize">
 <span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_Resize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TYPE</span></span>, <span class="n"><span class="pre">op</span></span>, <span class="n"><span class="pre">newsize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_Resize" title="Link to this definition">¶</a><br /></dt>
-<dd><p><a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a>에 의해 할당된 객체의 크기를 변경합니다. 형 <code class="docutils literal notranslate"><span class="pre">TYPE*</span></code> (모든 C 형을 나타냅니다) 의 크기가 조정된 객체나 실패하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다.</p>
-<p><em>op</em>는 형 <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyVarObject" title="PyVarObject"><span class="n">PyVarObject</span></a><span class="p">*</span></span>이어야 하고 아직 수거기가 추적하지 않아야 합니다. <em>newsize</em>는 형 <a class="reference internal" href="intro.html#c.Py_ssize_t" title="Py_ssize_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code></a>이어야 합니다.</p>
+<dd><p data-msgid="7fad4c020f36b39534da22cabbc16ba65a07bf9f" data-score="86" data-since="260603"><a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a>에 의해 할당된 객체의 크기를 변경합니다. 형 <code class="docutils literal notranslate"><span class="pre">TYPE*</span></code> (모든 C 형을 나타냅니다) 의 크기가 조정된 객체나 실패하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다.</p>
+<p data-msgid="db4ba01db289026ba45fe0717c1539e1e3ba5e63" data-score="92" data-since="260603"><em>op</em>는 형 <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyVarObject" title="PyVarObject"><span class="n">PyVarObject</span></a><span class="p">*</span></span>이어야 하고 아직 수거기가 추적하지 않아야 합니다. <em>newsize</em>는 형 <a class="reference internal" href="intro.html#c.Py_ssize_t" title="Py_ssize_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_ssize_t</span></code></a>이어야 합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_GC_Track">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_Track</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_Track" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p>수거기가 추적하는 컨테이너 객체 집합에 객체 <em>op</em>를 추가합니다. 수거기는 예기치 않은 시간에 실행될 수 있으므로 추적되는 동안 객체가 유효해야 합니다. <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기가 탐색하는 모든 필드가 유효해지면 호출해야 합니다, 보통 생성자의 끝부분 근처입니다.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="42a360b89ccd2ba2c0965077f0d6b62af9837e9e" data-score="80" data-since="260603">수거기가 추적하는 컨테이너 객체 집합에 객체 <em>op</em>를 추가합니다. 수거기는 예기치 않은 시간에 실행될 수 있으므로 추적되는 동안 객체가 유효해야 합니다. <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기가 탐색하는 모든 필드가 유효해지면 호출해야 합니다, 보통 생성자의 끝부분 근처입니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_IS_GC">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_IS_GC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">obj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_IS_GC" title="Link to this definition">¶</a><br /></dt>
-<dd><p>객체가 가비지 수거기 프로토콜을 구현하면 0이 아닌 값을 반환하고, 그렇지 않으면 0을 반환합니다.</p>
-<p>이 함수가 0을 반환하면 가비지 수거기가 객체를 추적할 수 없습니다.</p>
+<dd><p data-msgid="7f8fcc5d772b05312232fa39b47a30ae3b6a423b" data-score="100" data-since="260603">객체가 가비지 수거기 프로토콜을 구현하면 0이 아닌 값을 반환하고, 그렇지 않으면 0을 반환합니다.</p>
+<p data-msgid="266ce935b39cf9a1d74fa7687a103c1433e8b8a0" data-score="76" data-since="260603">이 함수가 0을 반환하면 가비지 수거기가 객체를 추적할 수 없습니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_GC_IsTracked">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_IsTracked</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_IsTracked" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.9 이후로.</em><p><em>op</em>의 객체 형이 GC 프로토콜을 구현하고 <em>op</em>가 현재 가비지 수거기가 추적 중이면 1을 반환하고 그렇지 않으면 0을 반환합니다.</p>
-<p>이것은 파이썬 함수 <a class="reference internal" href="../library/gc.html#gc.is_tracked" title="gc.is_tracked"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.is_tracked()</span></code></a>에 해당합니다.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.9 이후로.</em><p data-msgid="7102035122fc5ec647e2f9b5157f5bd5562649a6" data-score="83" data-since="260603"><em>op</em>의 객체 형이 GC 프로토콜을 구현하고 <em>op</em>가 현재 가비지 수거기가 추적 중이면 1을 반환하고 그렇지 않으면 0을 반환합니다.</p>
+<p data-msgid="b96ce8a1df83688b2e216a673e698e0733f93411" data-score="95" data-since="260603">이것은 파이썬 함수 <a class="reference internal" href="../library/gc.html#gc.is_tracked" title="gc.is_tracked"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.is_tracked()</span></code></a>에 해당합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
 </div>
@@ -256,8 +256,8 @@ instead.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_GC_IsFinalized">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_IsFinalized</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_IsFinalized" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.9 이후로.</em><p><em>op</em>의 객체 형이 GC 프로토콜을 구현하고 가비지 수거기가 <em>op</em>를 이미 파이널라이즈 했으면 1을 반환하고 그렇지 않으면 0을 반환합니다.</p>
-<p>이것은 파이썬 함수 <a class="reference internal" href="../library/gc.html#gc.is_finalized" title="gc.is_finalized"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.is_finalized()</span></code></a>에 해당합니다.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.9 이후로.</em><p data-msgid="bc5d1d9498f46775e3f40fb55e8c85d991a8c9d5" data-score="88" data-since="260603"><em>op</em>의 객체 형이 GC 프로토콜을 구현하고 가비지 수거기가 <em>op</em>를 이미 파이널라이즈 했으면 1을 반환하고 그렇지 않으면 0을 반환합니다.</p>
+<p data-msgid="52395635524571cf459fe983e5c348aa830a13ac" data-score="95" data-since="260603">이것은 파이썬 함수 <a class="reference internal" href="../library/gc.html#gc.is_finalized" title="gc.is_finalized"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.is_finalized()</span></code></a>에 해당합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
 </div>
@@ -266,20 +266,20 @@ instead.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_GC_Del">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_Del</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_Del" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p><a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> 나 <a class="reference internal" href="#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a>를 사용하여 객체에 할당된 메모리를 해제합니다.</p>
-<p>Do not call this directly to free an object’s memory; call the type’s
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="a3a7d53afdcda441141ee615b13dcdc63dcc4db5" data-score="98" data-since="260603"><a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> 나 <a class="reference internal" href="#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a>를 사용하여 객체에 할당된 메모리를 해제합니다.</p>
+<p data-msgid="458f1937b2f09cf66cb4d6adf4f9ae897cd35a96" data-score="0" data-since="260603">Do not call this directly to free an object’s memory; call the type’s
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> slot instead.</p>
-<p>Do not use this for memory allocated by <a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_New</span></code></a>,
+<p data-msgid="3899de213340944d15a041442e2cd7da081733e6" data-score="0" data-since="260603">Do not use this for memory allocated by <a class="reference internal" href="allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_New</span></code></a>,
 <a class="reference internal" href="allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_NewVar</span></code></a>, or related allocation functions; use
 <a class="reference internal" href="memory.html#c.PyObject_Free" title="PyObject_Free"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Free()</span></code></a> instead.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="memory.html#c.PyObject_Free" title="PyObject_Free"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Free()</span></code></a> is the non-GC equivalent of this function.</p></li>
-<li><p><a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a></p></li>
-<li><p><a class="reference internal" href="#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a></p></li>
-<li><p><a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a></p></li>
-<li><p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a></p></li>
+<li><p data-msgid="b7e80129e109030e51d0e89bea0dbd595b789447" data-score="0" data-since="260603"><a class="reference internal" href="memory.html#c.PyObject_Free" title="PyObject_Free"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Free()</span></code></a> is the non-GC equivalent of this function.</p></li>
+<li><p data-msgid="afb6b637cc2d0b19b5555b0cde2b0a084dda5fde" data-score="100" data-since="260607"><a class="reference internal" href="#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a></p></li>
+<li><p data-msgid="6aa72ba010a864907c24a6cfdcc0b07883012717" data-score="100" data-since="260607"><a class="reference internal" href="#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a></p></li>
+<li><p data-msgid="fe01550c427c63029ed46b369d99605c79660521" data-score="100" data-since="260607"><a class="reference internal" href="type.html#c.PyType_GenericAlloc" title="PyType_GenericAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericAlloc()</span></code></a></p></li>
+<li><p data-msgid="b354841a1e2a134081b88e6bd66a3d1c75e591fd" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a></p></li>
 </ul>
 </div>
 </dd></dl>
@@ -287,33 +287,33 @@ instead.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_GC_UnTrack">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_GC_UnTrack</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_GC_UnTrack" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p>수거기가 추적하는 컨테이너 객체 집합에서 <em>op</em> 객체를 제거합니다. <a class="reference internal" href="#c.PyObject_GC_Track" title="PyObject_GC_Track"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Track()</span></code></a>를 이 객체에 대해 다시 호출하여 추적 객체 집합에 다시 추가할 수 있음에 유의하십시오. 할당해제자(<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 처리기)는 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기에서 사용하는 필드가 무효화 되기 전에 객체에 대해 이 함수를 호출해야 합니다.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="962033292cb445fe0ddefe0cd144000a75af2818" data-score="71" data-since="260603">수거기가 추적하는 컨테이너 객체 집합에서 <em>op</em> 객체를 제거합니다. <a class="reference internal" href="#c.PyObject_GC_Track" title="PyObject_GC_Track"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Track()</span></code></a>를 이 객체에 대해 다시 호출하여 추적 객체 집합에 다시 추가할 수 있음에 유의하십시오. 할당해제자(<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 처리기)는 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기에서 사용하는 필드가 무효화 되기 전에 객체에 대해 이 함수를 호출해야 합니다.</p>
 </dd></dl>
 
 <div class="versionchanged">
 <p><span class="versionmodified changed">버전 3.8에서 변경: </span><code class="xref c c-func docutils literal notranslate"><span class="pre">_PyObject_GC_TRACK()</span></code>과 <code class="xref c c-func docutils literal notranslate"><span class="pre">_PyObject_GC_UNTRACK()</span></code> 매크로는 공용 C API에서 제거되었습니다.</p>
 </div>
-<p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기는 다음과 같은 형의 함수 매개 변수를 받아들입니다:</p>
+<p data-msgid="533d720198afa80309e9af2c0b9c4b73ceef896a" data-score="89" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기는 다음과 같은 형의 함수 매개 변수를 받아들입니다:</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.visitproc">
 <span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">visitproc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arg</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.visitproc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기에 전달되는 방문자 함수의 형. 이 함수는 탐색하는 객체를 <em>object</em>로, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기의 세 번째 매개 변수를 <em>arg</em>로 호출되어야 합니다. 파이썬 코어는 순환 가비지 탐지를 구현하기 위해 여러 방문자 함수를 사용합니다; 사용자가 자신의 방문자 함수를 작성해야 할 필요는 없습니다.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="0ed76b3e01eae38a127a3e0bbcf79264cf1a515c" data-score="90" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기에 전달되는 방문자 함수의 형. 이 함수는 탐색하는 객체를 <em>object</em>로, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기의 세 번째 매개 변수를 <em>arg</em>로 호출되어야 합니다. 파이썬 코어는 순환 가비지 탐지를 구현하기 위해 여러 방문자 함수를 사용합니다; 사용자가 자신의 방문자 함수를 작성해야 할 필요는 없습니다.</p>
 </dd></dl>
 
-<p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 처리기는 <a class="reference internal" href="#c.inquiry" title="inquiry"><code class="xref c c-type docutils literal notranslate"><span class="pre">inquiry</span></code></a> 형이거나 객체가 불변이면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이어야 합니다.</p>
+<p data-msgid="a763c41e7e7f3dd4af0108ea0773d2c711a50aed" data-score="92" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 처리기는 <a class="reference internal" href="#c.inquiry" title="inquiry"><code class="xref c c-type docutils literal notranslate"><span class="pre">inquiry</span></code></a> 형이거나 객체가 불변이면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이어야 합니다.</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.inquiry">
 <span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">inquiry</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.inquiry" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p>참조 순환을 생성했을 수 있는 참조를 삭제합니다. 불변 객체는 참조 순환을 직접 생성할 수 없으므로, 이 메서드를 정의 할 필요가 없습니다. 이 메서드를 호출한 후에도 객체가 유효해야 합니다 (단지 참조에 대해 <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>를 호출하지 마십시오). 이 객체가 참조 순환에 참여하고 있음을 수거기가 감지하면 이 메서드를 호출합니다.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="05714264f2b57ab1c21bc80cf09d49650bf8b8c5" data-score="90" data-since="260603">참조 순환을 생성했을 수 있는 참조를 삭제합니다. 불변 객체는 참조 순환을 직접 생성할 수 없으므로, 이 메서드를 정의 할 필요가 없습니다. 이 메서드를 호출한 후에도 객체가 유효해야 합니다 (단지 참조에 대해 <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DECREF()</span></code></a>를 호출하지 마십시오). 이 객체가 참조 순환에 참여하고 있음을 수거기가 감지하면 이 메서드를 호출합니다.</p>
 </dd></dl>
 
 <section id="traversal">
-<span id="gc-traversal"></span><h2>Traversal<a class="headerlink" href="#traversal" title="Link to this heading">¶</a></h2>
-<p><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기는 다음 형이어야 합니다:</p>
+<span id="gc-traversal"></span><h2 data-msgid="9c8ab9d8f52e3cebde865983061e92e1572d8906" data-score="0" data-since="260608">Traversal<a class="headerlink" href="#traversal" title="Link to this heading">¶</a></h2>
+<p data-msgid="360d796c5a0485b9028868d65755c3e0ae175c4a" data-score="91" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 처리기는 다음 형이어야 합니다:</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.traverseproc">
 <span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">traverseproc</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#c.visitproc" title="visitproc"><span class="n"><span class="pre">visitproc</span></span></a><span class="w"> </span><span class="n"><span class="pre">visit</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arg</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.traverseproc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p>Traversal function for a garbage-collected object, used by the garbage
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="fc0ccb81df6950d26f115f4d56b6461947843ca2" data-score="0" data-since="260608">Traversal function for a garbage-collected object, used by the garbage
 collector to detect reference cycles.
 Implementations must call the
 <em>visit</em> function for each object directly contained by <em>self</em>, with the
@@ -321,12 +321,12 @@ parameters to <em>visit</em> being the contained object and the <em>arg</em> val
 to the handler.  The <em>visit</em> function must not be called with a <code class="docutils literal notranslate"><span class="pre">NULL</span></code>
 object argument.  If <em>visit</em> returns a non-zero value, that value should be
 returned immediately.</p>
-<p>A typical <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code> function calls the <a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a>
+<p data-msgid="1466bd5da391c0696a87547da67b17da16056204" data-score="0" data-since="260608">A typical <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code> function calls the <a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a>
 convenience macro on each of the instance’s members that are Python
 objects that the instance owns.
 For example, this is a (slightly outdated) traversal function for
 the <a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a> class:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span>
+<div class="highlight-c notranslate" data-msgid="1d26c692f923565b8668a19e0cc136b6c3c92329" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span>
 <span class="nf">local_traverse</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">visitproc</span><span class="w"> </span><span class="n">visit</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="n">localobject</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">localobject</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">op</span><span class="p">;</span>
@@ -340,65 +340,65 @@ the <a class="reference internal" href="../library/threading.html#threading.loca
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p><a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> requires the <em>visit</em> and <em>arg</em> parameters to
+<p data-msgid="99eb62ec73405fa4645469ee449eaa0bf87594e5" data-score="0" data-since="260608"><a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> requires the <em>visit</em> and <em>arg</em> parameters to
 <code class="xref c c-func docutils literal notranslate"><span class="pre">local_traverse()</span></code> to have these specific names; don’t name them just
 anything.</p>
 </div>
-<p>Instances of <a class="reference internal" href="typeobj.html#heap-types"><span class="std std-ref">heap-allocated types</span></a> hold a reference to
+<p data-msgid="b23e1d73c1595ce85ec0298bfbcdc17bc2c2a256" data-score="0" data-since="260608">Instances of <a class="reference internal" href="typeobj.html#heap-types"><span class="std std-ref">heap-allocated types</span></a> hold a reference to
 their type. Their traversal function must therefore visit the type:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Py_VISIT</span><span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">self</span><span class="p">));</span>
+<div class="highlight-c notranslate" data-msgid="c9d54a54ea6e7cb4327d8260a646c282a9a4a103" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">Py_VISIT</span><span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">self</span><span class="p">));</span>
 </pre></div>
 </div>
-<p>Alternately, the type may delegate this responsibility by
+<p data-msgid="3d7c38cc28086484fe12de3d1bdbad25f0a90042" data-score="0" data-since="260608">Alternately, the type may delegate this responsibility by
 calling <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code> of a heap-allocated superclass (or another
 heap-allocated type, if applicable).
 If they do not, the type object may not be garbage-collected.</p>
-<p>If the <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_MANAGED_DICT" title="Py_TPFLAGS_MANAGED_DICT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_MANAGED_DICT</span></code></a> bit is set in the
+<p data-msgid="7d75f48551e31d1350a370a3488ff69433aacf3e" data-score="0" data-since="260603">If the <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_MANAGED_DICT" title="Py_TPFLAGS_MANAGED_DICT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_MANAGED_DICT</span></code></a> bit is set in the
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_flags" title="PyTypeObject.tp_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_flags</span></code></a> field, the traverse function must call
 <a class="reference internal" href="object.html#c.PyObject_VisitManagedDict" title="PyObject_VisitManagedDict"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VisitManagedDict()</span></code></a> like this:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_VisitManagedDict</span><span class="p">((</span><span class="n">PyObject</span><span class="o">*</span><span class="p">)</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">visit</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">);</span>
+<div class="highlight-c notranslate" data-msgid="845d0d9d4deedb0736f7e7810973af7b891abdd3" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_VisitManagedDict</span><span class="p">((</span><span class="n">PyObject</span><span class="o">*</span><span class="p">)</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">visit</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">);</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">err</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Only the members that the instance <em>owns</em> (by having
+<p data-msgid="10755898c608bb1ae536d5aa1df1820e78116c8e" data-score="0" data-since="260608">Only the members that the instance <em>owns</em> (by having
 <a class="reference internal" href="../glossary.html#term-strong-reference"><span class="xref std std-term">strong references</span></a> to them) must be
 visited. For instance, if an object supports weak references via the
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_weaklist" title="PyTypeObject.tp_weaklist"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_weaklist</span></code></a> slot, the pointer supporting
 the linked list (what <em>tp_weaklist</em> points to) must <strong>not</strong> be
 visited as the instance does not directly own the weak references to itself.</p>
-<p>The traversal function has a limitation:</p>
+<p data-msgid="edb3ffc16dde038228c729bdb47c820491a12ffc" data-score="0" data-since="260608">The traversal function has a limitation:</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>The traversal function must not have any side effects.  Implementations
+<p data-msgid="1aa826f73cd303988c9b78722f2ea2aa2bf8b56e" data-score="0" data-since="260608">The traversal function must not have any side effects.  Implementations
 may not modify the reference counts of any Python objects nor create or
 destroy any Python objects, directly or indirectly.</p>
 </div>
-<p>This means that <em>most</em> Python C API functions may not be used, since
+<p data-msgid="71dedfdcf07f4225e9397175f16449ce94b40e54" data-score="0" data-since="260608">This means that <em>most</em> Python C API functions may not be used, since
 they can raise a new exception, return a new reference to a result object,
 have internal logic that uses side effects.
 Also, unless documented otherwise, functions that happen to not have side
 effects may start having them in future versions, without warning.</p>
-<p>For a list of safe functions, see a
+<p data-msgid="216b2fdd8f7ae6e925d63ece4dbbb3e6b7985ee2" data-score="0" data-since="260608">For a list of safe functions, see a
 <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">separate section</span></a> below.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The <a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> call may be skipped for those members that provably
+<p data-msgid="18fe2ee2090be91198c880872f2162dcb9319f17" data-score="0" data-since="260608">The <a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> call may be skipped for those members that provably
 cannot participate in reference cycles.
 In the <code class="docutils literal notranslate"><span class="pre">local_traverse</span></code> example above, there is also a <code class="docutils literal notranslate"><span class="pre">self-&gt;key</span></code>
 member, but it can only be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or a Python string and therefore
 cannot be part of a reference cycle.</p>
-<p>On the other hand, even if you know a member can never be part of a cycle,
+<p data-msgid="c0482291495d17db23866d7416c72ba673d88b9c" data-score="0" data-since="260603">On the other hand, even if you know a member can never be part of a cycle,
 as a debugging aid you may want to visit it anyway just so the <a class="reference internal" href="../library/gc.html#module-gc" title="gc: Interface to the cycle-detecting garbage collector."><code class="xref py py-mod docutils literal notranslate"><span class="pre">gc</span></code></a>
 module’s <a class="reference internal" href="../library/gc.html#gc.get_referents" title="gc.get_referents"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_referents()</span></code></a> function will include it.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>The <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> function can be called from any
+<p data-msgid="80b4f671378d577533918200f60f5880e3e1453a" data-score="0" data-since="260603">The <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> function can be called from any
 thread.</p>
 <div class="impl-detail compound">
-<p><strong>CPython 구현 상세:</strong> Garbage collection is a “stop-the-world” operation:
+<p data-msgid="d5dd20c7b27f304bb5bb8bad485b1d9dd32312ef" data-score="0" data-since="260608"><strong>CPython 구현 상세:</strong> Garbage collection is a “stop-the-world” operation:
 even in <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free threading</span></a> builds, only one thread state is
 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a> when <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code>
 handlers run.</p>
@@ -412,18 +412,18 @@ may lead to crashes in subclasses.</p>
 </div>
 </dd></dl>
 
-<p>To simplify writing <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> handlers,
+<p data-msgid="0d09400f25a9101f39488a0785a122691ac951a9" data-score="0" data-since="260608">To simplify writing <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> handlers,
 a <a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a> macro is provided.
 In order to use this macro, the <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>
 implementation must name its arguments exactly <em>visit</em> and <em>arg</em>:</p>
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.Py_VISIT">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_VISIT</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_VISIT" title="Link to this definition">¶</a><br /></dt>
-<dd><p>If the <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> <em>o</em> is not <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, call the <em>visit</em>
+<dd><p data-msgid="ec7b54ec8a1c69f6004911ea4c2119717adfb3c6" data-score="0" data-since="260608">If the <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> <em>o</em> is not <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, call the <em>visit</em>
 callback, with arguments <em>o</em> and <em>arg</em>.
 If <em>visit</em> returns a non-zero value, then return it.</p>
-<p>This corresponds roughly to:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define Py_VISIT(o)                             \</span>
+<p data-msgid="11ceb7373536af506b78cfa7d1e9a474a6691d1b" data-score="0" data-since="260608">This corresponds roughly to:</p>
+<div class="highlight-c notranslate" data-msgid="518f4ab1617431200d5f1b81645c8705570b2687" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="cp">#define Py_VISIT(o)                             \</span>
 <span class="cp">   if (op) {                                    \</span>
 <span class="cp">      int visit_result = visit(o, arg);         \</span>
 <span class="cp">      if (visit_result != 0) {                  \</span>
@@ -435,33 +435,33 @@ If <em>visit</em> returns a non-zero value, then return it.</p>
 </dd></dl>
 
 <section id="traversal-safe-functions">
-<h3>Traversal-safe functions<a class="headerlink" href="#traversal-safe-functions" title="Link to this heading">¶</a></h3>
-<p>The following functions and macros are safe to use in a
+<h3 data-msgid="c335c06736836510b8eea588c19da609f5d888fd" data-score="0" data-since="260608">Traversal-safe functions<a class="headerlink" href="#traversal-safe-functions" title="Link to this heading">¶</a></h3>
+<p data-msgid="639eb02449997167330bcb01128dcf6ed699e78a" data-score="0" data-since="260608">The following functions and macros are safe to use in a
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> handler:</p>
 <ul class="simple">
-<li><p>the <em>visit</em> function passed to <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code></p></li>
-<li><p><a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a></p></li>
-<li><p><a class="reference internal" href="structures.html#c.Py_SIZE" title="Py_SIZE"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_SIZE()</span></code></a></p></li>
-<li><p><a class="reference internal" href="structures.html#c.Py_TYPE" title="Py_TYPE"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_TYPE()</span></code></a>: if called from a <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code> handler,
+<li><p data-msgid="be0dea6b5c9ea65a7d6afafee9c39c92a221394f" data-score="0" data-since="260608">the <em>visit</em> function passed to <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code></p></li>
+<li><p data-msgid="39257088d15c85ac9339739810db78dca714c7ba" data-score="100" data-since="260609"><a class="reference internal" href="#c.Py_VISIT" title="Py_VISIT"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_VISIT()</span></code></a></p></li>
+<li><p data-msgid="b5e1efed7a017f7caf1a186927e22c9f4de7d4ad" data-score="100" data-since="260609"><a class="reference internal" href="structures.html#c.Py_SIZE" title="Py_SIZE"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_SIZE()</span></code></a></p></li>
+<li><p data-msgid="6f309e0ffaed94429d97270b04d1d632b761bfa8" data-score="0" data-since="260608"><a class="reference internal" href="structures.html#c.Py_TYPE" title="Py_TYPE"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_TYPE()</span></code></a>: if called from a <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code> handler,
 <code class="xref c c-func docutils literal notranslate"><span class="pre">Py_TYPE()</span></code>’s result will be valid for the duration of the handler call</p></li>
-<li><p><a class="reference internal" href="object.html#c.PyObject_VisitManagedDict" title="PyObject_VisitManagedDict"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VisitManagedDict()</span></code></a></p></li>
-<li><p><a class="reference internal" href="object.html#c.PyObject_TypeCheck" title="PyObject_TypeCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_TypeCheck()</span></code></a>, <a class="reference internal" href="type.html#c.PyType_IsSubtype" title="PyType_IsSubtype"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_IsSubtype()</span></code></a>,
+<li><p data-msgid="c382dca911cc0616e0e31f967cadb801e05bfd30" data-score="100" data-since="260609"><a class="reference internal" href="object.html#c.PyObject_VisitManagedDict" title="PyObject_VisitManagedDict"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_VisitManagedDict()</span></code></a></p></li>
+<li><p data-msgid="0b96c65ee4e16566a6c849d5b6799deb70c92988" data-score="100" data-since="260609"><a class="reference internal" href="object.html#c.PyObject_TypeCheck" title="PyObject_TypeCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_TypeCheck()</span></code></a>, <a class="reference internal" href="type.html#c.PyType_IsSubtype" title="PyType_IsSubtype"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_IsSubtype()</span></code></a>,
 <a class="reference internal" href="type.html#c.PyType_HasFeature" title="PyType_HasFeature"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_HasFeature()</span></code></a></p></li>
-<li><p><code class="samp docutils literal notranslate"><span class="pre">Py</span><em><span class="pre">&lt;type&gt;</span></em><span class="pre">_Check</span></code> and <code class="samp docutils literal notranslate"><span class="pre">Py</span><em><span class="pre">&lt;type&gt;</span></em><span class="pre">_CheckExact</span></code> – for example,
+<li><p data-msgid="3d544ae5dcc88127cd231ebe2e9dbaf7dd0b81b9" data-score="0" data-since="260608"><code class="samp docutils literal notranslate"><span class="pre">Py</span><em><span class="pre">&lt;type&gt;</span></em><span class="pre">_Check</span></code> and <code class="samp docutils literal notranslate"><span class="pre">Py</span><em><span class="pre">&lt;type&gt;</span></em><span class="pre">_CheckExact</span></code> – for example,
 <a class="reference internal" href="tuple.html#c.PyTuple_Check" title="PyTuple_Check"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyTuple_Check()</span></code></a></p></li>
-<li><p><a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a></p></li>
+<li><p data-msgid="18c4d342f9175860dcb138059ae9d0e9258589a7" data-score="100" data-since="260609"><a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a></p></li>
 </ul>
 </section>
 <section id="duringgc-functions">
-<span id="id1"></span><h3>“DuringGC” functions<a class="headerlink" href="#duringgc-functions" title="Link to this heading">¶</a></h3>
-<p>The following functions should <em>only</em> be used in a
+<span id="id1"></span><h3 data-msgid="05dc8de6aead55c88bb3bd75c9c1e4cc17881e3e" data-score="0" data-since="260608">“DuringGC” functions<a class="headerlink" href="#duringgc-functions" title="Link to this heading">¶</a></h3>
+<p data-msgid="9516a8e00f8336fe4080a8398e2e50767f7dcdba" data-score="0" data-since="260608">The following functions should <em>only</em> be used in a
 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> handler; calling them in other
 contexts may have unintended consequences.</p>
-<p>These functions act like their counterparts without the <code class="docutils literal notranslate"><span class="pre">_DuringGC</span></code> suffix,
+<p data-msgid="03f4b5d9bd19df128f6794db61c0c421cfa1cb54" data-score="0" data-since="260608">These functions act like their counterparts without the <code class="docutils literal notranslate"><span class="pre">_DuringGC</span></code> suffix,
 but they are guaranteed to not have side effects, they do not set an exception
 on failure, and they return/set <a class="reference internal" href="../glossary.html#term-borrowed-reference"><span class="xref std std-term">borrowed references</span></a>
 as detailed in the individual documentation.</p>
-<p>Note that these functions may fail (return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code>),
+<p data-msgid="9d3d7ae0ece9795b141fe1e6bd189524d90416b1" data-score="0" data-since="260608">Note that these functions may fail (return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code>),
 but as they do not set an exception, no error information is available.
 In some cases, failure is not distinguishable from a successful <code class="docutils literal notranslate"><span class="pre">NULL</span></code> result.</p>
 <dl class="c function">
@@ -475,13 +475,13 @@ In some cases, failure is not distinguishable from a successful <code class="doc
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyModule_GetState_DuringGC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyModule_GetState_DuringGC" title="Link to this definition">¶</a><br /></dt>
 <dt class="sig sig-object c" id="c.PyModule_GetToken_DuringGC">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyModule_GetToken_DuringGC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">result</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyModule_GetToken_DuringGC" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p>See <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a> for common information.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="41e701efb1ca15ed826e55207d4685ea6785aeb8" data-score="0" data-since="260608">See <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a> for common information.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><a class="reference internal" href="object.html#c.PyObject_GetTypeData" title="PyObject_GetTypeData"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetTypeData()</span></code></a>,
+<p data-msgid="e4e29ae53046fdf211ea909dac9758d02598aaf2" data-score="100" data-since="260609"><a class="reference internal" href="object.html#c.PyObject_GetTypeData" title="PyObject_GetTypeData"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetTypeData()</span></code></a>,
 <a class="reference internal" href="object.html#c.PyObject_GetItemData" title="PyObject_GetItemData"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetItemData()</span></code></a>,
 <a class="reference internal" href="type.html#c.PyType_GetModuleState" title="PyType_GetModuleState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleState()</span></code></a>,
 <a class="reference internal" href="module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a>,
@@ -493,8 +493,8 @@ In some cases, failure is not distinguishable from a successful <code class="doc
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyType_GetBaseByToken_DuringGC">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyType_GetBaseByToken_DuringGC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tp_token</span></span>, <a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">result</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_GetBaseByToken_DuringGC" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p>See <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a> for common information.</p>
-<p>Sets <em>*result</em> to a <a class="reference internal" href="../glossary.html#term-borrowed-reference"><span class="xref std std-term">borrowed reference</span></a> rather than a strong one.
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="41e701efb1ca15ed826e55207d4685ea6785aeb8" data-score="0" data-since="260608">See <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a> for common information.</p>
+<p data-msgid="e546b993c8ef0bbfc605e9c2bf173ec60b76e1a1" data-score="0" data-since="260608">Sets <em>*result</em> to a <a class="reference internal" href="../glossary.html#term-borrowed-reference"><span class="xref std std-term">borrowed reference</span></a> rather than a strong one.
 The reference is valid for the duration
 of the <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code> handler call.</p>
 <div class="versionadded">
@@ -502,7 +502,7 @@ of the <code class="xref c c-member docutils literal notranslate"><span class="p
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><a class="reference internal" href="type.html#c.PyType_GetBaseByToken" title="PyType_GetBaseByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetBaseByToken()</span></code></a></p>
+<p data-msgid="cc4fd50ae038a26f59da12094d4648df41704c11" data-score="100" data-since="260609"><a class="reference internal" href="type.html#c.PyType_GetBaseByToken" title="PyType_GetBaseByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetBaseByToken()</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -511,15 +511,15 @@ of the <code class="xref c c-member docutils literal notranslate"><span class="p
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyType_GetModule_DuringGC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_GetModule_DuringGC" title="Link to this definition">¶</a><br /></dt>
 <dt class="sig sig-object c" id="c.PyType_GetModuleByToken_DuringGC">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyType_GetModuleByToken_DuringGC</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="type.html#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mod_token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_GetModuleByToken_DuringGC" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="refcount return_borrowed_ref">반환값: 빌린 참조.</em><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p>See <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a> for common information.</p>
-<p>These functions return a <a class="reference internal" href="../glossary.html#term-borrowed-reference"><span class="xref std std-term">borrowed reference</span></a>, which is
+<dd><em class="refcount return_borrowed_ref">반환값: 빌린 참조.</em><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="41e701efb1ca15ed826e55207d4685ea6785aeb8" data-score="0" data-since="260608">See <a class="reference internal" href="#duringgc-functions"><span class="std std-ref">“DuringGC” functions</span></a> for common information.</p>
+<p data-msgid="5f0bfa6b8f8286079f45db17e80e598b55e901da" data-score="0" data-since="260608">These functions return a <a class="reference internal" href="../glossary.html#term-borrowed-reference"><span class="xref std std-term">borrowed reference</span></a>, which is
 valid for the duration of the <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code> handler call.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><a class="reference internal" href="type.html#c.PyType_GetModule" title="PyType_GetModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModule()</span></code></a>,
+<p data-msgid="7c04595f39979eeab4e5007e39122f98fc22ab99" data-score="100" data-since="260609"><a class="reference internal" href="type.html#c.PyType_GetModule" title="PyType_GetModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModule()</span></code></a>,
 <a class="reference internal" href="type.html#c.PyType_GetModuleByToken" title="PyType_GetModuleByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByToken()</span></code></a></p>
 </div>
 </dd></dl>
@@ -527,15 +527,15 @@ valid for the duration of the <code class="xref c c-member docutils literal notr
 </section>
 </section>
 <section id="controlling-the-garbage-collector-state">
-<h2>가비지 수거기 상태 제어하기<a class="headerlink" href="#controlling-the-garbage-collector-state" title="Link to this heading">¶</a></h2>
-<p>The C-API provides the following functions for controlling
+<h2 data-msgid="cb8b10a4c2382f871a1b6327e4b16b6d65dd7f6d" data-score="100" data-since="260603">가비지 수거기 상태 제어하기<a class="headerlink" href="#controlling-the-garbage-collector-state" title="Link to this heading">¶</a></h2>
+<p data-msgid="2f29e8a0a58faef53fc7ad746a05134ef4dc0c3f" data-score="0" data-since="260603">The C-API provides the following functions for controlling
 garbage collection runs.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGC_Collect">
 <a class="reference internal" href="intro.html#c.Py_ssize_t" title="Py_ssize_t"><span class="n"><span class="pre">Py_ssize_t</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGC_Collect</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGC_Collect" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p>Perform a full garbage collection, if the garbage collector is enabled.
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="4e5ac1c0fe874d8abefb9da8df23b65e8656ccdb" data-score="0" data-since="260603">Perform a full garbage collection, if the garbage collector is enabled.
 (Note that <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a> runs it unconditionally.)</p>
-<p>Returns the number of collected + unreachable objects which cannot
+<p data-msgid="f138485f7280f66bb02b2665e0387d1614d570b4" data-score="0" data-since="260603">Returns the number of collected + unreachable objects which cannot
 be collected.
 If the garbage collector is disabled or already collecting,
 returns <code class="docutils literal notranslate"><span class="pre">0</span></code> immediately.
@@ -546,7 +546,7 @@ This function does not raise exceptions.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGC_Enable">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGC_Enable</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGC_Enable" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p>Enable the garbage collector: similar to <a class="reference internal" href="../library/gc.html#gc.enable" title="gc.enable"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.enable()</span></code></a>.
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="d155841903106d282af4a2c90f552ba7e4004a0b" data-score="0" data-since="260603">Enable the garbage collector: similar to <a class="reference internal" href="../library/gc.html#gc.enable" title="gc.enable"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.enable()</span></code></a>.
 Returns the previous state, 0 for disabled and 1 for enabled.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
@@ -556,7 +556,7 @@ Returns the previous state, 0 for disabled and 1 for enabled.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGC_Disable">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGC_Disable</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGC_Disable" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p>Disable the garbage collector: similar to <a class="reference internal" href="../library/gc.html#gc.disable" title="gc.disable"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.disable()</span></code></a>.
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="15914b8668d9acb11b7f97b6aa206dcc068dfb58" data-score="0" data-since="260603">Disable the garbage collector: similar to <a class="reference internal" href="../library/gc.html#gc.disable" title="gc.disable"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.disable()</span></code></a>.
 Returns the previous state, 0 for disabled and 1 for enabled.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
@@ -566,7 +566,7 @@ Returns the previous state, 0 for disabled and 1 for enabled.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGC_IsEnabled">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGC_IsEnabled</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGC_IsEnabled" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p>Query the state of the garbage collector: similar to <a class="reference internal" href="../library/gc.html#gc.isenabled" title="gc.isenabled"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.isenabled()</span></code></a>.
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="1b19bc2ac6e19836daadfc695f61c2d9096ebc48" data-score="0" data-since="260603">Query the state of the garbage collector: similar to <a class="reference internal" href="../library/gc.html#gc.isenabled" title="gc.isenabled"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.isenabled()</span></code></a>.
 Returns the current state, 0 for disabled and 1 for enabled.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.10.</span></p>
@@ -575,21 +575,21 @@ Returns the current state, 0 for disabled and 1 for enabled.</p>
 
 </section>
 <section id="querying-garbage-collector-state">
-<h2>가비지 수거기 상태 조회하기<a class="headerlink" href="#querying-garbage-collector-state" title="Link to this heading">¶</a></h2>
-<p>The C-API provides the following interface for querying information about
+<h2 data-msgid="843bee14268f25e5be61a97195a0f920b0be1424" data-score="100" data-since="260603">가비지 수거기 상태 조회하기<a class="headerlink" href="#querying-garbage-collector-state" title="Link to this heading">¶</a></h2>
+<p data-msgid="45f9fe77181701c4cf813eabac6c19b41e38b394" data-score="0" data-since="260603">The C-API provides the following interface for querying information about
 the garbage collector.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyUnstable_GC_VisitObjects">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_GC_VisitObjects</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.gcvisitobjects_t" title="gcvisitobjects_t"><span class="n"><span class="pre">gcvisitobjects_t</span></span></a><span class="w"> </span><span class="n"><span class="pre">callback</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_GC_VisitObjects" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="unstable-c-api warning admonition">
 <em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. It may change without warning in minor releases.</em></div>
-<p>Run supplied <em>callback</em> on all live GC-capable objects. <em>arg</em> is passed through to
+<p data-msgid="e93932c658b2bb7389d5e54a27e612b3b83e49c0" data-score="0" data-since="260603">Run supplied <em>callback</em> on all live GC-capable objects. <em>arg</em> is passed through to
 all invocations of <em>callback</em>.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>If new objects are (de)allocated by the callback it is undefined if they
+<p data-msgid="ac012e2ff966bc3d697fc808afaf4c57e0c1559e" data-score="0" data-since="260603">If new objects are (de)allocated by the callback it is undefined if they
 will be visited.</p>
-<p>Garbage collection is disabled during operation. Explicitly running a collection
+<p data-msgid="bd89973eb3a93f3b02071d6285174ab91cdcbac0" data-score="0" data-since="260603">Garbage collection is disabled during operation. Explicitly running a collection
 in the callback may lead to undefined behaviour e.g. visiting the same objects
 multiple times or not at all.</p>
 </div>
@@ -601,7 +601,7 @@ multiple times or not at all.</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.gcvisitobjects_t">
 <span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">gcvisitobjects_t</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arg</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.gcvisitobjects_t" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Type of the visitor function to be passed to <a class="reference internal" href="#c.PyUnstable_GC_VisitObjects" title="PyUnstable_GC_VisitObjects"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_GC_VisitObjects()</span></code></a>.
+<dd><p data-msgid="b6e9d0ef7032233b4b2b60ee35566216eaf5f277" data-score="0" data-since="260603">Type of the visitor function to be passed to <a class="reference internal" href="#c.PyUnstable_GC_VisitObjects" title="PyUnstable_GC_VisitObjects"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_GC_VisitObjects()</span></code></a>.
 <em>arg</em> is the same as the <em>arg</em> passed to <code class="docutils literal notranslate"><span class="pre">PyUnstable_GC_VisitObjects</span></code>.
 Return <code class="docutils literal notranslate"><span class="pre">1</span></code> to continue iteration, return <code class="docutils literal notranslate"><span class="pre">0</span></code> to stop iteration. Other return
 values are reserved for now so behavior on returning anything else is undefined.</p>
@@ -612,7 +612,13 @@ values are reserved for now so behavior on returning anything else is undefined.
 
 </section>
 </section>
-
+<div class="lost-and-found-section">
+    <h4>분실물 보관소</h4>
+    <div class="lost-and-found-items">
+        <span data-msgid="5b06bb5088a96109d4297f98b445e6658b65b882" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+        <span data-msgid="8b8aabb9d0dc7d6d5695091c8dad98f3405d9e80" data-score="100" data-since="260603" class="lost-and-found-item"></span>
+    </div>
+</div>
 
                 
                 <!-- Giscus Comments -->

@@ -134,253 +134,253 @@
             <article class="document">
                 
   <section id="migrating-to-stable-abi-for-free-threading-abi3t">
-<span id="abi3t-migration-howto"></span><h1>Migrating to Stable ABI for free threading (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)<a class="headerlink" href="#migrating-to-stable-abi-for-free-threading-abi3t" title="Link to this heading">¶</a></h1>
-<p>Starting with the 3.15 release, CPython supports a variant of the Stable ABI
+<span id="abi3t-migration-howto"></span><h1 data-msgid="901278603f6dabe38439f9b1cdbea1e2bff9751f" data-score="0" data-since="260608">Migrating to Stable ABI for free threading (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)<a class="headerlink" href="#migrating-to-stable-abi-for-free-threading-abi3t" title="Link to this heading">¶</a></h1>
+<p data-msgid="b5dadceb0d3bbb6e0173646c72aeb951e96aa1ab" data-score="0" data-since="260608">Starting with the 3.15 release, CPython supports a variant of the Stable ABI
 that supports <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free-threaded</span></a> Python:
 Stable ABI for Free-Threaded Builds, or <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> for short.
 This document describes how to adapt C API extensions to support free threading.</p>
 <section id="why-do-this">
-<h2>Why do this<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
-<p>The typical reason to use Stable ABI is to reduce the number of artifacts that
+<h2 data-msgid="722e5626112cfcb3cb2288b9af085e94a7d5c894" data-score="0" data-since="260608">Why do this<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
+<p data-msgid="2e19892758d39b41b12803850c30b3cc93553dbe" data-score="0" data-since="260608">The typical reason to use Stable ABI is to reduce the number of artifacts that
 you need to build and distribute for each version of your library.</p>
-<p>Without the Stable ABI, you must build a separate shared library, and typically
+<p data-msgid="f0031c77244355796e9643c38bffe653191ddb2c" data-score="0" data-since="260608">Without the Stable ABI, you must build a separate shared library, and typically
 a <em>wheel</em> distribution, for each feature version of CPython you wish
 to support.
 For example, each tag in the following table represents a separate
 library/wheel:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>CPython version</p></th>
-<th class="head"><p>Non-free-threaded</p></th>
-<th class="head"><p>Free-threaded</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="0" data-since="260608">CPython version</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="0" data-since="260608">Non-free-threaded</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="0" data-since="260608">Free-threaded</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>3.12</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-312</span></code></p></td>
-<td><p>—</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="0" data-since="260603">3.12</p></td>
+<td><p data-msgid="59b3f96d4cdb58ec406ddbc09632f1e530572025" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-312</span></code></p></td>
+<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-score="0" data-since="260603">—</p></td>
 </tr>
-<tr class="row-odd"><td><p>3.13</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-313</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-score="0" data-since="260603">3.13</p></td>
+<td><p data-msgid="e99295d17f71b2ac4613adf2e3d2e3b6c5ef80e0" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313</span></code></p></td>
+<td><p data-msgid="5eb43d9008197e2fb88baf7026e859389795cb01" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>3.14</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-314</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
+<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-score="0" data-since="260603">3.14</p></td>
+<td><p data-msgid="090aca08f69984c164a36147d4ca3ebf2e03eba1" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314</span></code></p></td>
+<td><p data-msgid="2ead94c2f230f1b382c3a9d758602fced7ba178d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>3.15</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-315</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-315t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-score="0" data-since="260603">3.15</p></td>
+<td><p data-msgid="ee3f12412394fdb7887b3af1400633323d47d04d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-315</span></code></p></td>
+<td><p data-msgid="99d4a60a6817ef270decb2107a6faae74a3b4dff" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-315t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>3.16</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-316</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-316t</span></code></p></td>
+<tr class="row-even"><td><p data-msgid="f23b5a8bb75e941c84fca2c0808368e5ac02a651" data-score="100" data-since="260609">3.16</p></td>
+<td><p data-msgid="5a5a537a36e396f69b22b2618f49a3245149f65c" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-316</span></code></p></td>
+<td><p data-msgid="1010b74e246cdeb243ea272e444df49fac2a4fe2" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-316t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Later versions</p></td>
-<td><p><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em></code></p></td>
-<td><p><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em><span class="pre">t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-score="0" data-since="260608">Later versions</p></td>
+<td><p data-msgid="a1b7eb4ee8c7dacf5e6aad793076cda4c201fc96" data-score="100" data-since="260609"><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em></code></p></td>
+<td><p data-msgid="b1448775d553ac78f52e6d6f44d27acb1d6f0299" data-score="100" data-since="260609"><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em><span class="pre">t</span></code></p></td>
 </tr>
 </tbody>
 </table>
-<p>That’s a lot of builds, especially when multiplied by the number
+<p data-msgid="b89b63b9cb86ee7096afb1f3e152ac624970e4da" data-score="0" data-since="260608">That’s a lot of builds, especially when multiplied by the number
 of supported platforms.</p>
-<p>With the Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3</span></code>, introduced in CPython 3.2), a single extension
+<p data-msgid="532215f32c07bba7b1bfc5028433f8c45ea8d3c4" data-score="0" data-since="260608">With the Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3</span></code>, introduced in CPython 3.2), a single extension
 (per platform) can cover all <em>non-free-threaded</em> builds of CPython:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>CPython version</p></th>
-<th class="head"><p>Non-free-threaded</p></th>
-<th class="head"><p>Free-threaded</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="0" data-since="260608">CPython version</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="0" data-since="260608">Non-free-threaded</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="0" data-since="260608">Free-threaded</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>3.12</p></td>
-<td rowspan="6"><p><code class="docutils literal notranslate"><span class="pre">abi3</span></code></p></td>
-<td><p>—</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="0" data-since="260603">3.12</p></td>
+<td rowspan="6"><p data-msgid="18850cb7c90f4997fea2d3c06fdab5880e3d942b" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3</span></code></p></td>
+<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-score="0" data-since="260603">—</p></td>
 </tr>
-<tr class="row-odd"><td><p>3.13</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-score="0" data-since="260603">3.13</p></td>
+<td><p data-msgid="5eb43d9008197e2fb88baf7026e859389795cb01" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>3.14</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
+<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-score="0" data-since="260603">3.14</p></td>
+<td><p data-msgid="2ead94c2f230f1b382c3a9d758602fced7ba178d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>3.15</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-315t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-score="0" data-since="260603">3.15</p></td>
+<td><p data-msgid="99d4a60a6817ef270decb2107a6faae74a3b4dff" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-315t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>3.16</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-316t</span></code></p></td>
+<tr class="row-even"><td><p data-msgid="f23b5a8bb75e941c84fca2c0808368e5ac02a651" data-score="100" data-since="260609">3.16</p></td>
+<td><p data-msgid="1010b74e246cdeb243ea272e444df49fac2a4fe2" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-316t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Later versions</p></td>
-<td><p><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em><span class="pre">t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-score="0" data-since="260608">Later versions</p></td>
+<td><p data-msgid="b1448775d553ac78f52e6d6f44d27acb1d6f0299" data-score="100" data-since="260609"><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em><span class="pre">t</span></code></p></td>
 </tr>
 </tbody>
 </table>
-<p>The Stable ABI for free-threaded builds (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>), introduced in
+<p data-msgid="b84aa31f41bf03f4440aa135dac191388e5bf4b8" data-score="0" data-since="260608">The Stable ABI for free-threaded builds (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>), introduced in
 CPython 3.15, does the same for free-threaded builds.
 And it’s compatible with non-free-threaded ones as well:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>CPython version</p></th>
-<th class="head"><p>Non-free-threaded</p></th>
-<th class="head"><p>Free-threaded</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="0" data-since="260608">CPython version</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="0" data-since="260608">Non-free-threaded</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="0" data-since="260608">Free-threaded</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>3.12</p></td>
-<td rowspan="3"><p><code class="docutils literal notranslate"><span class="pre">abi3</span></code> *</p></td>
-<td><p>—</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="0" data-since="260603">3.12</p></td>
+<td rowspan="3"><p data-msgid="0a98eea0a46ea880fb3e73018fc8ce7c3e1f3450" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3</span></code> *</p></td>
+<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-score="0" data-since="260603">—</p></td>
 </tr>
-<tr class="row-odd"><td><p>3.13</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-score="0" data-since="260603">3.13</p></td>
+<td><p data-msgid="5eb43d9008197e2fb88baf7026e859389795cb01" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>3.14</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
+<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-score="0" data-since="260603">3.14</p></td>
+<td><p data-msgid="2ead94c2f230f1b382c3a9d758602fced7ba178d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>3.15</p></td>
-<td colspan="2" rowspan="3"><p><code class="docutils literal notranslate"><span class="pre">abi3t</span></code></p></td>
+<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-score="0" data-since="260603">3.15</p></td>
+<td colspan="2" rowspan="3"><p data-msgid="b7b24072f8ee0deebe3f557f1baa1bd915fd71ae" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>3.16</p></td>
+<tr class="row-even"><td><p data-msgid="f23b5a8bb75e941c84fca2c0808368e5ac02a651" data-score="100" data-since="260609">3.16</p></td>
 </tr>
-<tr class="row-odd"><td><p>Later versions</p></td>
+<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-score="0" data-since="260608">Later versions</p></td>
 </tr>
 </tbody>
 </table>
-<p>* (As above, the <code class="docutils literal notranslate"><span class="pre">abi3</span></code> extension is compatible with all non-free-threaded
+<p data-msgid="daea5dfc398d34da14491d1c6a1c3f04886609f8" data-score="0" data-since="260608">* (As above, the <code class="docutils literal notranslate"><span class="pre">abi3</span></code> extension is compatible with all non-free-threaded
 builds; even the 3.15+ ones that this table “attributes” to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.)</p>
 <section id="why-not-do-this">
-<h3>Why <em>not</em> do this<a class="headerlink" href="#why-not-do-this" title="Link to this heading">¶</a></h3>
-<p>There are two main downsides to Stable ABI.</p>
-<p>First, you extension may become slower, since Stable ABI prioritizes
+<h3 data-msgid="adfd7291c21da9c35e7f054391e838ef693e915f" data-score="0" data-since="260608">Why <em>not</em> do this<a class="headerlink" href="#why-not-do-this" title="Link to this heading">¶</a></h3>
+<p data-msgid="7def07f30197a26598fa2836781f33a5651eb2c8" data-score="0" data-since="260608">There are two main downsides to Stable ABI.</p>
+<p data-msgid="97b10eeecf707023395d5549946a242e4ef527f5" data-score="0" data-since="260608">First, you extension may become slower, since Stable ABI prioritizes
 compatibility over performance.
 The difference is usually not noticeable, and often can be mitigated by
 using the same source to build both a Stable ABI build and a few
 version-specific ones for “tier 1” CPython versions.</p>
-<p>Second, not all of the C API is available.
+<p data-msgid="e25d7307ee3b8730c118be82f06abe68760371a0" data-score="0" data-since="260608">Second, not all of the C API is available.
 Extensions need to be ported to build for Stable ABI, which may be difficult
 or, in rare cases, impossible.</p>
-<p>Specifically, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> requires APIs added in CPython 3.15.
+<p data-msgid="3b963f78d0399c05c4b9db903c0e3e0f0317fb53" data-score="0" data-since="260608">Specifically, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> requires APIs added in CPython 3.15.
 If you want to build your extension for older versions of CPython from the
 same source, you have two main options:</p>
 <ul>
-<li><p>Use preprocessor conditionals.</p>
-<p>When following this guide, use <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_TARGET_ABI3T</span></code> blocks whenever
+<li><p data-msgid="54dd9f44cb38718f410c491df490eb344976c645" data-score="0" data-since="260608">Use preprocessor conditionals.</p>
+<p data-msgid="91c1cad2f180a24ed0894c47e365930bbdaf2109" data-score="0" data-since="260608">When following this guide, use <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_TARGET_ABI3T</span></code> blocks whenever
 you are told to do a change that breaks the build on CPython versions you
 care about. Keep the pre-existing code in <code class="docutils literal notranslate"><span class="pre">#else</span></code> blocks.</p>
-<p>For hand-written C extensions, this approach is reasonable down to
+<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-score="0" data-since="260608">For hand-written C extensions, this approach is reasonable down to
 CPython 3.12, due to additions introduced in <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0697/"><strong>PEP 697</strong></a>.
 Keeping compatibility with 3.11 and below may be worth it for code
 generators (for example, Cython).</p>
 </li>
-<li><p>Do not port to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>, and continue building separate extensions for
+<li><p data-msgid="9d6b903576bfd5d510e0a4c4bd1ea8e27c504f72" data-score="0" data-since="260608">Do not port to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>, and continue building separate extensions for
 each version of CPython, until you can drop support for the older versions.</p>
-<p>This is a valid approach. Not all extensions need to switch to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>
+<p data-msgid="a6f8b7ded5da5787e8ef07cc5583b4ad7a12ecb0" data-score="0" data-since="260608">This is a valid approach. Not all extensions need to switch to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>
 right now.</p>
 </li>
 </ul>
 </section>
 </section>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
-<p>This guide assumes that you have an extension written directly in C (or C++),
+<h2 data-msgid="eed036e414a34a0c245858652e6d88f14c3faefb" data-score="0" data-since="260603">Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
+<p data-msgid="4c99ee55665251a2c7d143fd39c1d3282c290c12" data-score="0" data-since="260608">This guide assumes that you have an extension written directly in C (or C++),
 which you want to port to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.</p>
-<p>If your extenstion uses a code generator (like Cython) or language binding
+<p data-msgid="ccd4e07b79441d69d3f7d02c45650285b004e993" data-score="0" data-since="260608">If your extenstion uses a code generator (like Cython) or language binding
 (like PyO3), it’s best to wait until that tool has support for <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
 If you maintain such a tool, you might be able to adapt the instructions
 here for your tool.</p>
 <section id="non-free-threaded-stable-abi">
-<h3>Non-free-threaded Stable ABI<a class="headerlink" href="#non-free-threaded-stable-abi" title="Link to this heading">¶</a></h3>
-<p>Your extension should support the Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>).
+<h3 data-msgid="995366a82bdce8cb8147db88a92c0e7ca4fa962f" data-score="0" data-since="260608">Non-free-threaded Stable ABI<a class="headerlink" href="#non-free-threaded-stable-abi" title="Link to this heading">¶</a></h3>
+<p data-msgid="47ff80d8253dd4de79dbf417e0faf0b04482b214" data-score="0" data-since="260608">Your extension should support the Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>).
 If not, either port it first, or follow this guide but be prepared to fix
 issues it does not mention.</p>
 </section>
 <section id="free-threading-support">
-<h3>Free-threading support<a class="headerlink" href="#free-threading-support" title="Link to this heading">¶</a></h3>
-<p>While it’s technically not a hard prerequisite, you will most likely want to
+<h3 data-msgid="5c7ac705ab4e36493607d8b68a7eee58b1bd8d02" data-score="0" data-since="260608">Free-threading support<a class="headerlink" href="#free-threading-support" title="Link to this heading">¶</a></h3>
+<p data-msgid="f3f01d76bccc5e16cd28cabb0b8844746da0842a" data-score="0" data-since="260608">While it’s technically not a hard prerequisite, you will most likely want to
 prepare your extension for free threading before you port it to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
 See <a class="reference internal" href="free-threading-extensions.html#freethreading-extensions-howto"><span class="std std-ref">C API Extension Support for Free Threading</span></a> for instructions.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><a class="reference external" href="https://py-free-threading.github.io/porting/">Porting Extension Modules to Support Free-Threading</a>:
+<p data-msgid="c57b6e4effa36972d6c9083fe31af9c1f6ca855a" data-score="0" data-since="260608"><a class="reference external" href="https://py-free-threading.github.io/porting/">Porting Extension Modules to Support Free-Threading</a>:
 A community-maintained porting guide for extension authors.</p>
 </div>
 </section>
 <section id="isolating-extension-modules">
-<h3>Isolating extension modules<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h3>
-<p>Your module should use <a class="reference internal" href="../c-api/extension-modules.html#multi-phase-initialization"><span class="std std-ref">multi-phase initialization</span></a>,
+<h3 data-msgid="95c9f43383d41b4a9567e489d2ba52f581473fd8" data-score="0" data-since="260608">Isolating extension modules<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h3>
+<p data-msgid="9f3330335ca46f8c0a00fa3f25fa667b5adebd2c" data-score="0" data-since="260608">Your module should use <a class="reference internal" href="../c-api/extension-modules.html#multi-phase-initialization"><span class="std std-ref">multi-phase initialization</span></a>,
 and it should either be isolated or limit itself to be loaded at most once
 per process.
 If it is not your case, follow <a class="reference internal" href="isolating-extensions.html#isolating-extensions-howto"><span class="std std-ref">Isolating Extension Modules</span></a> first.
 (See the <a class="reference internal" href="isolating-extensions.html#isolating-extensions-optout"><span class="std std-ref">opt-out section</span></a> for a shortcut.)</p>
 </section>
 <section id="avoiding-variable-sized-types">
-<h3>Avoiding variable-sized types<a class="headerlink" href="#avoiding-variable-sized-types" title="Link to this heading">¶</a></h3>
-<p>If your extension defines variable-sized types (using <a class="reference internal" href="../c-api/type.html#c.Py_tp_itemsize" title="Py_tp_itemsize"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_itemsize</span></code></a>
+<h3 data-msgid="b901bedd3b298fbc75544103a984deac9baa3c7e" data-score="0" data-since="260608">Avoiding variable-sized types<a class="headerlink" href="#avoiding-variable-sized-types" title="Link to this heading">¶</a></h3>
+<p data-msgid="f4a3a5b2d6d6f682caf7ad658a8e9251c75947aa" data-score="0" data-since="260608">If your extension defines variable-sized types (using <a class="reference internal" href="../c-api/type.html#c.Py_tp_itemsize" title="Py_tp_itemsize"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_itemsize</span></code></a>
 or <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyTypeObject.tp_itemsize</span></code></a>), it cannot be ported to
 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 3.15.</p>
 </section>
 </section>
 <section id="setting-up-the-build">
-<h2>Setting up the build<a class="headerlink" href="#setting-up-the-build" title="Link to this heading">¶</a></h2>
-<p>If you use a build tool (such as setuptools, meson-python, scikit-build-core),
+<h2 data-msgid="2ec8d6bb858d1d17c02c12d6c0f2724e03e96dcb" data-score="0" data-since="260608">Setting up the build<a class="headerlink" href="#setting-up-the-build" title="Link to this heading">¶</a></h2>
+<p data-msgid="bbec9e021287bcb36558f900a0b7adaa53a3d4da" data-score="0" data-since="260608">If you use a build tool (such as setuptools, meson-python, scikit-build-core),
 search its documentation for a way to select <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
 At the time of writing, not all of them have this; but if your tool does,
 use it.
 You may want to verify that it set the right flag by temporarily adding the
 following just after <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;Python.h&gt;</span></code>:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#if Py_TARGET_ABI3T+0 &lt;= 0x30f0000</span>
+<div class="highlight-c notranslate" data-msgid="56f113ea28a552d0f273c222bc6e70328ef2c4d2" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="cp">#if Py_TARGET_ABI3T+0 &lt;= 0x30f0000</span>
 <span class="cp">#error &quot;abi3t define is not set!&quot;</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p>This should result in a different error than “<code class="docutils literal notranslate"><span class="pre">abt3t</span></code> define is not set”.</p>
+<p data-msgid="b4e36c30b8f70f87f10e6dd06937eccf63348711" data-score="0" data-since="260608">This should result in a different error than “<code class="docutils literal notranslate"><span class="pre">abt3t</span></code> define is not set”.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>If your build tool doesn’t support <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> yet, set the following macro
+<p data-msgid="c17fb4f74351ff701d31b9bf6ccbf38061f68477" data-score="0" data-since="260608">If your build tool doesn’t support <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> yet, set the following macro
 before including <code class="docutils literal notranslate"><span class="pre">Python.h</span></code>:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define Py_TARGET_ABI3T 0x30f0000</span>
+<div class="highlight-c notranslate" data-msgid="df0e9a29b0b80ae1b19a5dfb6b231e239d7e4859" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="cp">#define Py_TARGET_ABI3T 0x30f0000</span>
 </pre></div>
 </div>
-<p>or specify it as a compiler flag, for example:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">DPy_TARGET_ABI3T</span><span class="o">=</span><span class="mh">0x30f0000</span>
+<p data-msgid="015f510db1f5c324a2424cda7c687a0a73f30982" data-score="0" data-since="260608">or specify it as a compiler flag, for example:</p>
+<div class="highlight-c notranslate" data-msgid="9a75a13e5e85fba3cdf860a53121b70d6ca0d6aa" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">DPy_TARGET_ABI3T</span><span class="o">=</span><span class="mh">0x30f0000</span>
 </pre></div>
 </div>
-<p>Once your extension builds with this setting, it will be compatible with
+<p data-msgid="fea805af9fcff9dbf24d798e60033d14ca7fc396" data-score="0" data-since="260608">Once your extension builds with this setting, it will be compatible with
 CPython 3.15 and above.</p>
-<p>If you set this macro manually, you will later need to name and tag the
+<p data-msgid="1896e4f1a98087be704d7e1d80c3eed1f466e1af" data-score="0" data-since="260608">If you set this macro manually, you will later need to name and tag the
 resulting extension manually as well.
 This is covered in <a class="reference internal" href="#abi3t-migration-tagging"><span class="std std-ref">Tagging and distribution</span></a> below.</p>
 </div>
-<p>This guide will ask you to make a series of changes.
+<p data-msgid="7ed66dd2bc541e868c292f1bb3e484aaeb3985cb" data-score="0" data-since="260608">This guide will ask you to make a series of changes.
 After each one, verify that your extension still builds in the original
 (non-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>) configuration, and ideally run tests on all Python
 versions you support.
 This will ensure that nothing breaks as you are porting.</p>
 </section>
 <section id="module-export-hook">
-<h2>Module export hook<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
-<p>Unless you’ve done this step already, your extension module defines a
+<h2 data-msgid="407bd245b0bea9b74dfe7abc504c667213e58735" data-score="0" data-since="260608">Module export hook<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
+<p data-msgid="8a9b02037946625402762b86e741d9a2a95fc47f" data-score="0" data-since="260608">Unless you’ve done this step already, your extension module defines a
 <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">module initialization function</span></a>
 named <code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;module_name&gt;</span></em></code>.
 You will need to port it to a <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">module export hook</span></a>,
 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;module</span> <span class="pre">name&gt;</span></em></code>, a feature added in CPython 3.15 in
 <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a>.</p>
-<p>Your existing init function should look like this (with your own names
+<p data-msgid="5564e7ea30b32b69b339ee8fa61bc8f66df6e550" data-score="0" data-since="260608">Your existing init function should look like this (with your own names
 for <code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code>):</p>
-<div class="bad highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
+<div class="bad highlight-c notranslate" data-msgid="192592385f2b45a738f6b16036f6390734f37d2a" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">PyModuleDef_Init</span><span class="p">(</span><span class="o">&amp;&lt;</span><span class="n">moddef</span><span class="o">&gt;</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If there is some code before the <code class="docutils literal notranslate"><span class="pre">return</span></code>, move it to
+<p data-msgid="1c721f2ff137552549ceb2b5e16c7bf79ae1aa8b" data-score="0" data-since="260608">If there is some code before the <code class="docutils literal notranslate"><span class="pre">return</span></code>, move it to
 a <a class="reference internal" href="../c-api/module.html#c.Py_mod_create" title="Py_mod_create"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_create</span></code></a> or <a class="reference internal" href="../c-api/module.html#c.Py_mod_exec" title="Py_mod_exec"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_exec</span></code></a> slot function.
 See the <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">PyInit documentation</span></a> for related information.</p>
-<p>The function references a <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> object (<code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> in the code
+<p data-msgid="822acd3c877d909c4d6856ac4d97157c6fe6af13" data-score="0" data-since="260608">The function references a <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> object (<code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> in the code
 above).
 Its definition should be similar to the following, with different values
 and perhaps some fields unnnamed or left out:</p>
-<div class="bad highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">&lt;</span><span class="n">moddef</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="bad highlight-c notranslate" data-msgid="5b3b4ce8f6ed3e11d5517313ddccd83669c628fc" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">&lt;</span><span class="n">moddef</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">PyModuleDef_HEAD_INIT</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">m_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;my_module&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">m_doc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;my docstring&quot;</span><span class="p">,</span>
@@ -393,10 +393,10 @@ and perhaps some fields unnnamed or left out:</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>Remove this definition and the <code class="docutils literal notranslate"><span class="pre">PyInit</span></code> function (or put them in
+<p data-msgid="f6caca592ec1de237d0272f9c90e3ce352f05349" data-score="0" data-since="260608">Remove this definition and the <code class="docutils literal notranslate"><span class="pre">PyInit</span></code> function (or put them in
 an <code class="docutils literal notranslate"><span class="pre">#ifndef</span> <span class="pre">Py_TARGET_ABI3T</span></code> block, to retain backwards compatibility),
 and replace them with the following:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyABIInfo_VAR</span><span class="p">(</span><span class="n">abi_info</span><span class="p">);</span>
+<div class="good highlight-c notranslate" data-msgid="d10e74c8de0f6c4b5b666aa3c6013a2c354d1a0e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">PyABIInfo_VAR</span><span class="p">(</span><span class="n">abi_info</span><span class="p">);</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">PySlot_STATIC_DATA</span><span class="p">(</span><span class="n">Py_mod_abi</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">abi_info</span><span class="p">),</span>
@@ -418,63 +418,63 @@ and replace them with the following:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Leave out any fields that were missing (except the new <a class="reference internal" href="../c-api/module.html#c.Py_mod_abi" title="Py_mod_abi"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_abi</span></code></a>),
+<p data-msgid="bf8375c6151f1339d037dd08adbca2f00bfced33" data-score="0" data-since="260608">Leave out any fields that were missing (except the new <a class="reference internal" href="../c-api/module.html#c.Py_mod_abi" title="Py_mod_abi"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_abi</span></code></a>),
 and substitute your own values.</p>
-<p>See the <a class="reference internal" href="../c-api/slots.html#c.PySlot" title="PySlot"><code class="xref c c-type docutils literal notranslate"><span class="pre">PySlot</span></code></a> and <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">export hook</span></a>
+<p data-msgid="7d6763744d785273081f03473caaf9521fd42709" data-score="0" data-since="260608">See the <a class="reference internal" href="../c-api/slots.html#c.PySlot" title="PySlot"><code class="xref c c-type docutils literal notranslate"><span class="pre">PySlot</span></code></a> and <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">export hook</span></a>
 documentation for details on this API.</p>
 <section id="associated-pymoduledef">
-<h3>Associated <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code><a class="headerlink" href="#associated-pymoduledef" title="Link to this heading">¶</a></h3>
-<p>Since the new API does not use a <code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code> structure, a definition
+<h3 data-msgid="03503e55393ae3e70a6cece3f00e1e35958b976c" data-score="0" data-since="260608">Associated <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code><a class="headerlink" href="#associated-pymoduledef" title="Link to this heading">¶</a></h3>
+<p data-msgid="de78666028c15cce18d964713d765f11f194e6f2" data-score="0" data-since="260608">Since the new API does not use a <code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code> structure, a definition
 will not be associated with the resulting module.
 This changes the behavior of the following functions:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a></p></li>
-<li><p><a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a></p></li>
+<li><p data-msgid="499498a32e3910641afb46ac418f6d7cdfb0ed62" data-score="100" data-since="260609"><a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a></p></li>
+<li><p data-msgid="aff548b19170763fab1825ded02b2d833aebd0ba" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a></p></li>
 </ul>
-<p>Check your code for these.
+<p data-msgid="bf387d73c9c6cc9ba921d67b57962d80fd442b3f" data-score="0" data-since="260608">Check your code for these.
 If you do not use them, you can skip this section.</p>
-<p>These functions are typically used for two purposes:</p>
+<p data-msgid="011de5ae0b78a027b02029aafef60beadf3d1bd8" data-score="0" data-since="260608">These functions are typically used for two purposes:</p>
 <ol class="arabic simple">
-<li><p>To get the definition the module was created with.
+<li><p data-msgid="83186122fa86278199c1be04dbb259463c812071" data-score="0" data-since="260608">To get the definition the module was created with.
 This is no longer possible using the new API.
 Modules no longer keep a reference to the definition, so you will need to
 figure out a different way to pass the relevant data around.</p></li>
 </ol>
 <ol class="arabic" id="abi3t-migration-module-token" start="2">
-<li><p>To check if a given module object is “yours”.
+<li><p data-msgid="0b99b641ef3153399cd35d8cf96811fcc43ce043" data-score="0" data-since="260608">To check if a given module object is “yours”.
 This use case is now served by <a class="reference internal" href="../c-api/module.html#ext-module-token"><span class="std std-ref">module tokens</span></a> –
 opaque pointers that identify a module.
 To use a token, declare (or reuse) a unique static variable, for example:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">my_token</span><span class="p">;</span>
+<div class="good highlight-c notranslate" data-msgid="4ff55626d284d0295648b67dd8cbb5b273693e68" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">my_token</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>and add a pointer to it in a new entry to your module’s <code class="docutils literal notranslate"><span class="pre">PySlot</span></code> array:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<p data-msgid="e202602abfd4d333224b619b3aab7b0867acf888" data-score="0" data-since="260608">and add a pointer to it in a new entry to your module’s <code class="docutils literal notranslate"><span class="pre">PySlot</span></code> array:</p>
+<div class="good highlight-c notranslate" data-msgid="f31d4fc9556b31dd4ddc67dc841a6f11ed3bd83e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="p">...</span>
 <span class="hll"><span class="w">   </span><span class="n">PySlot_STATIC_DATA</span><span class="p">(</span><span class="n">Py_mod_token</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_token</span><span class="p">),</span>
 </span><span class="w">   </span><span class="n">PySlot_END</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Then, switch from <a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a> calls such as:</p>
-<div class="bad highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyModule_GetDef</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
+<p data-msgid="e3f8267a8dc4d4d83731a68b44e7b43983ec5fea" data-score="0" data-since="260608">Then, switch from <a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a> calls such as:</p>
+<div class="bad highlight-c notranslate" data-msgid="a470e86bd74e832e15a54d0fe91d0947a71a776e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyModule_GetDef</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>to <a class="reference internal" href="../c-api/module.html#c.PyModule_GetToken" title="PyModule_GetToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetToken()</span></code></a> (which uses an output argument and may fail
+<p data-msgid="0f83bf1c36ceb1747998a7a43e9aabe43a7f9602" data-score="0" data-since="260608">to <a class="reference internal" href="../c-api/module.html#c.PyModule_GetToken" title="PyModule_GetToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetToken()</span></code></a> (which uses an output argument and may fail
 with an exception):</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="p">;</span>
+<div class="good highlight-c notranslate" data-msgid="49192ba8ba4a056852562f19d8107daf9c961808" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="p">;</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyModule_GetToken</span><span class="p">(</span><span class="n">module</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">token</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="cm">/* handle error */</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>and from <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a> calls such as:</p>
-<div class="bad highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByDef</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_def</span><span class="p">);</span>
+<p data-msgid="aa603f4eb7db546caa4e78ccc9bd8bcb48e41a7e" data-score="0" data-since="260608">and from <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a> calls such as:</p>
+<div class="bad highlight-c notranslate" data-msgid="896455025df4c492693b1f9f2a80add77143bb62" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByDef</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_def</span><span class="p">);</span>
 <span class="cm">/* handle error; use module */</span>
 </pre></div>
 </div>
-<p>to <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByToken" title="PyType_GetModuleByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByToken()</span></code></a> (which returns a strong reference):</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByToken</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_token</span><span class="p">);</span>
+<p data-msgid="7c3d34450de9cc3af0c551a8e8eeac8c87f07135" data-score="0" data-since="260608">to <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByToken" title="PyType_GetModuleByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByToken()</span></code></a> (which returns a strong reference):</p>
+<div class="good highlight-c notranslate" data-msgid="1182ff52a20e972a29f8f2dd43b8f1bb43f383e2" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByToken</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_token</span><span class="p">);</span>
 <span class="cm">/* handle error; use module */</span>
 <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
 </pre></div>
@@ -484,33 +484,33 @@ with an exception):</p>
 </section>
 </section>
 <section id="pyobject-opaqueness">
-<h2><code class="docutils literal notranslate"><span class="pre">PyObject</span></code> opaqueness<a class="headerlink" href="#pyobject-opaqueness" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> and <a class="reference internal" href="../c-api/structures.html#c.PyVarObject" title="PyVarObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyVarObject</span></code></a> structures are opaque
+<h2 data-msgid="8877d596c5958f373aeaf44137baf02a0eb2114d" data-score="0" data-since="260608"><code class="docutils literal notranslate"><span class="pre">PyObject</span></code> opaqueness<a class="headerlink" href="#pyobject-opaqueness" title="Link to this heading">¶</a></h2>
+<p data-msgid="ca44708ba40ba3944089450c881d8b4e5d4afdeb" data-score="0" data-since="260608">The <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> and <a class="reference internal" href="../c-api/structures.html#c.PyVarObject" title="PyVarObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyVarObject</span></code></a> structures are opaque
 in <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.</p>
-<p>Accessing their members is prohibited.
+<p data-msgid="7ed2e5e68bedfd7c40184bf9cce99a46a56ff642" data-score="0" data-since="260608">Accessing their members is prohibited.
 If you do this, switch to getter/setter functions mentioned in
 their documentation:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_type" title="PyObject.ob_type"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_type</span></code></a></p></li>
-<li><p><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_refcnt" title="PyObject.ob_refcnt"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_refcnt</span></code></a></p></li>
-<li><p><a class="reference internal" href="../c-api/structures.html#c.PyVarObject.ob_size" title="PyVarObject.ob_size"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyVarObject.ob_size</span></code></a></p></li>
+<li><p data-msgid="d14a19a849b206d0d6837a045eea6cb2b50c9aa6" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_type" title="PyObject.ob_type"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_type</span></code></a></p></li>
+<li><p data-msgid="795f065cbecf8a0a8fb3ca7bdf31ae11fa283b15" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_refcnt" title="PyObject.ob_refcnt"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_refcnt</span></code></a></p></li>
+<li><p data-msgid="fb67f14d5f36f172550ae27c3fabdbff5c4819e6" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/structures.html#c.PyVarObject.ob_size" title="PyVarObject.ob_size"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyVarObject.ob_size</span></code></a></p></li>
 </ul>
-<p>Also, the <em>size</em> of the <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> structures is
+<p data-msgid="d11a0fa2e7084997cd4f75d1ec39b745543d17d9" data-score="0" data-since="260608">Also, the <em>size</em> of the <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> structures is
 unknown to the compiler.
 It can – and <em>does</em> – change between different CPython builds.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>While the size is available at runtime (for example as
+<p data-msgid="5cc9ddee3f26e90bec71849ab86f9cad9aed8469" data-score="0" data-since="260608">While the size is available at runtime (for example as
 <code class="docutils literal notranslate"><span class="pre">sys.getsizeof(object())</span></code> in Python code), you should resist the
 temptation to calculate pointer offsets from it.
 The object memory layout is subject to change in future
 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> implementations.</p>
 </div>
 <section id="custom-type-definitions">
-<h3>Custom type definitions<a class="headerlink" href="#custom-type-definitions" title="Link to this heading">¶</a></h3>
-<p>Since <code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code> is opaque, the traditional way of defining
+<h3 data-msgid="16cf2a3600ea8685225a42b6a955228c519bb525" data-score="0" data-since="260608">Custom type definitions<a class="headerlink" href="#custom-type-definitions" title="Link to this heading">¶</a></h3>
+<p data-msgid="57c28620b5cecab2561a8130458c3b8ccdc9579e" data-score="0" data-since="260608">Since <code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code> is opaque, the traditional way of defining
 custom types no longer works:</p>
-<div class="bad highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="bad highlight-c notranslate" data-msgid="06cb31e0614d1acf4c92a4d7292dca3881c53058" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="n">PyObject_HEAD</span><span class="w">  </span><span class="c1">// expands to `PyObject ob_base;` which has unknown size</span>
 
 <span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">my_data</span><span class="p">;</span>
@@ -523,59 +523,59 @@ custom types no longer works:</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>Most likely, all your class definitions, <em>and</em> all code that accesses
+<p data-msgid="a252194858a4018010030ed87555b0d83dc2862f" data-score="0" data-since="260608">Most likely, all your class definitions, <em>and</em> all code that accesses
 your classes’ data, will need to be rewritten.
 This will probably be the biggest change you need to support <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.</p>
-<p>For each such type, instead of defining a <code class="docutils literal notranslate"><span class="pre">struct</span></code> for the entire instance,
+<p data-msgid="f563ca48f0b27d870a57e6882f68788cc0e75044" data-score="0" data-since="260608">For each such type, instead of defining a <code class="docutils literal notranslate"><span class="pre">struct</span></code> for the entire instance,
 define one with only the “additional” fields – ones specific to your class,
 not its superclasses:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="good highlight-c notranslate" data-msgid="db37f0f699a96e6e63a9f039c99d19d54e62947a" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">my_data</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="n">CustomObjectData</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Change the name.
+<p data-msgid="f897206a8e39ac77f604512fb59d2040813c5af2" data-score="0" data-since="260608">Change the name.
 Almost all code that uses the struct will need to change
 (notably, pointers to the new structure cannot be cast to/from <code class="docutils literal notranslate"><span class="pre">PyObject*</span></code>),
 and changing the name will highlight the usages as compiler errors.
 (If you use <code class="docutils literal notranslate"><span class="pre">typeof</span></code>, C++ <code class="docutils literal notranslate"><span class="pre">auto</span></code>, or similar ways to avoid
 typing the type name, this won’t work. Be extra careful, and consider running
 tools to detect undefined behavior.)</p>
-<p>Then, to create the class, use <em>negative</em> <code class="docutils literal notranslate"><span class="pre">basicsize</span></code> to indicate
+<p data-msgid="80f0e429edd706f0f03356680db6b93e70b9830f" data-score="0" data-since="260608">Then, to create the class, use <em>negative</em> <code class="docutils literal notranslate"><span class="pre">basicsize</span></code> to indicate
 “extra” storage space rather than <em>total</em> instance size:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyType_Spec</span><span class="w"> </span><span class="n">CustomType_spec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="good highlight-c notranslate" data-msgid="a563d7e41f4b4427d2d6953983e7639c676e98d5" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyType_Spec</span><span class="w"> </span><span class="n">CustomType_spec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="p">...</span>
 <span class="w">   </span><span class="p">.</span><span class="n">basicsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="k">sizeof</span><span class="p">(</span><span class="n">CustomObjectData</span><span class="p">),</span><span class="w"> </span><span class="cm">/* note the minus sign */</span>
 <span class="w">   </span><span class="p">...</span>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>If you use <a class="reference internal" href="../c-api/typeobj.html#c.Py_tp_members" title="Py_tp_members"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_members</span></code></a>, set the <a class="reference internal" href="../c-api/structures.html#c.Py_RELATIVE_OFFSET" title="Py_RELATIVE_OFFSET"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_RELATIVE_OFFSET</span></code></a>
+<p data-msgid="c5faacda92e907d9ff7742c78fbe86aa96504d70" data-score="0" data-since="260608">If you use <a class="reference internal" href="../c-api/typeobj.html#c.Py_tp_members" title="Py_tp_members"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_members</span></code></a>, set the <a class="reference internal" href="../c-api/structures.html#c.Py_RELATIVE_OFFSET" title="Py_RELATIVE_OFFSET"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_RELATIVE_OFFSET</span></code></a>
 flag on each member and specify the <a class="reference internal" href="../c-api/structures.html#c.PyMemberDef.offset" title="PyMemberDef.offset"><code class="xref c c-member docutils literal notranslate"><span class="pre">offset</span></code></a>
 relative to your new struct.</p>
 </section>
 <section id="custom-type-data-access">
-<h3>Custom type data access<a class="headerlink" href="#custom-type-data-access" title="Link to this heading">¶</a></h3>
-<p>Then comes the hard part: in all code that needs to access this struct,
+<h3 data-msgid="48e47de7a0334879fcee157bbab2a0597957f87d" data-score="0" data-since="260608">Custom type data access<a class="headerlink" href="#custom-type-data-access" title="Link to this heading">¶</a></h3>
+<p data-msgid="108cf831f718fcc81e50275db8d8292ebcc87cdd" data-score="0" data-since="260608">Then comes the hard part: in all code that needs to access this struct,
 you will need an additional <a class="reference internal" href="../c-api/object.html#c.PyObject_GetTypeData" title="PyObject_GetTypeData"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetTypeData()</span></code></a> call to
 retrieve a <code class="docutils literal notranslate"><span class="pre">CustomObjectData</span> <span class="pre">*</span></code> pointer from <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code>:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...;</span>
+<div class="good highlight-c notranslate" data-msgid="f646cbeaf54558da6f681406ce002e5abfbfcb0d" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...;</span>
 <span class="n">CustomObjectData</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_GetTypeData</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="w"> </span><span class="n">cls</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Note that this call requires the <em>type object</em> for your class (<code class="docutils literal notranslate"><span class="pre">cls</span></code>).</p>
-<p>If your class is not subclassable (that is, it does not use the
+<p data-msgid="99a6bae198757a12a4d57908dce934995bc487eb" data-score="0" data-since="260608">Note that this call requires the <em>type object</em> for your class (<code class="docutils literal notranslate"><span class="pre">cls</span></code>).</p>
+<p data-msgid="07eab04530a38c60eb21b2453f111c4f111b53a8" data-score="0" data-since="260608">If your class is not subclassable (that is, it does not use the
 <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_BASETYPE" title="Py_TPFLAGS_BASETYPE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_BASETYPE</span></code></a> flag), <code class="docutils literal notranslate"><span class="pre">cls</span></code> will be <code class="docutils literal notranslate"><span class="pre">Py_TYPE(obj)</span></code>.
 Otherwise, <strong>DO NOT USE</strong> <code class="docutils literal notranslate"><span class="pre">Py_TYPE</span></code> with <code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GetTypeData()</span></code>:
 it might return memory reserved to an unrelated subclass!
 For example, if a user makes a subclass like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Sub</span><span class="p">(</span><span class="n">YourCustomClass</span><span class="p">):</span>
+<div class="highlight-python notranslate" data-msgid="7f0c11c857c3010324ff289dc51a14f5da5503ed" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Sub</span><span class="p">(</span><span class="n">YourCustomClass</span><span class="p">):</span>
    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>then <code class="docutils literal notranslate"><span class="pre">Py_TYPE(obj)</span></code> is <code class="docutils literal notranslate"><span class="pre">YourCustomClass</span></code>, and the underlying memory may
+<p data-msgid="361d31c80afd14258b0503711440d9c41467e4ec" data-score="0" data-since="260608">then <code class="docutils literal notranslate"><span class="pre">Py_TYPE(obj)</span></code> is <code class="docutils literal notranslate"><span class="pre">YourCustomClass</span></code>, and the underlying memory may
 look like this:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>╭─ PyObject *obj
+<div class="highlight-text notranslate" data-msgid="b1994bf99405a8b0e8645e7bb3efef46a5766a19" data-score="100" data-since="260609"><div class="highlight"><pre><span></span>╭─ PyObject *obj
 │              ╭─ the pointer you want
 │              │                    ╭─ PyObject_GetTypeData(obj, Py_TYPE(obj))
 ▼              ▼                    ▼
@@ -584,47 +584,47 @@ look like this:</p>
 └──────────┴───┴────────────────┴───┴─────────────┴───┴─────────────┘
 </pre></div>
 </div>
-<p>(Ellipses indicate possible padding.
+<p data-msgid="4e6c9d1d1aab4d2085cbf29a17749b1e5f7e00fe" data-score="0" data-since="260608">(Ellipses indicate possible padding.
 Note that this memory layout is not guaranteed: future versions of Python may
 add different padding or even switch the order of the structures.)</p>
-<p>There are two main ways to get the right class:</p>
+<p data-msgid="a9195a8d15181aa192cd3b2b0b021e3e5608299f" data-score="0" data-since="260608">There are two main ways to get the right class:</p>
 <ul>
-<li><p>In instance methods, your implementation may use the <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a>
+<li><p data-msgid="2bd1d7943674dbd56a55d414354afc0781fac19a" data-score="0" data-since="260608">In instance methods, your implementation may use the <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a>
 signature (and the <a class="reference internal" href="../c-api/structures.html#c.METH_METHOD" title="METH_METHOD"><code class="xref c c-macro docutils literal notranslate"><span class="pre">METH_METHOD</span></code></a> bit in
 <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef.ml_flags" title="PyMethodDef.ml_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyMethodDef.ml_flags</span></code></a>),
 and get the class as the <code class="docutils literal notranslate"><span class="pre">defining_class</span></code> argument.</p></li>
-<li><p>Otherwise, give your class a unique static token using the
+<li><p data-msgid="c6c06ba59d6ab434f29e9ccfb53006b30aae1583" data-score="0" data-since="260608">Otherwise, give your class a unique static token using the
 <a class="reference internal" href="../c-api/type.html#c.Py_tp_token" title="Py_tp_token"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_token</span></code></a> slot, and use:</p>
-<div class="good highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyTypeObject</span><span class="w"> </span><span class="n">cls</span><span class="p">;</span>
+<div class="good highlight-c notranslate" data-msgid="469215e121d06be192365736c4df7fbdc452fc6b" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyTypeObject</span><span class="w"> </span><span class="n">cls</span><span class="p">;</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyType_GetBaseByToken</span><span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span><span class="w"> </span><span class="n">my_tp_token</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cls</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="cm">/* handle error */</span>
 <span class="p">}</span>
 <span class="n">CustomObjectData</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_GetTypeData</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="w"> </span><span class="n">cls</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Type tokens work similarly to module tokens covered <a class="reference internal" href="#abi3t-migration-module-token"><span class="std std-ref">earlier in this
+<p data-msgid="ea9061330b7f454ac5fe8287f0d5b0ea1bd7399e" data-score="0" data-since="260608">Type tokens work similarly to module tokens covered <a class="reference internal" href="#abi3t-migration-module-token"><span class="std std-ref">earlier in this
 guide</span></a>.</p>
 </li>
 </ul>
 </section>
 </section>
 <section id="avoid-build-time-conditionals">
-<h2>Avoid build-time conditionals<a class="headerlink" href="#avoid-build-time-conditionals" title="Link to this heading">¶</a></h2>
-<p>Check your code for API that identifies the version of Python used to
+<h2 data-msgid="15bb649f691957fed7bf6941c04f831c03f1c0da" data-score="0" data-since="260608">Avoid build-time conditionals<a class="headerlink" href="#avoid-build-time-conditionals" title="Link to this heading">¶</a></h2>
+<p data-msgid="f276a92a0a4d60646808d358769130372430d230" data-score="0" data-since="260608">Check your code for API that identifies the version of Python used to
 <em>build</em> your extension.
 This no longer corresponds to the Python your extension runs on, so code
 that uses this information often needs changing.
 The macros to check for are:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../c-api/apiabiversion.html#c.PY_VERSION_HEX" title="PY_VERSION_HEX"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_VERSION_HEX</span></code></a>, <a class="reference internal" href="../c-api/apiabiversion.html#c.PY_MAJOR_VERSION" title="PY_MAJOR_VERSION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_MAJOR_VERSION</span></code></a>,
+<li><p data-msgid="5d4415acc8f4aa2b7b9a277b2f9d43bde39680e5" data-score="100" data-since="260609"><a class="reference internal" href="../c-api/apiabiversion.html#c.PY_VERSION_HEX" title="PY_VERSION_HEX"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_VERSION_HEX</span></code></a>, <a class="reference internal" href="../c-api/apiabiversion.html#c.PY_MAJOR_VERSION" title="PY_MAJOR_VERSION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_MAJOR_VERSION</span></code></a>,
 <a class="reference internal" href="../c-api/apiabiversion.html#c.PY_MINOR_VERSION" title="PY_MINOR_VERSION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_MINOR_VERSION</span></code></a>:</p>
 <ul>
-<li><p>to get the run-time version, use <a class="reference internal" href="../c-api/apiabiversion.html#c.Py_Version" title="Py_Version"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_Version</span></code></a>;</p></li>
-<li><p>to determine what C API is available, use <a class="reference internal" href="../c-api/stable.html#c.Py_TARGET_ABI3T" title="Py_TARGET_ABI3T"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TARGET_ABI3T</span></code></a>.
+<li><p data-msgid="4011f2b40d909bca131948c5c04fb61e3884d154" data-score="0" data-since="260608">to get the run-time version, use <a class="reference internal" href="../c-api/apiabiversion.html#c.Py_Version" title="Py_Version"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_Version</span></code></a>;</p></li>
+<li><p data-msgid="06ccc1d6c42ade801193788fc0d66cd24ceec58d" data-score="0" data-since="260608">to determine what C API is available, use <a class="reference internal" href="../c-api/stable.html#c.Py_TARGET_ABI3T" title="Py_TARGET_ABI3T"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TARGET_ABI3T</span></code></a>.
 This macro is set to the minimum supported version.</p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="../using/configure.html#c.Py_GIL_DISABLED" title="Py_GIL_DISABLED"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_GIL_DISABLED</span></code></a>: under <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>, this macro is always defined.
+<li><p data-msgid="2eb7b799ae0306fbb0414ddfc216c3606160e301" data-score="0" data-since="260608"><a class="reference internal" href="../using/configure.html#c.Py_GIL_DISABLED" title="Py_GIL_DISABLED"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_GIL_DISABLED</span></code></a>: under <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>, this macro is always defined.
 Code that works with free-threaded Python <em>should</em> also work with
 the GIL enabled (since the GIL can be enabled at run time),
 and usually <em>does</em> (unless it, for some reason, requires more than one
@@ -632,59 +632,59 @@ and usually <em>does</em> (unless it, for some reason, requires more than one
 </ul>
 </section>
 <section id="further-code-changes">
-<h2>Further code changes<a class="headerlink" href="#further-code-changes" title="Link to this heading">¶</a></h2>
-<p>If you are still left with compiler errors or warnings, find a way to fix them.
+<h2 data-msgid="b6f3411765c5a26850557f5cf96af595ab69c242" data-score="0" data-since="260608">Further code changes<a class="headerlink" href="#further-code-changes" title="Link to this heading">¶</a></h2>
+<p data-msgid="13ac912c59a8f857cc6568ac239e786803674692" data-score="0" data-since="260608">If you are still left with compiler errors or warnings, find a way to fix them.
 Alas, this guide is limited, and cannot cover all possible code
 changes extensions may need.</p>
-<p>If you find a problem that other extension authors might run into,
+<p data-msgid="f1bdc51ff80fcf022c8431469dded189abea8810" data-score="0" data-since="260608">If you find a problem that other extension authors might run into,
 consider <a class="reference internal" href="../bugs.html#reporting-documentation-bugs"><span class="std std-ref">reporting an issue</span></a> (or sending
 a pull request) for this guide.</p>
-<p>It is possible your issue cannot be fixed for the current version of <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
+<p data-msgid="3e440944da2f4a4758904c0690e36284fe5cc06a" data-score="0" data-since="260608">It is possible your issue cannot be fixed for the current version of <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
 In that case, reporting it may help it get prioritized for the next version
 of CPython.</p>
 </section>
 <section id="tagging-and-distribution">
-<span id="abi3t-migration-tagging"></span><h2>Tagging and distribution<a class="headerlink" href="#tagging-and-distribution" title="Link to this heading">¶</a></h2>
-<p>If you are using a build tool with <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> support, your extension is ready,
+<span id="abi3t-migration-tagging"></span><h2 data-msgid="7346dfd90861dac7db3e8b2b58df5f4e1b65171c" data-score="0" data-since="260608">Tagging and distribution<a class="headerlink" href="#tagging-and-distribution" title="Link to this heading">¶</a></h2>
+<p data-msgid="0a352a6153c249cc5e689690bba067899525046a" data-score="0" data-since="260608">If you are using a build tool with <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> support, your extension is ready,
 but you might want to check that it was built correctly.</p>
-<p>Extensions built with <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> should have the following extension:</p>
+<p data-msgid="4c2a3321a0545ed2c616ccfbe9520202b5e94868" data-score="0" data-since="260608">Extensions built with <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> should have the following extension:</p>
 <ul class="simple">
-<li><p>On Windows: <code class="docutils literal notranslate"><span class="pre">.pyd</span></code> (like any other extension);</p></li>
-<li><p>Linux, macOS, and other systems that use the <code class="docutils literal notranslate"><span class="pre">.so</span></code> suffix: <code class="docutils literal notranslate"><span class="pre">.abi3t.so</span></code>
+<li><p data-msgid="a8f3e9e8ac58d5ea29e1207b91cee1b65d1bb7aa" data-score="0" data-since="260608">On Windows: <code class="docutils literal notranslate"><span class="pre">.pyd</span></code> (like any other extension);</p></li>
+<li><p data-msgid="cfeedbf9926d8c66d9df508112c635b8d7cf1b29" data-score="0" data-since="260608">Linux, macOS, and other systems that use the <code class="docutils literal notranslate"><span class="pre">.so</span></code> suffix: <code class="docutils literal notranslate"><span class="pre">.abi3t.so</span></code>
 (<strong>not</strong> <code class="docutils literal notranslate"><span class="pre">.cpython-315t.so</span></code> or <code class="docutils literal notranslate"><span class="pre">.abi3.so</span></code>).
 Note that both free-threaded and non-free-threaded builds will
 load <code class="docutils literal notranslate"><span class="pre">.abi3t.so</span></code> extensions;</p></li>
-<li><p>Other systems: consult your distributor, and perhaps update this guide.</p></li>
+<li><p data-msgid="e4e0a1526c7f2ae137d0b8d1a997cc1884d07026" data-score="0" data-since="260608">Other systems: consult your distributor, and perhaps update this guide.</p></li>
 </ul>
-<p>If you distribute the extension as a <em>wheel</em>, use the following tags:</p>
+<p data-msgid="5353d5bc625f3b837151bc383c7efa56cd4ce9bd" data-score="0" data-since="260608">If you distribute the extension as a <em>wheel</em>, use the following tags:</p>
 <ul class="simple">
-<li><p>Python tag: <code class="samp docutils literal notranslate"><span class="pre">cp3</span><em><span class="pre">XX</span></em></code>, where <em>XX</em> is the minimum Python version
+<li><p data-msgid="26387b6e25197b29d76ec1550acce46e2d4b9a5c" data-score="0" data-since="260608">Python tag: <code class="samp docutils literal notranslate"><span class="pre">cp3</span><em><span class="pre">XX</span></em></code>, where <em>XX</em> is the minimum Python version
 the extension is built for.
 (For example, <code class="docutils literal notranslate"><span class="pre">cp315</span></code> if you set <code class="docutils literal notranslate"><span class="pre">Py_TARGET_ABI3T</span></code> to <code class="docutils literal notranslate"><span class="pre">0x30f0000</span></code>.
 See <a class="reference internal" href="../c-api/stable.html#abi3-compiling"><span class="std std-ref">Compiling for Stable ABI</span></a> for more values.)</p></li>
-<li><p>ABI tag: <code class="docutils literal notranslate"><span class="pre">abi3.abi3t</span></code>. This is a <em>compressed tag set</em> that indicates
+<li><p data-msgid="1bd758d8cc73e39b084c7e5e0945c9b24eebc283" data-score="0" data-since="260608">ABI tag: <code class="docutils literal notranslate"><span class="pre">abi3.abi3t</span></code>. This is a <em>compressed tag set</em> that indicates
 support for both non-free-threaded and free-threaded builds.</p></li>
 </ul>
-<p>For example, the wheel filename may look like this:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>myproject-1.0-cp315-abi3.abi3t-macosx_11_0_arm64.whl
+<p data-msgid="573eda2ac1cf73b6155ee4ab8ab3aaae7c7651b1" data-score="0" data-since="260608">For example, the wheel filename may look like this:</p>
+<div class="highlight-text notranslate" data-msgid="887df78c2aa72dc8e772d8de3c2e1337d04731a4" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>myproject-1.0-cp315-abi3.abi3t-macosx_11_0_arm64.whl
 </pre></div>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p><a class="reference external" href="https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/">Platform Compatibility Tags</a> in the PyPA package distribution metadata.</p>
+<p data-msgid="f9288ae732cb26592f44e3aadcb1a475934a9365" data-score="0" data-since="260608"><a class="reference external" href="https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/">Platform Compatibility Tags</a> in the PyPA package distribution metadata.</p>
 </div>
-<p>If the filename or tags are incorrect, fix them.</p>
+<p data-msgid="d09ce81520591adef78fbd52b80262ae7c09d874" data-score="0" data-since="260608">If the filename or tags are incorrect, fix them.</p>
 </section>
 <section id="testing">
-<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
-<p>Note that when you build an extension compatible with multiple versions of
+<h2 data-msgid="0820b32b206b7352858e8903a838ed14319acdfd" data-score="0" data-since="260608">Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<p data-msgid="735fe1a61692353f84a4c94be8cb9d7a49177c1f" data-score="0" data-since="260608">Note that when you build an extension compatible with multiple versions of
 CPython, you should always <em>test</em> it with each version it supports (for
 example, 3.15, 3.16, and so on).
 Stable ABI only guarantees <em>ABI</em> compatibility; there may also be behavior
 changes – both intentional ones (covered by <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0387/"><strong>PEP 387</strong></a>) and bugs.</p>
-<p>Be sure to run tests on both free-threaded and non-free-threaded builds
+<p data-msgid="f5e363a081560967461de7a28ef14f7d59443ac8" data-score="0" data-since="260608">Be sure to run tests on both free-threaded and non-free-threaded builds
 of CPython.</p>
-<p>If they pass, congratulations! You have an <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> extension.</p>
+<p data-msgid="6ce9bf07e81230044b3e5fc8393b9d852777cd00" data-score="0" data-since="260608">If they pass, congratulations! You have an <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> extension.</p>
 </section>
 </section>
 
