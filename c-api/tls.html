@@ -72,10 +72,10 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">스레드 로컬 저장소 지원</a><ul>
-<li><a class="reference internal" href="#thread-specific-storage-api">Thread-specific storage API</a></li>
-<li><a class="reference internal" href="#dynamic-allocation">Dynamic allocation</a></li>
-<li><a class="reference internal" href="#methods">Methods</a></li>
-<li><a class="reference internal" href="#legacy-apis">Legacy APIs</a></li>
+<li><a class="reference internal" href="#thread-specific-storage-api">스레드별 저장소 API</a></li>
+<li><a class="reference internal" href="#dynamic-allocation">동적 할당</a></li>
+<li><a class="reference internal" href="#methods">메서드</a></li>
+<li><a class="reference internal" href="#legacy-apis">레거시 API:</a></li>
 </ul>
 </li>
 </ul>
@@ -112,147 +112,103 @@
                 
   <section id="thread-local-storage-support">
 <span id="thread-local-storage"></span><h1 data-msgid="5a6209ec61b5f4df456c96b17589346179d68bb6" data-score="100" data-since="260609">스레드 로컬 저장소 지원<a class="headerlink" href="#thread-local-storage-support" title="Link to this heading">¶</a></h1>
-<p data-msgid="7ff4a15327f077f33e3ff667e05697997bea7944" data-score="0" data-since="260608">The Python interpreter provides low-level support for thread-local storage
-(TLS) which wraps the underlying native TLS implementation to support the
-Python-level thread-local storage API (<a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a>).  The
-CPython C level APIs are similar to those offered by pthreads and Windows:
-use a thread key and functions to associate a <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> value per
-thread.</p>
-<p data-msgid="1b376879b9f2f0188c6fa55691415166a1b33bf0" data-score="0" data-since="260608">A <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> does <em>not</em> need to be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>
-when calling these functions; they supply their own locking.</p>
-<p data-msgid="a0ce7d760c9a4b7fe21f7828dc4fadd81f592d1c" data-score="0" data-since="260603">Note that <code class="file docutils literal notranslate"><span class="pre">Python.h</span></code> does not include the declaration of the TLS APIs,
-you need to include <code class="file docutils literal notranslate"><span class="pre">pythread.h</span></code> to use thread-local storage.</p>
+<p data-msgid="7ff4a15327f077f33e3ff667e05697997bea7944" data-since="260609">Python 인터프리터는 스레드 로컬 저장소(TLS)를 위한 낮은 수준의 지원을 제공하며, 이는 기본 네이티브 TLS 구현을 래핑하여 Python 수준의 스레드 로컬 저장소 API (<a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a>)를 지원합니다. CPython C 레벨 API는 pthreads 및 Windows에서 제공하는 API와 유사하며, 스레드 키와 함수를 사용하여 스레드별로 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 값을 연관시키는 방식을 사용합니다.</p>
+<p data-msgid="1b376879b9f2f0188c6fa55691415166a1b33bf0" data-since="260609">이 함수들을 호출할 때 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>thread state`는 :term:<a href="#id3"><span class="problematic" id="id4">`</span></a>attached &lt;attached thread state&gt;`가 필요하지 않습니다. 자체 잠금 처리를 제공합니다.</p>
+<p data-msgid="a0ce7d760c9a4b7fe21f7828dc4fadd81f592d1c" data-since="260609">:file:<a href="#id1"><span class="problematic" id="id2">`</span></a>Python.h`에는 TLS API 선언이 포함되어 있지 않으니, 스레드 로컬 저장을 사용하려면 :file:<a href="#id3"><span class="problematic" id="id4">`</span></a>pythread.h`를 포함해야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="88649d26b9a47fc3c63055641f59cc56265cf009" data-score="0" data-since="260603">None of these API functions handle memory management on behalf of the
-<span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> values.  You need to allocate and deallocate them yourself.
-If the <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> values happen to be <span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span>, these
-functions don’t do refcount operations on them either.</p>
+<p data-msgid="88649d26b9a47fc3c63055641f59cc56265cf009" data-since="260609">이 API 함수들 중 어느 것도 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 값에 대해 메모리 관리를 처리하지 않습니다. 직접 할당하고 해제해야 합니다. 만약 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 값들이 :c:expr:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyObject*`인 경우, 이 함수들은 참조 카운트 연산도 수행하지 않습니다.</p>
 </div>
 <section id="thread-specific-storage-api">
-<span id="id1"></span><h2 data-msgid="64bd7baaace98579d8a3d4abb7f436047c1e8c6c" data-score="0" data-since="260608">Thread-specific storage API<a class="headerlink" href="#thread-specific-storage-api" title="Link to this heading">¶</a></h2>
-<p data-msgid="6d418f5de6a1b0a74094b034275cd6c5ad39142b" data-score="0" data-since="260608">The thread-specific storage (TSS) API was introduced to supersede the use of the existing TLS API within the
-CPython interpreter.  This API uses a new type <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> instead of
-<span class="c-expr sig sig-inline c"><span class="kt">int</span></span> to represent thread keys.</p>
+<span id="id1"></span><h2 data-msgid="64bd7baaace98579d8a3d4abb7f436047c1e8c6c" data-since="260609">스레드별 저장소 API<a class="headerlink" href="#thread-specific-storage-api" title="Link to this heading">¶</a></h2>
+<p data-msgid="6d418f5de6a1b0a74094b034275cd6c5ad39142b" data-since="260609">스레드별 저장소(TSS) API는 CPython 인터프리터 내에서 기존 TLS API 사용을 대체하기 위해 도입되었습니다. 이 API는 스레드 키를 나타내기 위해 <span class="c-expr sig sig-inline c"><span class="kt">int</span></span> 대신 새로운 타입 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_tss_t`를 사용합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="8de03080e1145240293a5afc4bf437a5c3523b34" data-score="0" data-since="260603">“A New C-API for Thread-Local Storage in CPython” (<span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0539/"><strong>PEP 539</strong></a>)</p>
+<p data-msgid="8de03080e1145240293a5afc4bf437a5c3523b34" data-since="260609">“CPython의 스레드-로컬 저장소를 위한 새로운 C-API” (<span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0539/"><strong>PEP 539</strong></a>)</p>
 </div>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.Py_tss_t">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Py_tss_t</span></span></span><a class="headerlink" href="#c.Py_tss_t" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="1a7eb3b70bcf46a9c79c71f14d6d99ddea2d014e" data-score="0" data-since="260603">This data structure represents the state of a thread key, the definition of
-which may depend on the underlying TLS implementation, and it has an
-internal field representing the key’s initialization state.  There are no
-public members in this structure.</p>
-<p data-msgid="b18d6f2826e51961655398ed830a961022b65eb0" data-score="0" data-since="260603">When <a class="reference internal" href="stable.html#stable"><span class="std std-ref">Py_LIMITED_API</span></a> is not defined, static allocation of
-this type by <a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a> is allowed.</p>
+<dd><p data-msgid="1a7eb3b70bcf46a9c79c71f14d6d99ddea2d014e" data-since="260609">이 자료 구조는 스레드 키의 상태를 나타내며, 이 정의는 하부 TLS 구현에 따라 달라질 수 있고, 키의 초기화 상태를 나타내는 내부 필드를 가지고 있습니다. 이 구조체에는 공개 멤버가 없습니다.</p>
+<p data-msgid="b18d6f2826e51961655398ed830a961022b65eb0" data-since="260609">:ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_LIMITED_API &lt;stable&gt;`가 정의되어 있지 않으면, :c:macro:<a href="#id3"><span class="problematic" id="id4">`</span></a>Py_tss_NEEDS_INIT`에 의해 이 타입의 정적 할당이 허용됩니다.</p>
 </dd></dl>
 
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.Py_tss_NEEDS_INIT">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_tss_NEEDS_INIT</span></span></span><a class="headerlink" href="#c.Py_tss_NEEDS_INIT" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="c03d8e2ddcad695de193f6013fb74bcc0cb1f6a4" data-score="0" data-since="260603">This macro expands to the initializer for <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> variables.
-Note that this macro won’t be defined with <a class="reference internal" href="stable.html#stable"><span class="std std-ref">Py_LIMITED_API</span></a>.</p>
+<dd><p data-msgid="c03d8e2ddcad695de193f6013fb74bcc0cb1f6a4" data-since="260609">이 매크로는 <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> 변수의 초기화자(initializer)로 확장됩니다. 이 매크로는 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_LIMITED_API &lt;stable&gt;`에서 정의되지 않음에 유의하십시오.</p>
 </dd></dl>
 
 </section>
 <section id="dynamic-allocation">
-<h2 data-msgid="58f56a133d75feb9fb85bc8122468a74f40762ee" data-score="0" data-since="260608">Dynamic allocation<a class="headerlink" href="#dynamic-allocation" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="58f56a133d75feb9fb85bc8122468a74f40762ee" data-since="260609">동적 할당<a class="headerlink" href="#dynamic-allocation" title="Link to this heading">¶</a></h2>
 <p data-msgid="d3f2f7ecca4aada74c7b80decfa1620b70a6de15" data-score="0" data-since="260603">Dynamic allocation of the <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a>, required in extension modules
 built with <a class="reference internal" href="stable.html#stable"><span class="std std-ref">Py_LIMITED_API</span></a>, where static allocation of this type
 is not possible due to its implementation being opaque at build time.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_alloc">
 <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_alloc</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_alloc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="4dd6d9414d1fabb0de235eca83cd17f11717c444" data-score="0" data-since="260603">Return a value which is the same state as a value initialized with
-<a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> in the case of dynamic allocation
-failure.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="4dd6d9414d1fabb0de235eca83cd17f11717c444" data-since="260609"><a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a> 으로 초기화된 값과 같은 상태의 값을 반환하거나, 동적 할당 실패 시 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_free">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_free</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_free" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="65ba14a0f42fbf0b1363c30e80b939c2d133305a" data-score="0" data-since="260603">Free the given <em>key</em> allocated by <a class="reference internal" href="#c.PyThread_tss_alloc" title="PyThread_tss_alloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_alloc()</span></code></a>, after
-first calling <a class="reference internal" href="#c.PyThread_tss_delete" title="PyThread_tss_delete"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_delete()</span></code></a> to ensure any associated
-thread locals have been unassigned. This is a no-op if the <em>key</em>
-argument is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="65ba14a0f42fbf0b1363c30e80b939c2d133305a" data-since="260609"><a class="reference internal" href="#c.PyThread_tss_alloc" title="PyThread_tss_alloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_alloc()</span></code></a> 으로 할당된 주어진 <em>key</em> 를 해제합니다. 이전에 <a class="reference internal" href="#c.PyThread_tss_delete" title="PyThread_tss_delete"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_delete()</span></code></a> 를 호출하여 연결된 모든 스레드 로컬 값들이 해제되었는지 확인해야 합니다. <em>key</em> 인자가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 이면 아무런 작업도 수행하지 않습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="e215772fb7003850a8a5cef9a02385eebd02b4f9" data-score="0" data-since="260603">A freed key becomes a dangling pointer. You should reset the key to
-<code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<p data-msgid="e215772fb7003850a8a5cef9a02385eebd02b4f9" data-since="260609">해제된 키는 위험한 포인터가 됩니다. 키를 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 로 재설정해야 합니다.</p>
 </div>
 </dd></dl>
 
 </section>
 <section id="methods">
-<h2 data-msgid="7e4ac6803c9159c694f63d089cb06b2519c16aba" data-score="0" data-since="260603">Methods<a class="headerlink" href="#methods" title="Link to this heading">¶</a></h2>
-<p data-msgid="cbe11fa29a3fbbfd256da01a709194bdf7599e63" data-score="0" data-since="260603">The parameter <em>key</em> of these functions must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  Moreover, the
-behaviors of <a class="reference internal" href="#c.PyThread_tss_set" title="PyThread_tss_set"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_set()</span></code></a> and <a class="reference internal" href="#c.PyThread_tss_get" title="PyThread_tss_get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_get()</span></code></a> are
-undefined if the given <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> has not been initialized by
-<a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>.</p>
+<h2 data-msgid="7e4ac6803c9159c694f63d089cb06b2519c16aba" data-since="260609">메서드<a class="headerlink" href="#methods" title="Link to this heading">¶</a></h2>
+<p data-msgid="cbe11fa29a3fbbfd256da01a709194bdf7599e63" data-since="260609">이 함수들의 매개 변수 <em>key</em> 는 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 이 아니어야 합니다. 또한, 주어진 <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> 가 <a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a> 에 의해 초기화되지 않았다면, <a class="reference internal" href="#c.PyThread_tss_set" title="PyThread_tss_set"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_set()</span></code></a> 와 <a class="reference internal" href="#c.PyThread_tss_get" title="PyThread_tss_get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_get()</span></code></a> 의 동작은 정의되지 않습니다.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_is_created">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_is_created</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_is_created" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="e50d6576ff63b09c693e0843d826066d49cbb6c2" data-score="0" data-since="260603">Return a non-zero value if the given <a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">Py_tss_t</span></code></a> has been initialized
-by <a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="e50d6576ff63b09c693e0843d826066d49cbb6c2" data-since="260609">주어진 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_tss_t`가 :c:func:<a href="#id3"><span class="problematic" id="id4">`</span></a>PyThread_tss_create`에 의해 초기화되었으면 0이 아닌 값을 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_create">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_create</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_create" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="c07511477fdddb8ced93a065cad98cdbd4fb7637" data-score="0" data-since="260603">Return a zero value on successful initialization of a TSS key.  The behavior
-is undefined if the value pointed to by the <em>key</em> argument is not
-initialized by <a class="reference internal" href="#c.Py_tss_NEEDS_INIT" title="Py_tss_NEEDS_INIT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tss_NEEDS_INIT</span></code></a>.  This function can be called
-repeatedly on the same key – calling it on an already initialized key is a
-no-op and immediately returns success.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="c07511477fdddb8ced93a065cad98cdbd4fb7637" data-since="260609">TSS 키 초기화에 성공하면 0 값을 반환합니다. <em>key</em> 인자가 가리키는 값이 :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_tss_NEEDS_INIT`에 의해 초기화되지 않았다면 동작이 정의되지 않습니다. 이 함수는 같은 키에서 반복적으로 호출될 수 있습니다. 이미 초기화된 키에 호출하면 아무 작업도 수행하지 않으며 즉시 성공을 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_delete">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_delete</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_delete" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="17311f0c816e38171110aee32880795b640eedd4" data-score="0" data-since="260603">Destroy a TSS key to forget the values associated with the key across all
-threads, and change the key’s initialization state to uninitialized.  A
-destroyed key is able to be initialized again by
-<a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>. This function can be called repeatedly on
-the same key – calling it on an already destroyed key is a no-op.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="17311f0c816e38171110aee32880795b640eedd4" data-since="260609">TSS 키를 삭제하여 모든 스레드에서 키와 관련된 값을 잊게 하고, 키의 초기화 상태를 초기화되지 않음으로 변경합니다. 파괴된 키는 <a class="reference internal" href="#c.PyThread_tss_create" title="PyThread_tss_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_tss_create()</span></code></a>\로 다시 초기화할 수 있습니다. 이 함수는 같은 키에서 반복적으로 호출될 수 있습니다 – 이미 파괴된 키에 대해 호출하면 아무런 일도 하지 않습니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_set">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_set</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_set" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="38c6d5f32ad02fbd3b0d95e2f974dc44b22014f4" data-score="0" data-since="260603">Return a zero value to indicate successfully associating a <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span>
-value with a TSS key in the current thread.  Each thread has a distinct
-mapping of the key to a <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> value.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="38c6d5f32ad02fbd3b0d95e2f974dc44b22014f4" data-since="260609">현재 스레드에서 TSS 키에 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 값을 성공적으로 연결했음을 나타내기 위해 0 값을 반환합니다. 각 스레드는 키에 대한 고유한 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 값 매핑을 가집니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_tss_get">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_tss_get</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Py_tss_t" title="Py_tss_t"><span class="n"><span class="pre">Py_tss_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_tss_get" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="3e2ef925dbd6b3a6f73a31957145a75e733f57bb" data-score="0" data-since="260603">Return the <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> value associated with a TSS key in the current
-thread.  This returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if no value is associated with the key in the
-current thread.</p>
+<dd><em class="stableabi"> Part of the <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="3e2ef925dbd6b3a6f73a31957145a75e733f57bb" data-since="260609">현재 스레드에서 TSS 키와 관련된 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 값을 반환합니다. 이 값을 키에 연결된 값이 없으면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환합니다.</p>
 </dd></dl>
 
 </section>
 <section id="legacy-apis">
-<span id="thread-local-storage-api"></span><h2 data-msgid="daf30c9e12d8c6a4c82076751c71ae901ef6951a" data-score="0" data-since="260608">Legacy APIs<a class="headerlink" href="#legacy-apis" title="Link to this heading">¶</a></h2>
-<div class="deprecated" data-msgid="cdeb2bab4cc80e1afdb726644602fbfca600105b" data-score="0" data-since="260608">
-<p><span class="versionmodified deprecated">버전 3.7부터 폐지됨: </span>This API is superseded by the
-<a class="reference internal" href="#thread-specific-storage-api"><span class="std std-ref">thread-specific storage (TSS) API</span></a>.</p>
+<span id="thread-local-storage-api"></span><h2 data-msgid="daf30c9e12d8c6a4c82076751c71ae901ef6951a" data-since="260609">레거시 API:<a class="headerlink" href="#legacy-apis" title="Link to this heading">¶</a></h2>
+<div class="deprecated" data-msgid="cdeb2bab4cc80e1afdb726644602fbfca600105b" data-since="260609">
+<p><span class="versionmodified deprecated">버전 3.7부터 폐지됨: </span>이 API는 <a class="reference internal" href="#thread-specific-storage-api"><span class="std std-ref">스레드별 저장소 (TSS) API</span></a>\로 대체됩니다.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="6fbbd3829ff024d90da63e7195604a4e354655f3" data-score="0" data-since="260603">This version of the API does not support platforms where the native TLS key
-is defined in a way that cannot be safely cast to <code class="docutils literal notranslate"><span class="pre">int</span></code>.  On such platforms,
-<a class="reference internal" href="#c.PyThread_create_key" title="PyThread_create_key"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_create_key()</span></code></a> will return immediately with a failure status,
-and the other TLS functions will all be no-ops on such platforms.</p>
+<p data-msgid="6fbbd3829ff024d90da63e7195604a4e354655f3" data-since="260609">이 버전의 API는 네이티브 TLS 키가 <code class="docutils literal notranslate"><span class="pre">int</span></code> 로 안전하게 캐스팅될 수 있는 방식으로 정의되지 않은 플랫폼을 지원하지 않습니다. 그러한 플랫폼에서는, <a class="reference internal" href="#c.PyThread_create_key" title="PyThread_create_key"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_create_key()</span></code></a> \가 즉시 실패 상태와 함께 반환되며, 다른 TLS 함수들은 모두 효과가 없습니다.</p>
 </div>
-<p data-msgid="92cf6a26467573323da17c5c00278e07f08cd061" data-score="0" data-since="260603">Due to the compatibility problem noted above, this version of the API should not
-be used in new code.</p>
+<p data-msgid="92cf6a26467573323da17c5c00278e07f08cd061" data-since="260609">위에 언급된 호환성 문제로 인해, 이 버전의 API는 새 코드에서 사용해서는 안 됩니다.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_create_key">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_create_key</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_create_key" title="Link to this definition">¶</a><br /></dt>
