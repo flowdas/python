@@ -78,10 +78,10 @@
 <li><a class="reference internal" href="#logging">로깅</a></li>
 <li><a class="reference internal" href="#detect-never-awaited-coroutines">await 하지 않은 코루틴 감지</a></li>
 <li><a class="reference internal" href="#detect-never-retrieved-exceptions">전달되지 않은 예외 감지</a></li>
-<li><a class="reference internal" href="#asynchronous-generators-best-practices">Asynchronous generators best practices</a><ul>
-<li><a class="reference internal" href="#close-asynchronous-generators-explicitly">Close asynchronous generators explicitly</a></li>
-<li><a class="reference internal" href="#create-asynchronous-generators-only-when-the-event-loop-is-running">Create asynchronous generators only when the event loop is running</a></li>
-<li><a class="reference internal" href="#avoid-concurrent-iteration-and-closure-of-the-same-generator">Avoid concurrent iteration and closure of the same generator</a></li>
+<li><a class="reference internal" href="#asynchronous-generators-best-practices">비동기 제너레이터 모범 사례</a><ul>
+<li><a class="reference internal" href="#close-asynchronous-generators-explicitly">비동기 제너레이터 명시적으로 닫기</a></li>
+<li><a class="reference internal" href="#create-asynchronous-generators-only-when-the-event-loop-is-running">이벤트 루프가 실행 중일 때만 비동기 제너레이터 생성</a></li>
+<li><a class="reference internal" href="#avoid-concurrent-iteration-and-closure-of-the-same-generator">같은 제너레이터의 동시 반복 및 닫기 피하기</a></li>
 </ul>
 </li>
 </ul>
@@ -175,21 +175,13 @@
 </pre></div>
 </div>
 <p data-msgid="88071465745353d3ce75784309a044a83de9ffcc" data-score="87" data-since="260603">시그널을 처리하려면, 이벤트 루프를 메인 스레드에서 실행해야 합니다.</p>
-<p data-msgid="401901a4754cd135b49cfddac6632e14e49163d7" data-score="0" data-since="260603">The <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code></a> method can be used with a
-<a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ThreadPoolExecutor</span></code></a> or
-<a class="reference internal" href="concurrent.futures.html#concurrent.futures.InterpreterPoolExecutor" title="concurrent.futures.InterpreterPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpreterPoolExecutor</span></code></a> to execute
-blocking code in a different OS thread without blocking the OS thread
-that the event loop runs in.</p>
+<p data-msgid="401901a4754cd135b49cfddac6632e14e49163d7" data-since="260609"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code></a> 메서드는 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.ThreadPoolExecutor" title="concurrent.futures.ThreadPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ThreadPoolExecutor</span></code></a> 또는 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>~concurrent.futures.InterpreterPoolExecutor`와 함께 사용되어 이벤트 루프가 실행되는 OS 스레드를 차단하지 않고 다른 OS 스레드에서 블로킹 코드를 실행할 수 있습니다.</p>
 <p data-msgid="a837026a860ce4f6bbb7be8f5e6fc365cd4b2e76" data-score="91" data-since="260603">현재 다른 프로세스(가령 <a class="reference internal" href="multiprocessing.html#module-multiprocessing" title="multiprocessing: Process-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a>으로 시작된 프로세스)에서 직접 코루틴이나 콜백을 예약할 방법은 없습니다. <a class="reference internal" href="asyncio-eventloop.html#asyncio-event-loop-methods"><span class="std std-ref">Event loop methods</span></a> 섹션은 이벤트 루프를 블록하지 않고 파이프를 읽고 파일 기술자를 감시할 수 있는 API를 나열합니다. 또한 asyncio의 <a class="reference internal" href="asyncio-subprocess.html#asyncio-subprocess"><span class="std std-ref">서브 프로세스</span></a> API는 프로세스를 시작하고 이벤트 루프에서 프로세스와 통신하는 방법을 제공합니다. 마지막으로, 앞서 언급한 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code></a> 메서드를 <a class="reference internal" href="concurrent.futures.html#concurrent.futures.ProcessPoolExecutor" title="concurrent.futures.ProcessPoolExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">concurrent.futures.ProcessPoolExecutor</span></code></a>와 함께 사용하여 다른 프로세스에서 코드를 실행할 수도 있습니다.</p>
 </section>
 <section id="running-blocking-code">
 <span id="asyncio-handle-blocking"></span><h2 data-msgid="2096ab9a46ff04c81882be6d12faa0f9071db7a6" data-score="100" data-since="260603">블로킹 코드 실행하기<a class="headerlink" href="#running-blocking-code" title="Link to this heading">¶</a></h2>
 <p data-msgid="8b85fd8e07274f2be5fdff08f91893901109b6f9" data-score="93" data-since="260603">블로킹 (CPU 병목) 코드는 직접 호출하면 안 됩니다. 예를 들어, 함수가 CPU 집약적인 계산을 1초 동안 수행하면, 모든 동시 asyncio 태스크와 IO 연산이 1초 지연됩니다.</p>
-<p data-msgid="4db67d70673423eb68af64a60ff5e70c08d2f0e5" data-score="0" data-since="260603">An executor can be used to run a task in a different thread,
-including in a different interpreter, or even in
-a different process to avoid blocking the OS thread with the
-event loop.  See the <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code></a> method for more
-details.</p>
+<p data-msgid="4db67d70673423eb68af64a60ff5e70c08d2f0e5" data-since="260609">실행기는 이벤트 루프의 OS 스레드를 차단하는 것을 방지하기 위해 다른 인터프리터 또는 프로세스에서 작업을 실행하는 데 사용될 수 있습니다. 자세한 내용은 <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.run_in_executor" title="asyncio.loop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.run_in_executor()</span></code></a> 메서드를 참조하십시오.</p>
 </section>
 <section id="logging">
 <span id="asyncio-logger"></span><h2 data-msgid="57003616863fe634c645e342ee9080681e419c5f" data-score="100" data-since="260603">로깅<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
@@ -198,9 +190,7 @@ details.</p>
 <div class="highlight-python3 notranslate" data-msgid="321e6ee0927005102374da173c8d123711edec17" data-score="100" data-since="260603"><div class="highlight"><pre><span></span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;asyncio&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="0c3f912d9a5430c73bb0f7c21e591765c978962a" data-score="0" data-since="260603">Network logging can block the event loop. It is recommended to use
-a separate thread for handling logs or use non-blocking IO. For example,
-see <a class="reference internal" href="../howto/logging-cookbook.html#blocking-handlers"><span class="std std-ref">블록 하는 처리기 다루기</span></a>.</p>
+<p data-msgid="0c3f912d9a5430c73bb0f7c21e591765c978962a" data-since="260609">네트워크 로깅은 이벤트 루프를 차단할 수 있습니다. 로그 처리를 위해 별도의 스레드를 사용하거나 비차단 I/O를 사용하는 것이 좋습니다. 예를 들어, :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>blocking-handlers`를 참조하십시오.</p>
 </section>
 <section id="detect-never-awaited-coroutines">
 <span id="asyncio-coroutine-not-scheduled"></span><h2 data-msgid="886009b9f88359d28c121465012a356c1978bfd7" data-score="89" data-since="260603">await 하지 않은 코루틴 감지<a class="headerlink" href="#detect-never-awaited-coroutines" title="Link to this heading">¶</a></h2>
@@ -289,22 +279,13 @@ see <a class="reference internal" href="../howto/logging-cookbook.html#blocking-
 </div>
 </section>
 <section id="asynchronous-generators-best-practices">
-<h2 data-msgid="1d1540cacd29a2b4b3e11f406ce345c5caaa469f" data-score="0" data-since="260608">Asynchronous generators best practices<a class="headerlink" href="#asynchronous-generators-best-practices" title="Link to this heading">¶</a></h2>
-<p data-msgid="1e0f684ef71a171e9658f11a3d06b77b49b249da" data-score="0" data-since="260608">Writing correct and efficient asyncio code requires awareness of certain pitfalls.
-This section outlines essential best practices that can save you hours of debugging.</p>
+<h2 data-msgid="1d1540cacd29a2b4b3e11f406ce345c5caaa469f" data-since="260609">비동기 제너레이터 모범 사례<a class="headerlink" href="#asynchronous-generators-best-practices" title="Link to this heading">¶</a></h2>
+<p data-msgid="1e0f684ef71a171e9658f11a3d06b77b49b249da" data-since="260609">정확하고 효율적인 asyncio 코드를 작성하려면 특정 함정들을 인식해야 합니다. 이 섹션은 몇 시간을 들여 디버깅하는 시간을 절약해 줄 수 있는 필수적인 모범 사례들을 요약합니다.</p>
 <section id="close-asynchronous-generators-explicitly">
-<h3 data-msgid="3aa8b6543a2d210981ea29ea0bdc8d6b7fdf316c" data-score="0" data-since="260608">Close asynchronous generators explicitly<a class="headerlink" href="#close-asynchronous-generators-explicitly" title="Link to this heading">¶</a></h3>
-<p data-msgid="2b510db6e33b582e27050a91b93a195eb38246fc" data-score="0" data-since="260608">It is recommended to manually close the
-<a class="reference internal" href="../glossary.html#term-asynchronous-generator-iterator"><span class="xref std std-term">asynchronous generator</span></a>. If a generator
-exits early - for example, due to an exception raised in the body of
-an <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> loop - its asynchronous cleanup code may run in an
-unexpected context. This can occur after the tasks it depends on have completed,
-or during the event loop shutdown when the async-generator’s garbage collection
-hook is called.</p>
-<p data-msgid="933431cd9c878b947e842aab84c281575f4b3f1d" data-score="0" data-since="260608">To avoid this, explicitly close the generator by calling its
-<a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> method, or use the <a class="reference internal" href="contextlib.html#contextlib.aclosing" title="contextlib.aclosing"><code class="xref py py-func docutils literal notranslate"><span class="pre">contextlib.aclosing()</span></code></a>
-context manager:</p>
-<div class="highlight-python3 notranslate" data-msgid="9bec450e4953b9be525ad057ac0909d26c86f563" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<h3 data-msgid="3aa8b6543a2d210981ea29ea0bdc8d6b7fdf316c" data-since="260609">비동기 제너레이터 명시적으로 닫기<a class="headerlink" href="#close-asynchronous-generators-explicitly" title="Link to this heading">¶</a></h3>
+<p data-msgid="2b510db6e33b582e27050a91b93a195eb38246fc" data-since="260609"><span class="xref std std-term">비동기 제너레이터 &lt;비동기 제너레이터 이터레이터&gt;`을 수동으로 닫는 것이 권장됩니다. 만약 제너레이터가 조기에 종료되면—예를 들어 ``async for`</span> 루프의 본문에서 예외가 발생한 경우—비동기 정리 코드가 예기치 않은 컨텍스트에서 실행될 수 있습니다. 이는 관련 작업들이 완료된 후 또는 비동기 제너레이터의 가비지 컬렉션 훅이 호출되는 이벤트 루프 종료 중에 발생할 수 있습니다.</p>
+<p data-msgid="933431cd9c878b947e842aab84c281575f4b3f1d" data-since="260609">이를 피하려면, 해당 제너레이터의 <a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> 메서드를 호출하여 명시적으로 닫거나, <a class="reference internal" href="contextlib.html#contextlib.aclosing" title="contextlib.aclosing"><code class="xref py py-func docutils literal notranslate"><span class="pre">contextlib.aclosing()</span></code></a> 컨텍스트 관리자를 사용하십시오:</p>
+<div class="highlight-python3 notranslate" data-msgid="9bec450e4953b9be525ad057ac0909d26c86f563" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">gen</span><span class="p">():</span>
@@ -314,15 +295,13 @@ context manager:</p>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">func</span><span class="p">():</span>
   <span class="k">async</span> <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">aclosing</span><span class="p">(</span><span class="n">gen</span><span class="p">())</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
     <span class="k">async</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
-      <span class="k">break</span>  <span class="c1"># Don&#39;t iterate until the end</span>
+      <span class="k">break</span>  <span class="c1"># 끝까지 이터레이트하지 않음</span>
 
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">func</span><span class="p">())</span>
 </pre></div>
 </div>
-<p data-msgid="b294e2a84ed25426ee97d08b3d94dd7c14d89816" data-score="0" data-since="260608">As noted above, the cleanup code for these asynchronous generators is deferred.
-The following example demonstrates that the finalization of an asynchronous
-generator can occur in an unexpected order:</p>
-<div class="highlight-python3 notranslate" data-msgid="b7389d60907a52c0cc25088474d97ffd1f305a3d" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<p data-msgid="b294e2a84ed25426ee97d08b3d94dd7c14d89816" data-since="260609">앞서 언급했듯이, 이러한 비동기 제너레이터의 정리 작업은 지연됩니다. 다음 예제는 비동기 제너레이터의 최종화가 예상치 못한 순서로 발생할 수 있음을 보여줍니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="b7389d60907a52c0cc25088474d97ffd1f305a3d" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="n">work_done</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">cursor</span><span class="p">():</span>
@@ -336,7 +315,7 @@ generator can occur in an unexpected order:</p>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">yield</span> <span class="mi">2</span>
     <span class="k">finally</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># imitate some async work</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># 비동기 작업을 모방</span>
         <span class="n">work_done</span> <span class="o">=</span> <span class="kc">True</span>
 
 
@@ -349,7 +328,7 @@ generator can occur in an unexpected order:</p>
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p data-msgid="902f7e4a17bf3317c5f350aba3142dd5294612d6" data-score="0" data-since="260608">For this example, we get the following output:</p>
+<p data-msgid="902f7e4a17bf3317c5f350aba3142dd5294612d6" data-since="260609">이 예제는 다음과 같은 출력을 만듭니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="b723e0618feff97ebf3de4f51aa0511bd0f4ea0e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">unhandled</span> <span class="n">exception</span> <span class="n">during</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> <span class="n">shutdown</span>
 <span class="n">task</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">Task</span> <span class="n">finished</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Task-3&#39;</span> <span class="n">coro</span><span class="o">=&lt;&lt;</span><span class="n">async_generator_athrow</span> <span class="n">without</span> <span class="vm">__name__</span><span class="o">&gt;</span><span class="p">()</span><span class="o">&gt;</span> <span class="n">exception</span><span class="o">=</span><span class="ne">AssertionError</span><span class="p">()</span><span class="o">&gt;</span>
 <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
@@ -366,10 +345,8 @@ generator can occur in an unexpected order:</p>
 <span class="ne">AssertionError</span>
 </pre></div>
 </div>
-<p data-msgid="58b903c678dff3cf34dbbc311e72218e4e1650b2" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">cursor()</span></code> asynchronous generator was finalized before the <code class="docutils literal notranslate"><span class="pre">rows</span></code>
-generator - an unexpected behavior.</p>
-<p data-msgid="01bcc202c2aebcbda8c25be6afb0b92bcac50b7e" data-score="0" data-since="260608">The example can be fixed by explicitly closing the
-<code class="docutils literal notranslate"><span class="pre">cursor</span></code> and <code class="docutils literal notranslate"><span class="pre">rows</span></code> async-generators:</p>
+<p data-msgid="58b903c678dff3cf34dbbc311e72218e4e1650b2" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cursor()</span></code> 비동기 제너레이터가 <code class="docutils literal notranslate"><span class="pre">rows</span></code> 제너레이터보다 먼저 최종화되었습니다. 이는 예상치 못한 동작입니다.</p>
+<p data-msgid="01bcc202c2aebcbda8c25be6afb0b92bcac50b7e" data-since="260609">이 예제는 <code class="docutils literal notranslate"><span class="pre">cursor``와</span> <span class="pre">``rows</span></code> 비동기 제너레이터를 명시적으로 닫아서 고칠 수 있습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="e7588bdca3bb6abd5a05b384a5456ad311de2e3a" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="k">async</span> <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">aclosing</span><span class="p">(</span><span class="n">cursor</span><span class="p">())</span> <span class="k">as</span> <span class="n">cursor_gen</span><span class="p">:</span>
         <span class="k">async</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cursor_gen</span><span class="p">:</span>
@@ -381,26 +358,13 @@ generator - an unexpected behavior.</p>
 </div>
 </section>
 <section id="create-asynchronous-generators-only-when-the-event-loop-is-running">
-<h3 data-msgid="8291f6cd5125c81b0aff8793cadf314b92e287de" data-score="0" data-since="260608">Create asynchronous generators only when the event loop is running<a class="headerlink" href="#create-asynchronous-generators-only-when-the-event-loop-is-running" title="Link to this heading">¶</a></h3>
-<p data-msgid="e1d3284011a52da336a3cf8685e84ebe0c136fda" data-score="0" data-since="260608">It is recommended to create
-<a class="reference internal" href="../glossary.html#term-asynchronous-generator-iterator"><span class="xref std std-term">asynchronous generators</span></a> only after
-the event loop has been created.</p>
-<p data-msgid="80ac23101dc5556ea3e81a552bf7d3e378157a1d" data-score="0" data-since="260608">To ensure that asynchronous generators close reliably, the event loop uses the
-<a class="reference internal" href="sys.html#sys.set_asyncgen_hooks" title="sys.set_asyncgen_hooks"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.set_asyncgen_hooks()</span></code></a> function to register callback functions. These
-callbacks update the list of running asynchronous generators to keep it in a
-consistent state.</p>
-<p data-msgid="d71a0aea0ae3cfcaa0411698c03e045d484075a5" data-score="0" data-since="260608">When the <a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.shutdown_asyncgens" title="asyncio.loop.shutdown_asyncgens"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.shutdown_asyncgens()</span></code></a>
-function is called, the running generators are stopped gracefully and the
-list is cleared.</p>
-<p data-msgid="493d09acad4394f9a2cac0dcbace6223635592fb" data-score="0" data-since="260608">The asynchronous generator invokes the corresponding system hook during its
-first iteration. At the same time, the generator records that the hook has
-been called and does not call it again.</p>
-<p data-msgid="94c7f3595fe7399fb5677eeda0012f466a46e1cb" data-score="0" data-since="260608">Therefore, if iteration begins before the event loop is created,
-the event loop will not be able to add the generator to its list of active
-generators because the hooks are set after the generator attempts to call them.
-Consequently, the event loop will not be able to terminate the generator
-if necessary.</p>
-<p data-msgid="6e092c032a0619e78f7538faae4a1b73097dfe96" data-score="0" data-since="260603">Consider the following example:</p>
+<h3 data-msgid="8291f6cd5125c81b0aff8793cadf314b92e287de" data-since="260609">이벤트 루프가 실행 중일 때만 비동기 제너레이터 생성<a class="headerlink" href="#create-asynchronous-generators-only-when-the-event-loop-is-running" title="Link to this heading">¶</a></h3>
+<p data-msgid="e1d3284011a52da336a3cf8685e84ebe0c136fda" data-since="260609">:term:<a href="#id1"><span class="problematic" id="id2">`</span></a>비동기 제너레이터 &lt;비동기 제너레이터 이터레이터&gt;`는 이벤트 루프가 생성된 후에만 생성하는 것이 권장됩니다.</p>
+<p data-msgid="80ac23101dc5556ea3e81a552bf7d3e378157a1d" data-since="260609">비동기 제너레이터가 안정적으로 닫히도록 보장하기 위해, 이벤트 루프는 콜백 함수를 등록하는 <a class="reference internal" href="sys.html#sys.set_asyncgen_hooks" title="sys.set_asyncgen_hooks"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.set_asyncgen_hooks()</span></code></a> 함수를 사용합니다. 이 콜백 함수들은 실행 중인 비동기 제너레이터 목록을 업데이트하여 일관된 상태를 유지합니다.</p>
+<p data-msgid="d71a0aea0ae3cfcaa0411698c03e045d484075a5" data-since="260609"><a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.shutdown_asyncgens" title="asyncio.loop.shutdown_asyncgens"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.shutdown_asyncgens()</span></code></a> 함수가 호출되면, 실행 중인 제너레이터들은 우아하게 중지되고 목록은 정리됩니다.</p>
+<p data-msgid="493d09acad4394f9a2cac0dcbace6223635592fb" data-since="260609">비동기 제너레이터는 첫 번째 반복 중에 해당 시스템 훅을 호출합니다. 동시에, 제너레이터는 해당 훅이 호출되었음을 기록하며 다시 호출하지 않습니다.</p>
+<p data-msgid="94c7f3595fe7399fb5677eeda0012f466a46e1cb" data-since="260609">따라서, 이벤트 루프가 생성되기 전에 반복이 시작되면, 훅들이 제너레이터가 호출하려고 시도한 후에 설정되기 때문에 이벤트 루프는 제너레이터를 활성 제너레이터 목록에 추가할 수 없습니다. 결과적으로, 필요할 경우 이벤트 루프가 제너레이터를 종료할 수 없습니다.</p>
+<p data-msgid="6e092c032a0619e78f7538faae4a1b73097dfe96" data-since="260609">다음 예제를 고려해 보십시오:</p>
 <div class="highlight-python3 notranslate" data-msgid="b3560a0c0dc7c592b8e03661043b6077494e298c" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">agenfn</span><span class="p">():</span>
@@ -426,7 +390,7 @@ if necessary.</p>
 <span class="ne">RuntimeError</span><span class="p">:</span> <span class="k">async</span> <span class="n">generator</span> <span class="n">ignored</span> <span class="ne">GeneratorExit</span>
 </pre></div>
 </div>
-<p data-msgid="ac17efd579fa16e4b726a5d3e99233db3e5010eb" data-score="0" data-since="260608">This example can be fixed as follows:</p>
+<p data-msgid="ac17efd579fa16e4b726a5d3e99233db3e5010eb" data-since="260609">이 예제는 다음과 같이 고칠 수 있습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="0788582a51f60c27572c97c606285c9a7c0fd715" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">agenfn</span><span class="p">():</span>
@@ -445,12 +409,9 @@ if necessary.</p>
 </div>
 </section>
 <section id="avoid-concurrent-iteration-and-closure-of-the-same-generator">
-<h3 data-msgid="6723820a0452c5c1c45a6851567725235dc92a65" data-score="0" data-since="260608">Avoid concurrent iteration and closure of the same generator<a class="headerlink" href="#avoid-concurrent-iteration-and-closure-of-the-same-generator" title="Link to this heading">¶</a></h3>
-<p data-msgid="bda7d98cbc1323e4e6df27883417142b368f9169" data-score="0" data-since="260608">Async generators may be reentered while another
-<a class="reference internal" href="../reference/expressions.html#agen.__anext__" title="agen.__anext__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__anext__()</span></code></a> / <a class="reference internal" href="../reference/expressions.html#agen.athrow" title="agen.athrow"><code class="xref py py-meth docutils literal notranslate"><span class="pre">athrow()</span></code></a> / <a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> call is in
-progress. This may lead to an inconsistent state of the async generator and can
-cause errors.</p>
-<p data-msgid="0ad5649f37ac743c27415fc32e2147aa73941dcd" data-score="0" data-since="260608">Let’s consider the following example:</p>
+<h3 data-msgid="6723820a0452c5c1c45a6851567725235dc92a65" data-since="260609">같은 제너레이터의 동시 반복 및 닫기 피하기<a class="headerlink" href="#avoid-concurrent-iteration-and-closure-of-the-same-generator" title="Link to this heading">¶</a></h3>
+<p data-msgid="bda7d98cbc1323e4e6df27883417142b368f9169" data-since="260609">비동기 제너레이터는 다른 <a class="reference internal" href="../reference/expressions.html#agen.__anext__" title="agen.__anext__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__anext__()</span></code></a> / <a class="reference internal" href="../reference/expressions.html#agen.athrow" title="agen.athrow"><code class="xref py py-meth docutils literal notranslate"><span class="pre">athrow()</span></code></a> / <a class="reference internal" href="../reference/expressions.html#agen.aclose" title="agen.aclose"><code class="xref py py-meth docutils literal notranslate"><span class="pre">aclose()</span></code></a> 호출이 진행되는 동안 재진입될 수 있습니다. 이는 비동기 제너레이터의 일관되지 않은 상태를 초래하여 오류가 발생할 수 있습니다.</p>
+<p data-msgid="0ad5649f37ac743c27415fc32e2147aa73941dcd" data-since="260609">다음 예제를 고려해 봅시다:</p>
 <div class="highlight-python3 notranslate" data-msgid="d4b4850d4b4c1e87223748bb2445f2d019c95864" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">consumer</span><span class="p">():</span>
@@ -491,8 +452,7 @@ cause errors.</p>
 <span class="ne">RuntimeError</span><span class="p">:</span> <span class="n">anext</span><span class="p">():</span> <span class="n">asynchronous</span> <span class="n">generator</span> <span class="ow">is</span> <span class="n">already</span> <span class="n">running</span>
 </pre></div>
 </div>
-<p data-msgid="966beee25485c7e2c9180e0299de0cfd9dd2394e" data-score="0" data-since="260608">Therefore, it is recommended to avoid using asynchronous generators in parallel
-tasks or across multiple event loops.</p>
+<p data-msgid="966beee25485c7e2c9180e0299de0cfd9dd2394e" data-since="260609">따라서, 비동기 제너레이터를 병렬 작업이나 여러 이벤트 루프에 걸쳐 사용하는 것을 피하는 것이 좋습니다.</p>
 </section>
 </section>
 </section>
