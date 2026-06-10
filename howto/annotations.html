@@ -77,11 +77,11 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">어노테이션 모범 사례</a><ul>
-<li><a class="reference internal" href="#accessing-the-annotations-dict-of-an-object-in-python-3-10-and-newer">Accessing The Annotations Dict Of An Object In Python 3.10 And Newer</a></li>
-<li><a class="reference internal" href="#accessing-the-annotations-dict-of-an-object-in-python-3-9-and-older">Accessing The Annotations Dict Of An Object In Python 3.9 And Older</a></li>
-<li><a class="reference internal" href="#manually-un-stringizing-stringized-annotations">Manually Un-Stringizing Stringized Annotations</a></li>
-<li><a class="reference internal" href="#best-practices-for-annotations-in-any-python-version">Best Practices For <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> In Any Python Version</a></li>
-<li><a class="reference internal" href="#annotations-quirks"><code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> Quirks</a></li>
+<li><a class="reference internal" href="#accessing-the-annotations-dict-of-an-object-in-python-3-10-and-newer">Python 3.10 이상에서 객체의 어노테이션 딕셔너리에 접근하기</a></li>
+<li><a class="reference internal" href="#accessing-the-annotations-dict-of-an-object-in-python-3-9-and-older">Python 3.9 이하에서 객체의 어노테이션 딕셔너리에 접근하기</a></li>
+<li><a class="reference internal" href="#manually-un-stringizing-stringized-annotations">문자열화된 어노테이션을 수동으로 역문자열화하기</a></li>
+<li><a class="reference internal" href="#best-practices-for-annotations-in-any-python-version">모든 파이썬 버전에서 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 에 대한 모범 사례</a></li>
+<li><a class="reference internal" href="#annotations-quirks"><code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 의 특징들</a></li>
 </ul>
 </li>
 </ul>
@@ -126,72 +126,22 @@
 <aside class="topic">
 <p class="topic-title" data-msgid="d79da395b5d7a09c6439a5f2660d8c568186ab7e" data-score="100" data-since="260609">추상</p>
 <p>이 문서는 주석 딕셔너리를 다루는 모범 사례를 캡슐화하도록 설계되었습니다. 파이썬 객체에서 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 를 검사하는 파이썬 코드를 작성하는 경우, 아래에 설명된 가이드라인을 따르기를 권장합니다.</p>
-<p>The document is organized into four sections:
-best practices for accessing the annotations of an object
-in Python versions 3.10 and newer,
-best practices for accessing the annotations of an object
-in Python versions 3.9 and older,
-other best practices
-for <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> that apply to any Python version,
-and
-quirks of <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>.</p>
-<p>Note that this document is specifically about working with
-<code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>, not uses <em>for</em> annotations.
-If you’re looking for information on how to use “type hints”
-in your code, please see the <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see :pep:`484`)."><code class="xref py py-mod docutils literal notranslate"><span class="pre">typing</span></code></a> module.</p>
+<p>이 문서는 네 가지 섹션으로 구성되어 있습니다: Python 3.10 이상 버전에서 객체의 어노테이션에 접근하기 위한 모범 사례, Python 3.9 이하 버전에서 객체의 어노테이션에 접근하기 위한 모범 사례, 모든 Python 버전에 적용되는 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 에 대한 다른 모범 사례, 그리고 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 의 특이 사항입니다.</p>
+<p>이 문서는 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 를 다루는 것에만 국한됨을 유념하세요. 어노테이션 <em>용</em> 사용에 관한 것은 아닙니다. 코드에서 “타입 힌트”를 사용하는 방법에 대한 정보가 필요하면 <a class="reference internal" href="../library/typing.html#module-typing" title="typing: Support for type hints (see :pep:`484`)."><code class="xref py py-mod docutils literal notranslate"><span class="pre">typing</span></code></a> 모듈을 참조하세요.</p>
 </aside>
 <section id="accessing-the-annotations-dict-of-an-object-in-python-3-10-and-newer">
-<h2>Accessing The Annotations Dict Of An Object In Python 3.10 And Newer<a class="headerlink" href="#accessing-the-annotations-dict-of-an-object-in-python-3-10-and-newer" title="Link to this heading">¶</a></h2>
-<p>Python 3.10 adds a new function to the standard library:
-<a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a>.  In Python versions 3.10
-through 3.13, calling this function is the best practice for
-accessing the annotations dict of any object that supports
-annotations.  This function can also “un-stringize”
-stringized annotations for you.</p>
-<p>In Python 3.14, there is a new <a class="reference internal" href="../library/annotationlib.html#module-annotationlib" title="annotationlib: Functionality for introspecting annotations"><code class="xref py py-mod docutils literal notranslate"><span class="pre">annotationlib</span></code></a> module
-with functionality for working with annotations. This
-includes a <a class="reference internal" href="../library/annotationlib.html#annotationlib.get_annotations" title="annotationlib.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">annotationlib.get_annotations()</span></code></a> function,
-which supersedes <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a>.</p>
-<p>If for some reason <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a> isn’t
-viable for your use case, you may access the
-<code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> data member manually.  Best practice
-for this changed in Python 3.10 as well: as of Python 3.10,
-<code class="docutils literal notranslate"><span class="pre">o.__annotations__</span></code> is guaranteed to <em>always</em> work
-on Python functions, classes, and modules.  If you’re
-certain the object you’re examining is one of these three
-<em>specific</em> objects, you may simply use <code class="docutils literal notranslate"><span class="pre">o.__annotations__</span></code>
-to get at the object’s annotations dict.</p>
-<p>However, other types of callables–for example,
-callables created by <a class="reference internal" href="../library/functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a>–may
-not have an <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> attribute defined.  When
-accessing the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> of a possibly unknown
-object,  best practice in Python versions 3.10 and
-newer is to call <a class="reference internal" href="../library/functions.html#getattr" title="getattr"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr()</span></code></a> with three arguments,
-for example <code class="docutils literal notranslate"><span class="pre">getattr(o,</span> <span class="pre">'__annotations__',</span> <span class="pre">None)</span></code>.</p>
-<p>Before Python 3.10, accessing <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> on a class that
-defines no annotations but that has a parent class with
-annotations would return the parent’s <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>.
-In Python 3.10 and newer, the child class’s annotations
-will be an empty dict instead.</p>
+<h2>Python 3.10 이상에서 객체의 어노테이션 딕셔너리에 접근하기<a class="headerlink" href="#accessing-the-annotations-dict-of-an-object-in-python-3-10-and-newer" title="Link to this heading">¶</a></h2>
+<p>Python 3.10은 표준 라이브러리에 새 함수인 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>inspect.get_annotations`를 추가했습니다. Python 3.10부터 3.13까지 버전에서는 이 함수를 호출하는 것이 어노테이션을 지원하는 모든 객체의 어노테이션 딕셔너리 접근을 위한 모범 사례입니다. 이 함수는 문자열 형식의 어노테이션을 “언-문자열화”할 수도 있습니다.</p>
+<p>Python 3.14에서는 어노테이션을 다루는 기능을 갖춘 새로운 <a class="reference internal" href="../library/annotationlib.html#module-annotationlib" title="annotationlib: Functionality for introspecting annotations"><code class="xref py py-mod docutils literal notranslate"><span class="pre">annotationlib</span></code></a> 모듈이 있습니다. 여기에는 <a class="reference internal" href="../library/annotationlib.html#annotationlib.get_annotations" title="annotationlib.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">annotationlib.get_annotations()</span></code></a> 함수가 포함되며, 이 함수는 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>inspect.get_annotations`를 대체합니다.</p>
+<p>만약 어떤 이유로든 <code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations`가</span> <span class="pre">사용</span> <span class="pre">사례에</span> <span class="pre">적합하지</span> <span class="pre">않다면,</span> <span class="pre">``__annotations__`()</span></code> 데이터 멤버에 수동으로 접근할 수 있습니다. 이것 역시 Python 3.10에서 모범 사례가 변경되었습니다. Python 3.10부터 <a href="#id1"><span class="problematic" id="id2">`</span></a>o.__annotations__`는 Python 함수, 클래스 및 모듈에서 <em>항상</em> 작동하는 것이 보장됩니다. 검사하는 객체가 이 세 가지 <em>특정</em> 객체 중 하나임을 확신한다면, 단순히 <a href="#id3"><span class="problematic" id="id4">`</span></a>o.__annotations__`를 사용하여 객체의 어노테이션 딕셔너리에 접근할 수 있습니다.</p>
+<p>하지만, <a class="reference internal" href="../library/functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a> 에 의해 생성된 콜러블과 같은 다른 유형의 콜러블은 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 속성을 가지고 있지 않을 수 있습니다. 알 수 없는 객체의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 에 접근할 때, Python 3.10 이상 버전의 모범 사례는 세 개의 인수를 사용하여 <a class="reference internal" href="../library/functions.html#getattr" title="getattr"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr()</span></code></a> 를 호출하는 것입니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">getattr(o,</span> <span class="pre">'__annotations__',</span> <span class="pre">None)</span></code> 를 사용합니다.</p>
+<p>Python 3.10 이전에는 어노테이션이 정의되지 않은 클래스에 대해, 하지만 부모 클래스에 어노테이션이 있는 경우, <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 에 접근하면 부모의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 가 반환되었습니다. Python 3.10 이상 버전에서는 자식 클래스의 어노테이션이 빈 딕셔너리(empty dict)일 것입니다.</p>
 </section>
 <section id="accessing-the-annotations-dict-of-an-object-in-python-3-9-and-older">
-<h2>Accessing The Annotations Dict Of An Object In Python 3.9 And Older<a class="headerlink" href="#accessing-the-annotations-dict-of-an-object-in-python-3-9-and-older" title="Link to this heading">¶</a></h2>
-<p>In Python 3.9 and older, accessing the annotations dict
-of an object is much more complicated than in newer versions.
-The problem is a design flaw in these older versions of Python,
-specifically to do with class annotations.</p>
-<p>Best practice for accessing the annotations dict of other
-objects–functions, other callables, and modules–is the same
-as best practice for 3.10, assuming you aren’t calling
-<a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a>: you should use three-argument
-<a class="reference internal" href="../library/functions.html#getattr" title="getattr"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr()</span></code></a> to access the object’s <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>
-attribute.</p>
-<p>Unfortunately, this isn’t best practice for classes.  The problem
-is that, since <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> is optional on classes, and
-because classes can inherit attributes from their base classes,
-accessing the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> attribute of a class may
-inadvertently return the annotations dict of a <em>base class.</em>
-As an example:</p>
+<h2>Python 3.9 이하에서 객체의 어노테이션 딕셔너리에 접근하기<a class="headerlink" href="#accessing-the-annotations-dict-of-an-object-in-python-3-9-and-older" title="Link to this heading">¶</a></h2>
+<p>파이썬 3.9 이전에서는 객체의 어노테이션 딕셔너리에 액세스하는 것이 신 버전보다 훨씬 복잡합니다. 이 문제는 클래스 어노테이션과 특히 관련된, 이러한 이전 버전의 파이썬의 디자인 결함입니다.</p>
+<p>다른 객체들(함수, 다른 호출 가능한 객체, 모듈 등)의 어노테이션 딕셔너리에 액세스하는 모범 사례는 <code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations`를</span> <span class="pre">호출하지</span> <span class="pre">않는다고</span> <span class="pre">가정할</span> <span class="pre">때</span> <span class="pre">3.10과</span> <span class="pre">동일합니다.</span> <span class="pre">객체의</span> <span class="pre">``__annotations__`()</span></code> 애트리뷰스에 액세스하기 위해 세 인자짜리 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>getattr`를 사용해야 합니다.</p>
+<p>유감스럽게도, 이것은 클래스에서는 모범 사례가 아닙니다. 문제는 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 가 클래스에서 선택 사항이고, 클래스가 기본 클래스로부터 애트리뷰트를 상속받을 수 있기 때문에, 클래스의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 애트리뷰스에 액세스하는 것이 실수로 <em>기본 클래스</em> 의 어노테이션 딕셔너리를 반환할 수 있다는 점입니다. 예를 들면</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="p">:</span>
     <span class="n">a</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">b</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;abc&#39;</span>
@@ -202,141 +152,62 @@ As an example:</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">Derived</span><span class="o">.</span><span class="vm">__annotations__</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This will print the annotations dict from <code class="docutils literal notranslate"><span class="pre">Base</span></code>, not
-<code class="docutils literal notranslate"><span class="pre">Derived</span></code>.</p>
-<p>Your code will have to have a separate code path if the object
-you’re examining is a class (<code class="docutils literal notranslate"><span class="pre">isinstance(o,</span> <span class="pre">type)</span></code>).
-In that case, best practice relies on an implementation detail
-of Python 3.9 and before: if a class has annotations defined,
-they are stored in the class’s <a class="reference internal" href="../reference/datamodel.html#type.__dict__" title="type.__dict__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code></a> dictionary.  Since
-the class may or may not have annotations defined, best practice
-is to call the <a class="reference internal" href="../library/stdtypes.html#dict.get" title="dict.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a> method on the class dict.</p>
-<p>To put it all together, here is some sample code that safely
-accesses the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> attribute on an arbitrary
-object in Python 3.9 and before:</p>
+<p>이것은 <code class="docutils literal notranslate"><span class="pre">Base</span></code> 의 어노테이션 딕셔너리를 출력하고, <code class="docutils literal notranslate"><span class="pre">Derived</span></code> 의 것은 아닙니다.</p>
+<p>코드에 명시하는 객체가 클래스인지(<code class="docutils literal notranslate"><span class="pre">isinstance(o,</span> <span class="pre">type)</span></code>)에 따라 별도의 코드 경로가 필요합니다. 이 경우, 모범 사례는 파이썬 3.9 이전의 구현 세부 사항에 의존합니다. 즉, 클래스가 어노테이션이 정의되어 있다면, 그들은 클래스의 <a class="reference internal" href="../reference/datamodel.html#type.__dict__" title="type.__dict__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code></a> 딕셔너리에 저장됩니다. 클래스는 어노테이션이 정의되어 있을 수도 있고 아닐 수도 있으므로, 모범 사례는 클래스 딕셔너리에서 <a class="reference internal" href="../library/stdtypes.html#dict.get" title="dict.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get()</span></code></a> 메서드를 호출하는 것입니다.</p>
+<p>모든 것을 종합해서, 파이썬 3.9 이전에서 임의의 객체의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 애트리뷰스에 안전하게 액세스하는 샘플 코드가 여기 있습니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
     <span class="n">ann</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__annotations__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">ann</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s1">&#39;__annotations__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>After running this code, <code class="docutils literal notranslate"><span class="pre">ann</span></code> should be either a
-dictionary or <code class="docutils literal notranslate"><span class="pre">None</span></code>.  You’re encouraged to double-check
-the type of <code class="docutils literal notranslate"><span class="pre">ann</span></code> using <a class="reference internal" href="../library/functions.html#isinstance" title="isinstance"><code class="xref py py-func docutils literal notranslate"><span class="pre">isinstance()</span></code></a> before further
-examination.</p>
-<p>Note that some exotic or malformed type objects may not have
-a <a class="reference internal" href="../reference/datamodel.html#type.__dict__" title="type.__dict__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code></a> attribute, so for extra safety you may also wish
-to use <a class="reference internal" href="../library/functions.html#getattr" title="getattr"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr()</span></code></a> to access <code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code>.</p>
+<p>이 코드를 실행한 후, <code class="docutils literal notranslate"><span class="pre">ann</span></code> 은 딕셔너리이거나 <code class="docutils literal notranslate"><span class="pre">None</span></code> 일 것입니다. 추가 검토 전에 <a class="reference internal" href="../library/functions.html#isinstance" title="isinstance"><code class="xref py py-func docutils literal notranslate"><span class="pre">isinstance()</span></code></a> 를 사용하여 <code class="docutils literal notranslate"><span class="pre">ann</span></code> 의 타입을 더블 체크하는 것이 좋습니다.</p>
+<p>일부 특이하거나 malformed (잘못 구성된) 타입 객체는 <a class="reference internal" href="../reference/datamodel.html#type.__dict__" title="type.__dict__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code></a> 애트리뷰스가 없을 수 있으므로, 추가 안전을 위해 <code class="xref py py-func docutils literal notranslate"><span class="pre">getattr`를</span> <span class="pre">사용하여</span> <span class="pre">:attr:()</span></code>!__dict__`에 액세스하는 것도 고려해 볼 수 있습니다.</p>
 </section>
 <section id="manually-un-stringizing-stringized-annotations">
-<h2>Manually Un-Stringizing Stringized Annotations<a class="headerlink" href="#manually-un-stringizing-stringized-annotations" title="Link to this heading">¶</a></h2>
-<p>In situations where some annotations may be “stringized”,
-and you wish to evaluate those strings to produce the
-Python values they represent, it really is best to
-call <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a> to do this work
-for you.</p>
-<p>If you’re using Python 3.9 or older, or if for some reason
-you can’t use <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a>, you’ll need
-to duplicate its logic.  You’re encouraged to examine the
-implementation of <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a> in the
-current Python version and follow a similar approach.</p>
-<p>In a nutshell, if you wish to evaluate a stringized annotation
-on an arbitrary object <code class="docutils literal notranslate"><span class="pre">o</span></code>:</p>
+<h2>문자열화된 어노테이션을 수동으로 역문자열화하기<a class="headerlink" href="#manually-un-stringizing-stringized-annotations" title="Link to this heading">¶</a></h2>
+<p>일부 어노테이션이 “문자열화”된 상태일 수 있고, 해당 문자열을 평가하여 나타내는 파이썬 값을 얻고 싶다면, :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>inspect.get_annotations`를 호출하여 이 작업을 수행하는 것이 가장 좋습니다.</p>
+<p>만약 파이썬 3.9 이하 버전을 사용하거나, 어떤 이유로 인해 <code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations`를</span> <span class="pre">사용할</span> <span class="pre">수</span> <span class="pre">없다면,</span> <span class="pre">그</span> <span class="pre">로직을</span> <span class="pre">복제해야</span> <span class="pre">합니다.</span> <span class="pre">현재</span> <span class="pre">파이썬</span> <span class="pre">버전의</span> <span class="pre">:func:`inspect.get_annotations()</span></code> 구현을 검토하고 유사한 접근 방식을 따르는 것이 좋습니다.</p>
+<p>간단히 말해, 임의의 객체 <code class="docutils literal notranslate"><span class="pre">o</span></code> 에 대한 문자열화된 어노테이션을 평가하고 싶다면 다음과 같습니다.</p>
 <ul class="simple">
-<li><p>If <code class="docutils literal notranslate"><span class="pre">o</span></code> is a module, use <code class="docutils literal notranslate"><span class="pre">o.__dict__</span></code> as the
-<code class="docutils literal notranslate"><span class="pre">globals</span></code> when calling <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">o</span></code> is a class, use <code class="docutils literal notranslate"><span class="pre">sys.modules[o.__module__].__dict__</span></code>
-as the <code class="docutils literal notranslate"><span class="pre">globals</span></code>, and <code class="docutils literal notranslate"><span class="pre">dict(vars(o))</span></code> as the <code class="docutils literal notranslate"><span class="pre">locals</span></code>,
-when calling <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">o</span></code> is a wrapped callable using <a class="reference internal" href="../library/functools.html#functools.update_wrapper" title="functools.update_wrapper"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.update_wrapper()</span></code></a>,
-<a class="reference internal" href="../library/functools.html#functools.wraps" title="functools.wraps"><code class="xref py py-deco docutils literal notranslate"><span class="pre">&#64;functools.wraps</span></code></a>, or <a class="reference internal" href="../library/functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a>, iteratively
-unwrap it by accessing either <code class="docutils literal notranslate"><span class="pre">o.__wrapped__</span></code> or <code class="docutils literal notranslate"><span class="pre">o.func</span></code> as
-appropriate, until you have found the root unwrapped function.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">o</span></code> is a callable (but not a class), use
-<a class="reference internal" href="../reference/datamodel.html#function.__globals__" title="function.__globals__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">o.__globals__</span></code></a> as the globals when calling
-<a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">o</span></code> 가 모듈인 경우, <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a> 을 호출할 때 <code class="docutils literal notranslate"><span class="pre">globals</span></code> 로 <code class="docutils literal notranslate"><span class="pre">o.__dict__</span></code> 를 사용해야 합니다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">o</span></code> 가 클래스인 경우, <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a> 을 호출할 때 <code class="docutils literal notranslate"><span class="pre">globals</span></code> 로 <code class="docutils literal notranslate"><span class="pre">sys.modules[o.__module__].__dict__</span></code> 를, <code class="docutils literal notranslate"><span class="pre">locals</span></code> 로 <code class="docutils literal notranslate"><span class="pre">dict(vars(o))</span></code> 를 사용해야 합니다.</p></li>
+<li><p><a class="reference internal" href="../library/functools.html#functools.update_wrapper" title="functools.update_wrapper"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.update_wrapper()</span></code></a>, <a class="reference internal" href="../library/functools.html#functools.wraps" title="functools.wraps"><code class="xref py py-deco docutils literal notranslate"><span class="pre">&#64;functools.wraps</span></code></a>, 또는 <a class="reference internal" href="../library/functools.html#functools.partial" title="functools.partial"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.partial()</span></code></a> 를 사용하는 래핑된 호출 가능한 객체인 경우, <code class="docutils literal notranslate"><span class="pre">o.__wrapped__</span></code> 또는 적절한 <code class="docutils literal notranslate"><span class="pre">o.func</span></code> 에 액세스하여 반복적으로 언래핑하여, 루트 언래핑된 함수를 찾을 때까지 이를 수행해야 합니다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">o</span></code> 가 호출 가능한 객체(하지만 클래스는 아닌 경우)인 경우, <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a> 을 호출할 때 <code class="docutils literal notranslate"><span class="pre">globals</span></code> 로 <a class="reference internal" href="../reference/datamodel.html#function.__globals__" title="function.__globals__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">o.__globals__</span></code></a> 를 사용합니다.</p></li>
 </ul>
-<p>However, not all string values used as annotations can
-be successfully turned into Python values by <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>.
-String values could theoretically contain any valid string,
-and in practice there are valid use cases for type hints that
-require annotating with string values that specifically
-<em>can’t</em> be evaluated.  For example:</p>
+<p>하지만, 어노테이션으로 사용되는 모든 문자열 값이 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>eval`에 의해 성공적으로 파이썬 값으로 변환될 수 있는 것은 아닙니다. 문자열 값은 이론적으로 모든 유효한 문자열을 포함할 수 있으며, 실제로는 문자열 값으로 어노테이션해야만 하는 타입 힌트의 유효한 사용 사례가 있습니다. 예를 들면:</p>
 <ul class="simple">
-<li><p><span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0604/"><strong>PEP 604</strong></a> union types using <code class="docutils literal notranslate"><span class="pre">|</span></code>, before support for this
-was added to Python 3.10.</p></li>
-<li><p>Definitions that aren’t needed at runtime, only imported
-when <a class="reference internal" href="../library/typing.html#typing.TYPE_CHECKING" title="typing.TYPE_CHECKING"><code class="xref py py-const docutils literal notranslate"><span class="pre">typing.TYPE_CHECKING</span></code></a> is true.</p></li>
+<li><p>파이썬 3.10에 이 지원이 추가되기 전의 <code class="docutils literal notranslate"><span class="pre">|</span></code> 를 사용한 <span class="target" id="index-3"></span><a class="pep reference external" href="https://peps.python.org/pep-0604/"><strong>PEP 604</strong></a> 유니온 타입입니다.</p></li>
+<li><p>실시간에는 필요하지 않고, :const:<a href="#id1"><span class="problematic" id="id2">`</span></a>typing.TYPE_CHECKING`이 True일 때만 임포트되는 정의입니다.</p></li>
 </ul>
-<p>If <a class="reference internal" href="../library/functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a> attempts to evaluate such values, it will
-fail and raise an exception.  So, when designing a library
-API that works with annotations, it’s recommended to only
-attempt to evaluate string values when explicitly requested
-to by the caller.</p>
+<p>만약 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>eval`이 이러한 값을 평가하려고 시도하면, 실패하고 예외를 발생시킵니다. 따라서 어노테이션을 다루는 라이브러리 API를 설계할 때는 호출자가 명시적으로 요청할 때만 문자열 값을 평가하려고 시도하는 것이 좋습니다.</p>
 </section>
 <section id="best-practices-for-annotations-in-any-python-version">
-<h2>Best Practices For <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> In Any Python Version<a class="headerlink" href="#best-practices-for-annotations-in-any-python-version" title="Link to this heading">¶</a></h2>
+<h2>모든 파이썬 버전에서 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 에 대한 모범 사례<a class="headerlink" href="#best-practices-for-annotations-in-any-python-version" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>You should avoid assigning to the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> member
-of objects directly.  Let Python manage setting <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>.</p></li>
-<li><p>If you do assign directly to the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> member
-of an object, you should always set it to a <code class="docutils literal notranslate"><span class="pre">dict</span></code> object.</p></li>
-<li><p>You should avoid accessing <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> directly on any object.
-Instead, use <a class="reference internal" href="../library/annotationlib.html#annotationlib.get_annotations" title="annotationlib.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">annotationlib.get_annotations()</span></code></a> (Python 3.14+)
-or <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a> (Python 3.10+).</p></li>
-<li><p>If you do directly access the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> member
-of an object, you should ensure that it’s a
-dictionary before attempting to examine its contents.</p></li>
-<li><p>You should avoid modifying <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> dicts.</p></li>
-<li><p>You should avoid deleting the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> attribute
-of an object.</p></li>
+<li><p>객체에 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 멤버를 직접 할당하는 것은 피해야 합니다. 대신 Python이 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 설정을 관리하도록 맡겨주십시오.</p></li>
+<li><p>객체의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 멤버에 직접 할당하는 경우, 항상 <code class="docutils literal notranslate"><span class="pre">dict</span></code> 객체로 설정해야 합니다.</p></li>
+<li><p>어떤 객체에서든 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 에 직접 접근하는 것을 피해야 합니다. 대신 <a class="reference internal" href="../library/annotationlib.html#annotationlib.get_annotations" title="annotationlib.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">annotationlib.get_annotations()</span></code></a> (Python 3.14 이상) 또는 <a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a> (Python 3.10 이상)을 사용하십시오.</p></li>
+<li><p>만약 객체의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 멤버에 직접 접근할 경우, 내용을 검사하기 전에 이 것이 딕셔너리인지 확인해야 합니다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 딕셔너리를 수정하는 것은 피해야 합니다.</p></li>
+<li><p>객체의 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 속성을 삭제하는 것은 피해야 합니다.</p></li>
 </ul>
 </section>
 <section id="annotations-quirks">
-<h2><code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> Quirks<a class="headerlink" href="#annotations-quirks" title="Link to this heading">¶</a></h2>
-<p>In all versions of Python 3, function
-objects lazy-create an annotations dict if no annotations
-are defined on that object.  You can delete the <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>
-attribute using <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">fn.__annotations__</span></code>, but if you then
-access <code class="docutils literal notranslate"><span class="pre">fn.__annotations__</span></code> the object will create a new empty dict
-that it will store and return as its annotations.  Deleting the
-annotations on a function before it has lazily created its annotations
-dict will throw an <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code>; using <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">fn.__annotations__</span></code>
-twice in a row is guaranteed to always throw an <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code>.</p>
-<p>Everything in the above paragraph also applies to class and module
-objects in Python 3.10 and newer.</p>
-<p>In all versions of Python 3, you can set <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>
-on a function object to <code class="docutils literal notranslate"><span class="pre">None</span></code>.  However, subsequently
-accessing the annotations on that object using <code class="docutils literal notranslate"><span class="pre">fn.__annotations__</span></code>
-will lazy-create an empty dictionary as per the first paragraph of
-this section.  This is <em>not</em> true of modules and classes, in any Python
-version; those objects permit setting <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> to any
-Python value, and will retain whatever value is set.</p>
-<p>If Python stringizes your annotations for you
-(using <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">__future__</span> <span class="pre">import</span> <span class="pre">annotations</span></code>), and you
-specify a string as an annotation, the string will
-itself be quoted.  In effect the annotation is quoted
-<em>twice.</em>  For example:</p>
+<h2><code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 의 특징들<a class="headerlink" href="#annotations-quirks" title="Link to this heading">¶</a></h2>
+<p>Python 3의 모든 버전에서, 함수 객체는 해당 객체에 어노테이션이 정의되어 있지 않으면 lazy-create 방식으로 어노테이션 딕셔너리를 생성합니다. <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">fn.__annotations__</span></code> 를 사용하여 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 속성을 삭제할 수 있지만, 이후에 <code class="docutils literal notranslate"><span class="pre">fn.__annotations__</span></code> 에 접근하면 객체는 새로 생성된 빈 딕셔너리를 만들고 이를 어노테이션으로 저장하여 반환합니다. 함수에서 어노테이션을 lazy-create 하기 이전에 삭제하면 <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> 가 발생합니다. 연속으로 <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">fn.__annotations__</span></code> 를 두 번 사용하면 항상 <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> 가 발생합니다.</p>
+<p>위 단락의 내용은 Python 3.10 및 그 이후 버전의 클래스와 모듈 객체에도 적용됩니다.</p>
+<p>Python 3의 모든 버전에서, 함수 객체에 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 를 <code class="docutils literal notranslate"><span class="pre">None</span></code> 으로 설정할 수 있습니다. 그러나 이후에 <code class="docutils literal notranslate"><span class="pre">fn.__annotations__</span></code> 을 사용하여 해당 객체의 어노테이션에 접근하면 이 섹션의 첫 번째 단락에 따라 빈 딕셔너리가 lazy-create 됩니다. 이는 어떤 Python 버전에서도 모듈이나 클래스에는 적용되지 않습니다. 그러한 객체들은 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 를 어떤 Python 값으로든 설정할 수 있으며, 설정된 값을 유지합니다.</p>
+<p>Python이 어노테이션을 문자열화(<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">__future__</span> <span class="pre">import</span> <span class="pre">annotations</span></code> 사용)하고, 사용자가 어노테이션으로 문자열을 지정하는 경우, 이 문자열 자체가 따옴표로 감싸집니다. 즉, 어노테이션이 <em>두 번</em> 따옴표로 감싸지는 것입니다. 예를 들면:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">):</span> <span class="k">pass</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="o">.</span><span class="vm">__annotations__</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This prints <code class="docutils literal notranslate"><span class="pre">{'a':</span> <span class="pre">&quot;'str'&quot;}</span></code>.  This shouldn’t really be considered
-a “quirk”; it’s mentioned here simply because it might be surprising.</p>
-<p>If you use a class with a custom metaclass and access <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>
-on the class, you may observe unexpected behavior; see
-<span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0749/#pep749-metaclasses"><strong>749</strong></a> for some examples. You can avoid these
-quirks by using <a class="reference internal" href="../library/annotationlib.html#annotationlib.get_annotations" title="annotationlib.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">annotationlib.get_annotations()</span></code></a> on Python 3.14+ or
-<a class="reference internal" href="../library/inspect.html#inspect.get_annotations" title="inspect.get_annotations"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.get_annotations()</span></code></a> on Python 3.10+. On earlier versions of
-Python, you can avoid these bugs by accessing the annotations from the
-class’s <a class="reference internal" href="../reference/datamodel.html#type.__dict__" title="type.__dict__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code></a>
-(for example, <code class="docutils literal notranslate"><span class="pre">cls.__dict__.get('__annotations__',</span> <span class="pre">None)</span></code>).</p>
-<p>In some versions of Python, instances of classes may have an <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code>
-attribute. However, this is not supported functionality. If you need the
-annotations of an instance, you can use <a class="reference internal" href="../library/functions.html#type" title="type"><code class="xref py py-func docutils literal notranslate"><span class="pre">type()</span></code></a> to access its class
-(for example, <code class="docutils literal notranslate"><span class="pre">annotationlib.get_annotations(type(myinstance))</span></code> on Python 3.14+).</p>
+<p>이것은 <code class="docutils literal notranslate"><span class="pre">{'a':</span> <span class="pre">&quot;'str'&quot;</span> <span class="pre">}</span></code> 를 출력합니다. 이것은 실제로 “특징”으로 간주되어서는 안 됩니다. 단지 놀라움을 줄 수 있기 때문에 여기에 언급된 것뿐입니다.</p>
+<p>사용자 정의 메타클래스를 가진 클래스를 사용하고 클래스에서 <code class="docutils literal notranslate"><span class="pre">__annotations__``에</span> <span class="pre">접근하면</span> <span class="pre">예상치</span> <span class="pre">못한</span> <span class="pre">동작을</span> <span class="pre">관찰할</span> <span class="pre">수</span> <span class="pre">있습니다.</span> <span class="pre">예시를</span> <span class="pre">보려면</span> <span class="pre">:pep:`749</span> <span class="pre">&lt;749#pep749-metaclasses&gt;`를</span> <span class="pre">참조하십시오.</span> <span class="pre">Python</span> <span class="pre">3.14</span> <span class="pre">이상에서는</span> <span class="pre">:func:`annotationlib.get_annotations`</span> <span class="pre">또는</span> <span class="pre">Python</span> <span class="pre">3.10</span> <span class="pre">이상에서는</span> <span class="pre">:func:`inspect.get_annotations`을</span> <span class="pre">사용하여</span> <span class="pre">이러한</span> <span class="pre">특징들을</span> <span class="pre">방지할</span> <span class="pre">수</span> <span class="pre">있습니다.</span> <span class="pre">이전</span> <span class="pre">버전의</span> <span class="pre">Python에서는</span> <span class="pre">클래스의</span> <span class="pre">:attr:`~type.__dict__`에서</span> <span class="pre">어노테이션에</span> <span class="pre">접근하여</span> <span class="pre">이러한</span> <span class="pre">버그들을</span> <span class="pre">피할</span> <span class="pre">수</span> <span class="pre">있습니다</span> <span class="pre">(예를</span> <span class="pre">들어,</span> <span class="pre">``cls.__dict__.get('__annotations__',</span> <span class="pre">None)</span></code>).</p>
+<p>일부 버전의 Python에서는 클래스의 인스턴스가 <code class="docutils literal notranslate"><span class="pre">__annotations__</span></code> 속성을 가질 수 있습니다. 하지만 이는 지원되는 기능이 아닙니다. 인스턴스의 어노테이션이 필요한 경우, <code class="xref py py-func docutils literal notranslate"><span class="pre">type`을</span> <span class="pre">사용하여</span> <span class="pre">해당</span> <span class="pre">클래스에</span> <span class="pre">접근할</span> <span class="pre">수</span> <span class="pre">있습니다</span> <span class="pre">(예를</span> <span class="pre">들어,</span> <span class="pre">Python</span> <span class="pre">3.14+에서</span> <span class="pre">``annotationlib.get_annotations(type(myinstance))`()</span></code>).</p>
 </section>
 </section>
 <div class="lost-and-found-section">
