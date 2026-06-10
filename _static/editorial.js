@@ -25,6 +25,7 @@
                 const userId = urlParams.get('editorial_user');
                 const username = urlParams.get('editorial_name');
                 const avatar = urlParams.get('editorial_avatar');
+                const sessionToken = urlParams.get('editorial_session');
                 
                 const setCookie = (name, value) => {
                     const days = 30;
@@ -40,12 +41,16 @@
                 if (userId) setCookie('editorial_user', userId);
                 if (username) setCookie('editorial_name', username);
                 if (avatar) setCookie('editorial_avatar', avatar);
+                if (sessionToken) {
+                    localStorage.setItem('editorial_session', sessionToken);
+                }
 
                 // Remove the login parameters from the address bar
                 urlParams.delete('login_success');
                 urlParams.delete('editorial_user');
                 urlParams.delete('editorial_name');
                 urlParams.delete('editorial_avatar');
+                urlParams.delete('editorial_session');
                 
                 const newSearch = urlParams.toString();
                 const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
@@ -66,7 +71,44 @@
             this.init();
         }
 
+        async apiFetch(url, options = {}) {
+            options.credentials = 'include';
+            const token = localStorage.getItem('editorial_session');
+            if (token) {
+                options.headers = options.headers || {};
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            const response = await fetch(url, options);
+            if (response.status === 401) {
+                // Session expired or invalid. Clear state to force re-login.
+                localStorage.removeItem('editorial_session');
+                const deleteCookie = (name) => {
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                };
+                deleteCookie('editorial_user');
+                deleteCookie('editorial_name');
+                deleteCookie('editorial_avatar');
+                this.user = null;
+                // Force UI update
+                const hash = window.location.hash.substring(1);
+                if (hash) this.showEditor(hash);
+            }
+            return response;
+        }
+
         checkAuthFromCookie() {
+            const token = localStorage.getItem('editorial_session');
+            if (!token) {
+                // If local token is missing, clear cookies to prevent mismatched logged-in UI state
+                const deleteCookie = (name) => {
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                };
+                deleteCookie('editorial_user');
+                deleteCookie('editorial_name');
+                deleteCookie('editorial_avatar');
+                return null;
+            }
+
             const getCookie = (name) => {
                 const value = `; ${document.cookie}`;
                 const parts = value.split(`; ${name}=`);
@@ -651,9 +693,7 @@
             try {
                 if (this.catalogId === null && this.catalogPromise) await this.catalogPromise;
                 // NO user_id in param. Server reads cookie.
-                const response = await fetch(`${this.apiUrl}/suggestions/${this.catalogId}/${hash}`, {
-                    credentials: 'include'
-                });
+                const response = await this.apiFetch(`${this.apiUrl}/suggestions/${this.catalogId}/${hash}`);
                 const data = await response.json();
                 this.interactionData[hash] = {
                     msgid: data.msgid, 
@@ -897,11 +937,10 @@
             if (existing.some(s => s.msgstr.trim() === msgstr)) { alert('이미 동일한 번역 제안이 존재합니다.'); return; }
 
             try {
-                // NO user_id in body. Server reads cookie.
-                const response = await fetch(`${this.apiUrl}/suggestions/${this.catalogId}/${hash}`, {
+                const response = await this.apiFetch(`${this.apiUrl}/suggestions/${this.catalogId}/${hash}`, {
                     method: 'POST',
-                    body: JSON.stringify({ msgstr, note: note }),
-                    credentials: 'include'
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ msgstr, note: note })
                 });
                 if (!response.ok) { alert('등록 실패: 권한이 없습니다.'); return; }
                 // Success: Clear inputs only now
@@ -922,10 +961,10 @@
             if (!this.user) { alert('로그인이 필요합니다.'); return; }
             try {
                 // NO user_id in body. Server reads cookie.
-                const response = await fetch(`${this.apiUrl}/votes`, {
+                const response = await this.apiFetch(`${this.apiUrl}/votes`, {
                     method: 'POST',
-                    body: JSON.stringify({ catalog_id: this.catalogId, msgid_hash, msgstr_hash }),
-                    credentials: 'include'
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ catalog_id: this.catalogId, msgid_hash, msgstr_hash })
                 });
                 if (response.ok) this.loadInteractionData(msgid_hash);
             } catch (err) { console.error('Error voting:', err); }
@@ -978,11 +1017,10 @@
             const newNote = textarea.value.trim();
 
             try {
-                const response = await fetch(`${this.apiUrl}/suggestions/${this.catalogId}/${msgid_hash}/${msgstr_hash}/note`, {
+                const response = await this.apiFetch(`${this.apiUrl}/suggestions/${this.catalogId}/${msgid_hash}/${msgstr_hash}/note`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ note: newNote }),
-                    credentials: 'include'
+                    body: JSON.stringify({ note: newNote })
                 });
                 if (!response.ok) { alert('수정에 실패했습니다. 권한이 없거나 오류가 발생했습니다.'); return; }
                 
@@ -1014,9 +1052,8 @@
             if (!confirm('정말로 이 노트를 삭제하시겠습니까?')) return;
 
             try {
-                const response = await fetch(`${this.apiUrl}/suggestions/${this.catalogId}/${msgid_hash}/${msgstr_hash}/note`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                const response = await this.apiFetch(`${this.apiUrl}/suggestions/${this.catalogId}/${msgid_hash}/${msgstr_hash}/note`, {
+                    method: 'DELETE'
                 });
                 if (!response.ok) { alert('삭제에 실패했습니다. 권한이 없거나 오류가 발생했습니다.'); return; }
                 
@@ -1032,9 +1069,8 @@
             if (!confirm('정말로 이 번역 제안을 삭제하시겠습니까?')) return;
 
             try {
-                const response = await fetch(`${this.apiUrl}/suggestions/${this.catalogId}/${msgid_hash}/${msgstr_hash}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                const response = await this.apiFetch(`${this.apiUrl}/suggestions/${this.catalogId}/${msgid_hash}/${msgstr_hash}`, {
+                    method: 'DELETE'
                 });
                 if (response.ok) {
                     this.loadInteractionData(msgid_hash);
