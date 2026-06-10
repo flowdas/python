@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="ko" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>asyncio and free-threaded Python &#8212; Python 3.16.0a0 문서</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
+    <script src="../_static/documentation_options.js?v=0f372962"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=afa94a99"></script>
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="Python 3.16.0a0 문서에서 찾기"
+          href="../_static/opensearch.xml"/>
+    <link rel="author" title="이 문서 정보" href="../about.html" />
+    <link rel="index" title="색인" href="../genindex.html" />
+    <link rel="search" title="검색" href="../search.html" />
+    <link rel="copyright" title="저작권" href="../copyright.html" />
+    <link rel="next" title="socket — Low-level networking interface" href="socket.html" />
+    <link rel="prev" title="asyncio로 개발하기" href="asyncio-dev.html" />
+    
+      
+      <link rel="canonical" href="https://python.flowdas.com/library/asyncio-threading.html">
+      
+    
+
+    
+    <style>
+      @media only screen {
+        table.full-width-table {
+            width: 100%;
+        }
+      }
+    </style>
+
+    <meta name="editorial-api-url" content="">
+    <link rel="stylesheet" href="../_static/editorial.css?v=f59bb5c8" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../_static/editorial.js?v=9fd0e77d"></script>
+    <link rel="icon" href="../_static/favicon.ico" type="image/x-icon" />
+
+    <!-- Umami Analytics -->
+    
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="b1c71b1f-bfea-4f74-87aa-6171d6c7eb51"></script>
+    
+
+            <script type="text/javascript" src="../_static/rtd_switcher.js"></script>
+            <meta name="readthedocs-addons-api-version" content="1">
+
+  </head><body>
+
+    <div id="editorial-container">
+        <aside id="editorial-sidebar">
+            <div class="sidebar-mobile-close-container">
+                <button id="editorial-sidebar-close" aria-label="Close Sidebar">✕ Close</button>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <div class="sidebar-desktop-toggle-container">
+                <button id="editorial-sidebar-collapse-btn" title="사이드바 접기">◀</button>
+            </div>
+            <div class="sidebar-header">
+                <h3>Python</h3>
+                <p class="version">Version: 3.16</p>
+                
+                <div id="searchbox" style="margin-top: 1.5rem;">
+                    <form action="../search.html" method="get">
+                      <input type="text" name="q" placeholder="Search documentation..." />
+                    </form>
+                </div>
+            </div>
+            <nav class="toc">
+                <ul>
+<li><a class="reference internal" href="#">asyncio and free-threaded Python</a><ul>
+<li><a class="reference internal" href="#thread-safety-considerations">Thread safety considerations</a></li>
+<li><a class="reference internal" href="#using-asyncio-with-threads">Using asyncio with threads</a></li>
+<li><a class="reference internal" href="#producer-consumer-across-threads">Producer/consumer across threads</a></li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </aside>
+        
+        <main id="editorial-main">
+            <!-- Mobile Toggle Header -->
+            <header class="editorial-mobile-header">
+                <button id="editorial-sidebar-toggle" aria-label="Toggle Sidebar">
+                    <span>☰</span> Menu
+                </button>
+                <span class="mobile-project-title">Python</span>
+            </header>
+
+            <!-- Desktop Expand Button -->
+            <button id="editorial-sidebar-expand-btn" class="sidebar-expand-btn" title="사이드바 펼치기">
+                <span>☰</span> Menu
+            </button>
+
+            <nav class="editorial-breadcrumbs" aria-label="breadcrumbs navigation">
+                <ol class="breadcrumbs">
+                    <li><a href="../index.html">Python</a></li>
+                    <li><a href="../contents.html">Docs</a></li>
+                    
+                        <li><a href="index.html">파이썬 표준 라이브러리</a></li>
+                    
+                        <li><a href="ipc.html">네트워킹과 프로세스 간 통신</a></li>
+                    
+                        <li><a href="asyncio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> — 비동기 I/O</a></li>
+                    
+                    <li class="current">asyncio and free-threaded Python</li>
+                </ol>
+            </nav>
+
+            <article class="document">
+                
+  <section id="asyncio-and-free-threaded-python">
+<span id="asyncio-threading"></span><h1 data-msgid="ad4d04c0b6fad867ce8d0e840abaa699994add9b" data-score="0" data-since="260610">asyncio and free-threaded Python<a class="headerlink" href="#asyncio-and-free-threaded-python" title="Link to this heading">¶</a></h1>
+<p data-msgid="cfeff262208d681455be974af5345739aa39449e" data-score="0" data-since="260610">asyncio uses an event loop as a scheduler to enable highly efficient
+concurrency by switching between tasks to allow non-blocking I/O
+operations. This results in better performance for I/O-bound use
+cases. It also allows off-loading CPU-bound work to a thread or
+process pool, but that is still limited by the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global
+interpreter lock</span></a> in CPython.</p>
+<p data-msgid="d5e00353e8b573c8ab521b56496a3c2cd011b999" data-score="0" data-since="260610">However, in <a class="reference internal" href="../howto/free-threading-python.html#freethreading-python-howto"><span class="std std-ref">free-threaded Python</span></a>,
+the GIL is disabled and Python can run true multi-threaded code. This
+means that asyncio can now take advantage of multiple CPU cores without
+the limitations imposed by the GIL.</p>
+<p data-msgid="175564f300976ebb9d2dd0f9c1a8688acefec1f0" data-score="0" data-since="260610">Since Python 3.14, asyncio has first-class support for free-threaded
+Python, and the implementation of asyncio is safe to use in a
+multi-threaded environment.</p>
+<p data-msgid="90016c9848e01aea716f774dc2307278e080fefc" data-score="0" data-since="260610">A single event loop on one core can handle many connections
+concurrently, but the Python code that runs to handle each one still
+executes serially. Once requests involve a non-trivial amount of
+per-request computation, that handling becomes the bottleneck, and a
+single core can no longer keep up. Combining asyncio with threads is
+most useful here: by running an event loop per thread, the handling of
+different requests can run in parallel across multiple CPU cores. It is
+also useful when you need to run blocking or CPU-bound code from an
+asyncio application.</p>
+<div class="admonition seealso">
+<p class="admonition-title">더 보기</p>
+<p data-msgid="e5fffd12a3118ff521e1dfefd4589879eea80bd8" data-score="0" data-since="260610"><a class="reference external" href="https://labs.quansight.org/blog/scaling-asyncio-on-free-threaded-python">Scaling asyncio on Free-Threaded Python</a>,
+a blog post by Kumar Aditya which explains the internal changes
+that make asyncio safe and efficient under free-threaded Python,
+together with benchmarks of the resulting improvements.</p>
+</div>
+<section id="thread-safety-considerations">
+<h2 data-msgid="87713c23e56a11b204f175e6b2269c835878f6f3" data-score="0" data-since="260610">Thread safety considerations<a class="headerlink" href="#thread-safety-considerations" title="Link to this heading">¶</a></h2>
+<p data-msgid="878408246716bc57f83d3b2aa859c96f4194f4cc" data-score="0" data-since="260610">While asyncio is designed to be thread-safe in a free-threaded Python
+environment, there are still some considerations to keep in mind when
+using asyncio with threads:</p>
+<ol class="arabic simple">
+<li><p data-msgid="683dae881d317a6b5f47122a8c5a694cd05073b7" data-score="0" data-since="260610"><strong>Event loop</strong>: Each thread should have its own event loop which
+should not be shared across threads. This ensures that the event loop
+can manage its own tasks and callbacks without interference from
+other threads.</p></li>
+<li><p data-msgid="0c5c62ac9077f957c415ac3f07d5677ee060609b" data-score="0" data-since="260610"><strong>Task management</strong>: Tasks and futures created in one thread should
+not be awaited or manipulated from another thread.</p></li>
+<li><p data-msgid="ec4ffb711b50cc5f748cb307d29aebb9560b3467" data-score="0" data-since="260610"><strong>Thread-safe APIs</strong>: When interacting with asyncio from multiple
+threads, it’s important to use thread-safe APIs provided by asyncio,
+such as <a class="reference internal" href="asyncio-task.html#asyncio.run_coroutine_threadsafe" title="asyncio.run_coroutine_threadsafe"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run_coroutine_threadsafe()</span></code></a> for submitting
+coroutines to an event loop from another thread. If you need to
+call a callback from a different thread, you can use
+<a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.call_soon_threadsafe" title="asyncio.loop.call_soon_threadsafe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_soon_threadsafe()</span></code></a> to schedule it safely.</p></li>
+<li><p data-msgid="adb7f4e606c38ebbbdaae2abed478a56164c8bc9" data-score="0" data-since="260610"><strong>Synchronization</strong>: The synchronization primitives provided by
+asyncio (like <a class="reference internal" href="asyncio-sync.html#asyncio.Lock" title="asyncio.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Lock</span></code></a> and <a class="reference internal" href="asyncio-sync.html#asyncio.Event" title="asyncio.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a>)
+are not designed to be used across threads. If you need to
+synchronize between threads, you should use the synchronization
+primitives from the <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module instead.</p></li>
+</ol>
+</section>
+<section id="using-asyncio-with-threads">
+<h2 data-msgid="bb21c1617c3abedd2aa6e49db8d2ecae87c9636c" data-score="0" data-since="260610">Using asyncio with threads<a class="headerlink" href="#using-asyncio-with-threads" title="Link to this heading">¶</a></h2>
+<p data-msgid="9774266b63ad2c2ae593ccdd362190f7d41e0f30" data-score="0" data-since="260610">asyncio supports running one event loop per thread, which allows you to
+take advantage of multiple CPU cores in a free-threaded Python
+environment. Each thread can run its own event loop, and tasks can be
+scheduled on those loops independently.</p>
+<p data-msgid="1b7b1ec768f27ced25fdee26b2e043ad8b1e1a01" data-score="0" data-since="260610">Here’s an example of how to use asyncio with threads:</p>
+<div class="highlight-python3 notranslate" data-msgid="6dc81acf0d3786e6cf5e6de7de29618a2e196bb2" data-score="0" data-since="260610"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">worker</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Worker </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> starting&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Worker </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> done&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_loop</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">worker</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+<span class="n">threads</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">run_loop</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;T</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+<p data-msgid="2b6a2e77883815941a573991158301d711668a9b" data-score="0" data-since="260610">In this example, each thread creates its own event loop with
+<a class="reference internal" href="asyncio-runner.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a> and runs a coroutine on it. The threads execute
+concurrently, and in a free-threaded build they can run on separate
+CPU cores in parallel.</p>
+</section>
+<section id="producer-consumer-across-threads">
+<h2 data-msgid="7eb5a31fd986dee5e841ef096149fe758d694d06" data-score="0" data-since="260610">Producer/consumer across threads<a class="headerlink" href="#producer-consumer-across-threads" title="Link to this heading">¶</a></h2>
+<p data-msgid="009767c47ec036eaafb4c97d9e579ab18b18a67f" data-score="0" data-since="260610">When a regular (non-asyncio) thread needs to hand work to an asyncio
+event loop running in another thread, use a thread-safe primitive such
+as <a class="reference internal" href="queue.html#queue.Queue" title="queue.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">queue.Queue</span></code></a> rather than <a class="reference internal" href="asyncio-queue.html#asyncio.Queue" title="asyncio.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Queue</span></code></a>, which is
+only safe within a single event loop.:</p>
+<div class="highlight-python3 notranslate" data-msgid="332868dca624af2892aafb9b236279e793030927" data-score="0" data-since="260610"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">producer</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Producing </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">q</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">consumer</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">ShutDown</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Consumed </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+<span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+<span class="n">consumer_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span>
+    <span class="n">target</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">consumer</span><span class="p">(</span><span class="n">q</span><span class="p">))</span>
+<span class="p">)</span>
+<span class="n">consumer_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="n">producer</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+<span class="n">consumer_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+<p data-msgid="1531ee1508a1edfe40d266c1695458d4f7f55a5f" data-score="0" data-since="260610">The producer runs on the main thread while the consumer runs inside an
+event loop on its own thread, yet they communicate safely through
+<code class="docutils literal notranslate"><span class="pre">queue.Queue</span></code>. When the queue is empty the consumer sleeps briefly
+and tries again. When the producer is done it calls
+<a class="reference internal" href="queue.html#queue.Queue.shutdown" title="queue.Queue.shutdown"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shutdown()</span></code></a>, which causes subsequent
+<a class="reference internal" href="queue.html#queue.Queue.get_nowait" title="queue.Queue.get_nowait"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_nowait()</span></code></a> calls to raise <a class="reference internal" href="queue.html#queue.ShutDown" title="queue.ShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.ShutDown</span></code></a>
+so the consumer can exit cleanly.</p>
+</section>
+</section>
+
+
+                
+                <!-- Giscus Comments -->
+                
+                <div class="giscus-container" style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                    <div class="giscus"></div>
+                    <script src="https://giscus.app/client.js"
+                        data-repo="flowdas/comments"
+                        data-repo-id="R_kgDOOVyU-A"
+                        data-category="General"
+                        data-category-id="DIC_kwDOOVyU-M4Co4WG"
+                        data-mapping="url"
+                        data-strict="0"
+                        data-reactions-enabled="1"
+                        data-emit-metadata="0"
+                        data-input-position="top"
+                        data-theme="light"
+                        data-lang="ko"
+                        crossorigin="anonymous"
+                        async>
+                    </script>
+                </div>
+                
+            </article>
+            
+            <footer style="margin-top: 5rem; border-top: 1px solid var(--border); padding-top: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2001 Python Software Foundation. Built with <strong>Editorial</strong> and Sphinx.
+            </footer>
+        </main>
+    </div>
+
+  </body>
+</html>
