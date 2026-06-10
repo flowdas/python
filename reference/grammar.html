@@ -119,78 +119,67 @@
 <p data-msgid="66c9873e61c3a2d5a462814eeada0e4a70e61faf" data-score="94" data-since="260609">현재 컷은 괄호, 대괄호, 전방 탐색 등 내부에서 나타나지 않습니다. 이러한 컨텍스트에서의 동작은 의도적으로 명시되지 않았습니다.</p>
 </li>
 </ul>
-<div class="highlight-peg notranslate" data-msgid="d66d43a2fcdda4a4e8f5093093a1a512f8474e15" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c c-Singleline"># PEG grammar for Python</span>
+<div class="highlight-peg notranslate"><div class="highlight"><pre><span></span><span class="c c-Singleline"># Python용 PEG 문법</span>
 
 
 
-<span class="c c-Singleline"># ========================= START OF THE GRAMMAR =========================</span>
+<span class="c c-Singleline"># ========================= 문법 시작 =========================</span>
 
-<span class="c c-Singleline"># General grammatical elements and rules:</span>
+<span class="c c-Singleline"># 일반적인 문법 요소 및 규칙:</span>
 <span class="c c-Singleline">#</span>
-<span class="c c-Singleline"># * Strings with double quotes (&quot;) denote SOFT KEYWORDS</span>
-<span class="c c-Singleline"># * Strings with single quotes (&#39;) denote KEYWORDS</span>
-<span class="c c-Singleline"># * Upper case names (NAME) denote tokens in the Grammar/Tokens file</span>
-<span class="c c-Singleline"># * Rule names starting with &quot;invalid_&quot; are used for specialized syntax errors</span>
-<span class="c c-Singleline">#     - These rules are NOT used in the first pass of the parser.</span>
-<span class="c c-Singleline">#     - Only if the first pass fails to parse, a second pass including the invalid</span>
-<span class="c c-Singleline">#       rules will be executed.</span>
-<span class="c c-Singleline">#     - If the parser fails in the second phase with a generic syntax error, the</span>
-<span class="c c-Singleline">#       location of the generic failure of the first pass will be used (this avoids</span>
-<span class="c c-Singleline">#       reporting incorrect locations due to the invalid rules).</span>
-<span class="c c-Singleline">#     - The order of the alternatives involving invalid rules matter</span>
-<span class="c c-Singleline">#       (like any rule in PEG).</span>
+<span class="c c-Singleline"># * 큰따옴표(&quot;) 문자열은 SOFT KEYWORDS를 나타냅니다.</span>
+<span class="c c-Singleline"># * 작은따옴표(&#39;) 문자열은 KEYWORDS를 나타냅니다.</span>
+<span class="c c-Singleline"># * 대문자 이름(NAME)은 Grammar/Tokens 파일의 토큰을 나타냅니다.</span>
+<span class="c c-Singleline"># * &quot;invalid_&quot;로 시작하는 규칙 이름은 특수한 구문 오류에 사용됩니다.</span>
+<span class="c c-Singleline">#     - 이 규칙들은 파서의 첫 번째 패스에서는 사용되지 않습니다.</span>
+<span class="c c-Singleline">#     - 첫 번째 패스에서 파싱에 실패한 경우에만, invalid 규칙을 포함한 두 번째 패스가 실행됩니다.</span>
+<span class="c c-Singleline">#     - 두 번째 단계에서 파서가 일반적인 구문 오류로 실패하면, 첫 번째 패스의 일반적인 실패 위치가 사용됩니다 (이는 invalid 규칙으로 인해 잘못된 위치가 보고되는 것을 방지합니다).</span>
+<span class="c c-Singleline">#     - invalid 규칙을 포함하는 선택지의 순서는 중요합니다 (PEG의 다른 규칙들과 마찬가지입니다).</span>
 <span class="c c-Singleline">#</span>
-<span class="c c-Singleline"># Grammar Syntax (see PEP 617 for more information):</span>
+<span class="c c-Singleline"># 문법 구문 (자세한 내용은 PEP 617을 참조하십시오):</span>
 <span class="c c-Singleline">#</span>
 <span class="c c-Singleline"># rule_name: expression</span>
-<span class="c c-Singleline">#   Optionally, a type can be included right after the rule name, which</span>
-<span class="c c-Singleline">#   specifies the return type of the C or Python function corresponding to the</span>
-<span class="c c-Singleline">#   rule:</span>
+<span class="c c-Singleline">#   선택적으로 규칙 이름 바로 뒤에 타입을 포함할 수 있으며, 이는 규칙에 해당하는 C 또는 Python 함수의 반환 타입을 지정합니다.</span>
 <span class="c c-Singleline"># rule_name[return_type]: expression</span>
-<span class="c c-Singleline">#   If the return type is omitted, then a void * is returned in C and an Any in</span>
-<span class="c c-Singleline">#   Python.</span>
+<span class="c c-Singleline">#   반환 타입이 생략되면, C에서는 void *가 반환되고 Python에서는 Any가 반환됩니다.</span>
 <span class="c c-Singleline"># e1 e2</span>
-<span class="c c-Singleline">#   Match e1, then match e2.</span>
+<span class="c c-Singleline">#   e1과 매칭한 후, e2와 매칭합니다.</span>
 <span class="c c-Singleline"># e1 | e2</span>
-<span class="c c-Singleline">#   Match e1 or e2.</span>
-<span class="c c-Singleline">#   The first alternative can also appear on the line after the rule name for</span>
-<span class="c c-Singleline">#   formatting purposes. In that case, a | must be used before the first</span>
-<span class="c c-Singleline">#   alternative, like so:</span>
+<span class="c c-Singleline">#   e1 또는 e2와 매칭합니다.</span>
+<span class="c c-Singleline">#   첫 번째 선택지는 포맷팅을 위해 규칙 이름 다음 줄에 나타날 수도 있습니다. 이 경우, 다음과 같이 첫 번째 선택지 앞에 |를 사용해야 합니다.</span>
 <span class="c c-Singleline">#       rule_name[return_type]:</span>
 <span class="c c-Singleline">#            | first_alt</span>
 <span class="c c-Singleline">#            | second_alt</span>
 <span class="c c-Singleline"># ( e )</span>
-<span class="c c-Singleline">#   Match e (allows also to use other operators in the group like &#39;(e)*&#39;)</span>
-<span class="c c-Singleline"># [ e ] or e?</span>
-<span class="c c-Singleline">#   Optionally match e.</span>
+<span class="c c-Singleline">#   e와 매칭합니다 (&#39;(e)*&#39;와 같이 그룹 내에서 다른 연산자를 사용할 수도 있습니다)</span>
+<span class="c c-Singleline"># [ e ] 또는 e?</span>
+<span class="c c-Singleline">#   선택적으로 e와 매칭합니다.</span>
 <span class="c c-Singleline"># e*</span>
-<span class="c c-Singleline">#   Match zero or more occurrences of e.</span>
+<span class="c c-Singleline">#   e가 0번 이상 나타나는 것과 매칭합니다.</span>
 <span class="c c-Singleline"># e+</span>
-<span class="c c-Singleline">#   Match one or more occurrences of e.</span>
+<span class="c c-Singleline">#   e가 1번 이상 나타나는 것과 매칭합니다.</span>
 <span class="c c-Singleline"># s.e+</span>
-<span class="c c-Singleline">#   Match one or more occurrences of e, separated by s. The generated parse tree</span>
-<span class="c c-Singleline">#   does not include the separator. This is otherwise identical to (e (s e)*).</span>
+<span class="c c-Singleline">#   s로 구분된 e가 1번 이상 나타나는 것과 매칭합니다. 생성된 파스 트리는 구분자를 포함하지 않습니다. 그 외에는 (e (s e)*)와 동일합니다.</span>
 <span class="c c-Singleline"># &amp;e</span>
-<span class="c c-Singleline">#   Succeed if e can be parsed, without consuming any input.</span>
+<span class="c c-Singleline">#   입력을 소비하지 않고, e를 파싱할 수 있으면 성공합니다.</span>
 <span class="c c-Singleline"># !e</span>
-<span class="c c-Singleline">#   Fail if e can be parsed, without consuming any input.</span>
+<span class="c c-Singleline">#   입력을 소비하지 않고, e를 파싱할 수 있으면 실패합니다.</span>
 <span class="c c-Singleline"># ~</span>
-<span class="c c-Singleline">#   Commit to the current alternative, even if it fails to parse.</span>
+<span class="c c-Singleline">#   파싱에 실패하더라도 현재 선택지를 확정(commit)합니다.</span>
 <span class="c c-Singleline"># &amp;&amp;e</span>
-<span class="c c-Singleline">#   Eager parse e. The parser will not backtrack and will immediately</span>
-<span class="c c-Singleline">#   fail with SyntaxError if e cannot be parsed.</span>
+<span class="c c-Singleline">#   e를 즉시(eager) 파싱합니다. 파서는 백트래킹하지 않으며, e를 파싱할 수 없으면 즉시 SyntaxError로 실패합니다.</span>
 <span class="c c-Singleline">#</span>
 
-<span class="c c-Singleline"># STARTING RULES</span>
-<span class="c c-Singleline"># ==============</span>
+<span class="c c-Singleline"># 시작 규칙</span>
+<span class="c c-Singleline"># ==========</span>
 
 <span class="nf">file</span><span class="p">:</span> <span class="p">[</span><span class="nf">statements</span><span class="p">]</span> ENDMARKER 
 <span class="nf">interactive</span><span class="p">:</span> <span class="nf">statement_newline</span> 
 <span class="nf">eval</span><span class="p">:</span> <span class="nf">expressions</span> NEWLINE<span class="o">*</span> ENDMARKER 
 <span class="nf">func_type</span><span class="p">:</span> &#39;(&#39; <span class="p">[</span><span class="nf">type_expressions</span><span class="p">]</span> &#39;)&#39; &#39;-&gt;&#39; <span class="nf">expression</span> NEWLINE<span class="o">*</span> ENDMARKER 
 
-<span class="c c-Singleline"># GENERAL STATEMENTS</span>
-<span class="c c-Singleline"># ==================</span>
+<span class="c c-Singleline"># 일반 문장</span>
+<span class="c c-Singleline"># ==========</span>
 
 <span class="nf">statements</span><span class="p">:</span> <span class="nf">statement</span><span class="o">+</span> 
 
@@ -208,11 +197,10 @@
     <span class="o">|</span> ENDMARKER 
 
 <span class="nf">simple_stmts</span><span class="p">:</span>
-    <span class="o">|</span> <span class="nf">simple_stmt</span> !&#39;;&#39; NEWLINE  <span class="c c-Singleline"># Not needed, there for speedup</span>
+    <span class="o">|</span> <span class="nf">simple_stmt</span> !&#39;;&#39; NEWLINE  <span class="c c-Singleline"># 속도 향상을 위해 필요하지 않음</span>
     <span class="o">|</span> &#39;;&#39;<span class="o">.</span><span class="nf">simple_stmt</span><span class="o">+</span> <span class="p">[</span>&#39;;&#39;<span class="p">]</span> NEWLINE 
 
-<span class="c c-Singleline"># NOTE: assignment MUST precede expression, else parsing a simple assignment</span>
-<span class="c c-Singleline"># will throw a SyntaxError.</span>
+<span class="c c-Singleline"># 참고: 할당(assignment)은 반드시 식(expression)보다 앞에 와야 합니다. 그렇지 않으면 간단한 할당을 파싱할 때 SyntaxError가 발생합니다.</span>
 <span class="nf">simple_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">assignment</span>
     <span class="o">|</span> <span class="nf">type_alias</span>
@@ -239,10 +227,10 @@
     <span class="o">|</span> <span class="nf">while_stmt</span>
     <span class="o">|</span> <span class="nf">match_stmt</span>
 
-<span class="c c-Singleline"># SIMPLE STATEMENTS</span>
-<span class="c c-Singleline"># =================</span>
+<span class="c c-Singleline"># 간단한 문장</span>
+<span class="c c-Singleline"># ==========</span>
 
-<span class="c c-Singleline"># NOTE: annotated_rhs may start with &#39;yield&#39;; yield_expr must start with &#39;yield&#39;</span>
+<span class="c c-Singleline"># 참고: annotated_rhs는 &#39;yield&#39;로 시작할 수 있습니다; yield_expr은 반드시 &#39;yield&#39;로 시작해야 합니다.</span>
 <span class="nf">assignment</span><span class="p">:</span>
     <span class="o">|</span> NAME &#39;:&#39; <span class="nf">expression</span> <span class="p">[</span>&#39;=&#39; <span class="nf">annotated_rhs</span> <span class="p">]</span> 
     <span class="o">|</span> <span class="p">(</span>&#39;(&#39; <span class="nf">single_target</span> &#39;)&#39; 
@@ -300,13 +288,13 @@
     <span class="o">|</span> <span class="nf">import_name</span>
     <span class="o">|</span> <span class="nf">import_from</span>
 
-<span class="c c-Singleline"># Import statements</span>
-<span class="c c-Singleline"># -----------------</span>
+<span class="c c-Singleline"># Import 문</span>
+<span class="c c-Singleline"># -----------</span>
 
 <span class="nf">import_name</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&quot;lazy&quot;</span><span class="o">?</span> <span class="k">&#39;import&#39;</span> <span class="nf">dotted_as_names</span> 
 
-<span class="c c-Singleline"># note below: the (&#39;.&#39; | &#39;...&#39;) is necessary because &#39;...&#39; is tokenized as ELLIPSIS</span>
+<span class="c c-Singleline"># 아래 참고: &#39;...&#39;이 ELLIPSIS로 토큰화되기 때문에 (&#39;.&#39; | &#39;...&#39;)가 필요합니다.</span>
 <span class="nf">import_from</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&quot;lazy&quot;</span><span class="o">?</span> <span class="k">&#39;from&#39;</span> <span class="p">(</span>&#39;.&#39; <span class="o">|</span> &#39;...&#39;<span class="p">)</span><span class="o">*</span> <span class="nf">dotted_name</span> <span class="k">&#39;import&#39;</span> <span class="nf">import_from_targets</span> 
     <span class="o">|</span> <span class="k">&quot;lazy&quot;</span><span class="o">?</span> <span class="k">&#39;from&#39;</span> <span class="p">(</span>&#39;.&#39; <span class="o">|</span> &#39;...&#39;<span class="p">)</span><span class="o">+</span> <span class="k">&#39;import&#39;</span> <span class="nf">import_from_targets</span> 
@@ -328,11 +316,11 @@
     <span class="o">|</span> <span class="nf">dotted_name</span> &#39;.&#39; NAME 
     <span class="o">|</span> NAME
 
-<span class="c c-Singleline"># COMPOUND STATEMENTS</span>
-<span class="c c-Singleline"># ===================</span>
+<span class="c c-Singleline"># 복합 문장</span>
+<span class="c c-Singleline"># ==========</span>
 
-<span class="c c-Singleline"># Common elements</span>
-<span class="c c-Singleline"># ---------------</span>
+<span class="c c-Singleline"># 공통 요소</span>
+<span class="c c-Singleline"># ---------</span>
 
 <span class="nf">block</span><span class="p">:</span>
     <span class="o">|</span> NEWLINE INDENT <span class="nf">statements</span> DEDENT 
@@ -340,8 +328,8 @@
 
 <span class="nf">decorators</span><span class="p">:</span> <span class="p">(</span>&#39;@&#39; <span class="nf">named_expression</span> NEWLINE <span class="p">)</span><span class="o">+</span> 
 
-<span class="c c-Singleline"># Class definitions</span>
-<span class="c c-Singleline"># -----------------</span>
+<span class="c c-Singleline"># 클래스 정의</span>
+<span class="c c-Singleline"># -----------</span>
 
 <span class="nf">class_def</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">decorators</span> <span class="nf">class_def_raw</span> 
@@ -350,8 +338,8 @@
 <span class="nf">class_def_raw</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;class&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> <span class="p">[</span>&#39;(&#39; <span class="p">[</span><span class="nf">arguments</span><span class="p">]</span> &#39;)&#39; <span class="p">]</span> &#39;:&#39; <span class="nf">block</span> 
 
-<span class="c c-Singleline"># Function definitions</span>
-<span class="c c-Singleline"># --------------------</span>
+<span class="c c-Singleline"># 함수 정의</span>
+<span class="c c-Singleline"># -----------</span>
 
 <span class="nf">function_def</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">decorators</span> <span class="nf">function_def_raw</span> 
@@ -361,8 +349,8 @@
     <span class="o">|</span> <span class="k">&#39;def&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> &#39;(&#39; <span class="p">[</span><span class="nf">params</span><span class="p">]</span> &#39;)&#39; <span class="p">[</span>&#39;-&gt;&#39; <span class="nf">expression</span> <span class="p">]</span> &#39;:&#39; <span class="p">[</span><span class="nf">func_type_comment</span><span class="p">]</span> <span class="nf">block</span> 
     <span class="o">|</span> <span class="k">&#39;async&#39;</span> <span class="k">&#39;def&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> &#39;(&#39; <span class="p">[</span><span class="nf">params</span><span class="p">]</span> &#39;)&#39; <span class="p">[</span>&#39;-&gt;&#39; <span class="nf">expression</span> <span class="p">]</span> &#39;:&#39; <span class="p">[</span><span class="nf">func_type_comment</span><span class="p">]</span> <span class="nf">block</span> 
 
-<span class="c c-Singleline"># Function parameters</span>
-<span class="c c-Singleline"># -------------------</span>
+<span class="c c-Singleline"># 함수 매개변수</span>
+<span class="c c-Singleline"># -----------</span>
 
 <span class="nf">params</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">parameters</span>
@@ -374,8 +362,8 @@
     <span class="o">|</span> <span class="nf">param_with_default</span><span class="o">+</span> <span class="p">[</span><span class="nf">star_etc</span><span class="p">]</span> 
     <span class="o">|</span> <span class="nf">star_etc</span> 
 
-<span class="c c-Singleline"># Some duplication here because we can&#39;t write (&#39;,&#39; | &amp;&#39;)&#39;),</span>
-<span class="c c-Singleline"># which is because we don&#39;t support empty alternatives (yet).</span>
+<span class="c c-Singleline"># (&#39;,&#39; | &amp;&#39;)&#39;)와 같이 작성할 수 없기 때문에 약간의 중복이 있습니다.</span>
+<span class="c c-Singleline"># 이는 (아직) 빈 선택지를 지원하지 않기 때문입니다.</span>
 
 <span class="nf">slash_no_default</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">param_no_default</span><span class="o">+</span> &#39;/&#39; &#39;,&#39; 
@@ -393,17 +381,17 @@
 <span class="nf">kwds</span><span class="p">:</span>
     <span class="o">|</span> &#39;**&#39; <span class="nf">param_no_default</span> 
 
-<span class="c c-Singleline"># One parameter.  This *includes* a following comma and type comment.</span>
+<span class="c c-Singleline"># 하나의 매개변수. 이는 뒤따르는 쉼표와 타입 주석을 *포함*합니다.</span>
 <span class="c c-Singleline">#</span>
-<span class="c c-Singleline"># There are three styles:</span>
-<span class="c c-Singleline"># - No default</span>
-<span class="c c-Singleline"># - With default</span>
-<span class="c c-Singleline"># - Maybe with default</span>
+<span class="c c-Singleline"># 세 가지 스타일이 있습니다:</span>
+<span class="c c-Singleline"># - 기본값 없음</span>
+<span class="c c-Singleline"># - 기본값 있음</span>
+<span class="c c-Singleline"># - 기본값 있을 수도 있음</span>
 <span class="c c-Singleline">#</span>
-<span class="c c-Singleline"># There are two alternative forms of each, to deal with type comments:</span>
-<span class="c c-Singleline"># - Ends in a comma followed by an optional type comment</span>
-<span class="c c-Singleline"># - No comma, optional type comment, must be followed by close paren</span>
-<span class="c c-Singleline"># The latter form is for a final parameter without trailing comma.</span>
+<span class="c c-Singleline"># 타입 주석을 처리하기 위해 각각 두 가지 대안 형태가 있습니다:</span>
+<span class="c c-Singleline"># - 쉼표로 끝나고 선택적 타입 주석이 뒤따름</span>
+<span class="c c-Singleline"># - 쉼표 없음, 선택적 타입 주석, 반드시 닫는 괄호가 뒤따라야 함</span>
+<span class="c c-Singleline"># 후자의 형태는 뒤따르는 쉼표가 없는 마지막 매개변수를 위한 것입니다.</span>
 <span class="c c-Singleline">#</span>
 
 <span class="nf">param_no_default</span><span class="p">:</span>
@@ -424,8 +412,8 @@
 <span class="nf">star_annotation</span><span class="p">:</span> &#39;:&#39; <span class="nf">star_expression</span> 
 <span class="nf">default</span><span class="p">:</span> &#39;=&#39; <span class="nf">expression</span>  <span class="o">|</span> <span class="nf">invalid_default</span>
 
-<span class="c c-Singleline"># If statement</span>
-<span class="c c-Singleline"># ------------</span>
+<span class="c c-Singleline"># If 문</span>
+<span class="c c-Singleline"># -------</span>
 
 <span class="nf">if_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;if&#39;</span> <span class="nf">named_expression</span> &#39;:&#39; <span class="nf">block</span> <span class="nf">elif_stmt</span> 
@@ -436,21 +424,21 @@
 <span class="nf">else_block</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;else&#39;</span> &#39;:&#39; <span class="nf">block</span> 
 
-<span class="c c-Singleline"># While statement</span>
-<span class="c c-Singleline"># ---------------</span>
+<span class="c c-Singleline"># While 문</span>
+<span class="c c-Singleline"># ---------</span>
 
 <span class="nf">while_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;while&#39;</span> <span class="nf">named_expression</span> &#39;:&#39; <span class="nf">block</span> <span class="p">[</span><span class="nf">else_block</span><span class="p">]</span> 
 
-<span class="c c-Singleline"># For statement</span>
-<span class="c c-Singleline"># -------------</span>
+<span class="c c-Singleline"># For 문</span>
+<span class="c c-Singleline"># -------</span>
 
 <span class="nf">for_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;for&#39;</span> <span class="nf">star_targets</span> <span class="k">&#39;in&#39;</span> ~ <span class="nf">star_expressions</span> &#39;:&#39; <span class="p">[</span>TYPE_COMMENT<span class="p">]</span> <span class="nf">block</span> <span class="p">[</span><span class="nf">else_block</span><span class="p">]</span> 
     <span class="o">|</span> <span class="k">&#39;async&#39;</span> <span class="k">&#39;for&#39;</span> <span class="nf">star_targets</span> <span class="k">&#39;in&#39;</span> ~ <span class="nf">star_expressions</span> &#39;:&#39; <span class="p">[</span>TYPE_COMMENT<span class="p">]</span> <span class="nf">block</span> <span class="p">[</span><span class="nf">else_block</span><span class="p">]</span> 
 
-<span class="c c-Singleline"># With statement</span>
-<span class="c c-Singleline"># --------------</span>
+<span class="c c-Singleline"># With 문</span>
+<span class="c c-Singleline"># --------</span>
 
 <span class="nf">with_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;with&#39;</span> &#39;(&#39; &#39;,&#39;<span class="o">.</span><span class="nf">with_item</span><span class="o">+</span> &#39;,&#39;<span class="o">?</span> &#39;)&#39; &#39;:&#39; <span class="p">[</span>TYPE_COMMENT<span class="p">]</span> <span class="nf">block</span> 
@@ -462,8 +450,8 @@
     <span class="o">|</span> <span class="nf">expression</span> <span class="k">&#39;as&#39;</span> <span class="nf">star_target</span> &amp;<span class="p">(</span>&#39;,&#39; <span class="o">|</span> &#39;)&#39; <span class="o">|</span> &#39;:&#39;<span class="p">)</span> 
     <span class="o">|</span> <span class="nf">expression</span> 
 
-<span class="c c-Singleline"># Try statement</span>
-<span class="c c-Singleline"># -------------</span>
+<span class="c c-Singleline"># Try 문</span>
+<span class="c c-Singleline"># -------</span>
 
 <span class="nf">try_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;try&#39;</span> &#39;:&#39; <span class="nf">block</span> <span class="nf">finally_block</span> 
@@ -471,8 +459,8 @@
     <span class="o">|</span> <span class="k">&#39;try&#39;</span> &#39;:&#39; <span class="nf">block</span> <span class="nf">except_star_block</span><span class="o">+</span> <span class="p">[</span><span class="nf">else_block</span><span class="p">]</span> <span class="p">[</span><span class="nf">finally_block</span><span class="p">]</span> 
 
 
-<span class="c c-Singleline"># Except statement</span>
-<span class="c c-Singleline"># ----------------</span>
+<span class="c c-Singleline"># Except 문</span>
+<span class="c c-Singleline"># ----------</span>
 
 <span class="nf">except_block</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;except&#39;</span> <span class="nf">expression</span> &#39;:&#39; <span class="nf">block</span> 
@@ -486,8 +474,8 @@
 <span class="nf">finally_block</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;finally&#39;</span> &#39;:&#39; <span class="nf">block</span> 
 
-<span class="c c-Singleline"># Match statement</span>
-<span class="c c-Singleline"># ---------------</span>
+<span class="c c-Singleline"># Match 문</span>
+<span class="c c-Singleline"># ---------</span>
 
 <span class="nf">match_stmt</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&quot;match&quot;</span> <span class="nf">subject_expr</span> &#39;:&#39; NEWLINE INDENT <span class="nf">case_block</span><span class="o">+</span> DEDENT 
@@ -525,7 +513,7 @@
     <span class="o">|</span> <span class="nf">mapping_pattern</span>
     <span class="o">|</span> <span class="nf">class_pattern</span>
 
-<span class="c c-Singleline"># Literal patterns are used for equality and identity constraints</span>
+<span class="c c-Singleline"># 리터럴 패턴은 동등성(equality) 및 정체성(identity) 제약 조건에 사용됩니다.</span>
 <span class="nf">literal_pattern</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">signed_number</span> !<span class="p">(</span>&#39;+&#39; <span class="o">|</span> &#39;-&#39;<span class="p">)</span> 
     <span class="o">|</span> <span class="nf">complex_number</span> 
@@ -534,7 +522,7 @@
     <span class="o">|</span> <span class="k">&#39;True&#39;</span> 
     <span class="o">|</span> <span class="k">&#39;False&#39;</span> 
 
-<span class="c c-Singleline"># Literal expressions are used to restrict permitted mapping pattern keys</span>
+<span class="c c-Singleline"># 리터럴 식은 허용되는 매핑 패턴 키를 제한하는 데 사용됩니다.</span>
 <span class="nf">literal_expr</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">signed_number</span> !<span class="p">(</span>&#39;+&#39; <span class="o">|</span> &#39;-&#39;<span class="p">)</span>
     <span class="o">|</span> <span class="nf">complex_number</span>
@@ -634,14 +622,14 @@
 <span class="nf">keyword_pattern</span><span class="p">:</span>
     <span class="o">|</span> NAME &#39;=&#39; <span class="nf">pattern</span> 
 
-<span class="c c-Singleline"># Type statement</span>
+<span class="c c-Singleline"># 타입 문 (Type statement)</span>
 <span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">type_alias</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&quot;type&quot;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> &#39;=&#39; <span class="nf">expression</span> 
 
-<span class="c c-Singleline"># Type parameter declaration</span>
-<span class="c c-Singleline"># --------------------------</span>
+<span class="c c-Singleline"># 타입 매개변수 선언 (Type parameter declaration)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">type_params</span><span class="p">:</span>
     <span class="o">|</span> &#39;[&#39; <span class="nf">type_param_seq</span> &#39;]&#39; 
@@ -657,7 +645,7 @@
 <span class="nf">type_param_default</span><span class="p">:</span> &#39;=&#39; <span class="nf">expression</span> 
 <span class="nf">type_param_starred_default</span><span class="p">:</span> &#39;=&#39; <span class="nf">star_expression</span> 
 
-<span class="c c-Singleline"># EXPRESSIONS</span>
+<span class="c c-Singleline"># 식 (EXPRESSIONS)</span>
 <span class="c c-Singleline"># -----------</span>
 
 <span class="nf">expressions</span><span class="p">:</span>
@@ -716,8 +704,8 @@
     <span class="o">|</span> <span class="k">&#39;not&#39;</span> <span class="nf">inversion</span> 
     <span class="o">|</span> <span class="nf">comparison</span>
 
-<span class="c c-Singleline"># Comparison operators</span>
-<span class="c c-Singleline"># --------------------</span>
+<span class="c c-Singleline"># 비교 연산자 (Comparison operators)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">comparison</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">bitwise_or</span> <span class="nf">compare_op_bitwise_or_pair</span><span class="o">+</span> 
@@ -747,8 +735,8 @@
 <span class="nf">isnot_bitwise_or</span><span class="p">:</span> <span class="k">&#39;is&#39;</span> <span class="k">&#39;not&#39;</span> <span class="nf">bitwise_or</span> 
 <span class="nf">is_bitwise_or</span><span class="p">:</span> <span class="k">&#39;is&#39;</span> <span class="nf">bitwise_or</span> 
 
-<span class="c c-Singleline"># Bitwise operators</span>
-<span class="c c-Singleline"># -----------------</span>
+<span class="c c-Singleline"># 비트 연산자 (Bitwise operators)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">bitwise_or</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">bitwise_or</span> &#39;|&#39; <span class="nf">bitwise_xor</span> 
@@ -767,8 +755,8 @@
     <span class="o">|</span> <span class="nf">shift_expr</span> &#39;&gt;&gt;&#39; <span class="nf">sum</span> 
     <span class="o">|</span> <span class="nf">sum</span>
 
-<span class="c c-Singleline"># Arithmetic operators</span>
-<span class="c c-Singleline"># --------------------</span>
+<span class="c c-Singleline"># 산술 연산자 (Arithmetic operators)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">sum</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">sum</span> &#39;+&#39; <span class="nf">term</span> 
@@ -793,10 +781,10 @@
     <span class="o">|</span> <span class="nf">await_primary</span> &#39;**&#39; <span class="nf">factor</span> 
     <span class="o">|</span> <span class="nf">await_primary</span>
 
-<span class="c c-Singleline"># Primary elements</span>
-<span class="c c-Singleline"># ----------------</span>
+<span class="c c-Singleline"># 기본 요소 (Primary elements)</span>
+<span class="c c-Singleline"># ---------------</span>
 
-<span class="c c-Singleline"># Primary elements are things like &quot;obj.something.something&quot;, &quot;obj[something]&quot;, &quot;obj(something)&quot;, &quot;obj&quot; ...</span>
+<span class="c c-Singleline"># 기본 요소(Primary elements)는 &quot;obj.something.something&quot;, &quot;obj[something]&quot;, &quot;obj(something)&quot;, &quot;obj&quot; 등과 같은 것들입니다.</span>
 
 <span class="nf">await_primary</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;await&#39;</span> <span class="nf">primary</span> 
@@ -832,8 +820,8 @@
 <span class="nf">group</span><span class="p">:</span>
     <span class="o">|</span> &#39;(&#39; <span class="p">(</span><span class="nf">yield_expr</span> <span class="o">|</span> <span class="nf">named_expression</span><span class="p">)</span> &#39;)&#39; 
 
-<span class="c c-Singleline"># Lambda functions</span>
-<span class="c c-Singleline"># ----------------</span>
+<span class="c c-Singleline"># 람다 함수 (Lambda functions)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">lambdef</span><span class="p">:</span>
     <span class="o">|</span> <span class="k">&#39;lambda&#39;</span> <span class="p">[</span><span class="nf">lambda_params</span><span class="p">]</span> &#39;:&#39; <span class="nf">expression</span> 
@@ -841,9 +829,9 @@
 <span class="nf">lambda_params</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">lambda_parameters</span>
 
-<span class="c c-Singleline"># lambda_parameters etc. duplicates parameters but without annotations</span>
-<span class="c c-Singleline"># or type comments, and if there&#39;s no comma after a parameter, we expect</span>
-<span class="c c-Singleline"># a colon, not a close parenthesis.  (For more, see parameters above.)</span>
+<span class="c c-Singleline"># lambda_parameters 등은 매개변수를 복제하지만 주석이나</span>
+<span class="c c-Singleline"># 타입 코멘트가 없으며, 매개변수 뒤에 쉼표가 없는 경우</span>
+<span class="c c-Singleline"># 닫는 괄호가 아닌 콜론을 기대합니다. (자세한 내용은 위의 parameters를 참조하십시오.)</span>
 <span class="c c-Singleline">#</span>
 <span class="nf">lambda_parameters</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">lambda_slash_no_default</span> <span class="nf">lambda_param_no_default</span><span class="o">*</span> <span class="nf">lambda_param_with_default</span><span class="o">*</span> <span class="p">[</span><span class="nf">lambda_star_etc</span><span class="p">]</span> 
@@ -879,7 +867,7 @@
     <span class="o">|</span> <span class="nf">lambda_param</span> <span class="nf">default</span><span class="o">?</span> &amp;&#39;:&#39; 
 <span class="nf">lambda_param</span><span class="p">:</span> NAME 
 
-<span class="c c-Singleline"># LITERALS</span>
+<span class="c c-Singleline"># 리터럴 (LITERALS)</span>
 <span class="c c-Singleline"># ========</span>
 
 <span class="nf">fstring_middle</span><span class="p">:</span>
@@ -925,7 +913,7 @@
 
 <span class="nf">set</span><span class="p">:</span> &#39;{&#39; <span class="nf">star_named_expressions_sequence</span> &#39;}&#39; 
 
-<span class="c c-Singleline"># Dicts</span>
+<span class="c c-Singleline"># 딕셔너리 (Dicts)</span>
 <span class="c c-Singleline"># -----</span>
 
 <span class="nf">dict</span><span class="p">:</span>
@@ -939,8 +927,8 @@
 
 <span class="nf">kvpair</span><span class="p">:</span> <span class="nf">expression</span> &#39;:&#39; <span class="nf">expression</span> 
 
-<span class="c c-Singleline"># Comprehensions &amp; Generators</span>
-<span class="c c-Singleline"># ---------------------------</span>
+<span class="c c-Singleline"># 컴프리헨션 및 제너레이터 (Comprehensions &amp; Generators)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">for_if_clauses</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">for_if_clause</span><span class="o">+</span> 
@@ -962,8 +950,8 @@
     <span class="o">|</span> &#39;{&#39; <span class="nf">kvpair</span> <span class="nf">for_if_clauses</span> &#39;}&#39; 
     <span class="o">|</span> &#39;{&#39; &#39;**&#39; <span class="nf">expression</span> <span class="nf">for_if_clauses</span> &#39;}&#39; 
 
-<span class="c c-Singleline"># FUNCTION CALL ARGUMENTS</span>
-<span class="c c-Singleline"># =======================</span>
+<span class="c c-Singleline"># 함수 호출 인자 (FUNCTION CALL ARGUMENTS)</span>
+<span class="c c-Singleline"># ========</span>
 
 <span class="nf">arguments</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">args</span> <span class="p">[</span>&#39;,&#39;<span class="p">]</span> &amp;&#39;)&#39; 
@@ -988,13 +976,13 @@
     <span class="o">|</span> NAME &#39;=&#39; <span class="nf">expression</span> 
     <span class="o">|</span> &#39;**&#39; <span class="nf">expression</span> 
 
-<span class="c c-Singleline"># ASSIGNMENT TARGETS</span>
-<span class="c c-Singleline"># ==================</span>
+<span class="c c-Singleline"># 할당 대상 (ASSIGNMENT TARGETS)</span>
+<span class="c c-Singleline"># ========</span>
 
-<span class="c c-Singleline"># Generic targets</span>
+<span class="c c-Singleline"># 일반적인 대상 (Generic targets)</span>
 <span class="c c-Singleline"># ---------------</span>
 
-<span class="c c-Singleline"># NOTE: star_targets may contain *bitwise_or, targets may not.</span>
+<span class="c c-Singleline"># 참고: star_targets는 *bitwise_or를 포함할 수 있지만, targets는 포함할 수 없습니다.</span>
 <span class="nf">star_targets</span><span class="p">:</span>
     <span class="o">|</span> <span class="nf">star_target</span> !&#39;,&#39; 
     <span class="o">|</span> <span class="nf">star_target</span> <span class="p">(</span>&#39;,&#39; <span class="nf">star_target</span> <span class="p">)</span><span class="o">*</span> <span class="p">[</span>&#39;,&#39;<span class="p">]</span> 
@@ -1038,8 +1026,8 @@
 
 <span class="nf">t_lookahead</span><span class="p">:</span> &#39;(&#39; <span class="o">|</span> &#39;[&#39; <span class="o">|</span> &#39;.&#39;
 
-<span class="c c-Singleline"># Targets for del statements</span>
-<span class="c c-Singleline"># --------------------------</span>
+<span class="c c-Singleline"># del 문을 위한 대상 (Targets for del statements)</span>
+<span class="c c-Singleline"># ---------------</span>
 
 <span class="nf">del_targets</span><span class="p">:</span> &#39;,&#39;<span class="o">.</span><span class="nf">del_target</span><span class="o">+</span> <span class="p">[</span>&#39;,&#39;<span class="p">]</span> 
 
@@ -1054,10 +1042,10 @@
     <span class="o">|</span> &#39;(&#39; <span class="p">[</span><span class="nf">del_targets</span><span class="p">]</span> &#39;)&#39; 
     <span class="o">|</span> &#39;[&#39; <span class="p">[</span><span class="nf">del_targets</span><span class="p">]</span> &#39;]&#39; 
 
-<span class="c c-Singleline"># TYPING ELEMENTS</span>
+<span class="c c-Singleline"># 타이핑 요소 (TYPING ELEMENTS)</span>
 <span class="c c-Singleline"># ---------------</span>
 
-<span class="c c-Singleline"># type_expressions allow */** but ignore them</span>
+<span class="c c-Singleline"># type_expressions는 */**를 허용하지만 무시합니다</span>
 <span class="nf">type_expressions</span><span class="p">:</span>
     <span class="o">|</span> &#39;,&#39;<span class="o">.</span><span class="nf">expression</span><span class="o">+</span> &#39;,&#39; &#39;*&#39; <span class="nf">expression</span> &#39;,&#39; &#39;**&#39; <span class="nf">expression</span> 
     <span class="o">|</span> &#39;,&#39;<span class="o">.</span><span class="nf">expression</span><span class="o">+</span> &#39;,&#39; &#39;*&#39; <span class="nf">expression</span> 
@@ -1068,7 +1056,7 @@
     <span class="o">|</span> &#39;,&#39;<span class="o">.</span><span class="nf">expression</span><span class="o">+</span> 
 
 <span class="nf">func_type_comment</span><span class="p">:</span>
-    <span class="o">|</span> NEWLINE TYPE_COMMENT &amp;<span class="p">(</span>NEWLINE INDENT<span class="p">)</span>   <span class="c c-Singleline"># Must be followed by indented block</span>
+    <span class="o">|</span> NEWLINE TYPE_COMMENT &amp;<span class="p">(</span>NEWLINE INDENT<span class="p">)</span>   <span class="c c-Singleline"># 반드시 들여쓰기된 블록이 뒤따라야 함</span>
     <span class="o">|</span> TYPE_COMMENT
 
 <span class="c c-Singleline"># ========================= END OF THE GRAMMAR ===========================</span>
@@ -1077,10 +1065,291 @@
 
 <span class="c c-Singleline"># ========================= START OF INVALID RULES =======================</span>
 
+<span class="c c-Singleline"># 여기서부터는 특수한 에러 메시지가 있는 잘못된 구문에 대한 규칙들입니다</span>
+<span class="nf">invalid_arguments</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">((</span>&#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">starred_expression</span> <span class="o">|</span> <span class="p">(</span> <span class="nf">assignment_expression</span> <span class="o">|</span> <span class="nf">expression</span> !&#39;:=&#39;<span class="p">)</span> !&#39;=&#39;<span class="p">)</span><span class="o">+</span> &#39;,&#39; <span class="nf">kwargs</span><span class="p">)</span> <span class="o">|</span> <span class="nf">kwargs</span><span class="p">)</span> &#39;,&#39; &#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">starred_expression</span> !&#39;=&#39;<span class="p">)</span><span class="o">+</span> 
+    <span class="o">|</span> <span class="nf">expression</span> <span class="nf">for_if_clauses</span> &#39;,&#39; <span class="p">[</span><span class="nf">args</span> <span class="o">|</span> <span class="nf">expression</span> <span class="nf">for_if_clauses</span><span class="p">]</span> 
+    <span class="o">|</span> NAME &#39;=&#39; <span class="nf">expression</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">args</span> &#39;,&#39;<span class="p">)</span><span class="o">?</span> NAME &#39;=&#39; &amp;<span class="p">(</span>&#39;,&#39; <span class="o">|</span> &#39;)&#39;<span class="p">)</span> 
+    <span class="o">|</span> <span class="nf">args</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> <span class="nf">args</span> &#39;,&#39; <span class="nf">expression</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> <span class="nf">args</span> &#39;,&#39; <span class="nf">args</span> 
+<span class="nf">invalid_kwarg</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">(</span><span class="k">&#39;True&#39;</span><span class="o">|</span><span class="k">&#39;False&#39;</span><span class="o">|</span><span class="k">&#39;None&#39;</span><span class="p">)</span> &#39;=&#39; 
+    <span class="o">|</span> NAME &#39;=&#39; <span class="nf">expression</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> !<span class="p">(</span>NAME &#39;=&#39;<span class="p">)</span> <span class="nf">expression</span> &#39;=&#39; 
+    <span class="o">|</span> &#39;**&#39; <span class="nf">expression</span> &#39;=&#39; <span class="nf">expression</span> 
+
+<span class="c c-Singleline"># 중요: &quot;_without_invalid&quot; 접미사는 해당 규칙이 그 아래의 잘못된 규칙들을 호출하지 않게 함을 주의하십시오</span>
+<span class="nf">expression_without_invalid</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">disjunction</span> <span class="k">&#39;if&#39;</span> <span class="nf">disjunction</span> <span class="k">&#39;else&#39;</span> <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="nf">disjunction</span>
+    <span class="o">|</span> <span class="nf">lambdef</span>
+<span class="nf">invalid_legacy_expression</span><span class="p">:</span>
+    <span class="o">|</span> NAME !&#39;(&#39; <span class="nf">star_expressions</span> 
+
+<span class="nf">invalid_type_param</span><span class="p">:</span>
+    <span class="o">|</span> &#39;*&#39; NAME &#39;:&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> &#39;**&#39; NAME &#39;:&#39; <span class="nf">expression</span> 
+
+<span class="nf">invalid_expression</span><span class="p">:</span>
+   <span class="o">|</span>  STRING <span class="p">(</span>!STRING <span class="nf">expression_without_invalid</span><span class="p">)</span><span class="o">+</span> STRING 
+    <span class="c c-Singleline"># !(NAME STRING)이 매칭되지 않으므로 kf&quot;dsfsdf&quot;와 같은 일부 잘못된 문자열 접두사에 대해 이 에러를 표시하지 않습니다</span>
+    <span class="c c-Singleline"># 소프트 키워드도 NAME NAME으로 파싱될 수 있으므로 무시해야 합니다</span>
+   <span class="o">|</span> !<span class="p">(</span>NAME STRING <span class="o">|</span> SOFT_KEYWORD<span class="p">)</span> <span class="nf">disjunction</span> <span class="nf">expression_without_invalid</span> 
+   <span class="o">|</span> <span class="nf">disjunction</span> <span class="k">&#39;if&#39;</span> <span class="nf">disjunction</span> !<span class="p">(</span><span class="k">&#39;else&#39;</span><span class="o">|</span>&#39;:&#39;<span class="p">)</span> 
+   <span class="o">|</span> <span class="nf">disjunction</span> <span class="k">&#39;if&#39;</span> <span class="nf">disjunction</span> <span class="k">&#39;else&#39;</span> !<span class="nf">expression</span> 
+   <span class="o">|</span> <span class="p">(</span><span class="nf">pass_stmt</span><span class="o">|</span><span class="nf">break_stmt</span><span class="o">|</span><span class="nf">continue_stmt</span><span class="p">)</span> <span class="k">&#39;if&#39;</span> <span class="nf">disjunction</span> <span class="k">&#39;else&#39;</span> <span class="nf">simple_stmt</span> 
+   <span class="o">|</span> <span class="k">&#39;lambda&#39;</span> <span class="p">[</span><span class="nf">lambda_params</span><span class="p">]</span> &#39;:&#39; &amp;FSTRING_MIDDLE  
+   <span class="o">|</span> <span class="k">&#39;lambda&#39;</span> <span class="p">[</span><span class="nf">lambda_params</span><span class="p">]</span> &#39;:&#39; &amp;TSTRING_MIDDLE  
+
+<span class="nf">invalid_if_expression</span><span class="p">:</span>
+   <span class="o">|</span> <span class="nf">disjunction</span> <span class="k">&#39;if&#39;</span> <span class="nf">disjunction</span> <span class="k">&#39;else&#39;</span> &#39;*&#39; 
+   <span class="o">|</span> <span class="nf">disjunction</span> <span class="k">&#39;if&#39;</span> <span class="nf">disjunction</span> <span class="k">&#39;else&#39;</span> &#39;**&#39; 
+
+<span class="nf">invalid_named_expression</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:=&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> NAME &#39;=&#39; <span class="nf">bitwise_or</span> !<span class="p">(</span>&#39;=&#39;<span class="o">|</span>&#39;:=&#39;<span class="p">)</span> 
+    <span class="o">|</span> !<span class="p">(</span><span class="nf">list</span><span class="o">|</span><span class="nf">tuple</span><span class="o">|</span><span class="nf">genexp</span><span class="o">|</span><span class="k">&#39;True&#39;</span><span class="o">|</span><span class="k">&#39;None&#39;</span><span class="o">|</span><span class="k">&#39;False&#39;</span><span class="p">)</span> <span class="nf">bitwise_or</span> &#39;=&#39; <span class="nf">bitwise_or</span> !<span class="p">(</span>&#39;=&#39;<span class="o">|</span>&#39;:=&#39;<span class="p">)</span> 
+
+<span class="nf">invalid_assignment</span><span class="p">:</span>
+        <span class="nf">RAISE_SYNTAX_ERROR_KNOWN_LOCATION</span><span class="p">(</span>
+            <span class="nf">a</span>,
+            &quot;<span class="nf">only</span> <span class="nf">single</span> <span class="nf">target</span> <span class="p">(</span><span class="nf">not</span> %<span class="nf">s</span><span class="p">)</span> <span class="nf">can</span> <span class="nf">be</span> <span class="nf">annotated</span>&quot;,
+            <span class="nf">_PyPegen_get_expr_name</span><span class="p">(</span><span class="nf">a</span><span class="p">)</span>
+        <span class="p">)}</span>
+    <span class="o">|</span> <span class="nf">star_named_expression</span> &#39;,&#39; <span class="nf">star_named_expressions</span><span class="o">*</span> &#39;:&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">star_targets</span> &#39;=&#39;<span class="p">)</span><span class="o">*</span> <span class="nf">star_expressions</span> &#39;=&#39; 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">star_targets</span> &#39;=&#39;<span class="p">)</span><span class="o">*</span> <span class="nf">yield_expr</span> &#39;=&#39; 
+    <span class="o">|</span> <span class="nf">star_expressions</span> <span class="nf">augassign</span> <span class="nf">annotated_rhs</span> 
+<span class="nf">invalid_ann_assign_target</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">list</span>
+    <span class="o">|</span> <span class="nf">tuple</span>
+<span class="nf">invalid_raise_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;raise&#39;</span> <span class="k">&#39;from&#39;</span> 
+    <span class="o">|</span> <span class="k">&#39;raise&#39;</span> <span class="nf">expression</span> <span class="k">&#39;from&#39;</span> 
+<span class="nf">invalid_del_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;del&#39;</span> <span class="nf">star_expressions</span> 
+<span class="nf">invalid_assert_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;assert&#39;</span> <span class="nf">expression</span> &#39;=&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="k">&#39;assert&#39;</span> <span class="nf">expression</span> &#39;,&#39; <span class="nf">expression</span> &#39;=&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="k">&#39;assert&#39;</span> <span class="nf">expression</span> &#39;:=&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="k">&#39;assert&#39;</span> <span class="nf">expression</span> &#39;,&#39; <span class="nf">expression</span> &#39;:=&#39; <span class="nf">expression</span> 
+<span class="nf">invalid_block</span><span class="p">:</span>
+    <span class="o">|</span> NEWLINE !INDENT 
+<span class="nf">invalid_comprehension</span><span class="p">:</span>
+    <span class="o">|</span> &#39;[&#39; &#39;**&#39; <span class="nf">expression</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> &#39;(&#39; &#39;**&#39; <span class="nf">expression</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> <span class="p">(</span>&#39;[&#39; <span class="o">|</span> &#39;{&#39;<span class="p">)</span> <span class="nf">star_named_expression</span> &#39;,&#39; <span class="nf">star_named_expressions</span> <span class="nf">for_if_clauses</span> 
+    <span class="o">|</span> <span class="p">(</span>&#39;[&#39; <span class="o">|</span> &#39;{&#39;<span class="p">)</span> <span class="nf">star_named_expression</span> &#39;,&#39; <span class="nf">for_if_clauses</span> 
+<span class="nf">invalid_parameters</span><span class="p">:</span>
+    <span class="o">|</span> &quot;/&quot; &#39;,&#39; 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">slash_no_default</span> <span class="o">|</span> <span class="nf">slash_with_default</span><span class="p">)</span> <span class="nf">param_maybe_default</span><span class="o">*</span> &#39;/&#39; 
+        <span class="nf">RAISE_SYNTAX_ERROR_KNOWN_LOCATION</span><span class="p">(</span><span class="nf">a</span>, &quot;<span class="nf">parameter</span> <span class="nf">without</span> <span class="nf">a</span> <span class="nf">default</span> <span class="nf">follows</span> <span class="nf">parameter</span> <span class="nf">with</span> <span class="nf">a</span> <span class="nf">default</span>&quot;<span class="p">)</span> <span class="p">}</span>
+    <span class="o">|</span> <span class="nf">param_no_default</span><span class="o">*</span> &#39;(&#39; <span class="nf">param_no_default</span><span class="o">+</span> &#39;,&#39;<span class="o">?</span> &#39;)&#39; 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">slash_no_default</span> <span class="o">|</span> <span class="nf">slash_with_default</span><span class="p">)</span><span class="o">?</span> <span class="nf">param_maybe_default</span><span class="o">*</span> &#39;*&#39; <span class="p">(</span>&#39;,&#39; <span class="o">|</span> <span class="nf">param_no_default</span><span class="p">)</span> <span class="nf">param_maybe_default</span><span class="o">*</span> &#39;/&#39; 
+    <span class="o">|</span> <span class="nf">param_maybe_default</span><span class="o">+</span> &#39;/&#39; &#39;*&#39; 
+<span class="nf">invalid_default</span><span class="p">:</span>
+    <span class="o">|</span> &#39;=&#39; &amp;<span class="p">(</span>&#39;)&#39;<span class="o">|</span>&#39;,&#39;<span class="p">)</span> 
+<span class="nf">invalid_star_etc</span><span class="p">:</span>
+    <span class="o">|</span> &#39;*&#39; <span class="p">(</span>&#39;)&#39; <span class="o">|</span> &#39;,&#39; <span class="p">(</span>&#39;)&#39; <span class="o">|</span> &#39;**&#39;<span class="p">))</span> 
+    <span class="o">|</span> &#39;*&#39; &#39;,&#39; TYPE_COMMENT 
+    <span class="o">|</span> &#39;*&#39; <span class="nf">param</span> &#39;=&#39; 
+    <span class="o">|</span> &#39;*&#39; <span class="p">(</span><span class="nf">param_no_default</span> <span class="o">|</span> &#39;,&#39;<span class="p">)</span> <span class="nf">param_maybe_default</span><span class="o">*</span> &#39;*&#39; <span class="p">(</span><span class="nf">param_no_default</span> <span class="o">|</span> &#39;,&#39;<span class="p">)</span> 
+<span class="nf">invalid_kwds</span><span class="p">:</span>
+    <span class="o">|</span> &#39;**&#39; <span class="nf">param</span> &#39;=&#39; 
+    <span class="o">|</span> &#39;**&#39; <span class="nf">param</span> &#39;,&#39; <span class="nf">param</span> 
+    <span class="o">|</span> &#39;**&#39; <span class="nf">param</span> &#39;,&#39; <span class="p">(</span>&#39;*&#39;<span class="o">|</span>&#39;**&#39;<span class="o">|</span>&#39;/&#39;<span class="p">)</span> 
+<span class="nf">invalid_parameters_helper</span><span class="p">:</span> <span class="c c-Singleline"># 이는 오직 타입 에러를 피하기 위해 존재합니다</span>
+    <span class="o">|</span> <span class="nf">slash_with_default</span> 
+    <span class="o">|</span> <span class="nf">param_with_default</span><span class="o">+</span>
+<span class="nf">invalid_lambda_parameters</span><span class="p">:</span>
+    <span class="o">|</span> &quot;/&quot; &#39;,&#39; 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">lambda_slash_no_default</span> <span class="o">|</span> <span class="nf">lambda_slash_with_default</span><span class="p">)</span> <span class="nf">lambda_param_maybe_default</span><span class="o">*</span> &#39;/&#39; 
+        <span class="nf">RAISE_SYNTAX_ERROR_KNOWN_LOCATION</span><span class="p">(</span><span class="nf">a</span>, &quot;<span class="nf">parameter</span> <span class="nf">without</span> <span class="nf">a</span> <span class="nf">default</span> <span class="nf">follows</span> <span class="nf">parameter</span> <span class="nf">with</span> <span class="nf">a</span> <span class="nf">default</span>&quot;<span class="p">)</span> <span class="p">}</span>
+    <span class="o">|</span> <span class="nf">lambda_param_no_default</span><span class="o">*</span> &#39;(&#39; &#39;,&#39;<span class="o">.</span><span class="nf">lambda_param</span><span class="o">+</span> &#39;,&#39;<span class="o">?</span> &#39;)&#39; 
+    <span class="o">|</span> <span class="p">(</span><span class="nf">lambda_slash_no_default</span> <span class="o">|</span> <span class="nf">lambda_slash_with_default</span><span class="p">)</span><span class="o">?</span> <span class="nf">lambda_param_maybe_default</span><span class="o">*</span> &#39;*&#39; <span class="p">(</span>&#39;,&#39; <span class="o">|</span> <span class="nf">lambda_param_no_default</span><span class="p">)</span> <span class="nf">lambda_param_maybe_default</span><span class="o">*</span> &#39;/&#39; 
+    <span class="o">|</span> <span class="nf">lambda_param_maybe_default</span><span class="o">+</span> &#39;/&#39; &#39;*&#39; 
+<span class="nf">invalid_lambda_parameters_helper</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">lambda_slash_with_default</span> 
+    <span class="o">|</span> <span class="nf">lambda_param_with_default</span><span class="o">+</span>
+<span class="nf">invalid_lambda_star_etc</span><span class="p">:</span>
+    <span class="o">|</span> &#39;*&#39; <span class="p">(</span>&#39;:&#39; <span class="o">|</span> &#39;,&#39; <span class="p">(</span>&#39;:&#39; <span class="o">|</span> &#39;**&#39;<span class="p">))</span> 
+    <span class="o">|</span> &#39;*&#39; <span class="nf">lambda_param</span> &#39;=&#39; 
+    <span class="o">|</span> &#39;*&#39; <span class="p">(</span><span class="nf">lambda_param_no_default</span> <span class="o">|</span> &#39;,&#39;<span class="p">)</span> <span class="nf">lambda_param_maybe_default</span><span class="o">*</span> &#39;*&#39; <span class="p">(</span><span class="nf">lambda_param_no_default</span> <span class="o">|</span> &#39;,&#39;<span class="p">)</span> 
+<span class="nf">invalid_lambda_kwds</span><span class="p">:</span>
+    <span class="o">|</span> &#39;**&#39; <span class="nf">lambda_param</span> &#39;=&#39; 
+    <span class="o">|</span> &#39;**&#39; <span class="nf">lambda_param</span> &#39;,&#39; <span class="nf">lambda_param</span> 
+    <span class="o">|</span> &#39;**&#39; <span class="nf">lambda_param</span> &#39;,&#39; <span class="p">(</span>&#39;*&#39;<span class="o">|</span>&#39;**&#39;<span class="o">|</span>&#39;/&#39;<span class="p">)</span> 
+<span class="nf">invalid_double_type_comments</span><span class="p">:</span>
+    <span class="o">|</span> TYPE_COMMENT NEWLINE TYPE_COMMENT NEWLINE INDENT 
+<span class="nf">invalid_with_item</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">expression</span> <span class="k">&#39;as&#39;</span> <span class="nf">expression</span> &amp;<span class="p">(</span>&#39;,&#39; <span class="o">|</span> &#39;)&#39; <span class="o">|</span> &#39;:&#39;<span class="p">)</span> 
+
+<span class="nf">invalid_for_if_clause</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;async&#39;</span><span class="o">?</span> <span class="k">&#39;for&#39;</span> <span class="p">(</span><span class="nf">bitwise_or</span> <span class="p">(</span>&#39;,&#39; <span class="nf">bitwise_or</span><span class="p">)</span><span class="o">*</span> <span class="p">[</span>&#39;,&#39;<span class="p">])</span> !<span class="k">&#39;in&#39;</span> 
+
+<span class="nf">invalid_for_target</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;async&#39;</span><span class="o">?</span> <span class="k">&#39;for&#39;</span> <span class="nf">star_expressions</span> 
+
+<span class="nf">invalid_group</span><span class="p">:</span>
+    <span class="o">|</span> &#39;(&#39; <span class="nf">starred_expression</span> &#39;)&#39; 
+    <span class="o">|</span> &#39;(&#39; &#39;**&#39; <span class="nf">expression</span> &#39;)&#39; 
+<span class="nf">invalid_import</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;import&#39;</span> &#39;,&#39;<span class="o">.</span><span class="nf">dotted_name</span><span class="o">+</span> <span class="k">&#39;from&#39;</span> <span class="nf">dotted_name</span> 
+    <span class="o">|</span> <span class="k">&#39;import&#39;</span> NEWLINE 
+<span class="nf">invalid_dotted_as_name</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">dotted_name</span> <span class="k">&#39;as&#39;</span> !<span class="p">(</span>NAME <span class="p">(</span>&#39;,&#39; <span class="o">|</span> &#39;)&#39; <span class="o">|</span> &#39;;&#39; <span class="o">|</span> NEWLINE<span class="p">))</span> <span class="nf">expression</span> 
+<span class="nf">invalid_import_from_as_name</span><span class="p">:</span>
+    <span class="o">|</span> NAME <span class="k">&#39;as&#39;</span> !<span class="p">(</span>NAME <span class="p">(</span>&#39;,&#39; <span class="o">|</span> &#39;)&#39; <span class="o">|</span> &#39;;&#39; <span class="o">|</span> NEWLINE<span class="p">))</span> <span class="nf">expression</span> 
+
+<span class="nf">invalid_import_from_targets</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">import_from_as_names</span> &#39;,&#39; NEWLINE 
+    <span class="o">|</span> NEWLINE 
+
+<span class="nf">invalid_with_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;with&#39;</span> &#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> <span class="nf">star_target</span><span class="p">])</span><span class="o">+</span> &#39;,&#39; &#39;:&#39; 
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;with&#39;</span> &#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> <span class="nf">star_target</span><span class="p">])</span><span class="o">+</span> NEWLINE 
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;with&#39;</span> &#39;(&#39; &#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">expressions</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> <span class="nf">star_target</span><span class="p">])</span><span class="o">+</span> &#39;,&#39;<span class="o">?</span> &#39;)&#39; NEWLINE 
+<span class="nf">invalid_with_stmt_indent</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;with&#39;</span> &#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> <span class="nf">star_target</span><span class="p">])</span><span class="o">+</span> &#39;:&#39; NEWLINE !INDENT 
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;with&#39;</span> &#39;(&#39; &#39;,&#39;<span class="o">.</span><span class="p">(</span><span class="nf">expressions</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> <span class="nf">star_target</span><span class="p">])</span><span class="o">+</span> &#39;,&#39;<span class="o">?</span> &#39;)&#39; &#39;:&#39; NEWLINE !INDENT 
+
+<span class="nf">invalid_try_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;try&#39;</span> &#39;:&#39; NEWLINE !INDENT 
+    <span class="o">|</span> <span class="k">&#39;try&#39;</span> &#39;:&#39; <span class="nf">block</span> !<span class="p">(</span><span class="k">&#39;except&#39;</span> <span class="o">|</span> <span class="k">&#39;finally&#39;</span><span class="p">)</span> 
+    <span class="o">|</span> <span class="k">&#39;try&#39;</span> &#39;:&#39; <span class="nf">block</span><span class="o">*</span> <span class="nf">except_block</span><span class="o">+</span> <span class="k">&#39;except&#39;</span> &#39;*&#39; <span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> NAME<span class="p">]</span> &#39;:&#39; 
+    <span class="o">|</span> <span class="k">&#39;try&#39;</span> &#39;:&#39; <span class="nf">block</span><span class="o">*</span> <span class="nf">except_star_block</span><span class="o">+</span> <span class="k">&#39;except&#39;</span> <span class="p">[</span><span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> NAME<span class="p">]]</span> &#39;:&#39; 
+<span class="nf">invalid_except_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> <span class="nf">expression</span> &#39;,&#39; <span class="nf">expressions</span> <span class="k">&#39;as&#39;</span> NAME  &#39;:&#39; 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> <span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> NAME <span class="p">]</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> <span class="nf">expression</span> <span class="k">&#39;as&#39;</span> <span class="nf">expression</span> &#39;:&#39; <span class="nf">block</span> 
+<span class="nf">invalid_except_star_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> &#39;*&#39; <span class="nf">expression</span> &#39;,&#39; <span class="nf">expressions</span> <span class="k">&#39;as&#39;</span> NAME  &#39;:&#39; 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> &#39;*&#39; <span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> NAME <span class="p">]</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> &#39;*&#39; <span class="p">(</span>NEWLINE <span class="o">|</span> &#39;:&#39;<span class="p">)</span> 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> &#39;*&#39; <span class="nf">expression</span> <span class="k">&#39;as&#39;</span> <span class="nf">expression</span> &#39;:&#39; <span class="nf">block</span> 
+<span class="nf">invalid_finally_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;finally&#39;</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_except_stmt_indent</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> <span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> NAME <span class="p">]</span> &#39;:&#39; NEWLINE !INDENT 
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_except_star_stmt_indent</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;except&#39;</span> &#39;*&#39; <span class="nf">expression</span> <span class="p">[</span><span class="k">&#39;as&#39;</span> NAME <span class="p">]</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_match_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&quot;match&quot;</span> <span class="nf">subject_expr</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&quot;match&quot;</span> <span class="nf">subject_expr</span> &#39;:&#39; NEWLINE !INDENT 
+    <span class="o">|</span> <span class="k">&quot;case&quot;</span> <span class="nf">patterns</span> <span class="nf">guard</span><span class="o">?</span> &#39;:&#39; <span class="nf">block</span> 
+<span class="nf">invalid_case_block</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&quot;case&quot;</span> <span class="nf">patterns</span> <span class="nf">guard</span><span class="o">?</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&quot;case&quot;</span> <span class="nf">patterns</span> <span class="nf">guard</span><span class="o">?</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_as_pattern</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">or_pattern</span> <span class="k">&#39;as&#39;</span> <span class="k">&quot;_&quot;</span> 
+    <span class="o">|</span> <span class="nf">or_pattern</span> <span class="k">&#39;as&#39;</span> <span class="nf">expression</span> 
+<span class="nf">invalid_class_pattern</span><span class="p">:</span>
+        <span class="nf">PyPegen_first_item</span><span class="p">(</span><span class="nf">a</span>, <span class="nf">pattern_ty</span><span class="p">)</span>,
+        <span class="nf">PyPegen_last_item</span><span class="p">(</span><span class="nf">a</span>, <span class="nf">pattern_ty</span><span class="p">)</span>,
+        &quot;<span class="nf">positional</span> <span class="nf">patterns</span> <span class="nf">follow</span> <span class="nf">keyword</span> <span class="nf">patterns</span>&quot;<span class="p">)</span> <span class="p">}</span>
+<span class="nf">invalid_mapping_pattern</span><span class="p">:</span>
+    <span class="o">|</span> &#39;{&#39; <span class="p">(</span><span class="nf">items_pattern</span> &#39;,&#39;<span class="p">)</span><span class="o">?</span> <span class="nf">double_star_pattern</span> &#39;,&#39; <span class="nf">items_pattern</span> &#39;,&#39;<span class="o">?</span> &#39;}&#39; 
+<span class="nf">invalid_class_argument_pattern</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">[</span><span class="nf">positional_patterns</span> &#39;,&#39;<span class="p">]</span> <span class="nf">keyword_patterns</span> &#39;,&#39; <span class="nf">positional_patterns</span> 
+<span class="nf">invalid_if_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;if&#39;</span> <span class="nf">named_expression</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;if&#39;</span> <span class="nf">named_expression</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_elif_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;elif&#39;</span> <span class="nf">named_expression</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;elif&#39;</span> <span class="nf">named_expression</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_else_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;else&#39;</span> &#39;:&#39; NEWLINE !INDENT 
+    <span class="o">|</span> <span class="k">&#39;else&#39;</span> &#39;:&#39; <span class="nf">block</span> <span class="k">&#39;elif&#39;</span> 
+<span class="nf">invalid_while_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;while&#39;</span> <span class="nf">named_expression</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;while&#39;</span> <span class="nf">named_expression</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_for_stmt</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;for&#39;</span> <span class="nf">star_targets</span> <span class="k">&#39;in&#39;</span> <span class="nf">star_expressions</span> NEWLINE 
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;for&#39;</span> <span class="nf">star_targets</span> <span class="k">&#39;in&#39;</span> <span class="nf">star_expressions</span> &#39;:&#39; NEWLINE !INDENT 
+<span class="nf">invalid_def_raw</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;def&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> &#39;(&#39; <span class="p">[</span><span class="nf">params</span><span class="p">]</span> &#39;)&#39; <span class="p">[</span>&#39;-&gt;&#39; <span class="nf">expression</span><span class="p">]</span> &#39;:&#39; NEWLINE !INDENT 
+    <span class="o">|</span> <span class="p">[</span><span class="k">&#39;async&#39;</span><span class="p">]</span> <span class="k">&#39;def&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> &#39;(&#39; <span class="p">[</span><span class="nf">params</span><span class="p">]</span> &#39;)&#39; <span class="p">[</span>&#39;-&gt;&#39; <span class="nf">expression</span><span class="p">]</span> &#39;:&#39; <span class="p">[</span><span class="nf">func_type_comment</span><span class="p">]</span> <span class="nf">block</span>
+<span class="nf">invalid_class_def_raw</span><span class="p">:</span>
+    <span class="o">|</span> <span class="k">&#39;class&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> <span class="p">[</span>&#39;(&#39; <span class="p">[</span><span class="nf">arguments</span><span class="p">]</span> &#39;)&#39;<span class="p">]</span> NEWLINE 
+    <span class="o">|</span> <span class="k">&#39;class&#39;</span> NAME <span class="p">[</span><span class="nf">type_params</span><span class="p">]</span> <span class="p">[</span>&#39;(&#39; <span class="p">[</span><span class="nf">arguments</span><span class="p">]</span> &#39;)&#39;<span class="p">]</span> &#39;:&#39; NEWLINE !INDENT 
+
+<span class="nf">invalid_double_starred_kvpairs</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; &amp;<span class="p">(</span>&#39;}&#39;<span class="o">|</span>&#39;,&#39;<span class="p">)</span> 
+<span class="nf">invalid_kvpair_unpacking</span><span class="p">:</span>
+    <span class="o">|</span> &#39;**&#39; <span class="nf">if_expression</span> 
+    <span class="o">|</span> &#39;*&#39; <span class="nf">bitwise_or</span> &#39;:&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> &#39;**&#39; <span class="nf">bitwise_or</span> &#39;:&#39; <span class="nf">expression</span> 
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; &#39;*&#39; <span class="nf">bitwise_or</span> 
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; &#39;**&#39; <span class="nf">bitwise_or</span> 
+<span class="nf">invalid_kvpair</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">expression</span> !<span class="p">(</span>&#39;:&#39;<span class="p">)</span> 
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; &#39;*&#39; <span class="nf">bitwise_or</span> 
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; &#39;**&#39; <span class="nf">bitwise_or</span> 
+    <span class="o">|</span> <span class="nf">expression</span> &#39;:&#39; &amp;<span class="p">(</span>&#39;}&#39;<span class="o">|</span>&#39;,&#39;<span class="p">)</span> 
+<span class="nf">invalid_starred_expression_unpacking</span><span class="p">:</span>
+    <span class="o">|</span> &#39;*&#39; <span class="nf">if_expression</span> 
+    <span class="o">|</span> &#39;*&#39; <span class="nf">expression</span> &#39;=&#39; <span class="nf">expression</span> 
+<span class="nf">invalid_starred_expression_unpacking_sequence</span><span class="p">:</span>
+    <span class="o">|</span> &#39;**&#39; <span class="nf">bitwise_or</span> 
+<span class="nf">invalid_starred_expression</span><span class="p">:</span>
+    <span class="o">|</span> &#39;*&#39; 
+<span class="nf">invalid_fstring_replacement_field</span><span class="p">:</span>
+    <span class="o">|</span> &#39;{&#39; &#39;=&#39; 
+    <span class="o">|</span> &#39;{&#39; &#39;!&#39; 
+    <span class="o">|</span> &#39;{&#39; &#39;:&#39; 
+    <span class="o">|</span> &#39;{&#39; &#39;}&#39; &#39;&quot;) }
+    | &#39;
+    <span class="o">|</span> &#39;{&#39; <span class="nf">annotated_rhs</span> !<span class="p">(</span>&#39;=&#39; <span class="o">|</span> &#39;!&#39; <span class="o">|</span> &#39;:&#39; <span class="o">|</span> &#39;}&#39;<span class="p">)</span> &#39;&quot;) }
+    | &#39;&#39;<span class="p">)</span> &#39;&quot;) }
+    | &#39;&#39;<span class="p">)</span> &#39;&quot;) }
+    | &#39;&#39; &#39;, <span class="nf">or</span> <span class="nf">format</span> <span class="nf">specs</span>&quot;<span class="p">)</span> <span class="p">}</span>
+    <span class="o">|</span> &#39;{&#39; <span class="nf">annotated_rhs</span> &#39;=&#39;<span class="o">?</span> <span class="p">[</span>&#39;!&#39; NAME<span class="p">]</span> !&#39;}&#39; &#39;&quot;<span class="p">)</span> <span class="p">}</span>
+
+<span class="nf">invalid_fstring_conversion_character</span><span class="p">:</span>
+    <span class="o">|</span> &#39;!&#39; &amp;<span class="p">(</span>&#39;:&#39; <span class="o">|</span> &#39;}&#39;<span class="p">)</span> 
+    <span class="o">|</span> &#39;!&#39; !NAME 
+
+<span class="nf">invalid_tstring_replacement_field</span><span class="p">:</span>
+    <span class="o">|</span> &#39;{&#39; &#39;=&#39; 
+    <span class="o">|</span> &#39;{&#39; &#39;!&#39; 
+    <span class="o">|</span> &#39;{&#39; &#39;:&#39; 
+    <span class="o">|</span> &#39;{&#39; &#39;}&#39; &#39;&quot;) }
+    | &#39;
+    <span class="o">|</span> &#39;{&#39; <span class="nf">annotated_rhs</span> !<span class="p">(</span>&#39;=&#39; <span class="o">|</span> &#39;!&#39; <span class="o">|</span> &#39;:&#39; <span class="o">|</span> &#39;}&#39;<span class="p">)</span> &#39;&quot;) }
+    | &#39;&#39;<span class="p">)</span> &#39;&quot;) }
+    | &#39;&#39;<span class="p">)</span> &#39;&quot;) }
+    | &#39;&#39; &#39;, <span class="nf">or</span> <span class="nf">format</span> <span class="nf">specs</span>&quot;<span class="p">)</span> <span class="p">}</span>
+    <span class="o">|</span> &#39;{&#39; <span class="nf">annotated_rhs</span> &#39;=&#39;<span class="o">?</span> <span class="p">[</span>&#39;!&#39; NAME<span class="p">]</span> !&#39;}&#39; &#39;&quot;<span class="p">)</span> <span class="p">}</span>
+
+<span class="nf">invalid_tstring_conversion_character</span><span class="p">:</span>
+    <span class="o">|</span> &#39;!&#39; &amp;<span class="p">(</span>&#39;:&#39; <span class="o">|</span> &#39;}&#39;<span class="p">)</span> 
+    <span class="o">|</span> &#39;!&#39; !NAME 
+
+<span class="nf">invalid_string_tstring_concat</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">(</span><span class="nf">fstring</span><span class="o">|</span><span class="nf">string</span><span class="p">)</span><span class="o">+</span> <span class="nf">tstring</span> 
+    <span class="o">|</span> <span class="nf">tstring</span><span class="o">+</span> <span class="p">(</span><span class="nf">fstring</span><span class="o">|</span><span class="nf">string</span><span class="p">)</span> 
+
+<span class="nf">invalid_arithmetic</span><span class="p">:</span>
+    <span class="o">|</span> <span class="nf">sum</span> <span class="p">(</span>&#39;+&#39;<span class="o">|</span>&#39;-&#39;<span class="o">|</span>&#39;*&#39;<span class="o">|</span>&#39;/&#39;<span class="o">|</span>&#39;%&#39;<span class="o">|</span>&#39;//&#39;<span class="o">|</span>&#39;@&#39;<span class="p">)</span> <span class="k">&#39;not&#39;</span> <span class="nf">inversion</span> 
+<span class="nf">invalid_factor</span><span class="p">:</span>
+    <span class="o">|</span> <span class="p">(</span>&#39;+&#39; <span class="o">|</span> &#39;-&#39; <span class="o">|</span> &#39;~&#39;<span class="p">)</span> <span class="k">&#39;not&#39;</span> <span class="nf">factor</span> 
+
+<span class="nf">invalid_type_params</span><span class="p">:</span>
+    <span class="o">|</span> &#39;[&#39; &#39;]&#39; 
 </pre></div>
 </div>
 </section>
-
+<div class="lost-and-found-section">
+    <h4>분실물 보관소</h4>
+    <div class="lost-and-found-items">
+        <span data-msgid="d66d43a2fcdda4a4e8f5093093a1a512f8474e15" data-since="260610" class="lost-and-found-item"></span>
+    </div>
+</div>
 
                 
                 <!-- Giscus Comments -->
