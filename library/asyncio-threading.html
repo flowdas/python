@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>asyncio and free-threaded Python &#8212; Python 3.16.0a0 문서</title>
+    <title>asyncio와 스레드 안전한 Python &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
@@ -76,10 +76,10 @@
             </div>
             <nav class="toc">
                 <ul>
-<li><a class="reference internal" href="#">asyncio and free-threaded Python</a><ul>
-<li><a class="reference internal" href="#thread-safety-considerations">Thread safety considerations</a></li>
-<li><a class="reference internal" href="#using-asyncio-with-threads">Using asyncio with threads</a></li>
-<li><a class="reference internal" href="#producer-consumer-across-threads">Producer/consumer across threads</a></li>
+<li><a class="reference internal" href="#">asyncio와 스레드 안전한 Python</a><ul>
+<li><a class="reference internal" href="#thread-safety-considerations">스레드 안전성 고려 사항</a></li>
+<li><a class="reference internal" href="#using-asyncio-with-threads">asyncio와 스레드 사용하기</a></li>
+<li><a class="reference internal" href="#producer-consumer-across-threads">스레드 간 Producer/consumer</a></li>
 </ul>
 </li>
 </ul>
@@ -112,82 +112,43 @@
                     
                         <li><a href="asyncio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> — 비동기 I/O</a></li>
                     
-                    <li class="current">asyncio and free-threaded Python</li>
+                    <li class="current">asyncio와 스레드 안전한 Python</li>
                 </ol>
             </nav>
 
             <article class="document">
                 
   <section id="asyncio-and-free-threaded-python">
-<span id="asyncio-threading"></span><h1 data-msgid="ad4d04c0b6fad867ce8d0e840abaa699994add9b" data-score="0" data-since="260610">asyncio and free-threaded Python<a class="headerlink" href="#asyncio-and-free-threaded-python" title="Link to this heading">¶</a></h1>
-<p data-msgid="cfeff262208d681455be974af5345739aa39449e" data-score="0" data-since="260610">asyncio uses an event loop as a scheduler to enable highly efficient
-concurrency by switching between tasks to allow non-blocking I/O
-operations. This results in better performance for I/O-bound use
-cases. It also allows off-loading CPU-bound work to a thread or
-process pool, but that is still limited by the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global
-interpreter lock</span></a> in CPython.</p>
-<p data-msgid="d5e00353e8b573c8ab521b56496a3c2cd011b999" data-score="0" data-since="260610">However, in <a class="reference internal" href="../howto/free-threading-python.html#freethreading-python-howto"><span class="std std-ref">free-threaded Python</span></a>,
-the GIL is disabled and Python can run true multi-threaded code. This
-means that asyncio can now take advantage of multiple CPU cores without
-the limitations imposed by the GIL.</p>
-<p data-msgid="175564f300976ebb9d2dd0f9c1a8688acefec1f0" data-score="0" data-since="260610">Since Python 3.14, asyncio has first-class support for free-threaded
-Python, and the implementation of asyncio is safe to use in a
-multi-threaded environment.</p>
-<p data-msgid="90016c9848e01aea716f774dc2307278e080fefc" data-score="0" data-since="260610">A single event loop on one core can handle many connections
-concurrently, but the Python code that runs to handle each one still
-executes serially. Once requests involve a non-trivial amount of
-per-request computation, that handling becomes the bottleneck, and a
-single core can no longer keep up. Combining asyncio with threads is
-most useful here: by running an event loop per thread, the handling of
-different requests can run in parallel across multiple CPU cores. It is
-also useful when you need to run blocking or CPU-bound code from an
-asyncio application.</p>
+<span id="asyncio-threading"></span><h1 data-msgid="ad4d04c0b6fad867ce8d0e840abaa699994add9b" data-since="260610">asyncio와 스레드 안전한 Python<a class="headerlink" href="#asyncio-and-free-threaded-python" title="Link to this heading">¶</a></h1>
+<p data-msgid="cfeff262208d681455be974af5345739aa39449e" data-since="260610">asyncio는 이벤트 루프를 스케줄러로 사용하여 작업 간 전환을 통해 높은 효율성의 동시성을 활성화하며, 이를 통해 논블로킹 I/O 작업을 수행할 수 있게 합니다. 이는 I/O 바운드 사용 사례의 성능을 향상시킵니다. 또한 CPU 바운드 작업을 스레드 또는 프로세스 풀로 오프로드할 수 있지만, 이는 여전히 CPython의 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>글로벌 인터프리터 잠금`에 의해 제한됩니다.</p>
+<p data-msgid="d5e00353e8b573c8ab521b56496a3c2cd011b999" data-since="260610">하지만 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>무료 스레드 Python &lt;freethreading-python-howto&gt;`에서는 GIL이 비활성화되어 Python이 진정한 다중 스레드 코드를 실행할 수 있습니다. 이는 asyncio가 GIL이 부과하는 제한 없이 여러 CPU 코어의 이점을 취할 수 있음을 의미합니다.</p>
+<p data-msgid="175564f300976ebb9d2dd0f9c1a8688acefec1f0" data-since="260610">Python 3.14부터 asyncio는 무료 스레드 Python에 대한 클래스 구현 지원이 기본 기능이 되었으며, asyncio 구현은 멀티 스레드 환경에서도 안전하게 사용할 수 있습니다.</p>
+<p data-msgid="90016c9848e01aea716f774dc2307278e080fefc" data-since="260610">단일 이벤트 루프는 한 코어에서 많은 연결을 동시에 처리할 수 있지만, 각 연결을 처리하기 위해 실행되는 Python 코드는 여전히 순차적으로 실행됩니다. 요청에 사소하지 않은 양의 요청당 계산이 포함되면, 그 처리가 병목 현상이 되고 단일 코어로는 더 이상 따라가지 못하게 됩니다. asyncio를 스레드와 결합하는 것이 여기서 가장 유용합니다: 스레드당 이벤트 루프를 실행함으로써, 다양한 요청 처리가 여러 CPU 코어에서 병렬로 실행될 수 있습니다. 또한 asyncio 애플리케이션에서 블로킹하거나 CPU 바운드 코드를 실행해야 할 때도 유용합니다.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="e5fffd12a3118ff521e1dfefd4589879eea80bd8" data-score="0" data-since="260610"><a class="reference external" href="https://labs.quansight.org/blog/scaling-asyncio-on-free-threaded-python">Scaling asyncio on Free-Threaded Python</a>,
-a blog post by Kumar Aditya which explains the internal changes
-that make asyncio safe and efficient under free-threaded Python,
-together with benchmarks of the resulting improvements.</p>
+<p data-msgid="e5fffd12a3118ff521e1dfefd4589879eea80bd8" data-since="260610"><a href="#id1"><span class="problematic" id="id2">`</span></a>Scaling asyncio on Free-Threaded Python &lt;<a class="reference external" href="https://labs.quansight.org/blog/scaling-asyncio-on-free-threaded-python">https://labs.quansight.org/blog/scaling-asyncio-on-free-threaded-python</a>&gt;`은 Kumar Aditya가 작성한 블로그 게시물로, 무료 스레드 Python 환경에서 asyncio를 안전하고 효율적으로 만드는 내부 변경 사항과 그 결과로 개선된 벤치마크를 설명합니다.</p>
 </div>
 <section id="thread-safety-considerations">
-<h2 data-msgid="87713c23e56a11b204f175e6b2269c835878f6f3" data-score="0" data-since="260610">Thread safety considerations<a class="headerlink" href="#thread-safety-considerations" title="Link to this heading">¶</a></h2>
-<p data-msgid="878408246716bc57f83d3b2aa859c96f4194f4cc" data-score="0" data-since="260610">While asyncio is designed to be thread-safe in a free-threaded Python
-environment, there are still some considerations to keep in mind when
-using asyncio with threads:</p>
+<h2 data-msgid="87713c23e56a11b204f175e6b2269c835878f6f3" data-since="260610">스레드 안전성 고려 사항<a class="headerlink" href="#thread-safety-considerations" title="Link to this heading">¶</a></h2>
+<p data-msgid="878408246716bc57f83d3b2aa859c96f4194f4cc" data-since="260610">asyncio는 무료 스레드 Python 환경에서 스레드 안전하도록 설계되었지만, asyncio를 스레드와 함께 사용할 때 여전히 염두에 두어야 할 몇 가지 고려 사항이 있습니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="683dae881d317a6b5f47122a8c5a694cd05073b7" data-score="0" data-since="260610"><strong>Event loop</strong>: Each thread should have its own event loop which
-should not be shared across threads. This ensures that the event loop
-can manage its own tasks and callbacks without interference from
-other threads.</p></li>
-<li><p data-msgid="0c5c62ac9077f957c415ac3f07d5677ee060609b" data-score="0" data-since="260610"><strong>Task management</strong>: Tasks and futures created in one thread should
-not be awaited or manipulated from another thread.</p></li>
-<li><p data-msgid="ec4ffb711b50cc5f748cb307d29aebb9560b3467" data-score="0" data-since="260610"><strong>Thread-safe APIs</strong>: When interacting with asyncio from multiple
-threads, it’s important to use thread-safe APIs provided by asyncio,
-such as <a class="reference internal" href="asyncio-task.html#asyncio.run_coroutine_threadsafe" title="asyncio.run_coroutine_threadsafe"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run_coroutine_threadsafe()</span></code></a> for submitting
-coroutines to an event loop from another thread. If you need to
-call a callback from a different thread, you can use
-<a class="reference internal" href="asyncio-eventloop.html#asyncio.loop.call_soon_threadsafe" title="asyncio.loop.call_soon_threadsafe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loop.call_soon_threadsafe()</span></code></a> to schedule it safely.</p></li>
-<li><p data-msgid="adb7f4e606c38ebbbdaae2abed478a56164c8bc9" data-score="0" data-since="260610"><strong>Synchronization</strong>: The synchronization primitives provided by
-asyncio (like <a class="reference internal" href="asyncio-sync.html#asyncio.Lock" title="asyncio.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Lock</span></code></a> and <a class="reference internal" href="asyncio-sync.html#asyncio.Event" title="asyncio.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a>)
-are not designed to be used across threads. If you need to
-synchronize between threads, you should use the synchronization
-primitives from the <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module instead.</p></li>
+<li><p data-msgid="683dae881d317a6b5f47122a8c5a694cd05073b7" data-since="260610"><strong>이벤트 루프</strong>: 각 스레드는 공유해서는 안 되는 자신만의 이벤트 루프를 가져야 합니다. 이렇게 해야 이벤트 루프가 다른 스레드의 간섭 없이 자체 작업을 관리하고 콜백을 처리할 수 있습니다.</p></li>
+<li><p data-msgid="0c5c62ac9077f957c415ac3f07d5677ee060609b" data-since="260610"><strong>작업 관리</strong>: 한 스레드에서 생성된 작업(Task)과 Future는 다른 스레드에서 await 하거나 조작해서는 안 됩니다.</p></li>
+<li><p data-msgid="ec4ffb711b50cc5f748cb307d29aebb9560b3467" data-since="260610"><strong>스레드 안전 API</strong>: 여러 스레드에서 asyncio와 상호 작용할 때는, 다른 스레드에서 이벤트 루프로 코루틴을 제출하기 위해 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio.run_coroutine_threadsafe`와 같은 asyncio가 제공하는 스레드 안전 API를 사용하는 것이 중요합니다. 다른 스레드에서 콜백을 호출해야 하는 경우, :meth:<a href="#id3"><span class="problematic" id="id4">`</span></a>loop.call_soon_threadsafe`를 사용하여 안전하게 예약할 수 있습니다.</p></li>
+<li><p data-msgid="adb7f4e606c38ebbbdaae2abed478a56164c8bc9" data-since="260610"><strong>동기화</strong>: asyncio가 제공하는 동기화 프리미티브(예: <a class="reference internal" href="asyncio-sync.html#asyncio.Lock" title="asyncio.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Lock</span></code></a> 및 <a class="reference internal" href="asyncio-sync.html#asyncio.Event" title="asyncio.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a>)는 여러 스레드에 걸쳐 사용하도록 설계되지 않았습니다. 스레드 간 동기화가 필요한 경우 대신 <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈의 동기화 프리미티브를 사용해야 합니다.</p></li>
 </ol>
 </section>
 <section id="using-asyncio-with-threads">
-<h2 data-msgid="bb21c1617c3abedd2aa6e49db8d2ecae87c9636c" data-score="0" data-since="260610">Using asyncio with threads<a class="headerlink" href="#using-asyncio-with-threads" title="Link to this heading">¶</a></h2>
-<p data-msgid="9774266b63ad2c2ae593ccdd362190f7d41e0f30" data-score="0" data-since="260610">asyncio supports running one event loop per thread, which allows you to
-take advantage of multiple CPU cores in a free-threaded Python
-environment. Each thread can run its own event loop, and tasks can be
-scheduled on those loops independently.</p>
-<p data-msgid="1b7b1ec768f27ced25fdee26b2e043ad8b1e1a01" data-score="0" data-since="260610">Here’s an example of how to use asyncio with threads:</p>
-<div class="highlight-python3 notranslate" data-msgid="6dc81acf0d3786e6cf5e6de7de29618a2e196bb2" data-score="0" data-since="260610"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<h2 data-msgid="bb21c1617c3abedd2aa6e49db8d2ecae87c9636c" data-since="260610">asyncio와 스레드 사용하기<a class="headerlink" href="#using-asyncio-with-threads" title="Link to this heading">¶</a></h2>
+<p data-msgid="9774266b63ad2c2ae593ccdd362190f7d41e0f30" data-since="260610">asyncio는 각 스레드당 하나의 이벤트 루프를 실행하는 것을 지원하여, 무료 스레드 Python 환경에서 여러 CPU 코어의 이점을 활용할 수 있게 합니다. 각 스레드가 자체 이벤트 루프를 실행할 수 있으며, 작업을 독립적으로 예약할 수 있습니다.</p>
+<p data-msgid="1b7b1ec768f27ced25fdee26b2e043ad8b1e1a01" data-since="260610">asyncio와 스레드를 사용하는 방법의 예시입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="6dc81acf0d3786e6cf5e6de7de29618a2e196bb2" data-since="260610"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">worker</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Worker </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> starting&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Worker </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> 시작&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Worker </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> done&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Worker </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> 완료&quot;</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">run_loop</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">worker</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
@@ -202,24 +163,18 @@ scheduled on those loops independently.</p>
     <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="2b6a2e77883815941a573991158301d711668a9b" data-score="0" data-since="260610">In this example, each thread creates its own event loop with
-<a class="reference internal" href="asyncio-runner.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a> and runs a coroutine on it. The threads execute
-concurrently, and in a free-threaded build they can run on separate
-CPU cores in parallel.</p>
+<p data-msgid="2b6a2e77883815941a573991158301d711668a9b" data-since="260610">이 예시에서는 각 스레드가 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio.run`을 사용하여 자체 이벤트 루프를 생성하고 그 위에서 코루틴을 실행합니다. 스레드들은 동시에 실행되며, 무료 스레드 빌드에서는 별도의 CPU 코어에서 병렬로 실행될 수 있습니다.</p>
 </section>
 <section id="producer-consumer-across-threads">
-<h2 data-msgid="7eb5a31fd986dee5e841ef096149fe758d694d06" data-score="0" data-since="260610">Producer/consumer across threads<a class="headerlink" href="#producer-consumer-across-threads" title="Link to this heading">¶</a></h2>
-<p data-msgid="009767c47ec036eaafb4c97d9e579ab18b18a67f" data-score="0" data-since="260610">When a regular (non-asyncio) thread needs to hand work to an asyncio
-event loop running in another thread, use a thread-safe primitive such
-as <a class="reference internal" href="queue.html#queue.Queue" title="queue.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">queue.Queue</span></code></a> rather than <a class="reference internal" href="asyncio-queue.html#asyncio.Queue" title="asyncio.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Queue</span></code></a>, which is
-only safe within a single event loop.:</p>
-<div class="highlight-python3 notranslate" data-msgid="332868dca624af2892aafb9b236279e793030927" data-score="0" data-since="260610"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<h2 data-msgid="7eb5a31fd986dee5e841ef096149fe758d694d06" data-since="260610">스레드 간 Producer/consumer<a class="headerlink" href="#producer-consumer-across-threads" title="Link to this heading">¶</a></h2>
+<p data-msgid="009767c47ec036eaafb4c97d9e579ab18b18a67f" data-since="260610">일반(비-asyncio) 스레드가 다른 스레드에서 실행되는 asyncio 이벤트 루프에 작업을 전달해야 하는 경우, 단일 이벤트 루프 내에서만 안전한 <a class="reference internal" href="asyncio-queue.html#asyncio.Queue" title="asyncio.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Queue</span></code></a> 대신 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>queue.Queue`와 같은 스레드 안전 프리미티브를 사용해야 합니다.:</p>
+<div class="highlight-python3 notranslate" data-msgid="332868dca624af2892aafb9b236279e793030927" data-since="260610"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">producer</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Producing </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;생산 중 </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
     <span class="n">q</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
 
@@ -232,7 +187,7 @@ only safe within a single event loop.:</p>
             <span class="k">continue</span>
         <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">ShutDown</span><span class="p">:</span>
             <span class="k">break</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Consumed </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;소비: </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
 <span class="n">q</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
@@ -244,13 +199,7 @@ only safe within a single event loop.:</p>
 <span class="n">consumer_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="1531ee1508a1edfe40d266c1695458d4f7f55a5f" data-score="0" data-since="260610">The producer runs on the main thread while the consumer runs inside an
-event loop on its own thread, yet they communicate safely through
-<code class="docutils literal notranslate"><span class="pre">queue.Queue</span></code>. When the queue is empty the consumer sleeps briefly
-and tries again. When the producer is done it calls
-<a class="reference internal" href="queue.html#queue.Queue.shutdown" title="queue.Queue.shutdown"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shutdown()</span></code></a>, which causes subsequent
-<a class="reference internal" href="queue.html#queue.Queue.get_nowait" title="queue.Queue.get_nowait"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_nowait()</span></code></a> calls to raise <a class="reference internal" href="queue.html#queue.ShutDown" title="queue.ShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.ShutDown</span></code></a>
-so the consumer can exit cleanly.</p>
+<p data-msgid="1531ee1508a1edfe40d266c1695458d4f7f55a5f" data-since="260610">프로듀서는 메인 스레드에서 실행되고 소비자는 자체 스레드의 이벤트 루프 내에서 실행되지만, <code class="docutils literal notranslate"><span class="pre">queue.Queue</span></code> 를 통해 안전하게 통신합니다. 큐가 비어 있으면 소비자는 잠시 대기한 후 다시 시도합니다. 프로듀서가 완료되면 <a class="reference internal" href="queue.html#queue.Queue.shutdown" title="queue.Queue.shutdown"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shutdown()</span></code></a> 을 호출하여, 후속 <a class="reference internal" href="queue.html#queue.Queue.get_nowait" title="queue.Queue.get_nowait"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_nowait()</span></code></a> 호출이 <a class="reference internal" href="queue.html#queue.ShutDown" title="queue.ShutDown"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.ShutDown</span></code></a> 을 발생시켜 소비자가 깔끔하게 종료할 수 있습니다.</p>
 </section>
 </section>
 
