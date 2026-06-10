@@ -86,13 +86,13 @@
 <li><a class="reference internal" href="#using-the-python-gdb-extension"><code class="docutils literal notranslate"><span class="pre">python-gdb</span></code> 확장을 사용하기</a><ul>
 <li><a class="reference internal" href="#pretty-printers">예쁜 프린터</a></li>
 <li><a class="reference internal" href="#py-list"><code class="docutils literal notranslate"><span class="pre">py-list</span></code></a></li>
-<li><a class="reference internal" href="#py-up-and-py-down"><code class="docutils literal notranslate"><span class="pre">py-up</span></code> and <code class="docutils literal notranslate"><span class="pre">py-down</span></code></a></li>
+<li><a class="reference internal" href="#py-up-and-py-down"><code class="docutils literal notranslate"><span class="pre">py-up</span></code> 및 <code class="docutils literal notranslate"><span class="pre">py-down</span></code></a></li>
 <li><a class="reference internal" href="#py-bt"><code class="docutils literal notranslate"><span class="pre">py-bt</span></code></a></li>
 <li><a class="reference internal" href="#py-print"><code class="docutils literal notranslate"><span class="pre">py-print</span></code></a></li>
 <li><a class="reference internal" href="#py-locals"><code class="docutils literal notranslate"><span class="pre">py-locals</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#use-with-gdb-commands">Use with GDB commands</a></li>
+<li><a class="reference internal" href="#use-with-gdb-commands">GDB 명령 사용</a></li>
 </ul>
 </li>
 </ul>
@@ -214,11 +214,8 @@ sudo<span class="w"> </span>dnf<span class="w"> </span>debuginfo-install<span cl
     0x5c2b8d &quot;__lltrace__&quot;) at Objects/dictobject.c:2171
 </pre></div>
 </div>
-<p data-msgid="16b1da56a29272a0e049e0cab2af5b68a2b4a490" data-score="0" data-since="260603">Notice how the dictionary argument to <code class="docutils literal notranslate"><span class="pre">PyDict_GetItemString</span></code> is displayed
-as its <code class="docutils literal notranslate"><span class="pre">repr()</span></code>, rather than an opaque <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code> pointer.</p>
-<p data-msgid="22ffa99eb250e7ada38b6d2e36b6d55b389b271e" data-score="0" data-since="260603">The extension works by supplying a custom printing routine for values of type
-<code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code>.  If you need to access lower-level details of an object, then
-cast the value to a pointer of the appropriate type.  For example:</p>
+<p data-msgid="16b1da56a29272a0e049e0cab2af5b68a2b4a490" data-since="260610">딕셔너리 인자 <code class="docutils literal notranslate"><span class="pre">PyDict_GetItemString</span></code> 을은 불투명한 <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code> 포인터 대신 그 <code class="docutils literal notranslate"><span class="pre">repr()</span></code> 형태로 표시하는 것을 주목하십시오.</p>
+<p data-msgid="22ffa99eb250e7ada38b6d2e36b6d55b389b271e" data-since="260610">이 확장은 <code class="docutils literal notranslate"><span class="pre">PyObject</span> <span class="pre">*</span></code> 유형의 값에 대해 사용자 정의 출력 루틴을 제공하여 작동합니다. 만약 객체의 더 낮은 수준의 세부 정보에 접근해야 한다면, 해당 값을 적절한 유형의 포인터로 캐스팅하십시오. 예를 들면 다음과 같습니다:</p>
 <div class="highlight-none notranslate" data-msgid="c245080d0648893af760015622df924591e5c020" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) p globals
 $1 = {&#39;__builtins__&#39;: &lt;module at remote 0x7ffff7fb1868&gt;, &#39;__name__&#39;:
 &#39;__main__&#39;, &#39;ctypes&#39;: &lt;module at remote 0x7ffff7f14360&gt;, &#39;__doc__&#39;: None,
@@ -239,13 +236,8 @@ me_value = &lt;module at remote 0x7ffff7f14360&gt;},
   me_hash = 6614918939584953775, me_key = &#39;__package__&#39;, me_value = None}}}
 </pre></div>
 </div>
-<p data-msgid="4b9528619386d714eba39f16141b9481d45151d7" data-score="0" data-since="260603">Note that the pretty-printers do not actually call <code class="docutils literal notranslate"><span class="pre">repr()</span></code>.
-For basic types, they try to match its result closely.</p>
-<p data-msgid="f1c3307c9d9882428b60cae831614b6d1a221c4b" data-score="0" data-since="260603">An area that can be confusing is that the custom printer for some types look a
-lot like GDB’s built-in printer for standard types.  For example, the
-pretty-printer for a Python <code class="docutils literal notranslate"><span class="pre">int</span></code> (<span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/long.html#c.PyLongObject" title="PyLongObject"><span class="n">PyLongObject</span></a><span class="p">*</span></span>)
-gives a representation that is not distinguishable from one of a
-regular machine-level integer:</p>
+<p data-msgid="4b9528619386d714eba39f16141b9481d45151d7" data-since="260610">참고로, 미리보기 프린터들은 실제로 <code class="docutils literal notranslate"><span class="pre">repr()</span></code> 을 호출하지 않습니다. 기본 유형의 경우, 내부 결과를 유사하게 일치시키려고 시도합니다.</p>
+<p data-msgid="f1c3307c9d9882428b60cae831614b6d1a221c4b" data-since="260610">혼란스러울 수 있는 부분은 일부 유형에 대한 사용자 정의 프린터가 표준 유형의 GDB 빌트인 프린터와 매우 유사해 보인다는 점입니다. 예를 들어, Python <code class="docutils literal notranslate"><span class="pre">int</span></code> (<span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/long.html#c.PyLongObject" title="PyLongObject"><span class="n">PyLongObject</span></a><span class="p">*</span></span>)에 대한 미리보기 프린터는 일반적인 머신 레벨 정수와 구별할 수 없는 표현을 제공합니다:</p>
 <div class="highlight-none notranslate" data-msgid="00627dc3cd0df83781ff122a802a3e425e34eaed" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) p some_machine_integer
 $3 = 42
 
@@ -253,27 +245,23 @@ $3 = 42
 $4 = 42
 </pre></div>
 </div>
-<p data-msgid="83578e0a83b0f9d5f1da67d1cfbfa51c52f3b882" data-score="0" data-since="260603">The internal structure can be revealed with a cast to <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/long.html#c.PyLongObject" title="PyLongObject"><span class="n">PyLongObject</span></a><span class="p">*</span></span>:</p>
+<p data-msgid="83578e0a83b0f9d5f1da67d1cfbfa51c52f3b882" data-since="260610">내부 구조는 <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/long.html#c.PyLongObject" title="PyLongObject"><span class="n">PyLongObject</span></a><span class="p">*</span></span> 로 캐스팅하여 확인할 수 있습니다:</p>
 <div class="highlight-none notranslate" data-msgid="898849c40dab04ffb80dd80d5ff0b638d9a0433f" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) p *(PyLongObject*)some_python_integer
 $5 = {ob_base = {ob_base = {ob_refcnt = 8, ob_type = 0x3dad39f5e0}, ob_size = 1},
 ob_digit = {42}}
 </pre></div>
 </div>
-<p data-msgid="d45f2366c77368a2b72630a11c86ae6210262f5d" data-score="0" data-since="260603">A similar confusion can arise with the <code class="docutils literal notranslate"><span class="pre">str</span></code> type, where the output looks a
-lot like gdb’s built-in printer for <code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span></code>:</p>
+<p data-msgid="d45f2366c77368a2b72630a11c86ae6210262f5d" data-since="260610"><code class="docutils literal notranslate"><span class="pre">str</span></code> 유형에서도 유사한 혼동이 발생할 수 있으며, 이 경우 출력 결과가 gdb의 <code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span></code> 에 대한 빌트인 프린터와 매우 유사해 보입니다:</p>
 <div class="highlight-none notranslate" data-msgid="623f4e8bd772e6f2de990b0758deaf2543922bdb" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) p ptr_to_python_str
 $6 = &#39;__builtins__&#39;
 </pre></div>
 </div>
-<p data-msgid="cbbcc7adf7db43033ca79101270f782cfd6c6011" data-score="0" data-since="260603">The pretty-printer for <code class="docutils literal notranslate"><span class="pre">str</span></code> instances defaults to using single-quotes (as
-does Python’s <code class="docutils literal notranslate"><span class="pre">repr</span></code> for strings) whereas the standard printer for <code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*</span></code>
-values uses double-quotes and contains a hexadecimal address:</p>
+<p data-msgid="cbbcc7adf7db43033ca79101270f782cfd6c6011" data-since="260610"><code class="docutils literal notranslate"><span class="pre">str</span></code> 인스턴스에 대한 미리보기 프린터는 기본적으로 단일 따옴표를 사용하며(이는 Python의 문자열 <code class="docutils literal notranslate"><span class="pre">repr``도</span> <span class="pre">사용하는</span> <span class="pre">방식입니다),</span> <span class="pre">반면</span> <span class="pre">``char</span> <span class="pre">*</span></code> 값에 대한 표준 프린터는 이중 따옴표를 사용하며 16진수 주소를 포함합니다:</p>
 <div class="highlight-none notranslate" data-msgid="4af8175ce1a8162aed549b6e946860f8dea8f639" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) p ptr_to_char_star
 $7 = 0x6d72c0 &quot;hello world&quot;
 </pre></div>
 </div>
-<p data-msgid="3e7c7655f6e13219d35a4cbf13a5f7524d1f1cf0" data-score="0" data-since="260603">Again, the implementation details can be revealed with a cast to
-<span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/unicode.html#c.PyUnicodeObject" title="PyUnicodeObject"><span class="n">PyUnicodeObject</span></a><span class="p">*</span></span>:</p>
+<p data-msgid="3e7c7655f6e13219d35a4cbf13a5f7524d1f1cf0" data-since="260610">다시 한번, 내부 구현 세부 사항은 <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/unicode.html#c.PyUnicodeObject" title="PyUnicodeObject"><span class="n">PyUnicodeObject</span></a><span class="p">*</span></span> 로 캐스팅하여 확인할 수 있습니다:</p>
 <div class="highlight-none notranslate" data-msgid="df318243466e4fa006f092f7d6dd92ac04df9215" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) p *(PyUnicodeObject*)$6
 $8 = {ob_base = {ob_refcnt = 33, ob_type = 0x3dad3a95a0}, length = 12,
 str = 0x7ffff2128500, hash = 7065186196740147912, state = 1, defenc = 0x0}
@@ -283,10 +271,8 @@ str = 0x7ffff2128500, hash = 7065186196740147912, state = 1, defenc = 0x0}
 <section id="py-list">
 <h3 data-msgid="7394f7c0a273772ccd2a116c35fb673fd52486d8" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">py-list</span></code><a class="headerlink" href="#py-list" title="Link to this heading">¶</a></h3>
 <blockquote>
-<div><p data-msgid="c9c1fe0abfa4f476ac89513dec3c1e959a415e29" data-score="0" data-since="260603">The extension adds a <code class="docutils literal notranslate"><span class="pre">py-list</span></code> command, which
-lists the Python source code (if any) for the current frame in the selected
-thread.  The current line is marked with a “&gt;”:</p>
-<div class="highlight-none notranslate" data-msgid="b969689a656fee7f1c7e15581e176ed2c144e2d6" data-score="0" data-since="260603"><div class="highlight"><pre><span></span>(gdb) py-list
+<div><p data-msgid="c9c1fe0abfa4f476ac89513dec3c1e959a415e29" data-since="260610">이 확장은 <code class="docutils literal notranslate"><span class="pre">py-list</span></code> 명령을 추가하여 선택된 스레드 내 현재 프레임에 대한 Python 소스 코드(존재하는 경우)를 나열합니다. 현재 줄은 “&gt;”::로 표시됩니다:</p>
+<div class="highlight-none notranslate" data-msgid="b969689a656fee7f1c7e15581e176ed2c144e2d6" data-since="260610"><div class="highlight"><pre><span></span>(gdb) py-list
  901        if options.profile:
  902            options.profile = False
  903            profile_me()
@@ -297,27 +283,19 @@ thread.  The current line is marked with a “&gt;”:</p>
  908            try:
  909                gtk.main()
  910            except KeyboardInterrupt:
- 911                # properly quit on a keyboard interrupt...
+ 911                # 키보드 인터럽트 시 적절하게 종료합니다...
 </pre></div>
 </div>
-<p data-msgid="2e4601d3d4c462cf20797ccf8807a9b3a20c6485" data-score="0" data-since="260603">Use <code class="docutils literal notranslate"><span class="pre">py-list</span> <span class="pre">START</span></code> to list at a different line number within the Python
-source, and <code class="docutils literal notranslate"><span class="pre">py-list</span> <span class="pre">START,END</span></code> to list a specific range of lines within
-the Python source.</p>
+<p data-msgid="2e4601d3d4c462cf20797ccf8807a9b3a20c6485" data-since="260610">Python 소스 코드 내의 다른 줄 번호를 나열하려면 <code class="docutils literal notranslate"><span class="pre">py-list</span> <span class="pre">START</span></code> 를 사용하고, 특정 범위의 줄을 나열하려면 <code class="docutils literal notranslate"><span class="pre">py-list</span> <span class="pre">START,END</span></code> 를 사용하십시오.</p>
 </div></blockquote>
 </section>
 <section id="py-up-and-py-down">
-<h3 data-msgid="5a90d90b219b4d801fd300b1a6f64dc978c201ff" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">py-up</span></code> and <code class="docutils literal notranslate"><span class="pre">py-down</span></code><a class="headerlink" href="#py-up-and-py-down" title="Link to this heading">¶</a></h3>
+<h3 data-msgid="5a90d90b219b4d801fd300b1a6f64dc978c201ff" data-since="260610"><code class="docutils literal notranslate"><span class="pre">py-up</span></code> 및 <code class="docutils literal notranslate"><span class="pre">py-down</span></code><a class="headerlink" href="#py-up-and-py-down" title="Link to this heading">¶</a></h3>
 <blockquote>
-<div><p data-msgid="959523d0fba82ba3fefe25e913ec817d00412e31" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">py-up</span></code> and <code class="docutils literal notranslate"><span class="pre">py-down</span></code> commands are analogous to GDB’s regular <code class="docutils literal notranslate"><span class="pre">up</span></code>
-and <code class="docutils literal notranslate"><span class="pre">down</span></code> commands, but try to move at the level of CPython frames, rather
-than C frames.</p>
-<p data-msgid="b0e9b176f5e7ad68a07072224338db7c9faee4e6" data-score="0" data-since="260603">GDB is not always able to read the relevant frame information, depending on
-the optimization level with which CPython was compiled. Internally, the
-commands look for C frames that are executing the default frame evaluation
-function (that is, the core bytecode interpreter loop within CPython) and
-look up the value of the related <code class="docutils literal notranslate"><span class="pre">PyFrameObject</span> <span class="pre">*</span></code>.</p>
-<p data-msgid="5bd92544622084044b383d0292d53fc345f08bee" data-score="0" data-since="260603">They emit the frame number (at the C level) within the thread.</p>
-<p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-score="0" data-since="260603">For example:</p>
+<div><p data-msgid="959523d0fba82ba3fefe25e913ec817d00412e31" data-since="260610"><code class="docutils literal notranslate"><span class="pre">py-up</span></code> 및 <code class="docutils literal notranslate"><span class="pre">py-down</span></code> 명령은 GDB의 일반 <code class="docutils literal notranslate"><span class="pre">up</span></code> 및 <code class="docutils literal notranslate"><span class="pre">down</span></code> 명령과 유사하지만, C 프레임 대신 CPython 프레임 레벨에서 이동하려고 시도합니다.</p>
+<p data-msgid="b0e9b176f5e7ad68a07072224338db7c9faee4e6" data-since="260610">GDB는 CPython의 컴파일된 최적화 수준에 따라 관련 프레임 정보를 항상 읽어올 수 있는 것은 아닙니다. 내부적으로 이 명령들은 기본 프레임 평가 함수를 실행하는 C 프레임(즉, CPython 내의 핵심 바이트코드 인터프리터 루프)을 찾고 관련 <code class="docutils literal notranslate"><span class="pre">PyFrameObject</span> <span class="pre">*</span></code> 의 값을 조회합니다.</p>
+<p data-msgid="5bd92544622084044b383d0292d53fc345f08bee" data-since="260610">이들은 스레드 내에서 프레임 번호(C 레벨)를 출력합니다.</p>
+<p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-since="260610">예를 들면 다음과 같습니다:</p>
 <div class="highlight-none notranslate" data-msgid="ecc13012658177c4b23129a06cdfda204150711c" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-up
 #37 Frame 0x9420b04, for file /usr/lib/python2.6/site-packages/
 gnome_sudoku/main.py, line 906, in start_game ()
@@ -330,11 +308,9 @@ gnome_sudoku/gnome_sudoku.py, line 22, in start_game(main=&lt;module at remote 0
 Unable to find an older python frame
 </pre></div>
 </div>
-<p data-msgid="8993059f9635910e8113c805a5c73e0006aa27f1" data-score="0" data-since="260603">so we’re at the top of the Python stack.</p>
-<p data-msgid="bee25f0ec8477c40167ddf12440598c9702b2f1e" data-score="0" data-since="260603">The frame numbers correspond to those displayed by GDB’s standard
-<code class="docutils literal notranslate"><span class="pre">backtrace</span></code> command.
-The command skips C frames which are not executing Python code.</p>
-<p data-msgid="ee557d048afb75d444e3ff1b34dcd1888fdc83ac" data-score="0" data-since="260603">Going back down:</p>
+<p data-msgid="8993059f9635910e8113c805a5c73e0006aa27f1" data-since="260610">따라서 우리는 Python 스택의 최상단에 있습니다.</p>
+<p data-msgid="bee25f0ec8477c40167ddf12440598c9702b2f1e" data-since="260610">프레임 번호는 GDB의 표준 <code class="docutils literal notranslate"><span class="pre">backtrace</span></code> 명령에 의해 표시되는 번호와 일치합니다. 이 명령은 Python 코드를 실행하지 않는 C 프레임은 건너뜁니다.</p>
+<p data-msgid="ee557d048afb75d444e3ff1b34dcd1888fdc83ac" data-since="260610">아래쪽으로 돌아가기:</p>
 <div class="highlight-none notranslate" data-msgid="7e5ccf2167b40a517f49721674920bb2a50d5241" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-down
 #37 Frame 0x9420b04, for file /usr/lib/python2.6/site-packages/gnome_sudoku/main.py, line 906, in start_game ()
     u = UI()
@@ -356,10 +332,8 @@ The command skips C frames which are not executing Python code.</p>
 Unable to find a newer python frame
 </pre></div>
 </div>
-<p data-msgid="aca125cb514b879168039ee8e374a8cff8264de5" data-score="0" data-since="260603">and we’re at the bottom of the Python stack.</p>
-<p data-msgid="8f37405fd71b572fdc397a129457aeca25254f4c" data-score="0" data-since="260603">Note that in Python 3.12 and newer, the same C stack frame can be used for
-multiple Python stack frames. This means that <code class="docutils literal notranslate"><span class="pre">py-up</span></code> and <code class="docutils literal notranslate"><span class="pre">py-down</span></code>
-may move multiple Python frames at once. For example:</p>
+<p data-msgid="aca125cb514b879168039ee8e374a8cff8264de5" data-since="260610">그리고 우리는 Python 스택의 가장 아래에 있습니다.</p>
+<p data-msgid="8f37405fd71b572fdc397a129457aeca25254f4c" data-since="260610">Python 3.12 및 이후 버전에서는 동일한 C 스택 프레임이 여러 Python 스택 프레임에 사용될 수 있다는 점에 유의하십시오. 이는 <code class="docutils literal notranslate"><span class="pre">py-up</span></code> 및 <code class="docutils literal notranslate"><span class="pre">py-down</span></code> 이 한 번에 여러 Python 프레임을 이동시킬 수 있음을 의미합니다. 예를 들면 다음과 같습니다:</p>
 <div class="highlight-none notranslate" data-msgid="f56086d04c91a7e744ee997a6afd102f23ed8376" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-up
 #6 Frame 0x7ffff7fb62b0, for file /tmp/rec.py, line 5, in recursive_function (n=0)
    time.sleep(5)
@@ -384,9 +358,8 @@ Unable to find an older python frame
 <section id="py-bt">
 <h3 data-msgid="7d2180f1233f68a07dd8a83bacf84bcbd9c7b275" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">py-bt</span></code><a class="headerlink" href="#py-bt" title="Link to this heading">¶</a></h3>
 <blockquote>
-<div><p data-msgid="1c610f097a138271f35cad2d736dc3fc22c43e47" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">py-bt</span></code> command attempts to display a Python-level backtrace of the
-current thread.</p>
-<p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-score="0" data-since="260603">For example:</p>
+<div><p data-msgid="1c610f097a138271f35cad2d736dc3fc22c43e47" data-since="260610"><code class="docutils literal notranslate"><span class="pre">py-bt</span></code> 명령은 현재 스레드의 Python 레벨 백트레이스를 표시하려고 시도합니다.</p>
+<p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-since="260610">예를 들면 다음과 같습니다:</p>
 <div class="highlight-none notranslate" data-msgid="9699507de27b9fc54a179595a59eb7cbbd3aa115" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-bt
 #8 (unable to read python frame information)
 #11 Frame 0x9aead74, for file /usr/lib/python2.6/site-packages/gnome_sudoku/dialog_swallower.py, line 48, in run_dialog (self=&lt;SwappableArea(running=&lt;gtk.Dialog at remote 0x98faaa4&gt;, main_page=0) at remote 0x98fa6e4&gt;, d=&lt;gtk.Dialog at remote 0x98faaa4&gt;)
@@ -402,16 +375,13 @@ current thread.</p>
     main.start_game()
 </pre></div>
 </div>
-<p data-msgid="a1c0c35bbec04bfc8df3aa8627f795ef0e767dc2" data-score="0" data-since="260603">The frame numbers correspond to those displayed by GDB’s standard
-<code class="docutils literal notranslate"><span class="pre">backtrace</span></code> command.</p>
+<p data-msgid="a1c0c35bbec04bfc8df3aa8627f795ef0e767dc2" data-since="260610">프레임 번호는 GDB의 표준 <code class="docutils literal notranslate"><span class="pre">backtrace</span></code> 명령과 일치합니다.</p>
 </div></blockquote>
 </section>
 <section id="py-print">
 <h3 data-msgid="eec55608287df6035040f9c220504af99fcc4d62" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">py-print</span></code><a class="headerlink" href="#py-print" title="Link to this heading">¶</a></h3>
 <blockquote>
-<div><p data-msgid="50231ee5dc314787eca169926d186ec8270e3d82" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">py-print</span></code> command looks up a Python name and tries to print it.
-It looks in locals within the current thread, then globals, then finally
-builtins:</p>
+<div><p data-msgid="50231ee5dc314787eca169926d186ec8270e3d82" data-since="260610"><code class="docutils literal notranslate"><span class="pre">py-print</span></code> 명령은 Python 이름 조회 및 출력 시도를 수행합니다. 현재 스레드의 로컬, 다음으로 전역, 그리고 최종적으로 빌트인 영역에서 탐색합니다:</p>
 <div class="highlight-none notranslate" data-msgid="424fd133916b4110da7d97226171b40c082da579" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-print self
 local &#39;self&#39; = &lt;SwappableArea(running=&lt;gtk.Dialog at remote 0x98faaa4&gt;,
 main_page=0) at remote 0x98fa6e4&gt;
@@ -423,23 +393,20 @@ builtin &#39;len&#39; = &lt;built-in function len&gt;
 &#39;scarlet_pimpernel&#39; not found
 </pre></div>
 </div>
-<p data-msgid="5fcba0debca249a2b8ccd955e8ac8e7bc3629311" data-score="0" data-since="260603">If the current C frame corresponds to multiple Python frames, <code class="docutils literal notranslate"><span class="pre">py-print</span></code>
-only considers the first one.</p>
+<p data-msgid="5fcba0debca249a2b8ccd955e8ac8e7bc3629311" data-since="260610">현재 C 프레임이 여러 Python 프레임에 해당하면, <code class="docutils literal notranslate"><span class="pre">py-print</span></code> 는 첫 번째 프레임만 고려합니다.</p>
 </div></blockquote>
 </section>
 <section id="py-locals">
 <h3 data-msgid="c87287630d7b1658c6cf67eaa00d6104a36d7528" data-score="100" data-since="260607"><code class="docutils literal notranslate"><span class="pre">py-locals</span></code><a class="headerlink" href="#py-locals" title="Link to this heading">¶</a></h3>
 <blockquote>
-<div><p data-msgid="c54877470e8ad9cdc49fc3089c53400dbad8b5c5" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">py-locals</span></code> command looks up all Python locals within the current
-Python frame in the selected thread, and prints their representations:</p>
+<div><p data-msgid="c54877470e8ad9cdc49fc3089c53400dbad8b5c5" data-since="260610"><code class="docutils literal notranslate"><span class="pre">py-locals</span></code> 명령은 선택된 스레드의 현재 Python 프레임 내의 모든 Python 지역 변수를 조회하고 그 표현을 출력합니다:</p>
 <div class="highlight-none notranslate" data-msgid="733b53b7cee74707552a824bf866607477cf86aa" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-locals
 self = &lt;SwappableArea(running=&lt;gtk.Dialog at remote 0x98faaa4&gt;,
 main_page=0) at remote 0x98fa6e4&gt;
 d = &lt;gtk.Dialog at remote 0x98faaa4&gt;
 </pre></div>
 </div>
-<p data-msgid="72c4a5c9f17dea169a2a3ce548cc6f0657b0f09f" data-score="0" data-since="260603">If the current C frame corresponds to multiple Python frames, locals from
-all of them will be shown:</p>
+<p data-msgid="72c4a5c9f17dea169a2a3ce548cc6f0657b0f09f" data-since="260610">현재 C 프레임이 여러 Python 프레임에 해당하면, 관련된 모든 프레임의 지역 변수가 표시됩니다:</p>
 <div class="highlight-none notranslate" data-msgid="2b4b317cbe679a6e2b44aa99f29ed49affefdca0" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-locals
 Locals for recursive_function
 n = 0
@@ -460,10 +427,8 @@ Locals for &lt;module&gt;
 </section>
 </section>
 <section id="use-with-gdb-commands">
-<h2 data-msgid="500f58f10fa4fb074b9ccc93e2ce76a695da3a7c" data-score="0" data-since="260603">Use with GDB commands<a class="headerlink" href="#use-with-gdb-commands" title="Link to this heading">¶</a></h2>
-<p data-msgid="25fff8889ed248a7c8b9b7b90742a5e4d5914901" data-score="0" data-since="260603">The extension commands complement GDB’s built-in commands.
-For example, you can use a frame numbers shown by <code class="docutils literal notranslate"><span class="pre">py-bt</span></code> with the <code class="docutils literal notranslate"><span class="pre">frame</span></code>
-command to go a specific frame within the selected thread, like this:</p>
+<h2 data-msgid="500f58f10fa4fb074b9ccc93e2ce76a695da3a7c" data-since="260610">GDB 명령 사용<a class="headerlink" href="#use-with-gdb-commands" title="Link to this heading">¶</a></h2>
+<p data-msgid="25fff8889ed248a7c8b9b7b90742a5e4d5914901" data-since="260610">확장 명령은 GDB의 빌트인 명령을 보완합니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">py-bt``가</span> <span class="pre">보여주는</span> <span class="pre">프레임</span> <span class="pre">번호를</span> <span class="pre">``frame</span></code> 명령과 함께 사용하여 선택된 스레드 내 특정 프레임으로 이동할 수 있습니다. 다음과 같습니다:</p>
 <div class="highlight-none notranslate" data-msgid="92c6bf63413a8ee83faa5fc09f3085dc260b23d6" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>(gdb) py-bt
 (output snipped)
 #68 Frame 0xaa4560, for file Lib/test/regrtest.py, line 1548, in &lt;module&gt; ()
