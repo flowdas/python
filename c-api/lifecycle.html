@@ -77,9 +77,9 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">객체 수명 주기</a><ul>
-<li><a class="reference internal" href="#life-events">Life Events</a></li>
-<li><a class="reference internal" href="#cyclic-isolate-destruction">Cyclic Isolate Destruction</a></li>
-<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#life-events">생애 이벤트</a></li>
+<li><a class="reference internal" href="#cyclic-isolate-destruction">순환 격리 파괴(Cyclic Isolate Destruction)</a></li>
+<li><a class="reference internal" href="#functions">함수</a></li>
 </ul>
 </li>
 </ul>
@@ -118,16 +118,10 @@
                 
   <section id="object-life-cycle">
 <span id="life-cycle"></span><h1 data-msgid="8e8f73597a618314a275940fda3ddbf67d61ed8c" data-score="88" data-since="260609">객체 수명 주기<a class="headerlink" href="#object-life-cycle" title="Link to this heading">¶</a></h1>
-<p data-msgid="affa8ff96b43a7f271add05a0ca751e5d651e27e" data-score="0" data-since="260603">This section explains how a type’s slots relate to each other throughout the
-life of an object.  It is not intended to be a complete canonical reference for
-the slots; instead, refer to the slot-specific documentation in
-<a class="reference internal" href="typeobj.html#type-structs"><span class="std std-ref">타입 객체 구조</span></a> for details about a particular slot.</p>
+<p data-msgid="affa8ff96b43a7f271add05a0ca751e5d651e27e" data-since="260610">이 섹션은 객체의 수명 주기 동안 한 타입의 슬롯들이 서로 어떻게 관련되어 있는지 설명합니다. 슬롯에 대한 전체 표준 참조를 의도한 것이 아니므로, 특정 슬롯에 대한 자세한 내용은 <a class="reference internal" href="typeobj.html#type-structs"><span class="std std-ref">타입 객체 구조</span></a>\에서 확인하십시오.</p>
 <section id="life-events">
-<h2 data-msgid="7cafb854a33b7515997ff819a187b742fabf653b" data-score="0" data-since="260603">Life Events<a class="headerlink" href="#life-events" title="Link to this heading">¶</a></h2>
-<p data-msgid="d135632fd90b937b04a55d129e91c9e553098fef" data-score="0" data-since="260603">The figure below illustrates the order of events that can occur throughout an
-object’s life.  An arrow from <em>A</em> to <em>B</em> indicates that event <em>B</em> can occur
-after event <em>A</em> has occurred, with the arrow’s label indicating the condition
-that must be true for <em>B</em> to occur after <em>A</em>.</p>
+<h2 data-msgid="7cafb854a33b7515997ff819a187b742fabf653b" data-since="260610">생애 이벤트<a class="headerlink" href="#life-events" title="Link to this heading">¶</a></h2>
+<p data-msgid="d135632fd90b937b04a55d129e91c9e553098fef" data-since="260610">아래 그림은 객체의 수명 주기 내내 발생할 수 있는 이벤트 순서를 보여줍니다. <em>A*에서 *B*로 향하는 화살표는 이벤트 *A*가 발생한 후에 이벤트 *B*가 발생할 수 있음을 나타내며, 화살표의 라벨은 *B*가 *A</em> 이후에 발생하기 위해 참이어야 하는 조건을 나타냅니다.</p>
 <style type="text/css">#life_events_graph {
   --svg-fgcolor: currentcolor;
   --svg-bgcolor: transparent;
@@ -535,179 +529,62 @@ that must be true for <em>B</em> to occur after <em>A</em>.</p>
         svg.setAttribute('aria-labelledby', 'life-events-graph-title');
     })();
 </script><div class="docutils container" id="life-events-graph-description">
-<p data-msgid="844a18267f7570ccd804466117309648571134db" data-score="0" data-since="260603">Explanation:</p>
+<p data-msgid="844a18267f7570ccd804466117309648571134db" data-since="260610">설명:</p>
 <ul class="simple">
-<li><p data-msgid="15725ff4f8e1755e838f533070e687277749edc2" data-score="0" data-since="260603">When a new object is constructed by calling its type:</p>
+<li><p data-msgid="15725ff4f8e1755e838f533070e687277749edc2" data-since="260610">객체를 그 타입을 호출하여 새로 구성할 때:</p>
 <ol class="arabic simple">
-<li><p data-msgid="7702c71433b82b922804c05e96f829cb7dfc0c01" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> is called to create a new object.</p></li>
-<li><p data-msgid="5b2732b231f054d01aab4a0c2a8fb7c5d26af730" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> is directly called by
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> to allocate the memory for the new
-object.</p></li>
-<li><p data-msgid="b064d497c7d566b6afd25ad14835d4178561791e" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a> initializes the newly created object.
-<code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code> can be called again to re-initialize an object, if
-desired. The <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code> call can also be skipped entirely,
-for example by Python code calling <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__new__()</span></code></a>.</p></li>
+<li><p data-msgid="7702c71433b82b922804c05e96f829cb7dfc0c01" data-since="260610">:c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_new`는 새 객체를 생성하는 데 사용됩니다.</p></li>
+<li><p data-msgid="5b2732b231f054d01aab4a0c2a8fb7c5d26af730" data-since="260610">:c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_alloc`가 :c:member:<a href="#id3"><span class="problematic" id="id4">`</span></a>~PyTypeObject.tp_new`에 의해 직접 호출되어 새 객체의 메모리를 할당합니다.</p></li>
+<li><p data-msgid="b064d497c7d566b6afd25ad14835d4178561791e" data-since="260610"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a> 은 새로 생성된 객체를 초기화합니다. 필요하면 <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code> 을 다시 호출하여 객체를 재초기화할 수 있습니다. 또한, 이 <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code> 호출은 Python 코드가 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__new__()</span></code></a> 를 호출하여 완전히 건너뛸 수도 있습니다.</p></li>
 </ol>
 </li>
-<li><p data-msgid="5970e5520355b63ca63cb67aa51edbb78cc1bfd5" data-score="0" data-since="260603">After <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code> completes, the object is ready to use.</p></li>
-<li><p data-msgid="67056862ed3e74fd5df9dda62488de94b139346e" data-score="0" data-since="260603">Some time after the last reference to an object is removed:</p>
+<li><p data-msgid="5970e5520355b63ca63cb67aa51edbb78cc1bfd5" data-since="260610">:c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>!tp_init`이 완료된 후, 객체는 사용 준비가 됩니다.</p></li>
+<li><p data-msgid="67056862ed3e74fd5df9dda62488de94b139346e" data-since="260610">객체에 대한 마지막 참조가 제거된 후 일정 시간이 경과합니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="e03ea8302eb466eebaeb6db9824fb7c8d1235837" data-score="0" data-since="260603">If an object is not marked as <em>finalized</em>, it might be finalized by
-marking it as <em>finalized</em> and calling its
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> function.  Python does
-<em>not</em> finalize an object when the last reference to it is deleted; use
-<a class="reference internal" href="#c.PyObject_CallFinalizerFromDealloc" title="PyObject_CallFinalizerFromDealloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFinalizerFromDealloc()</span></code></a> to ensure that
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> is always called.</p></li>
-<li><p data-msgid="4c53c178ad59002d7e92e056ecea5ce085576b11" data-score="0" data-since="260603">If the object is marked as finalized,
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> might be called by the garbage collector
-to clear references held by the object.  It is <em>not</em> called when the
-object’s reference count reaches zero.</p></li>
-<li><p data-msgid="1446bd0e09391b63a3100a9e697d2e334db26c88" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> is called to destroy the object.
-To avoid code duplication, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> typically
-calls into <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> to free up the object’s
-references.</p></li>
-<li><p data-msgid="1a835c29290808fedb7f4b73c69460254dbf6958" data-score="0" data-since="260603">When <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> finishes object destruction,
-it directly calls <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> (usually set to
-<a class="reference internal" href="memory.html#c.PyObject_Free" title="PyObject_Free"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Free()</span></code></a> or <a class="reference internal" href="gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> automatically as
-appropriate for the type) to deallocate the memory.</p></li>
+<li><p data-msgid="e03ea8302eb466eebaeb6db9824fb7c8d1235837" data-since="260610">객체가 <em>finalized</em> 로 표시되지 않은 경우, <em>finalized</em> 로 표시하고 해당 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 함수를 호출하여 최종화될 수 있습니다. Python은 마지막 참조가 삭제될 때 객체를 최종화하지 않으므로, 항상 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 가 호출되도록 보장하려면 <a class="reference internal" href="#c.PyObject_CallFinalizerFromDealloc" title="PyObject_CallFinalizerFromDealloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFinalizerFromDealloc()</span></code></a> 을 사용하십시오.</p></li>
+<li><p data-msgid="4c53c178ad59002d7e92e056ecea5ce085576b11" data-since="260610">객체가 최종화됨으로 표시된 경우, 가비지 컬렉터에 의해 :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_clear`가 호출되어 객체가 보유한 참조를 정리할 수 있습니다. 객체의 참조 카운트가 0에 도달할 때 호출되지는 않습니다.</p></li>
+<li><p data-msgid="1446bd0e09391b63a3100a9e697d2e334db26c88" data-since="260610">:c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_dealloc`은 객체를 파괴하는 데 사용됩니다. 코드 중복을 피하기 위해, :c:member:<a href="#id3"><span class="problematic" id="id4">`</span></a>~PyTypeObject.tp_dealloc`은 일반적으로 객체의 참조를 해제하기 위해 :c:member:<a href="#id5"><span class="problematic" id="id6">`</span></a>~PyTypeObject.tp_clear`를 호출합니다.</p></li>
+<li><p data-msgid="1a835c29290808fedb7f4b73c69460254dbf6958" data-since="260610"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 이 객체 파괴를 완료하면, 메모리를 해제하기 위해 해당 타입에 적절한 <a class="reference internal" href="memory.html#c.PyObject_Free" title="PyObject_Free"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Free()</span></code></a> 또는 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> 로 설정된 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> 를 직접 호출합니다.</p></li>
 </ol>
 </li>
-<li><p data-msgid="0ad4090ecd0f91c9d0225304ef9d6293a6c78252" data-score="0" data-since="260603">The <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> function is permitted to add a
-reference to the object if desired.  If it does, the object is
-<em>resurrected</em>, preventing its pending destruction.  (Only
-<code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code> is allowed to resurrect an object;
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> and
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> cannot without calling into
-<code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code>.)  Resurrecting an object may
-or may not cause the object’s <em>finalized</em> mark to be removed.  Currently,
-Python does not remove the <em>finalized</em> mark from a resurrected object if
-it supports garbage collection (i.e., the <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a>
-flag is set) but does remove the mark if the object does not support
-garbage collection; either or both of these behaviors may change in the
-future.</p></li>
-<li><p data-msgid="1882e1e24ebf0712c6e5ac00b4683466024036b0" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> can optionally call
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> via
-<a class="reference internal" href="#c.PyObject_CallFinalizerFromDealloc" title="PyObject_CallFinalizerFromDealloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFinalizerFromDealloc()</span></code></a> if it wishes to reuse that
-code to help with object destruction.  This is recommended because it
-guarantees that <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code> is always called before
-destruction.  See the <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> documentation
-for example code.</p></li>
-<li><p data-msgid="cabacaf1cfdffd3e11c410a375c6e5f72010af4a" data-score="0" data-since="260603">If the object is a member of a <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolate</span></a> and either
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> fails to break the reference cycle or
-the cyclic isolate is not detected (perhaps <a class="reference internal" href="../library/gc.html#gc.disable" title="gc.disable"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.disable()</span></code></a> was called,
-or the <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag was erroneously omitted in one
-of the involved types), the objects remain indefinitely uncollectable
-(they “leak”).  See <a class="reference internal" href="../library/gc.html#gc.garbage" title="gc.garbage"><code class="xref py py-data docutils literal notranslate"><span class="pre">gc.garbage</span></code></a>.</p></li>
+<li><p data-msgid="0ad4090ecd0f91c9d0225304ef9d6293a6c78252" data-since="260610"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 함수는 원하는 경우 객체에 대한 참조를 추가하는 것이 허용됩니다. 그렇게 하는 경우, 객체는 <em>resurrected*되어 보류 중인 파괴가 방지됩니다. (오직 :c:member:`!tp_finalize`만 객체를 부활시킬 수 있습니다; :c:member:`~PyTypeObject.tp_clear`와 :c:member:`~PyTypeObject.tp_dealloc`은 :c:member:`!tp_finalize`를 호출하지 않고는 할 수 없습니다.) 객체를 부활시키는 것은 객체의 *finalized</em> 표시가 제거될 수도 있고 그렇지 않을 수도 있습니다. 현재 Python은 가비지 컬렉션을 지원하는(즉, <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그가 설정된) 부활된 객체에서 <em>finalized</em> 표시를 제거하지 않지만, 가비지 컬렉션을 지원하지 않는 객체에서는 표시를 제거합니다. 이러한 두 가지 동작 모두 향후 변경될 수 있습니다.</p></li>
+<li><p data-msgid="1882e1e24ebf0712c6e5ac00b4683466024036b0" data-since="260610"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 은 객체 파괴를 돕기 위해 해당 코드를 재사용하려면 선택적으로 <a class="reference internal" href="#c.PyObject_CallFinalizerFromDealloc" title="PyObject_CallFinalizerFromDealloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFinalizerFromDealloc()</span></code></a> 을 통해 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 를 호출할 수 있습니다. 이는 파괴 전에 항상 <code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code> 가 호출되도록 보장하기 때문에 권장됩니다. 예제 코드는 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 문서를 참조하십시오.</p></li>
+<li><p data-msgid="cabacaf1cfdffd3e11c410a375c6e5f72010af4a" data-since="260610">만약 객체가 <span class="xref std std-term">cyclic isolate`의 멤버이고, :c:member:`~PyTypeObject.tp_clear`가 참조 순환을 끊지 못하거나 (어쩌면 :func:`gc.disable`이 호출되었거나, 관련 타입 중 하나에서 :c:macro:`Py_TPFLAGS_HAVE_GC</span> 플래그가 잘못 생략되었을 수도 있습니다), 객체들은 무기한 수거 불가능 상태로 남아 있습니다 (“누수”). :data:<a href="#id1"><span class="problematic" id="id2">`</span></a>gc.garbage`를 참조하십시오.</p></li>
 </ul>
-<p data-msgid="d9d14551a77afbf2cb338a5d908000b65898c155" data-score="0" data-since="260603">If the object is marked as supporting garbage collection (the
-<a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag is set in
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_flags" title="PyTypeObject.tp_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_flags</span></code></a>), the following events are also possible:</p>
+<p data-msgid="d9d14551a77afbf2cb338a5d908000b65898c155" data-since="260610">객체가 가비지 컬렉션을 지원하는 것으로 표시된 경우 (즉, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_flags" title="PyTypeObject.tp_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_flags</span></code></a> 에 <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그가 설정된 경우), 다음과 같은 이벤트도 가능합니다:</p>
 <ul class="simple">
-<li><p data-msgid="390adce37f3526c0d14ae4d3b24218bd4bfda239" data-score="0" data-since="260603">The garbage collector occasionally calls
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> to identify <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolates</span></a>.</p></li>
-<li><p data-msgid="c9569b26da145d4569cc2339674cd07fed630061" data-score="0" data-since="260603">When the garbage collector discovers a <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolate</span></a>, it
-finalizes one of the objects in the group by marking it as <em>finalized</em> and
-calling its <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> function, if it has one.
-This repeats until the cyclic isolate doesn’t exist or all of the objects
-have been finalized.</p></li>
-<li><p data-msgid="78d9cd4982c41ed29ed8a7ce264544db94bed78c" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> is permitted to resurrect the object
-by adding a reference from outside the <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolate</span></a>.  The new
-reference causes the group of objects to no longer form a cyclic isolate
-(the reference cycle may still exist, but if it does the objects are no
-longer isolated).</p></li>
-<li><p data-msgid="2df0f316a5d81214a3b605814395fd53a1f78638" data-score="0" data-since="260603">When the garbage collector discovers a <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolate</span></a> and all of
-the objects in the group have already been marked as <em>finalized</em>, the
-garbage collector clears one or more of the uncleared objects in the group
-(possibly concurrently) by calling each’s
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> function.  This repeats as long as the
-cyclic isolate still exists and not all of the objects have been cleared.</p></li>
+<li><p data-msgid="390adce37f3526c0d14ae4d3b24218bd4bfda239" data-since="260610">가비지 컬렉터는 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>cyclic isolates &lt;cyclic isolate&gt;`를 식별하기 위해 때때로 :c:member:<a href="#id3"><span class="problematic" id="id4">`</span></a>~PyTypeObject.tp_traverse`를 호출합니다.</p></li>
+<li><p data-msgid="c9569b26da145d4569cc2339674cd07fed630061" data-since="260610">가비지 컬렉터가 <span class="xref std std-term">cyclic isolate`를 발견하면, 이 그룹의 객체 중 하나를 *finalized*로 표시하고 해당 :c:member:`~PyTypeObject.tp_finalize</span> 함수를 호출하여 최종화합니다. 이는 참조 순환이 존재하지 않거나 모든 객체가 최종화될 때까지 반복됩니다.</p></li>
+<li><p data-msgid="78d9cd4982c41ed29ed8a7ce264544db94bed78c" data-since="260610"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 는 <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolate</span></a> 외부에서 참조를 추가하여 객체 부활이 허용됩니다. 새로 추가된 참조로 인해 객체 그룹이 더 이상 순환 격리(cyclic isolate)를 형성하지 않게 됩니다(참조 순환 자체는 여전히 존재할 수 있지만, 만약 존재하더라도 객체들은 더 이상 격리되지 않습니다).</p></li>
+<li><p data-msgid="2df0f316a5d81214a3b605814395fd53a1f78638" data-since="260610">가비지 컬렉터가 <span class="xref std std-term">cyclic isolate`를 발견하고 그룹 내 모든 객체가 이미 *finalized* 상태로 표시된 경우, 가비지 컬렉터는 각 객체의 :c:member:`~PyTypeObject.tp_clear</span> 함수를 호출하여 그룹 내에서 정리되지 않은 하나 이상의 객체를 정리합니다(가능할 경우 동시성으로 처리). 이 과정은 순환 격리가 여전히 존재하고 모든 객체가 정리되지 않은 상태일 동안 반복됩니다.</p></li>
 </ul>
 </div>
 </section>
 <section id="cyclic-isolate-destruction">
-<h2 data-msgid="085ca24cb1a1ff545395b963b7a34a01fd8339f4" data-score="0" data-since="260603">Cyclic Isolate Destruction<a class="headerlink" href="#cyclic-isolate-destruction" title="Link to this heading">¶</a></h2>
-<p data-msgid="2393a958a50d42f6e2a119538831f2572d970dd0" data-score="0" data-since="260603">Listed below are the stages of life of a hypothetical <a class="reference internal" href="../glossary.html#term-cyclic-isolate"><span class="xref std std-term">cyclic isolate</span></a>
-that continues to exist after each member object is finalized or cleared.  It
-is a memory leak if a cyclic isolate progresses through all of these stages; it should
-vanish once all objects are cleared, if not sooner.  A cyclic isolate can
-vanish either because the reference cycle is broken or because the objects are
-no longer isolated due to finalizer resurrection (see
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a>).</p>
+<h2 data-msgid="085ca24cb1a1ff545395b963b7a34a01fd8339f4" data-since="260610">순환 격리 파괴(Cyclic Isolate Destruction)<a class="headerlink" href="#cyclic-isolate-destruction" title="Link to this heading">¶</a></h2>
+<p data-msgid="2393a958a50d42f6e2a119538831f2572d970dd0" data-since="260610">아래에 가상의 <span class="xref std std-term">cyclic isolate`의 수명 주기 단계가 나열됩니다. 이 단계는 각 멤버 객체가 종료되거나 정리된 후에도 계속 존재합니다. 순환 격리가 이 모든 단계를 거친다면 메모리 누수입니다. 모든 객체가 정리되면 사라져야 하며, 경우에 따라 더 일찍 사라질 수도 있습니다. 순환 격리는 참조 순환이 끊어지거나, *finalizer resurrection* 때문에 객체들이 더 이상 격리되어 있지 않게 됨으로써 사라질 수 있습니다 ( :c:member:`~PyTypeObject.tp_finalize</span> 참조).</p>
 <ol class="arabic simple" start="0">
-<li><p data-msgid="b8615ebb6a7dd8af3ea0c5cd8acaa483424cf09e" data-score="0" data-since="260603"><strong>Reachable</strong> (not yet a cyclic isolate): All objects are in their normal,
-reachable state.  A reference cycle could exist, but an external reference
-means the objects are not yet isolated.</p></li>
-<li><p data-msgid="606d659598e4b196ceffcdbee1eccbd7ca84c097" data-score="0" data-since="260603"><strong>Unreachable but consistent:</strong> The final reference from outside the cyclic
-group of objects has been removed, causing the objects to become isolated
-(thus a cyclic isolate is born).  None of the group’s objects have been
-finalized or cleared yet.  The cyclic isolate remains at this stage until
-some future run of the garbage collector (not necessarily the next run
-because the next run might not scan every object).</p></li>
-<li><p data-msgid="29af5aa44067512765f8bf1a4caf0311b383e557" data-score="0" data-since="260603"><strong>Mix of finalized and not finalized:</strong> Objects in a cyclic isolate are
-finalized one at a time, which means that there is a period of time when the
-cyclic isolate is composed of a mix of finalized and non-finalized objects.
-Finalization order is unspecified, so it can appear random.  A finalized
-object must behave in a sane manner when non-finalized objects interact with
-it, and a non-finalized object must be able to tolerate the finalization of
-an arbitrary subset of its referents.</p></li>
-<li><p data-msgid="76a08b2926889232084c35c803bb3385eefcd787" data-score="0" data-since="260603"><strong>All finalized:</strong> All objects in a cyclic isolate are finalized before any
-of them are cleared.</p></li>
-<li><p data-msgid="72db826b7855b5a171ded5b215195450d7d84b8e" data-score="0" data-since="260603"><strong>Mix of finalized and cleared:</strong> The objects can be cleared serially or
-concurrently (but with the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a> held); either way, some will finish
-before others.  A finalized object must be able to tolerate the clearing of
-a subset of its referents.  <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0442/"><strong>PEP 442</strong></a> calls this stage “cyclic trash”.</p></li>
-<li><p data-msgid="2f19bce705c9085bebef8044bbc22963182d1723" data-score="0" data-since="260603"><strong>Leaked:</strong> If a cyclic isolate still exists after all objects in the group
-have been finalized and cleared, then the objects remain indefinitely
-uncollectable (see <a class="reference internal" href="../library/gc.html#gc.garbage" title="gc.garbage"><code class="xref py py-data docutils literal notranslate"><span class="pre">gc.garbage</span></code></a>).  It is a bug if a cyclic isolate
-reaches this stage—it means the <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> methods
-of the participating objects have failed to break the reference cycle as
-required.</p></li>
+<li><p data-msgid="b8615ebb6a7dd8af3ea0c5cd8acaa483424cf09e" data-since="260610"><strong>도달 가능(Reachable)</strong> (아직 순환 격리가 아님): 모든 객체가 정상적으로 도달 가능한 상태에 있습니다. 참조 순환이 존재할 수 있지만, 외부 참조는 객체들이 아직 격리되지 않았다는 것을 의미합니다.</p></li>
+<li><p data-msgid="606d659598e4b196ceffcdbee1eccbd7ca84c097" data-since="260610"><strong>도달 불가능하지만 일관됨(Unreachable but consistent)</strong>: 객체들의 순환 그룹 외부의 마지막 참조가 제거되어 객체들이 격리됩니다(따라서 순환 격리가 탄생합니다). 그룹의 객체 중 어떤 것도 아직 <em>finalized</em> 되거나 정리되지 않았습니다. 이 순환 격리는 가비지 컬렉터의 미래 실행이 있을 때까지 이 단계에 남아 있습니다(다음 실행이 모든 객체를 스캔하는 것은 아닐 수 있습니다).</p></li>
+<li><p data-msgid="29af5aa44067512765f8bf1a4caf0311b383e557" data-since="260610"><strong>종료된 것과 종료되지 않은 것의 혼합:</strong> 순환 격리 내의 객체들은 하나씩 <em>finalized</em> 됩니다. 이는 순환 격리가 <em>finalized</em> 된 객체와 <em>finalized</em> 되지 않은 객체의 혼합물로 구성되는 기간이 있음을 의미합니다. <em>Finalization</em> 순서는 지정되어 있지 않으므로 임의의 순서로 보일 수 있습니다. <em>Finalized</em> 된 객체는 <em>finalized</em> 되지 않은 객체와 상호 작용할 때 안정적인 방식으로 동작해야 하며, <em>finalized</em> 되지 않은 객체는 참조하는 객체의 임의의 부분 집합이 <em>finalization</em> 되는 것을 견딜 수 있어야 합니다.</p></li>
+<li><p data-msgid="76a08b2926889232084c35c803bb3385eefcd787" data-since="260610"><strong>모두 종료됨(All finalized)</strong>: 순환 격리의 모든 객체가 어떤 것이 정리되기 전에 <em>finalized</em> 됩니다.</p></li>
+<li><p data-msgid="72db826b7855b5a171ded5b215195450d7d84b8e" data-since="260610"><strong>종료된 것과 정리된 것의 혼합:</strong> 객체들은 순차적 또는 동시적으로 정리될 수 있습니다(하지만 <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a> 을 유지한 상태로); 어느 쪽이든, 일부는 다른 것보다 먼저 종료됩니다. <em>Finalized</em> 된 객체는 참조 객체의 하위 집합이 정리되는 것을 견딜 수 있어야 합니다. <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0442/"><strong>PEP 442</strong></a> 는 이 단계를 “순환 쓰레기(cyclic trash)”라고 지칭합니다.</p></li>
+<li><p data-msgid="2f19bce705c9085bebef8044bbc22963182d1723" data-since="260610"><strong>누수됨(Leaked)</strong>: 그룹 내 모든 객체가 <em>finalized</em> 되고 정리된 후에도 순환 격리가 여전히 존재한다면, 객체들은 무기한으로 수집 불가능합니다( <a class="reference internal" href="../library/gc.html#gc.garbage" title="gc.garbage"><code class="xref py py-data docutils literal notranslate"><span class="pre">gc.garbage</span></code></a> 참조). 순환 격리가 이 단계에 도달하는 것은 버그입니다—이는 참여 객체들의 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 메서드가 요구되는 참조 순환을 끊지 못한 것을 의미합니다.</p></li>
 </ol>
-<p data-msgid="1766277f893b67f5e35b2ceecdc6d84b575ce9a8" data-score="0" data-since="260603">If <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> did not exist, then Python would have no
-way to safely break a reference cycle.  Simply destroying an object in a cyclic
-isolate would result in a dangling pointer, triggering undefined behavior when
-an object referencing the destroyed object is itself destroyed.  The clearing
-step makes object destruction a two-phase process: first
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> is called to partially destroy the objects
-enough to detangle them from each other, then
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> is called to complete the destruction.</p>
-<p data-msgid="b5167d898910b60741956f3e70d84047a4fb9177" data-score="0" data-since="260603">Unlike clearing, finalization is not a phase of destruction.  A finalized
-object must still behave properly by continuing to fulfill its design
-contracts.  An object’s finalizer is allowed to execute arbitrary Python code,
-and is even allowed to prevent the impending destruction by adding a reference.
-The finalizer is only related to destruction by call order—if it runs, it runs
-before destruction, which starts with <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> (if
-called) and concludes with <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>.</p>
-<p data-msgid="3c21622230be57e4c64ea15782335b7f611aef11" data-score="0" data-since="260603">The finalization step is not necessary to safely reclaim the objects in a
-cyclic isolate, but its existence makes it easier to design types that behave
-in a sane manner when objects are cleared.  Clearing an object might
-necessarily leave it in a broken, partially destroyed state—it might be
-unsafe to call any of the cleared object’s methods or access any of its
-attributes.  With finalization, only finalized objects can possibly interact
-with cleared objects; non-finalized objects are guaranteed to interact with
-only non-cleared (but potentially finalized) objects.</p>
-<p data-msgid="dd6cce7e4028061a7ed36e396efa1c9de905952d" data-score="0" data-since="260603">To summarize the possible interactions:</p>
+<p data-msgid="1766277f893b67f5e35b2ceecdc6d84b575ce9a8" data-since="260610">만약 :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_clear`가 존재하지 않았다면, 파이썬은 참조 순환을 안전하게 끊을 방법이 없습니다. 순환 격리 내에서 객체를 단순히 파괴하는 것은 단 하나의 끊어진 포인터를 유발하며, 그 파괴된 객체를 참조하는 객체 자신이 파괴될 때 정의되지 않은 동작(undefined behavior)을 유발합니다. 정리(clearing) 단계는 객체 파괴를 2단계 프로세스로 만듭니다. 먼저 :c:member:<a href="#id3"><span class="problematic" id="id4">`</span></a>~PyTypeObject.tp_clear`가 호출되어 객체를 부분적으로 파괴하여 서로의 연결 고리를 풀고, 다음으로 :c:member:<a href="#id5"><span class="problematic" id="id6">`</span></a>~PyTypeObject.tp_dealloc`이 호출되어 파괴를 완료합니다.</p>
+<p data-msgid="b5167d898910b60741956f3e70d84047a4fb9177" data-since="260610">클리어링과 달리, 파이널라이제이션은 소멸의 단계가 아닙니다. 파이널라이즈된 객체는 여전히 설계 계약을 이행하는 방식으로 올바르게 작동해야 합니다. 객체의 최종화기는 임의의 파이썬 코드를 실행할 수 있도록 허용되며, 참조를 추가하여 임박한 소멸을 방지하는 것도 허용됩니다. 최종화기는 호출 순서와 관련이 있을 뿐입니다—실행된다면, <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> (호출된 경우)로 시작하고 :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_dealloc`로 끝나는 소멸 과정 이전에 실행됩니다.</p>
+<p data-msgid="3c21622230be57e4c64ea15782335b7f611aef11" data-since="260610">파이널라이제이션 단계는 순환 격리(cyclic isolate) 내의 객체를 안전하게 회수하는 데 필수는 아니지만, 그 존재 덕분에 객체가 클리어 될 때 제대로 작동하는 타입을 설계하기가 더 쉬워집니다. 객체를 클리어하는 것은 필연적으로 객체를 깨지거나 부분적으로 파괴된 상태로 남길 수 있습니다—따라서 클리어된 객체의 메서드를 호출하거나 속성에 액세스하는 것이 안전하지 않을 수 있습니다. 최종화 기능을 사용하면, 최종화된 객체만이 클리어된 객체와 상호 작용할 수 있으며, 비최종화된 객체는 비클리어(하지만 잠재적으로 최종화된) 객체와만 상호 작용하는 것이 보장됩니다.</p>
+<p data-msgid="dd6cce7e4028061a7ed36e396efa1c9de905952d" data-since="260610">가능한 상호 작용을 요약하면 다음과 같습니다:</p>
 <ul class="simple">
-<li><p data-msgid="0d20c372607829b5fd4916147e2eda612bfcda06" data-score="0" data-since="260603">A non-finalized object might have references to or from non-finalized and
-finalized objects, but not to or from cleared objects.</p></li>
-<li><p data-msgid="8cd05f272ab6e56f2295922f242021e3c948cea7" data-score="0" data-since="260603">A finalized object might have references to or from non-finalized, finalized,
-and cleared objects.</p></li>
-<li><p data-msgid="0ceb242f6f9608757cd91bc12438c2ecb87ee625" data-score="0" data-since="260603">A cleared object might have references to or from finalized and cleared
-objects, but not to or from non-finalized objects.</p></li>
+<li><p data-msgid="0d20c372607829b5fd4916147e2eda612bfcda06" data-since="260610">비최종화된 객체는 비최종화되고 최종화된 객체와 참조를 가질 수 있지만, 클리어된 객체와는 참조를 가질 수 없습니다.</p></li>
+<li><p data-msgid="8cd05f272ab6e56f2295922f242021e3c948cea7" data-since="260610">최종화된 객체는 비최종화되고, 최종화되고, 클리어된 객체와 참조를 가질 수 있습니다.</p></li>
+<li><p data-msgid="0ceb242f6f9608757cd91bc12438c2ecb87ee625" data-since="260610">클리어된 객체는 최종화되고 클리어된 객체와 참조를 가질 수 있지만, 비최종화된 객체와는 참조를 가질 수 없습니다.</p></li>
 </ul>
-<p data-msgid="67689d214ddf60baa28919213eac22b5386e8fb8" data-score="0" data-since="260603">Without any reference cycles, an object can be simply destroyed once its last
-reference is deleted; the finalization and clearing steps are not necessary to
-safely reclaim unused objects.  However, it can be useful to automatically call
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> and <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>
-before destruction anyway because type design is simplified when all objects
-always experience the same series of events regardless of whether they
-participated in a cyclic isolate.  Python currently only calls
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> and <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> as
-needed to destroy a cyclic isolate; this may change in a future version.</p>
+<p data-msgid="67689d214ddf60baa28919213eac22b5386e8fb8" data-since="260610">참조 순환이 없다면, 객체는 마지막 참조가 삭제되는 순간 간단히 파괴될 수 있으며, 사용되지 않는 객체를 안전하게 회수하는 데 최종화 및 클리어 단계는 필수적이지 않습니다. 그러나, 타입을 설계할 때 객체가 순환 격리에 참여했는지 여부와 관계없이 언제나 동일한 일련의 이벤트를 경험하도록 하기 때문에, 파괴되기 전에 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_finalize" title="PyTypeObject.tp_finalize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_finalize</span></code></a> 및 :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_clear`를 자동으로 호출하는 것이 여전히 유용할 수 있습니다. 현재 파이썬은 순환 격리를 파괴하는 데 필요한 경우에만 :c:member:<a href="#id3"><span class="problematic" id="id4">`</span></a>~PyTypeObject.tp_finalize`와 :c:member:<a href="#id5"><span class="problematic" id="id6">`</span></a>~PyTypeObject.tp_clear`를 호출합니다—이는 미래 버전에서 변경될 수 있습니다.</p>
 </section>
 <section id="functions">
-<h2 data-msgid="2b961dea1dc0c60ddf9a2c8e9d090f6f7d082483" data-score="0" data-since="260603">Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
-<p data-msgid="8d81ac39d0b8486b48542ad1947ed3c9e0e7c082" data-score="0" data-since="260603">To allocate and free memory, see <a class="reference internal" href="allocation.html#allocating-objects"><span class="std std-ref">힙에 객체 할당하기</span></a>.</p>
+<h2 data-msgid="2b961dea1dc0c60ddf9a2c8e9d090f6f7d082483" data-since="260610">함수<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
+<p data-msgid="8d81ac39d0b8486b48542ad1947ed3c9e0e7c082" data-since="260610">메모리를 할당하고 해제하는 방법은 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>객체 할당 &lt;allocating-objects&gt;`를 참조하십시오.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_CallFinalizer">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_CallFinalizer</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_CallFinalizer" title="Link to this definition">¶</a><br /></dt>
@@ -726,18 +603,13 @@ change in the future.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_CallFinalizerFromDealloc">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_CallFinalizerFromDealloc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_CallFinalizerFromDealloc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="9685f8528dcdffb6fbad2e97dfdca1ef8253afbd" data-score="0" data-since="260603">Same as <a class="reference internal" href="#c.PyObject_CallFinalizer" title="PyObject_CallFinalizer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFinalizer()</span></code></a> but meant to be called at the
-beginning of the object’s destructor (<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>).
-There must not be any references to the object.  If the object’s finalizer
-resurrects the object, this function returns -1; no further destruction
-should happen.  Otherwise, this function returns 0 and destruction can
-continue normally.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="9685f8528dcdffb6fbad2e97dfdca1ef8253afbd" data-since="260610"><a class="reference internal" href="#c.PyObject_CallFinalizer" title="PyObject_CallFinalizer"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_CallFinalizer()</span></code></a> 와 동일하지만, 객체의 소멸자(<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a>) 시작 부분에서 호출되도록 의도되었습니다. 객체에 대한 참조가 없어야 합니다. 객체의 최종화기가 객체를 부활시킨다면, 이 함수는 -1을 반환하고 더 이상의 소멸은 일어나지 않습니다. 그렇지 않으면, 이 함수는 0을 반환하고 소멸이 정상적으로 계속될 수 있습니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.4.</span></p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="2cd997a549c8377b5472417c36b1f1b7341a2fbb" data-score="0" data-since="260603"><a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> for example code.</p>
+<p data-msgid="2cd997a549c8377b5472417c36b1f1b7341a2fbb" data-since="260610">사용 예시로 :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_dealloc`를 사용합니다.</p>
 </div>
 </dd></dl>
 
@@ -746,7 +618,7 @@ continue normally.</p>
 <div class="lost-and-found-section">
     <h4>분실물 보관소</h4>
     <div class="lost-and-found-items">
-        <span data-msgid="d28dffa83c0e18209444f29897911aae5f342764" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+        <span data-msgid="d28dffa83c0e18209444f29897911aae5f342764" data-since="260610" class="lost-and-found-item"></span>
     </div>
 </div>
 
