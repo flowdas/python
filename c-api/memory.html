@@ -149,7 +149,19 @@
 </pre></div>
 </div>
 <p data-msgid="f5acb64cf8459b5bb8efd96de84553d6a0c28d1c" data-score="90" data-since="260603">이 예에서, I/O 버퍼에 대한 메모리 요청은 C 라이브러리 할당자에 의해 처리됩니다. 파이썬 메모리 관리자는 결과로 반환되는 바이트열 객체의 할당에만 관여합니다.</p>
-<p data-msgid="4d8590f4c0bfbecffc917252a83b2747f321f791" data-score="74" data-since="260603">그러나 대부분의 경우, 파이썬 힙에서 메모리를 할당하는 것이 좋습니다. 파이썬 힙은 파이썬 메모리 관리자가 제어하기 때문입니다. 예를 들어, 인터프리터가 C로 작성된 새로운 객체 형으로 확장될 때 필요합니다. 파이썬 힙을 사용하는 또 다른 이유는 확장 모듈의 메모리 요구에 대해 파이썬 메모리 관리자에게 <em>알리고자</em> 하는 것입니다. 요청된 메모리가 내부적이고 매우 특정한 목적으로만 사용될 때도, 모든 메모리 요청을 파이썬 메모리 관리자에 위임하면 인터프리터가 전체 메모리 요구량에 대한 더 정확한 이미지를 갖게 됩니다. 결과적으로, 특정 상황에서, 파이썬 메모리 관리자는 가비지 수집, 메모리 압축 또는 기타 예방 절차와 같은 적절한 작업을 트리거 하거나 그러지 않을 수 있습니다. 앞의 예에서와같이 C 라이브러리 할당자를 사용하면, I/O 버퍼에 할당된 메모리가 파이썬 메모리 관리자를 완전히 우회하게 됨에 유의하십시오.</p>
+<p data-msgid="f955ea9b28ab0b9a22c488cc6b81119157f03ea0" data-score="0" data-since="260610">In most situations, however, it is recommended to allocate memory from the
+Python heap specifically because the latter is under control of the Python
+memory manager. For example, this is required when the interpreter is extended
+with new object types written in C. Another reason for using the Python heap is
+the desire to <em>inform</em> the Python memory manager about the memory needs of the
+extension module. Even when the requested memory is used exclusively for
+internal, highly specific purposes, delegating all memory requests to the Python
+memory manager causes the interpreter to have a more accurate image of its
+memory footprint as a whole. Consequently, under certain circumstances, the
+Python memory manager may or may not trigger appropriate actions, like garbage
+collection, memory compaction or other preventive procedures. Note that by using
+the C library allocator as shown in the previous example, the allocated memory
+for the I/O buffer completely escapes the Python memory manager.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <p data-msgid="e30b6ffbca680ddb34717032ac2d5bf455a37080" data-score="94" data-since="260603"><span class="target" id="index-11"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONMALLOC"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONMALLOC</span></code></a> 환경 변수를 사용하여 파이썬에서 사용하는 메모리 할당자를 구성할 수 있습니다.</p>
@@ -208,7 +220,9 @@ need to be <a class="reference internal" href="../glossary.html#term-attached-th
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyMem_RawCalloc">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyMem_RawCalloc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nelem</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elsize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyMem_RawCalloc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.13 이후로.</em><p data-msgid="424c1fb9d55d8ca052ff4fcb343a8acbab111d93" data-score="98" data-since="260603">크기가 각각 <em>elsize</em> 바이트인 <em>nelem</em> 개의 요소를 할당하고 할당된 메모리를 가리키는 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 형의 포인터를 반환하거나, 요청이 실패하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. 메모리는 0으로 초기화됩니다.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.13 이후로.</em><p data-msgid="83bcfee5bb722df6f8e0d3478e2d926f9e82d75a" data-score="0" data-since="260610">Allocates <em>nelem</em> elements each of size <em>elsize</em> bytes and returns
+a pointer of type <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> to the allocated memory, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if the
+request fails. The memory is initialized to zeros.</p>
 <p data-msgid="975fbe478cc257882bebed431ac9caaa25bd7dee" data-score="78" data-since="260603">0개의 요소나 0바이트 크기의 요소를 요청하면 <code class="docutils literal notranslate"><span class="pre">PyMem_RawCalloc(1,</span> <span class="pre">1)</span></code>이 대신 호출된 것처럼 가능하면 고유한 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 포인터를 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.</span></p>
@@ -261,7 +275,9 @@ is now <a class="reference internal" href="#mimalloc"><span class="std std-ref">
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyMem_Calloc">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyMem_Calloc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nelem</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elsize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyMem_Calloc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="424c1fb9d55d8ca052ff4fcb343a8acbab111d93" data-score="98" data-since="260603">크기가 각각 <em>elsize</em> 바이트인 <em>nelem</em> 개의 요소를 할당하고 할당된 메모리를 가리키는 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 형의 포인터를 반환하거나, 요청이 실패하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. 메모리는 0으로 초기화됩니다.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="83bcfee5bb722df6f8e0d3478e2d926f9e82d75a" data-score="0" data-since="260610">Allocates <em>nelem</em> elements each of size <em>elsize</em> bytes and returns
+a pointer of type <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> to the allocated memory, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if the
+request fails. The memory is initialized to zeros.</p>
 <p data-msgid="45aec06dc4cc33773d9e4552fed12f97457214d5" data-score="77" data-since="260603">0개의 요소나 0바이트 크기의 요소를 요청하면 <code class="docutils literal notranslate"><span class="pre">PyMem_Calloc(1,</span> <span class="pre">1)</span></code>이 대신 호출된 것처럼 가능하면 고유한 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 포인터를 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.</span></p>
@@ -403,7 +419,9 @@ the <a class="reference internal" href="#customize-memory-allocators"><span clas
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyObject_Calloc">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyObject_Calloc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nelem</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elsize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyObject_Calloc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="424c1fb9d55d8ca052ff4fcb343a8acbab111d93" data-score="98" data-since="260603">크기가 각각 <em>elsize</em> 바이트인 <em>nelem</em> 개의 요소를 할당하고 할당된 메모리를 가리키는 <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> 형의 포인터를 반환하거나, 요청이 실패하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>을 반환합니다. 메모리는 0으로 초기화됩니다.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="83bcfee5bb722df6f8e0d3478e2d926f9e82d75a" data-score="0" data-since="260610">Allocates <em>nelem</em> elements each of size <em>elsize</em> bytes and returns
+a pointer of type <span class="c-expr sig sig-inline c"><span class="kt">void</span><span class="p">*</span></span> to the allocated memory, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if the
+request fails. The memory is initialized to zeros.</p>
 <p data-msgid="2238c9eaf504dfb18e63df7a79a4636b98565efe" data-score="78" data-since="260603">0개의 요소나 0바이트 크기의 요소를 요청하면 <code class="docutils literal notranslate"><span class="pre">PyObject_Calloc(1,</span> <span class="pre">1)</span></code>이 대신 호출된 것처럼 가능하면 고유한 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 포인터를 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.</span></p>
