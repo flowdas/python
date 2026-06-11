@@ -77,14 +77,14 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> — 결정론적 프로파일러</a><ul>
-<li><a class="reference internal" href="#what-is-deterministic-profiling">What is deterministic profiling?</a></li>
-<li><a class="reference internal" href="#command-line-interface">Command-line interface</a></li>
-<li><a class="reference internal" href="#programmatic-usage-examples">Programmatic usage examples</a><ul>
-<li><a class="reference internal" href="#basic-profiling">Basic profiling</a></li>
-<li><a class="reference internal" href="#using-the-profile-class">Using the <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class</a></li>
+<li><a class="reference internal" href="#what-is-deterministic-profiling">결정론적 프로파일링이란 무엇입니까?</a></li>
+<li><a class="reference internal" href="#command-line-interface">명령줄 인터페이스</a></li>
+<li><a class="reference internal" href="#programmatic-usage-examples">프로그래밍 방식 사용 예시</a><ul>
+<li><a class="reference internal" href="#basic-profiling">기본 프로파일링</a></li>
+<li><a class="reference internal" href="#using-the-profile-class"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> 클래스 사용</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-reference">Module reference</a></li>
+<li><a class="reference internal" href="#module-reference">모듈 참조</a></li>
 <li><a class="reference internal" href="#using-a-custom-timer">Using a custom timer</a></li>
 <li><a class="reference internal" href="#limitations">Limitations</a></li>
 </ul>
@@ -132,135 +132,105 @@
 </div>
 <p data-msgid="4b9a073beda8f343560de6c04f71df67b0e21368" data-score="100" data-since="260610"><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/profiling/tracing/">Lib/profiling/tracing/</a></p>
 <hr class="docutils" />
-<p data-msgid="3055ea4c3f93b24d0f8faa3979c3ceb2ce3c1975" data-score="0" data-since="260608">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> module provides deterministic profiling of Python
-programs. It monitors every function call, function return, and exception event,
-recording precise timing for each. This approach provides exact call counts and
-complete visibility into program execution, making it ideal for development and
-testing scenarios.</p>
+<p data-msgid="3055ea4c3f93b24d0f8faa3979c3ceb2ce3c1975" data-since="260611"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> 모듈은 파이썬 프로그램의 결정론적 프로파일링을 제공합니다. 이 모듈은 모든 함수 호출, 함수 반환 및 예외 이벤트를 모니터링하고 각 이벤트에 대한 정확한 타이밍을 기록합니다. 이 접근 방식은 정확한 호출 횟수와 프로그램 실행에 대한 완벽한 가시성을 제공하여 개발 및 테스트 시나리오에 이상적입니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="03f0f8c45ab087ccaa83af4b41eddba724807d0f" data-score="0" data-since="260608">This module is also available as <code class="docutils literal notranslate"><span class="pre">cProfile</span></code> for backward compatibility.
-The <code class="docutils literal notranslate"><span class="pre">cProfile</span></code> name will continue to work in all future Python versions.
-Use whichever import style suits your codebase:</p>
-<div class="highlight-python3 notranslate" data-msgid="5156dfbdecc31c33ede4723599fd585b49ed43eb" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Preferred (new style)</span>
+<p data-msgid="03f0f8c45ab087ccaa83af4b41eddba724807d0f" data-since="260611">이 모듈은 하위 호환성을 위해 <code class="docutils literal notranslate"><span class="pre">cProfile``로도</span> <span class="pre">사용</span> <span class="pre">가능합니다.</span> <span class="pre">``cProfile</span></code> 이름은 향후 모든 파이썬 버전에서 계속 작동할 것입니다. 코드베이스에 맞는 임포트 방식을 사용하세요:</p>
+<div class="highlight-python3 notranslate" data-msgid="5156dfbdecc31c33ede4723599fd585b49ed43eb" data-since="260611"><div class="highlight"><pre><span></span><span class="c1"># 권장 (새 스타일)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
 <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">)</span>
 
-<span class="c1"># Also works (backward compatible)</span>
+<span class="c1"># 작동함 (하위 호환)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cProfile</span>
 <span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <section id="what-is-deterministic-profiling">
-<h2 data-msgid="781dd2127c452ac02c50776bcd4f967ab6cafe42" data-score="0" data-since="260608">What is deterministic profiling?<a class="headerlink" href="#what-is-deterministic-profiling" title="Link to this heading">¶</a></h2>
-<p data-msgid="55d2465ff68824bf7b7a785b1943c4f385476cd2" data-score="0" data-since="260608"><em class="dfn">Deterministic profiling</em> captures every function call, function return,
-and exception event during program execution. The profiler measures the precise
-time intervals between these events, providing exact statistics about how the
-program behaves.</p>
-<p data-msgid="99bc51f3014c9b4b9734fb9f226c63fa6f9cf69d" data-score="0" data-since="260608">In contrast to <a class="reference internal" href="profiling.sampling.html#profiling-sampling"><span class="std std-ref">statistical profiling</span></a>, which samples
-the call stack periodically to estimate where time is spent, deterministic
-profiling records every event. This means you get exact call counts rather than
-statistical approximations. The trade-off is that instrumenting every event
-introduces overhead that can slow down program execution.</p>
-<p data-msgid="38aec013ff5fd7625f8a3ef7838d7bb75e3d589f" data-score="0" data-since="260608">Python’s interpreted nature makes deterministic profiling practical. The
-interpreter already dispatches events for function calls and returns, so the
-profiler can hook into this mechanism without requiring code modification. The
-overhead tends to be moderate relative to the inherent cost of interpretation,
-making deterministic profiling suitable for most development workflows.</p>
-<p data-msgid="5e5227f6f43de54770b29a44740385314566a2fa" data-score="0" data-since="260608">Deterministic profiling helps answer questions like:</p>
+<h2 data-msgid="781dd2127c452ac02c50776bcd4f967ab6cafe42" data-since="260611">결정론적 프로파일링이란 무엇입니까?<a class="headerlink" href="#what-is-deterministic-profiling" title="Link to this heading">¶</a></h2>
+<p data-msgid="55d2465ff68824bf7b7a785b1943c4f385476cd2" data-since="260611">:dfn:<a href="#id1"><span class="problematic" id="id2">`</span></a>결정론적 프로파일링(Deterministic profiling)`은 프로그램 실행 중 모든 함수 호출, 함수 반환 및 예외 이벤트를 포착합니다. 프로파일러는 이러한 이벤트 사이의 정확한 시간 간격을 측정하여 프로그램의 동작에 대한 정확한 통계를 제공합니다.</p>
+<p data-msgid="99bc51f3014c9b4b9734fb9f226c63fa6f9cf69d" data-since="260611">:ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>통계적 프로파일링 &lt;profiling-sampling&gt;`은 호출 스택을 주기적으로 샘플링하여 시간 지출을 추정하는 것과 달리, 결정론적 프로파일링은 모든 이벤트를 기록합니다. 이는 통계적 근사치 대신 정확한 호출 횟수를 얻을 수 있음을 의미합니다. 단점은 모든 이벤트를 계측하는 것이 오버헤드를 초래하여 프로그램 실행을 늦출 수 있다는 것입니다.</p>
+<p data-msgid="38aec013ff5fd7625f8a3ef7838d7bb75e3d589f" data-since="260611">파이썬의 인터프리터적 특성 덕분에 결정론적 프로파일링이 실용적입니다. 인터프리터는 이미 함수 호출 및 반환에 대한 이벤트를 디스패치하기 때문에, 프로파일러는 코드 수정 없이도 이 메커니즘에 후킹할 수 있습니다. 오버헤드는 인터프리터의 본질적인 비용에 비해 적당하여, 결정론적 프로파일링은 대부분의 개발 워크플로우에 적합합니다.</p>
+<p data-msgid="5e5227f6f43de54770b29a44740385314566a2fa" data-since="260611">결정론적 프로파일링은 다음과 같은 질문에 답하는 데 도움이 됩니다:</p>
 <ul class="simple">
-<li><p data-msgid="0b5450460a4f60eb1393d2df599abc1bc7820186" data-score="0" data-since="260608">How many times was this function called?</p></li>
-<li><p data-msgid="ca1b6d4cc49fb9ba4b47064ea5838602c77343a4" data-score="0" data-since="260608">What is the complete call graph of my program?</p></li>
-<li><p data-msgid="c7f83a65e47d4b77a976061fd047a5630e731bc2" data-score="0" data-since="260608">Which functions are called by a particular function?</p></li>
-<li><p data-msgid="60a73a2a7d08386fde7a05fcd3e882fd9026516f" data-score="0" data-since="260608">Are there unexpected function calls happening?</p></li>
+<li><p data-msgid="0b5450460a4f60eb1393d2df599abc1bc7820186" data-since="260611">이 함수는 몇 번 호출되었나요?</p></li>
+<li><p data-msgid="ca1b6d4cc49fb9ba4b47064ea5838602c77343a4" data-since="260611">제 프로그램의 전체 호출 그래프는 무엇인가요?</p></li>
+<li><p data-msgid="c7f83a65e47d4b77a976061fd047a5630e731bc2" data-since="260611">특정 함수는 어떤 함수들에 의해 호출되나요?</p></li>
+<li><p data-msgid="60a73a2a7d08386fde7a05fcd3e882fd9026516f" data-since="260611">예상치 못한 함수 호출이 발생하고 있나요?</p></li>
 </ul>
-<p data-msgid="43923ac3a6ff39cf7a461653fb1f47aa00795b09" data-score="0" data-since="260608">Call count statistics can identify bugs (surprising counts) and inline
-expansion opportunities (high call counts). Internal time statistics reveal
-“hot loops” that warrant optimization. Cumulative time statistics help identify
-algorithmic inefficiencies. The handling of cumulative times in this profiler
-allows direct comparison of recursive and iterative implementations.</p>
+<p data-msgid="43923ac3a6ff39cf7a461653fb1f47aa00795b09" data-since="260611">호출 횟수 통계는 버그(놀라운 횟수)와 인라인 확장 기회(높은 호출 횟수)를 식별할 수 있습니다. 내부 시간 통계는 최적화가 필요한 “핫 루프(hot loops)”를 드러냅니다. 누적 시간 통계는 알고리즘 비효율성을 파악하는 데 도움이 됩니다. 이 프로파일러에서 누적 시간 처리는 재귀 구현과 반복 구현을 직접 비교할 수 있게 합니다.</p>
 </section>
 <section id="command-line-interface">
-<span id="profiling-tracing-cli"></span><h2 data-msgid="c6cb5356866bc49f005ffa286dc1595832c99f1c" data-score="0" data-since="260603">Command-line interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
-<p data-msgid="51df376fcd3891c6e8bb689a9494bc132a0c6e2b" data-score="0" data-since="260608">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> module can be invoked as a script to profile
-another script or module:</p>
-<div class="highlight-shell-session notranslate" data-msgid="508d1af04d119545d6dfdb985060e6fa1b477c4e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="go">python -m profiling.tracing [-o output_file] [-s sort_order] (-m module | script.py)</span>
+<span id="profiling-tracing-cli"></span><h2 data-msgid="c6cb5356866bc49f005ffa286dc1595832c99f1c" data-since="260611">명령줄 인터페이스<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
+<p data-msgid="51df376fcd3891c6e8bb689a9494bc132a0c6e2b" data-since="260611"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code> 모듈은 스크립트 인수로 사용되어 다른 스크립트나 모듈을 프로파일링할 수 있습니다:</p>
+<div class="highlight-shell-session notranslate" data-msgid="508d1af04d119545d6dfdb985060e6fa1b477c4e" data-since="260611"><div class="highlight"><pre><span></span><span class="go">python -m profiling.tracing [-o output_file] [-s sort_order] (-m module | script.py)</span>
 </pre></div>
 </div>
-<p data-msgid="a91bb12a18b21971e697b79057d58ec929283617" data-score="0" data-since="260608">This runs the specified script or module under the profiler and prints the
-results to standard output (or saves them to a file).</p>
+<p data-msgid="a91bb12a18b21971e697b79057d58ec929283617" data-since="260611">이것은 지정된 스크립트 또는 모듈을 프로파일러 아래에서 실행하고 표준 출력(또는 파일에 저장)에 결과를 출력합니다.</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-profiling.tracing-o">
 <span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output_file&gt;</span></span><a class="headerlink" href="#cmdoption-profiling.tracing-o" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="227aae37b3c099722f5eb7a0b4c2695b58f4c90e" data-score="0" data-since="260608">Write the profile results to a file instead of standard output. The output
-file can be read by the <a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a> module for later analysis.</p>
+<dd><p data-msgid="227aae37b3c099722f5eb7a0b4c2695b58f4c90e" data-since="260611">프로파일 결과를 표준 출력이 아닌 파일에 작성합니다. 출력 파일은 나중에 분석을 위해 <a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a> 모듈로 읽을 수 있습니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-profiling.tracing-s">
 <span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;sort_order&gt;</span></span><a class="headerlink" href="#cmdoption-profiling.tracing-s" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9d0d9e687367626221182a54aaa6a4844b2c0eb7" data-score="0" data-since="260608">Sort the output by the specified key. This accepts any of the sort keys
-recognized by <a class="reference internal" href="pstats.html#pstats.Stats.sort_stats" title="pstats.Stats.sort_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pstats.Stats.sort_stats()</span></code></a>, such as <code class="docutils literal notranslate"><span class="pre">cumulative</span></code>,
-<code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">calls</span></code>, or <code class="docutils literal notranslate"><span class="pre">name</span></code>. This option only applies when
-<a class="reference internal" href="#cmdoption-profiling.tracing-o"><code class="xref std std-option docutils literal notranslate"><span class="pre">-o</span></code></a> is not specified.</p>
+<dd><p data-msgid="9d0d9e687367626221182a54aaa6a4844b2c0eb7" data-since="260611">출력을 지정된 키로 정렬합니다. 이는 <cite>cumulative</cite>, <cite>time</cite>, <cite>calls</cite>, 또는 <cite>name`과 같은 :meth:`pstats.Stats.sort_stats`가 인식하는 모든 정렬 키 값을 받습니다. 이 옵션은 :option:</cite>-o &lt;profiling.tracing -o&gt;`가 지정되지 않았을 때만 적용됩니다.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-profiling.tracing-m">
 <span class="sig-name descname"><span class="pre">-m</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;module&gt;</span></span><a class="headerlink" href="#cmdoption-profiling.tracing-m" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="d1991a8ce1d33a36ef08cebec4a61fe399556328" data-score="0" data-since="260608">Profile a module instead of a script. The module is located using the
-standard import mechanism.</p>
-<div class="versionadded" data-msgid="e059aa7190f202601ce08f70db7d716e7c50a4a3" data-score="0" data-since="260608">
-<p><span class="versionmodified added">Added in version 3.7: </span>The <code class="docutils literal notranslate"><span class="pre">-m</span></code> option for <code class="docutils literal notranslate"><span class="pre">cProfile</span></code>.</p>
+<dd><p data-msgid="d1991a8ce1d33a36ef08cebec4a61fe399556328" data-since="260611">스크립트 대신 모듈을 프로파일링합니다. 해당 모듈은 표준 임포트 메커니즘을 사용하여 위치를 찾습니다.</p>
+<div class="versionadded" data-msgid="e059aa7190f202601ce08f70db7d716e7c50a4a3" data-since="260611">
+<p><span class="versionmodified added">Added in version 3.7: </span><cite>cProfile`을 위한 `</cite>-m`` 옵션입니다.</p>
 </div>
-<div class="versionadded" data-msgid="4affc07f4b94d4713680a31263ee4a8a6a8250cc" data-score="0" data-since="260608">
-<p><span class="versionmodified added">Added in version 3.8: </span>The <code class="docutils literal notranslate"><span class="pre">-m</span></code> option for <a class="reference internal" href="profile.html#module-profile" title="profile: Pure Python profiler (deprecated). (폐지됨)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profile</span></code></a>.</p>
+<div class="versionadded" data-msgid="4affc07f4b94d4713680a31263ee4a8a6a8250cc" data-since="260611">
+<p><span class="versionmodified added">Added in version 3.8: </span><code class="xref py py-mod docutils literal notranslate"><span class="pre">profile`을</span> <span class="pre">위한</span> <span class="pre">`</span></code>-m`` 옵션입니다.</p>
 </div>
 </dd></dl>
 
 </section>
 <section id="programmatic-usage-examples">
-<h2 data-msgid="a91ff30f60e1d5ffac5eac936bcd6648bfebf26a" data-score="0" data-since="260608">Programmatic usage examples<a class="headerlink" href="#programmatic-usage-examples" title="Link to this heading">¶</a></h2>
-<p data-msgid="536e5aaba3acd19f2f50eadaa4cd6ff53b1232cb" data-score="0" data-since="260608">For more control over profiling, use the module’s functions and classes
-directly.</p>
+<h2 data-msgid="a91ff30f60e1d5ffac5eac936bcd6648bfebf26a" data-since="260611">프로그래밍 방식 사용 예시<a class="headerlink" href="#programmatic-usage-examples" title="Link to this heading">¶</a></h2>
+<p data-msgid="536e5aaba3acd19f2f50eadaa4cd6ff53b1232cb" data-since="260611">프로파일링에 대한 더 많은 제어를 위해서는 모듈의 함수와 클래스를 직접 사용해야 합니다.</p>
 <section id="basic-profiling">
-<h3 data-msgid="cda680c1b5a4f2d9bc6972c406da1331113e86d5" data-score="0" data-since="260608">Basic profiling<a class="headerlink" href="#basic-profiling" title="Link to this heading">¶</a></h3>
-<p data-msgid="4c70aabc86395c2ea79fc8fe44fa35355786de37" data-score="0" data-since="260608">The simplest approach uses the <code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code> function:</p>
+<h3 data-msgid="cda680c1b5a4f2d9bc6972c406da1331113e86d5" data-since="260611">기본 프로파일링<a class="headerlink" href="#basic-profiling" title="Link to this heading">¶</a></h3>
+<p data-msgid="4c70aabc86395c2ea79fc8fe44fa35355786de37" data-since="260611">가장 간단한 접근 방식은 <code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code> 함수를 사용하는 것입니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="240c9d5c9ca7e2694f9f4e9ef555d642041cd5a9" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
 <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="b02a96e4bfd109a9646a9da39f5a210317aa7d3f" data-score="0" data-since="260608">This profiles the given code string and prints a summary to standard output.
-To save results for later analysis:</p>
-<div class="highlight-python3 notranslate" data-msgid="58d6f33a377e3ead2af07fe55d953266a48a3f95" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">,</span> <span class="s1">&#39;output.prof&#39;</span><span class="p">)</span>
+<p data-msgid="b02a96e4bfd109a9646a9da39f5a210317aa7d3f" data-since="260611">이것은 주어진 코드 문자열을 프로파일링하고 표준 출력에 요약 내용을 출력합니다. 나중에 분석할 결과를 저장하려면:</p>
+<div class="highlight-python3 notranslate" data-msgid="58d6f33a377e3ead2af07fe55d953266a48a3f95" data-since="260611"><div class="highlight"><pre><span></span><span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;my_function()&#39;</span><span class="p">,</span> <span class="s1">&#39;output.prof&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="using-the-profile-class">
-<h3 data-msgid="fff3ed82a211a32b2eb909222d71c1f8a036c16a" data-score="0" data-since="260608">Using the <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class<a class="headerlink" href="#using-the-profile-class" title="Link to this heading">¶</a></h3>
-<p data-msgid="4d867be397f4580e6c990d8cba27a8dc9cd23b0d" data-score="0" data-since="260608">The <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class provides fine-grained control:</p>
-<div class="highlight-python3 notranslate" data-msgid="08cb2c5b93f24dd1d81b53816dc3b136dbeacc63" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
+<h3 data-msgid="fff3ed82a211a32b2eb909222d71c1f8a036c16a" data-since="260611"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> 클래스 사용<a class="headerlink" href="#using-the-profile-class" title="Link to this heading">¶</a></h3>
+<p data-msgid="4d867be397f4580e6c990d8cba27a8dc9cd23b0d" data-since="260611"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> 클래스는 세밀한 제어를 제공합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="08cb2c5b93f24dd1d81b53816dc3b136dbeacc63" data-since="260611"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pstats</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
 
 <span class="n">pr</span> <span class="o">=</span> <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span>
 <span class="n">pr</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
-<span class="c1"># ... code to profile ...</span>
+<span class="c1"># ... 프로파일할 코드 ...</span>
 <span class="n">pr</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
 
-<span class="c1"># Print results</span>
+<span class="c1"># 결과 출력</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
 <span class="n">ps</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="n">pstats</span><span class="o">.</span><span class="n">SortKey</span><span class="o">.</span><span class="n">CUMULATIVE</span><span class="p">)</span>
 <span class="n">ps</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
 </pre></div>
 </div>
-<p data-msgid="4b9c089997e149f2cbc61aee7f983b4863e86bdf" data-score="0" data-since="260608">The <code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> class also works as a context manager:</p>
-<div class="highlight-python3 notranslate" data-msgid="66c04ff7641c4972609fc705cc91c8023698426e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
+<p data-msgid="4b9c089997e149f2cbc61aee7f983b4863e86bdf" data-since="260611"><code class="xref py py-class docutils literal notranslate"><span class="pre">Profile</span></code> 클래스는 컨텍스트 관리자로도 작동합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="66c04ff7641c4972609fc705cc91c8023698426e" data-since="260611"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">profiling.tracing</span>
 
 <span class="k">with</span> <span class="n">profiling</span><span class="o">.</span><span class="n">tracing</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span> <span class="k">as</span> <span class="n">pr</span><span class="p">:</span>
-    <span class="c1"># ... code to profile ...</span>
+    <span class="c1"># ... 프로파일할 코드 ...</span>
 
 <span class="n">pr</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
 </pre></div>
@@ -268,31 +238,25 @@ To save results for later analysis:</p>
 </section>
 </section>
 <section id="module-reference">
-<h2 data-msgid="79303385915874005eee364745f4a499b6c2a723" data-score="0" data-since="260608">Module reference<a class="headerlink" href="#module-reference" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="79303385915874005eee364745f4a499b6c2a723" data-since="260611">모듈 참조<a class="headerlink" href="#module-reference" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="profiling.tracing.run">
 <span class="sig-prename descclassname"><span class="pre">profiling.tracing.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.run" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="8919e14b7dd44f36ef1e25f8f9305e5f6a3febff" data-score="0" data-since="260608">Profile execution of a command and print or save the results.</p>
-<p data-msgid="27cceb675557ebe4d1379f9a830bfca94cdb05b3" data-score="0" data-since="260608">This function executes the <em>command</em> string using <a class="reference internal" href="functions.html#exec" title="exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec()</span></code></a> in the
-<code class="docutils literal notranslate"><span class="pre">__main__</span></code> module’s namespace:</p>
-<div class="highlight-python3 notranslate" data-msgid="ab91ed5ad6aa1980e8452d68d28f925a140f1a84" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">__main__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">__main__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+<dd><p data-msgid="8919e14b7dd44f36ef1e25f8f9305e5f6a3febff" data-since="260611">명령어의 실행을 프로파일링하고 결과를 출력하거나 저장합니다.</p>
+<p data-msgid="27cceb675557ebe4d1379f9a830bfca94cdb05b3" data-since="260611">이 함수는 <code class="xref py py-func docutils literal notranslate"><span class="pre">exec`를</span> <span class="pre">사용하여</span> <span class="pre">*command*</span> <span class="pre">문자열을</span> <span class="pre">``__main__`()</span></code> 모듈의 네임스페이스에서 실행합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="ab91ed5ad6aa1980e8452d68d28f925a140f1a84" data-since="260611"><div class="highlight"><pre><span></span><span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">__main__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">__main__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="aef89462cc5f660632c3bc2b2d059c3d1dd291b0" data-score="0" data-since="260608">If <em>filename</em> is not provided, the function creates a <a class="reference internal" href="pstats.html#pstats.Stats" title="pstats.Stats"><code class="xref py py-class docutils literal notranslate"><span class="pre">pstats.Stats</span></code></a>
-instance and prints a summary to standard output. If <em>filename</em> is
-provided, the raw profile data is saved to that file for later analysis
-with <a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a>.</p>
-<p data-msgid="ea0bb5a2693af90412dd6746eefb3b22728bbaf7" data-score="0" data-since="260608">The <em>sort</em> argument specifies the sort order for printed output, accepting
-any value recognized by <a class="reference internal" href="pstats.html#pstats.Stats.sort_stats" title="pstats.Stats.sort_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pstats.Stats.sort_stats()</span></code></a>.</p>
+<p data-msgid="aef89462cc5f660632c3bc2b2d059c3d1dd291b0" data-since="260611"><em>filename</em> 을 제공하지 않으면, 함수는 <a class="reference internal" href="pstats.html#pstats.Stats" title="pstats.Stats"><code class="xref py py-class docutils literal notranslate"><span class="pre">pstats.Stats</span></code></a> 인스턴스를 생성하고 표준 출력에 요약 내용을 인쇄합니다. <em>filename</em> 을 제공하면, 원시 프로파일 데이터가 나중에 <a class="reference internal" href="pstats.html#module-pstats" title="pstats: Statistics object for analyzing profiler output."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pstats</span></code></a> 로 분석되도록 해당 파일에 저장됩니다.</p>
+<p data-msgid="ea0bb5a2693af90412dd6746eefb3b22728bbaf7" data-since="260611"><em>sort</em> 인수는 인쇄되는 출력의 정렬 순서를 지정하며, :meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>pstats.Stats.sort_stats`가 인식하는 모든 값을 받을 수 있습니다.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="profiling.tracing.runctx">
 <span class="sig-prename descclassname"><span class="pre">profiling.tracing.</span></span><span class="sig-name descname"><span class="pre">runctx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.runctx" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="8ba86a59ebbc5072ee7db8fdbf5fc070a5b0e7e0" data-score="0" data-since="260608">Profile execution of a command with explicit namespaces.</p>
-<p data-msgid="1ef55e33b09d6a4bbd665a32d0a8977b431279bf" data-score="0" data-since="260608">Like <a class="reference internal" href="#profiling.tracing.run" title="profiling.tracing.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a>, but executes the command with the specified <em>globals</em>
-and <em>locals</em> mappings instead of using the <code class="docutils literal notranslate"><span class="pre">__main__</span></code> module’s namespace:</p>
-<div class="highlight-python3 notranslate" data-msgid="0d3e25f07b17fdb98da83017740c463ab0739bfc" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="nb">globals</span><span class="p">,</span> <span class="nb">locals</span><span class="p">)</span>
+<dd><p data-msgid="8ba86a59ebbc5072ee7db8fdbf5fc070a5b0e7e0" data-since="260611">명시적인 네임스페이스를 사용하여 명령어 실행을 프로파일링합니다.</p>
+<p data-msgid="1ef55e33b09d6a4bbd665a32d0a8977b431279bf" data-since="260611"><code class="xref py py-func docutils literal notranslate"><span class="pre">run`과</span> <span class="pre">유사하지만,</span> <span class="pre">``__main__`()</span></code> 모듈의 네임스페이스를 사용하는 대신 지정된 <em>globals</em> 및 <em>locals</em> 매핑을 사용하여 명령을 실행합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="0d3e25f07b17fdb98da83017740c463ab0739bfc" data-since="260611"><div class="highlight"><pre><span></span><span class="n">exec</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="nb">globals</span><span class="p">,</span> <span class="nb">locals</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -300,7 +264,7 @@ and <em>locals</em> mappings instead of using the <code class="docutils literal 
 <dl class="py class">
 <dt class="sig sig-object py" id="profiling.tracing.Profile">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">profiling.tracing.</span></span><span class="sig-name descname"><span class="pre">Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeunit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subcalls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builtins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profiling.tracing.Profile" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="228c0278ec1c1d2aae8eb4f750180ff4a25d85e5" data-score="0" data-since="260608">A profiler object that collects execution statistics.</p>
+<dd><p data-msgid="228c0278ec1c1d2aae8eb4f750180ff4a25d85e5" data-since="260611">실행 통계를 수집하는 프로파일러 객체입니다.</p>
 <p data-msgid="4383758c81c2548c7432b7600e45f3e3c7718f04" data-score="0" data-since="260608">The optional <em>timer</em> argument specifies a custom timing function. If not
 provided, the profiler uses a platform-appropriate default timer. When
 supplying a custom timer, it must return a single number representing the
