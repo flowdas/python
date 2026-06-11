@@ -77,11 +77,11 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">파이썬 프로세스의 다중 인터프리터</a><ul>
-<li><a class="reference internal" href="#a-per-interpreter-gil">A per-interpreter GIL</a></li>
-<li><a class="reference internal" href="#bugs-and-caveats">Bugs and caveats</a></li>
-<li><a class="reference internal" href="#high-level-apis">High-level APIs</a></li>
-<li><a class="reference internal" href="#low-level-apis">Low-level APIs</a></li>
-<li><a class="reference internal" href="#advanced-debugger-support">Advanced debugger support</a></li>
+<li><a class="reference internal" href="#a-per-interpreter-gil">인터프리터별 GIL</a></li>
+<li><a class="reference internal" href="#bugs-and-caveats">버그 및 주의사항</a></li>
+<li><a class="reference internal" href="#high-level-apis">고수준 API</a></li>
+<li><a class="reference internal" href="#low-level-apis">저수준 API</a></li>
+<li><a class="reference internal" href="#advanced-debugger-support">고급 디버거 지원</a></li>
 </ul>
 </li>
 </ul>
@@ -118,117 +118,80 @@
                 
   <section id="multiple-interpreters-in-a-python-process">
 <span id="sub-interpreter-support"></span><h1 data-msgid="767cd4fa738f479e4dc1685d497bafed3a9b1503" data-score="100" data-since="260610">파이썬 프로세스의 다중 인터프리터<a class="headerlink" href="#multiple-interpreters-in-a-python-process" title="Link to this heading">¶</a></h1>
-<p data-msgid="4c4450d58b890380171239543db46e52a014b991" data-score="0" data-since="260603">While in most uses, you will only embed a single Python interpreter, there
-are cases where you need to create several independent interpreters in the
-same process and perhaps even in the same thread. Sub-interpreters allow
-you to do that.</p>
-<p data-msgid="945ce639e1b2062a842a65e9458f5bc19d4d3d7f" data-score="0" data-since="260603">The “main” interpreter is the first one created when the runtime initializes.
-It is usually the only Python interpreter in a process.  Unlike sub-interpreters,
-the main interpreter has unique process-global responsibilities like signal
-handling.  It is also responsible for execution during runtime initialization and
-is usually the active interpreter during runtime finalization.  The
-<a class="reference internal" href="#c.PyInterpreterState_Main" title="PyInterpreterState_Main"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Main()</span></code></a> function returns a pointer to its state.</p>
-<p data-msgid="3499756c2aab95ef7a234e0cc84dedc4cc6fb708" data-score="0" data-since="260603">You can switch between sub-interpreters using the <a class="reference internal" href="threads.html#c.PyThreadState_Swap" title="PyThreadState_Swap"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Swap()</span></code></a>
-function. You can create and destroy them using the following functions:</p>
+<p data-msgid="4c4450d58b890380171239543db46e52a014b991" data-since="260611">대부분의 사용 사례에서는 단일 Python 인터프리터만 임베드하지만, 동일한 프로세스, 어쩌면 동일한 스레드에 여러 독립적인 인터프리터를 생성해야 하는 경우도 있습니다. 서브인터프리터가 이를 가능하게 합니다.</p>
+<p data-msgid="945ce639e1b2062a842a65e9458f5bc19d4d3d7f" data-since="260611">“main” 인터프리터는 런타임이 초기화될 때 생성되는 첫 번째 인터프리터입니다. 보통 프로세스 내에 유일한 Python 인터프리터입니다. 서브인터프리터와는 달리, 메인 인터프리터는 시그널 처리와 같은 고유한 프로세스 전역 책임을 가집니다. 또한 런타임 초기화 중 실행에도 책임이 있으며, 런타임 마무리 중에는 보통 활성 인터프리터입니다. <a class="reference internal" href="#c.PyInterpreterState_Main" title="PyInterpreterState_Main"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Main()</span></code></a> 함수는 해당 상태에 대한 포인터를 반환합니다.</p>
+<p data-msgid="3499756c2aab95ef7a234e0cc84dedc4cc6fb708" data-since="260611"><a class="reference internal" href="threads.html#c.PyThreadState_Swap" title="PyThreadState_Swap"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Swap()</span></code></a> 함수를 사용하여 서브인터프리터 간에 전환할 수 있습니다. 다음 함수들을 사용하여 생성하고 파괴할 수 있습니다:</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterConfig</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="bb2475898eaa9072d36db26b156bace553b75fb3" data-score="0" data-since="260603">Structure containing most parameters to configure a sub-interpreter.
-Its values are used only in <a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a> and
-never modified by the runtime.</p>
+<dd><p data-msgid="bb2475898eaa9072d36db26b156bace553b75fb3" data-since="260611">서브 인터프리터를 구성하는 데 사용되는 대부분의 매개변수를 포함하는 구조체입니다. 이 값은 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_NewInterpreterFromConfig`에서만 사용되며 런타임에 수정되지 않습니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
-<p data-msgid="ca0d37acdffb6c8d14dff8383eee4e048b49ace4" data-score="0" data-since="260603">Structure fields:</p>
+<p data-msgid="ca0d37acdffb6c8d14dff8383eee4e048b49ace4" data-since="260611">구조체 필드는 다음과 같습니다:</p>
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.use_main_obmalloc">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">use_main_obmalloc</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.use_main_obmalloc" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="a7741ba10a19e0fc0c3ebbb56ea123a85fde92b6" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then the sub-interpreter will use its own
-“object” allocator state.
-Otherwise it will use (share) the main interpreter’s.</p>
-<p data-msgid="9e62d9f5b169ad50a38149c0b149dc204209a13d" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then
-<a class="reference internal" href="#c.PyInterpreterConfig.check_multi_interp_extensions" title="PyInterpreterConfig.check_multi_interp_extensions"><code class="xref c c-member docutils literal notranslate"><span class="pre">check_multi_interp_extensions</span></code></a>
-must be <code class="docutils literal notranslate"><span class="pre">1</span></code> (non-zero).
-If this is <code class="docutils literal notranslate"><span class="pre">1</span></code> then <a class="reference internal" href="#c.PyInterpreterConfig.gil" title="PyInterpreterConfig.gil"><code class="xref c c-member docutils literal notranslate"><span class="pre">gil</span></code></a>
-must not be <a class="reference internal" href="#c.PyInterpreterConfig_OWN_GIL" title="PyInterpreterConfig_OWN_GIL"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyInterpreterConfig_OWN_GIL</span></code></a>.</p>
+<dd><p data-msgid="a7741ba10a19e0fc0c3ebbb56ea123a85fde92b6" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 서브 인터프리터가 자체 “객체” 할당자 상태를 사용합니다. 그렇지 않으면 메인 인터프리터의 것을 (공유) 사용합니다.</p>
+<p data-msgid="9e62d9f5b169ad50a38149c0b149dc204209a13d" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 <a class="reference internal" href="#c.PyInterpreterConfig.check_multi_interp_extensions" title="PyInterpreterConfig.check_multi_interp_extensions"><code class="xref c c-member docutils literal notranslate"><span class="pre">check_multi_interp_extensions</span></code></a> 는 반드시 <code class="docutils literal notranslate"><span class="pre">1</span></code> (0이 아님)이어야 합니다. 이 값이 <code class="docutils literal notranslate"><span class="pre">1</span></code> 이면 <a class="reference internal" href="#c.PyInterpreterConfig.gil" title="PyInterpreterConfig.gil"><code class="xref c c-member docutils literal notranslate"><span class="pre">gil</span></code></a> 은 <a class="reference internal" href="#c.PyInterpreterConfig_OWN_GIL" title="PyInterpreterConfig_OWN_GIL"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyInterpreterConfig_OWN_GIL</span></code></a> 이 아니어야 합니다.</p>
 </dd></dl>
 
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.allow_fork">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">allow_fork</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.allow_fork" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="ba2b1d02b6e2f5ffd3564bb388f1e5b5bc2f6113" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then the runtime will not support forking the
-process in any thread where the sub-interpreter is currently active.
-Otherwise fork is unrestricted.</p>
-<p data-msgid="0d3511ad24ce3e18b9303e1ca2791edbba6d84ca" data-score="0" data-since="260603">Note that the <a class="reference internal" href="../library/subprocess.html#module-subprocess" title="subprocess: Subprocess management."><code class="xref py py-mod docutils literal notranslate"><span class="pre">subprocess</span></code></a> module still works
-when fork is disallowed.</p>
+<dd><p data-msgid="ba2b1d02b6e2f5ffd3564bb388f1e5b5bc2f6113" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 런타임은 서브 인터프리터가 현재 활성화된 모든 스레드에서 프로세스를 포크하는 것을 지원하지 않습니다. 그렇지 않으면 포크는 제한이 없습니다.</p>
+<p data-msgid="0d3511ad24ce3e18b9303e1ca2791edbba6d84ca" data-since="260611"><a class="reference internal" href="../library/subprocess.html#module-subprocess" title="subprocess: Subprocess management."><code class="xref py py-mod docutils literal notranslate"><span class="pre">subprocess</span></code></a> 모듈은 포크가 허용되지 않을 때도 계속 작동한다는 점에 유의하십시오.</p>
 </dd></dl>
 
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.allow_exec">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">allow_exec</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.allow_exec" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="950f1475e3d5ed964ef4d7e24cbe8573cfe859ef" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then the runtime will not support replacing the
-current process via exec (e.g. <a class="reference internal" href="../library/os.html#os.execv" title="os.execv"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.execv()</span></code></a>) in any thread
-where the sub-interpreter is currently active.
-Otherwise exec is unrestricted.</p>
-<p data-msgid="f45077de6d3ee0ba74dde1af79b8273613188d2e" data-score="0" data-since="260603">Note that the <a class="reference internal" href="../library/subprocess.html#module-subprocess" title="subprocess: Subprocess management."><code class="xref py py-mod docutils literal notranslate"><span class="pre">subprocess</span></code></a> module still works
-when exec is disallowed.</p>
+<dd><p data-msgid="950f1475e3d5ed964ef4d7e24cbe8573cfe859ef" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 런타임은 서브 인터프리터가 현재 활성화된 모든 스레드에서 exec을 통해 현재 프로세스를 대체하는 것을 지원하지 않습니다 (예: <a class="reference internal" href="../library/os.html#os.execv" title="os.execv"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.execv()</span></code></a>). 그렇지 않으면 exec은 제한이 없습니다.</p>
+<p data-msgid="f45077de6d3ee0ba74dde1af79b8273613188d2e" data-since="260611"><a class="reference internal" href="../library/subprocess.html#module-subprocess" title="subprocess: Subprocess management."><code class="xref py py-mod docutils literal notranslate"><span class="pre">subprocess</span></code></a> 모듈은 exec이 허용되지 않을 때도 계속 작동한다는 점에 유의하십시오.</p>
 </dd></dl>
 
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.allow_threads">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">allow_threads</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.allow_threads" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="66fc3416e5ea3ef0d9e38acfc669099a7e4af3f8" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then the sub-interpreter’s <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module
-won’t create threads.
-Otherwise threads are allowed.</p>
+<dd><p data-msgid="66fc3416e5ea3ef0d9e38acfc669099a7e4af3f8" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 서브 인터프리터의 <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈은 스레드를 생성하지 않습니다. 그렇지 않으면 스레드는 허용됩니다.</p>
 </dd></dl>
 
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.allow_daemon_threads">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">allow_daemon_threads</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.allow_daemon_threads" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="8bda1de320fe29f7ef5156feb541a138f1aa7205" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then the sub-interpreter’s <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module
-won’t create daemon threads.
-Otherwise daemon threads are allowed (as long as
-<a class="reference internal" href="#c.PyInterpreterConfig.allow_threads" title="PyInterpreterConfig.allow_threads"><code class="xref c c-member docutils literal notranslate"><span class="pre">allow_threads</span></code></a> is non-zero).</p>
+<dd><p data-msgid="8bda1de320fe29f7ef5156feb541a138f1aa7205" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 서브 인터프리터의 <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈은 데몬 스레드를 생성하지 않습니다. 그렇지 않으면 데몬 스레드가 허용됩니다 (단, <a class="reference internal" href="#c.PyInterpreterConfig.allow_threads" title="PyInterpreterConfig.allow_threads"><code class="xref c c-member docutils literal notranslate"><span class="pre">allow_threads</span></code></a> 가 0이 아닌 경우).</p>
 </dd></dl>
 
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.check_multi_interp_extensions">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">check_multi_interp_extensions</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.check_multi_interp_extensions" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="14469ae258d8f12d31b8e71006a78e272d5b7307" data-score="0" data-since="260603">If this is <code class="docutils literal notranslate"><span class="pre">0</span></code> then all extension modules may be imported,
-including legacy (single-phase init) modules,
-in any thread where the sub-interpreter is currently active.
-Otherwise only multi-phase init extension modules
-(see <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0489/"><strong>PEP 489</strong></a>) may be imported.
-(Also see <a class="reference internal" href="module.html#c.Py_mod_multiple_interpreters" title="Py_mod_multiple_interpreters"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_multiple_interpreters</span></code></a>.)</p>
-<p data-msgid="f587b63612ad3b8864a99ba2f49a3cba5ae85e6f" data-score="0" data-since="260603">This must be <code class="docutils literal notranslate"><span class="pre">1</span></code> (non-zero) if
-<a class="reference internal" href="#c.PyInterpreterConfig.use_main_obmalloc" title="PyInterpreterConfig.use_main_obmalloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">use_main_obmalloc</span></code></a> is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<dd><p data-msgid="14469ae258d8f12d31b8e71006a78e272d5b7307" data-since="260611">이 값이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이면 서브 인터프리터가 현재 활성화된 모든 스레드에서 레거시 (단일 단계 초기화) 모듈을 포함한 모든 확장 모듈을 가져올 수 있습니다. 그렇지 않으면 다단계 초기화 확장 모듈 (참조: <span class="target" id="index-17"></span><a class="pep reference external" href="https://peps.python.org/pep-0489/"><strong>PEP 489</strong></a>)만 가져올 수 있습니다. (또한 <a class="reference internal" href="module.html#c.Py_mod_multiple_interpreters" title="Py_mod_multiple_interpreters"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_multiple_interpreters</span></code></a> 도 참조하십시오.)</p>
+<p data-msgid="f587b63612ad3b8864a99ba2f49a3cba5ae85e6f" data-since="260611">이는 <a class="reference internal" href="#c.PyInterpreterConfig.use_main_obmalloc" title="PyInterpreterConfig.use_main_obmalloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">use_main_obmalloc</span></code></a> 가 <code class="docutils literal notranslate"><span class="pre">0</span></code> 일 경우 <code class="docutils literal notranslate"><span class="pre">1</span></code> (0이 아님)이어야 합니다.</p>
 </dd></dl>
 
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig.gil">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gil</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig.gil" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="b178a3be32a753e2e3abc4c62444ec75c16016eb" data-score="0" data-since="260603">This determines the operation of the GIL for the sub-interpreter.
-It may be one of the following:</p>
+<dd><p data-msgid="b178a3be32a753e2e3abc4c62444ec75c16016eb" data-since="260611">이것은 서브 인터프리터의 GIL 작동 방식을 결정합니다. 다음 중 하나일 수 있습니다:</p>
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig_DEFAULT_GIL">
 <span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterConfig_DEFAULT_GIL</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig_DEFAULT_GIL" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="44b2c4f22a7f641207fdb806e2a5d38956ab5b25" data-score="0" data-since="260603">Use the default selection (<a class="reference internal" href="#c.PyInterpreterConfig_SHARED_GIL" title="PyInterpreterConfig_SHARED_GIL"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyInterpreterConfig_SHARED_GIL</span></code></a>).</p>
+<dd><p data-msgid="44b2c4f22a7f641207fdb806e2a5d38956ab5b25" data-since="260611">기본 선택값(<a class="reference internal" href="#c.PyInterpreterConfig_SHARED_GIL" title="PyInterpreterConfig_SHARED_GIL"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyInterpreterConfig_SHARED_GIL</span></code></a>)을 사용합니다.</p>
 </dd></dl>
 
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig_SHARED_GIL">
 <span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterConfig_SHARED_GIL</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig_SHARED_GIL" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="6b2823fa89931ed81c799331bb60c129053aa977" data-score="0" data-since="260603">Use (share) the main interpreter’s GIL.</p>
+<dd><p data-msgid="6b2823fa89931ed81c799331bb60c129053aa977" data-since="260611">메인 인터프리터의 GIL을 (공유) 사용합니다.</p>
 </dd></dl>
 
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.PyInterpreterConfig_OWN_GIL">
 <span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterConfig_OWN_GIL</span></span></span><a class="headerlink" href="#c.PyInterpreterConfig_OWN_GIL" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="305f6a692ff8d5640e54cc3c6ab5b2c9a96dec37" data-score="0" data-since="260603">Use the sub-interpreter’s own GIL.</p>
+<dd><p data-msgid="305f6a692ff8d5640e54cc3c6ab5b2c9a96dec37" data-since="260611">서브 인터프리터 자신의 GIL을 사용합니다.</p>
 </dd></dl>
 
-<p data-msgid="941662f55931e88ca47f1e974844246a19eb65ee" data-score="0" data-since="260603">If this is <a class="reference internal" href="#c.PyInterpreterConfig_OWN_GIL" title="PyInterpreterConfig_OWN_GIL"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyInterpreterConfig_OWN_GIL</span></code></a> then
-<a class="reference internal" href="#c.PyInterpreterConfig.use_main_obmalloc" title="PyInterpreterConfig.use_main_obmalloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyInterpreterConfig.use_main_obmalloc</span></code></a> must be <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<p data-msgid="941662f55931e88ca47f1e974844246a19eb65ee" data-since="260611">이것이 <a class="reference internal" href="#c.PyInterpreterConfig_OWN_GIL" title="PyInterpreterConfig_OWN_GIL"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyInterpreterConfig_OWN_GIL</span></code></a> 인 경우 <a class="reference internal" href="#c.PyInterpreterConfig.use_main_obmalloc" title="PyInterpreterConfig.use_main_obmalloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyInterpreterConfig.use_main_obmalloc</span></code></a> 는 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이어야 합니다.</p>
 </dd></dl>
 
 </dd></dl>
@@ -236,17 +199,8 @@ It may be one of the following:</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Py_NewInterpreterFromConfig">
 <a class="reference internal" href="init_config.html#c.PyStatus" title="PyStatus"><span class="n"><span class="pre">PyStatus</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Py_NewInterpreterFromConfig</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate_p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.PyInterpreterConfig" title="PyInterpreterConfig"><span class="n"><span class="pre">PyInterpreterConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">config</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_NewInterpreterFromConfig" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="f642ef81f1c60c39a95930bf111f43733a711d9f" data-score="0" data-since="260603" id="index-1">Create a new sub-interpreter.  This is an (almost) totally separate environment
-for the execution of Python code.  In particular, the new interpreter has
-separate, independent versions of all imported modules, including the
-fundamental modules <a class="reference internal" href="../library/builtins.html#module-builtins" title="builtins: The module that provides the built-in namespace."><code class="xref py py-mod docutils literal notranslate"><span class="pre">builtins</span></code></a>, <a class="reference internal" href="../library/__main__.html#module-__main__" title="__main__: The environment where top-level code is run. Covers command-line interfaces, import-time behavior, and ``__name__ == '__main__'``."><code class="xref py py-mod docutils literal notranslate"><span class="pre">__main__</span></code></a> and <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a>.  The
-table of loaded modules (<code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>) and the module search path
-(<code class="docutils literal notranslate"><span class="pre">sys.path</span></code>) are also separate.  The new environment has no <code class="docutils literal notranslate"><span class="pre">sys.argv</span></code>
-variable.  It has new standard I/O stream file objects <code class="docutils literal notranslate"><span class="pre">sys.stdin</span></code>,
-<code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> and <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code> (however these refer to the same underlying
-file descriptors).</p>
-<p data-msgid="4f8810130bdb6fb312e206f5b3564ed8f2d8cc95" data-score="0" data-since="260603">The given <em>config</em> controls the options with which the interpreter
-is initialized.</p>
+<dd><p data-msgid="f642ef81f1c60c39a95930bf111f43733a711d9f" data-since="260611" id="index-1">새로운 서브 인터프리터를 생성합니다. 이것은 파이썬 코드 실행을 위한 (거의) 완전히 별개의 환경입니다. 특히, 새로운 인터프리터는 기본 모듈인 <a class="reference internal" href="../library/builtins.html#module-builtins" title="builtins: The module that provides the built-in namespace."><code class="xref py py-mod docutils literal notranslate"><span class="pre">builtins</span></code></a>, <a class="reference internal" href="../library/__main__.html#module-__main__" title="__main__: The environment where top-level code is run. Covers command-line interfaces, import-time behavior, and ``__name__ == '__main__'``."><code class="xref py py-mod docutils literal notranslate"><span class="pre">__main__</span></code></a> 및 <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a> 를 포함하여 모든 가져온 모듈의 독립적이고 별개의 버전을 가집니다. 로드된 모듈의 목록 (<code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>)과 모듈 검색 경로 (<code class="docutils literal notranslate"><span class="pre">sys.path</span></code>) 또한 별개입니다. 새로운 환경에는 <code class="docutils literal notranslate"><span class="pre">sys.argv</span></code> 변수가 없습니다. 새로운 표준 I/O 스트림 파일 객체인 <code class="docutils literal notranslate"><span class="pre">sys.stdin</span></code>, <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> 및 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code> 를 가집니다 (하지만 이들은 동일한 기본 파일 디스크립터를 참조합니다).</p>
+<p data-msgid="4f8810130bdb6fb312e206f5b3564ed8f2d8cc95" data-since="260611">주어진 <em>config</em> 는 인터프리터가 초기화되는 옵션을 제어합니다.</p>
 <p data-msgid="4005dd5db7d26ea210b7a79c899d30ec64af4e9d" data-score="0" data-since="260603">Upon success, <em>tstate_p</em> will be set to the first <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a>
 created in the new sub-interpreter.  This thread state is
 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.
@@ -255,20 +209,12 @@ below.  If creation of the new interpreter is unsuccessful,
 <em>tstate_p</em> is set to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>;
 no exception is set since the exception state is stored in the
 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>, which might not exist.</p>
-<p data-msgid="d499613e5b56dae2d153fc6ed348a8d2b5d5eac2" data-score="0" data-since="260603">Like all other Python/C API functions, an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>
-must be present before calling this function, but it might be detached upon
-returning. On success, the returned thread state will be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.
-If the sub-interpreter is created with its own <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a> then the
-<a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> of the calling interpreter will be detached.
-When the function returns, the new interpreter’s <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a>
-will be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a> to the current thread and
-the previous interpreter’s <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> will remain detached.</p>
+<p data-msgid="d499613e5b56dae2d153fc6ed348a8d2b5d5eac2" data-since="260611">모든 다른 Python/C API 함수와 마찬가지로, 이 함수를 호출하기 전에 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`가 존재해야 하지만, 반환 시에는 분리될 수 있습니다. 성공하는 경우, 반환된 스레드 상태는 :term:<a href="#id3"><span class="problematic" id="id4">`</span></a>attached &lt;attached thread state&gt;`가 됩니다. 서브 인터프리터가 자체 :term:<a href="#id5"><span class="problematic" id="id6">`</span></a>GIL`을 가지고 생성된 경우, 호출 인터프리터의 :term:<a href="#id7"><span class="problematic" id="id8">`</span></a>attached thread state`는 분리됩니다. 함수가 반환되면, 새 인터프리터의 :term:<a href="#id9"><span class="problematic" id="id10">`</span></a>thread state`는 현재 스레드에 대해 :term:<a href="#id11"><span class="problematic" id="id12">`</span></a>attached &lt;attached thread state&gt;`가 될 것이고, 이전 인터프리터의 :term:<a href="#id13"><span class="problematic" id="id14">`</span></a>attached thread state`는 분리된 상태로 유지됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
-<p data-msgid="73861203a6066686a3988fcbb2a23c45a7b75432" data-score="0" data-since="260603">Sub-interpreters are most effective when isolated from each other,
-with certain functionality restricted:</p>
-<div class="highlight-c notranslate" data-msgid="d1e7a117fc8b7e3499aa75d4fff45f1745ed3b84" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">PyInterpreterConfig</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<p data-msgid="73861203a6066686a3988fcbb2a23c45a7b75432" data-since="260611">서브 인터프리터는 특정 기능이 제한되어 서로 격리되어 있을 때 가장 효과적입니다:</p>
+<div class="highlight-c notranslate" data-msgid="d1e7a117fc8b7e3499aa75d4fff45f1745ed3b84" data-since="260611"><div class="highlight"><pre><span></span><span class="n">PyInterpreterConfig</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">.</span><span class="n">use_main_obmalloc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">allow_fork</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">allow_exec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
@@ -284,34 +230,12 @@ with certain functionality restricted:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="2616ef115d6ac0273672854440eabb6b66874a5e" data-score="0" data-since="260603">Note that the config is used only briefly and does not get modified.
-During initialization the config’s values are converted into various
-<a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> values.  A read-only copy of the config
-may be stored internally on the <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a>.</p>
-<p data-msgid="6254ec1ca92af406cbfc5342a2e7045535f7cefc" data-score="0" data-since="260603" id="index-2">Extension modules are shared between (sub-)interpreters as follows:</p>
+<p data-msgid="2616ef115d6ac0273672854440eabb6b66874a5e" data-since="260611">이 구성은 잠시 사용될 뿐 수정되지 않음에 유의하십시오. 초기화 중에 구성의 값들은 다양한 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> 값으로 변환됩니다. 구성의 읽기 전용 사본이 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyInterpreterState`에 내부적으로 저장될 수 있습니다.</p>
+<p data-msgid="6254ec1ca92af406cbfc5342a2e7045535f7cefc" data-since="260611" id="index-2">확장 모듈은 다음과 같이 (서브-)인터프리터 간에 공유됩니다:</p>
 <ul>
-<li><p data-msgid="5484f0f6b37fe231ebf91c08990c93ef0ae990e5" data-score="0" data-since="260603">For modules using multi-phase initialization,
-e.g. <a class="reference internal" href="module.html#c.PyModule_FromDefAndSpec" title="PyModule_FromDefAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_FromDefAndSpec()</span></code></a>, a separate module object is
-created and initialized for each interpreter.
-Only C-level static and global variables are shared between these
-module objects.</p></li>
-<li><p data-msgid="ebf7bb971e3fc8e103dc0405d33dbd1511a2d61e" data-score="0" data-since="260608">For modules using legacy
-<a class="reference internal" href="extension-modules.html#single-phase-initialization"><span class="std std-ref">single-phase initialization</span></a>,
-e.g. <a class="reference internal" href="module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a>, the first time a particular extension
-is imported, it is initialized normally, and a (shallow) copy of its
-module’s dictionary is squirreled away.
-When the same extension is imported by another (sub-)interpreter, a new
-module is initialized and filled with the contents of this copy; the
-extension’s <code class="docutils literal notranslate"><span class="pre">init</span></code> function is not called.
-Objects in the module’s dictionary thus end up shared across
-(sub-)interpreters, which might cause unwanted behavior (see
-<a class="reference internal" href="#bugs-and-caveats">Bugs and caveats</a> below).</p>
-<p data-msgid="eeec6156b1aea31449f8b1822ace18d87c551a76" data-score="0" data-since="260603">Note that this is different from what happens when an extension is
-imported after the interpreter has been completely re-initialized by
-calling <a class="reference internal" href="interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> and <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>; in that
-case, the extension’s <code class="docutils literal notranslate"><span class="pre">initmodule</span></code> function <em>is</em> called again.
-As with multi-phase initialization, this means that only C-level static
-and global variables are shared between these modules.</p>
+<li><p data-msgid="5484f0f6b37fe231ebf91c08990c93ef0ae990e5" data-since="260611">다단계 초기화를 사용하는 모듈의 경우, 예를 들어 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyModule_FromDefAndSpec`을 사용하면 각 인터프리터에 대해 별도의 모듈 객체가 생성되고 초기화됩니다. C 수준의 정적 및 전역 변수만 이러한 모듈 객체들 사이에서 공유됩니다.</p></li>
+<li><p data-msgid="ebf7bb971e3fc8e103dc0405d33dbd1511a2d61e" data-since="260611">레거시 <span class="xref std std-ref">single-phase initialization &lt;single-phase-initialization&gt;`을 사용하는 모듈의 경우, 예를 들어 :c:func:`PyModule_Create`를 사용하면 특정 확장이 처음 임포트될 때 정상적으로 초기화되고, 모듈 딕셔너리의 (얕은) 사본이 저장됩니다. 같은 확장이 다른 (서브-)인터프리터에 의해 임포트될 때, 새 모듈이 초기화되고 이 복사본의 내용으로 채워지며; 확장 자체의 ``init`</span> 함수는 호출되지 않습니다. 따라서 모듈 딕셔너리의 객체들은 (서브-)인터프리터 전반에 걸쳐 공유되어 원치 않는 동작을 유발할 수 있습니다 (아래 <a class="reference internal" href="#bugs-and-caveats">Bugs and caveats</a> 참조).</p>
+<p data-msgid="eeec6156b1aea31449f8b1822ace18d87c551a76" data-since="260611">이는 인터프리터가 <a class="reference internal" href="interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> 와 <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a> 를 호출하여 완전히 재초기화된 후에 확장이 임포트되는 경우와는 다릅니다. 그 경우에는 확장 자체의 <code class="docutils literal notranslate"><span class="pre">initmodule</span></code> 함수가 다시 호출됩니다. 다단계 초기화의 경우와 마찬가지로, 이는 이러한 모듈들 사이에서 C 수준의 정적 및 전역 변수만 공유됨을 의미합니다.</p>
 </li>
 </ul>
 <span class="target" id="index-3"></span></dd></dl>
@@ -319,111 +243,49 @@ and global variables are shared between these modules.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Py_NewInterpreter">
 <a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Py_NewInterpreter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_NewInterpreter" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="995142d6123ce3a88567415f0864c5ff69fe447f" data-score="0" data-since="260603" id="index-4">Create a new sub-interpreter.  This is essentially just a wrapper
-around <a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a> with a config that
-preserves the existing behavior.  The result is an unisolated
-sub-interpreter that shares the main interpreter’s GIL, allows
-fork/exec, allows daemon threads, and allows single-phase init
-modules.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="995142d6123ce3a88567415f0864c5ff69fe447f" data-since="260611" id="index-4">새 서브 인터프리터를 생성합니다. 이것은 본질적으로 기존 동작을 보존하는 config를 가진 <a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a> 주위에 래퍼를 만든 것과 같습니다. 그 결과는 메인 인터프리터의 GIL을 공유하고, fork/exec를 허용하며, 데몬 스레드를 허용하고, 단일 단계 초기화 모듈을 허용하는 비격리형 서브 인터프리터가 됩니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Py_EndInterpreter">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Py_EndInterpreter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_EndInterpreter" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="290b0306178f8e32566351de329773d17906fb1a" data-score="0" data-since="260603" id="index-5">Destroy the (sub-)interpreter represented by the given <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a>.
-The given thread state must be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.
-When the call returns, there will be no <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.
-All thread states associated with this interpreter are destroyed.</p>
-<p data-msgid="7df5f6287d9a3d8018a79ee3e344ad7a0d68dd3a" data-score="0" data-since="260603"><a class="reference internal" href="interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> will destroy all sub-interpreters that
-haven’t been explicitly destroyed at that point.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="290b0306178f8e32566351de329773d17906fb1a" data-since="260611" id="index-5">주어진 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>thread state`가 나타내는 (서브-)인터프리터를 파괴합니다. 주어진 스레드 상태는 :term:<a href="#id3"><span class="problematic" id="id4">`</span></a>attached &lt;attached thread state&gt;`여야 합니다. 호출이 반환되면, :term:<a href="#id5"><span class="problematic" id="id6">`</span></a>attached thread state`는 존재하지 않게 됩니다. 이 인터프리터와 관련된 모든 스레드 상태가 파괴됩니다.</p>
+<p data-msgid="7df5f6287d9a3d8018a79ee3e344ad7a0d68dd3a" data-since="260611">:c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_FinalizeEx`는 해당 시점에 명시적으로 파괴되지 않은 모든 서브 인터프리터를 파괴합니다.</p>
 </dd></dl>
 
 <section id="a-per-interpreter-gil">
-<span id="per-interpreter-gil"></span><h2 data-msgid="d55868fa82052ca27aafa1ad48903eeab588b962" data-score="0" data-since="260608">A per-interpreter GIL<a class="headerlink" href="#a-per-interpreter-gil" title="Link to this heading">¶</a></h2>
+<span id="per-interpreter-gil"></span><h2 data-msgid="d55868fa82052ca27aafa1ad48903eeab588b962" data-since="260611">인터프리터별 GIL<a class="headerlink" href="#a-per-interpreter-gil" title="Link to this heading">¶</a></h2>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
-<p data-msgid="362eee04b3bcebbd2863e1ba8599f0957ebb43af" data-score="0" data-since="260603">Using <a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a> you can create
-a sub-interpreter that is completely isolated from other interpreters,
-including having its own GIL.  The most important benefit of this
-isolation is that such an interpreter can execute Python code without
-being blocked by other interpreters or blocking any others.  Thus a
-single Python process can truly take advantage of multiple CPU cores
-when running Python code.  The isolation also encourages a different
-approach to concurrency than that of just using threads.
-(See <span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0554/"><strong>PEP 554</strong></a> and <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0684/"><strong>PEP 684</strong></a>.)</p>
-<p data-msgid="69c4ba45b62a4eb8aa529fd5295815beabb31367" data-score="0" data-since="260603">Using an isolated interpreter requires vigilance in preserving that
-isolation.  That especially means not sharing any objects or mutable
-state without guarantees about thread-safety.  Even objects that are
-otherwise immutable (e.g. <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">5)</span></code>) can’t normally be shared
-because of the refcount.  One simple but less-efficient approach around
-this is to use a global lock around all use of some state (or object).
-Alternately, effectively immutable objects (like integers or strings)
-can be made safe in spite of their refcounts by making them <a class="reference internal" href="../glossary.html#term-immortal"><span class="xref std std-term">immortal</span></a>.
-In fact, this has been done for the builtin singletons, small integers,
-and a number of other builtin objects.</p>
-<p data-msgid="6f83f381fc2c587502adc2de4b9b15a408b78c2a" data-score="0" data-since="260603">If you preserve isolation then you will have access to proper multi-core
-computing without the complications that come with free-threading.
-Failure to preserve isolation will expose you to the full consequences
-of free-threading, including races and hard-to-debug crashes.</p>
-<p data-msgid="c4ab9efc9c5b1136cc3119b559a7b7b9ff55a004" data-score="0" data-since="260603">Aside from that, one of the main challenges of using multiple isolated
-interpreters is how to communicate between them safely (not break
-isolation) and efficiently.  The runtime and stdlib do not provide
-any standard approach to this yet.  A future stdlib module would help
-mitigate the effort of preserving isolation and expose effective tools
-for communicating (and sharing) data between interpreters.</p>
+<p data-msgid="362eee04b3bcebbd2863e1ba8599f0957ebb43af" data-since="260611"><a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a> 를 사용하여 자체 GIL을 포함하여 다른 인터프리터와 완전히 격리된 서브 인터프리터를 생성할 수 있습니다. 이 격리의 가장 중요한 이점은 그러한 인터프리터가 다른 인터프리터에 의해 차단되지 않고, 또는 다른 인터프리터를 차단하지 않으면서 Python 코드를 실행할 수 있다는 점입니다. 따라서 단일 Python 프로세스는 Python 코드를 실행할 때 여러 CPU 코어를 진정으로 활용할 수 있습니다. 또한 이러한 격리는 단순히 스레드를 사용하는 것보다 다른 동시성 접근 방식을 장려합니다. ( <span class="target" id="index-18"></span><a class="pep reference external" href="https://peps.python.org/pep-0554/"><strong>PEP 554</strong></a> 및 <span class="target" id="index-19"></span><a class="pep reference external" href="https://peps.python.org/pep-0684/"><strong>PEP 684</strong></a> 참조.)</p>
+<p data-msgid="69c4ba45b62a4eb8aa529fd5295815beabb31367" data-since="260611">고립된 인터프리터를 사용하려면 격리를 유지하는 데 주의가 필요합니다. 특히, 스레드 안전성에 대한 보장 없이 어떤 객체나 변경 가능한 상태도 공유하지 않는 것이 중요합니다. 일반적으로 불변하는 객체(예: <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">5)</span></code>)라 할지라도 참조 카운트 때문에 공유할 수 없습니다. 이를 해결하는 간단하지만 덜 효율적인 방법 중 하나는 모든 상태(또는 객체) 사용에 글로벌 락을 두는 것입니다. 대안으로, 효과적으로 불변 객체(정수나 문자열 같은)는 참조 카운트에도 불구하고, 이들을 <a class="reference internal" href="../glossary.html#term-immortal"><span class="xref std std-term">불멸적인</span></a> 방식으로 만들어서 안전하게 처리할 수 있습니다. 실제로, 이 방식은 내장 싱글턴, 작은 정수, 그리고 다수의 다른 내장 객체에 대해 이미 수행되었습니다.</p>
+<p data-msgid="6f83f381fc2c587502adc2de4b9b15a408b78c2a" data-since="260611">격리를 유지하면 자유 스레딩이 수반하는 복잡성 없이 적절한 멀티 코어 컴퓨팅을 활용할 수 있습니다. 격리를 유지하지 못하면 경합 상태(races)와 디버깅하기 어려운 충돌을 포함하여 자유 스레딩의 전체 결과를 노출하게 됩니다.</p>
+<p data-msgid="c4ab9efc9c5b1136cc3119b559a7b7b9ff55a004" data-since="260611">그 외에도, 여러 격리된 인터프리터를 사용하는 주요 과제 중 하나는 어떻게 안전하게 (격리를 깨지 않고) 그리고 효율적으로 그들 간에 통신할 것인지입니다. 런타임과 stdlib에는 아직 표준적인 접근 방식이 제공되지 않습니다. 미래의 stdlib 모듈은 격리 상태 유지의 노력을 완화하고 인터프리터 간의 데이터 통신(및 공유)을 위한 효과적인 도구를 노출하는 데 도움이 될 것입니다.</p>
 </section>
 <section id="bugs-and-caveats">
-<h2 data-msgid="dce76137f9770715700677f4e0b3c6d1dd3c49ea" data-score="0" data-since="260603">Bugs and caveats<a class="headerlink" href="#bugs-and-caveats" title="Link to this heading">¶</a></h2>
-<p data-msgid="fb6df321c82aedca926898ba778fe0b3aaa13820" data-score="0" data-since="260608">Because sub-interpreters (and the main interpreter) are part of the same
-process, the insulation between them isn’t perfect — for example, using
-low-level file operations like <a class="reference internal" href="../library/os.html#os.close" title="os.close"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.close()</span></code></a> they can
-(accidentally or maliciously) affect each other’s open files.  Because of the
-way extensions are shared between (sub-)interpreters, some extensions may not
-work properly; this is especially likely when using single-phase initialization
-or (static) global variables.
-It is possible to insert objects created in one sub-interpreter into
-a namespace of another (sub-)interpreter; this should be avoided if possible.</p>
-<p data-msgid="83e4be67a34fddc45fd3ffbbad09705e567af131" data-score="0" data-since="260603">Special care should be taken to avoid sharing user-defined functions,
-methods, instances or classes between sub-interpreters, since import
-operations executed by such objects may affect the wrong (sub-)interpreter’s
-dictionary of loaded modules. It is equally important to avoid sharing
-objects from which the above are reachable.</p>
-<p data-msgid="a4f621d5ef73dc7574d2d958a13a8ef1e21478a1" data-score="0" data-since="260603">Also note that combining this functionality with <code class="docutils literal notranslate"><span class="pre">PyGILState_*</span></code> APIs
-is delicate, because these APIs assume a bijection between Python thread states
-and OS-level threads, an assumption broken by the presence of sub-interpreters.
-It is highly recommended that you don’t switch sub-interpreters between a pair
-of matching <a class="reference internal" href="threads.html#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> and <a class="reference internal" href="threads.html#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> calls.
-Furthermore, extensions (such as <a class="reference internal" href="../library/ctypes.html#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a>) using these APIs to allow calling
-of Python code from non-Python created threads will probably be broken when using
-sub-interpreters.</p>
+<h2 data-msgid="dce76137f9770715700677f4e0b3c6d1dd3c49ea" data-since="260611">버그 및 주의사항<a class="headerlink" href="#bugs-and-caveats" title="Link to this heading">¶</a></h2>
+<p data-msgid="fb6df321c82aedca926898ba778fe0b3aaa13820" data-since="260611">서브 인터프리터(및 메인 인터프리터)는 같은 프로세스의 일부이기 때문에, 그들 간의 절연이 완벽하지 않습니다 — 예를 들어, <a class="reference internal" href="../library/os.html#os.close" title="os.close"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.close()</span></code></a>\와 같은 저수준 파일 연산을 사용하면 서로의 열린 파일에 (실수로 혹은 악의적으로) 영향을 미칠 수 있습니다. (서브) 인터프리터 간에 확장이 공유되는 방식 때문에, 일부 확장이 제대로 작동하지 않을 수 있습니다; 이것은 특히 단단계 초기화나 (정적) 전역 변수를 사용할 때 특히 그렇습니다. 한 서브 인터프리터에서 생성된 객체를 다른 (서브) 인터프리터의 이름 공간에 삽입할 수 있습니다; 가능하면 피해야 합니다.</p>
+<p data-msgid="83e4be67a34fddc45fd3ffbbad09705e567af131" data-since="260611">사용자 정의 함수, 메서드, 인스턴스 또는 클래스를 서브 인터프리터 간에 공유하는 것을 방지하기 위한 특별한 주의가 필요합니다. 이러한 객체에 의해 실행되는 임포트 작업은 잘못된 (서브) 인터프리터의 로드된 모듈 딕셔너리에 영향을 줄 수 있기 때문입니다. 위 사항들이 도달할 수 있는 객체를 공유하는 것도 똑같이 중요합니다.</p>
+<p data-msgid="a4f621d5ef73dc7574d2d958a13a8ef1e21478a1" data-since="260611">또한, 이 기능을 <code class="docutils literal notranslate"><span class="pre">PyGILState_*</span></code> API와 결합하는 것은 섬세합니다. 왜냐하면 이 API들은 파이썬 스레드 상태와 OS 수준 스레드 간의 일대일 대응(bijection)을 가정하는데, 서브 인터프리터의 존재로 인해 그 가정이 깨지기 때문입니다. 따라서 일치하는 <a class="reference internal" href="threads.html#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> 와 <a class="reference internal" href="threads.html#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> 호출 사이에서 서브 인터프리터를 전환하지 않는 것이 강력히 권장됩니다. 게다가, 이 API를 사용하여 비-파이썬 생성 스레드에서 파이썬 코드 호출을 허용하는 확장(예: <a class="reference internal" href="../library/ctypes.html#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a>)은 서브 인터프리터를 사용할 때 작동하지 않을 가능성이 높습니다.</p>
 </section>
 <section id="high-level-apis">
-<h2 data-msgid="3a945e4de6304d6bdbf4f30080b6be3140c870fe" data-score="0" data-since="260603">High-level APIs<a class="headerlink" href="#high-level-apis" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="3a945e4de6304d6bdbf4f30080b6be3140c870fe" data-since="260611">고수준 API<a class="headerlink" href="#high-level-apis" title="Link to this heading">¶</a></h2>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyInterpreterState">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState</span></span></span><a class="headerlink" href="#c.PyInterpreterState" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> (불투명한 구조체로).</em><p data-msgid="8a00decdb39046ccec01b3cc8de73b1ff5c4565c" data-score="0" data-since="260603">This data structure represents the state shared by a number of cooperating
-threads.  Threads belonging to the same interpreter share their module
-administration and a few other internal items. There are no public members in
-this structure.</p>
-<p data-msgid="2bd2ade3aea0e48d0e9ea01d7cf1f147f5cb6ee8" data-score="0" data-since="260603">Threads belonging to different interpreters initially share nothing, except
-process state like available memory, open file descriptors and such.  The global
-interpreter lock is also shared by all threads, regardless of to which
-interpreter they belong.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> (불투명한 구조체로).</em><p data-msgid="8a00decdb39046ccec01b3cc8de73b1ff5c4565c" data-since="260611">이 자료 구조는 여러 협력 스레드에 의해 공유되는 상태를 나타냅니다. 동일한 인터프리터에 속하는 스레드들은 모듈 관리와 몇 가지 다른 내부 항목을 공유합니다. 이 구조체에는 공개 멤버가 없습니다.</p>
+<p data-msgid="2bd2ade3aea0e48d0e9ea01d7cf1f147f5cb6ee8" data-since="260611">서로 다른 인터프리터에 속하는 스레드들은 처음에는 이용 가능한 메모리, 열린 파일 디스크립터 등과 같은 프로세스 상태를 제외하고는 아무것도 공유하지 않습니다. 글로벌 인터프리터 록 역시 어떤 인터프리터에 속하든 모든 스레드에 의해 공유됩니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.12에서 변경: </span><span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0684/"><strong>PEP 684</strong></a> introduced the possibility
-of a <a class="reference internal" href="#per-interpreter-gil"><span class="std std-ref">per-interpreter GIL</span></a>.
-See <a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a>.</p>
+<p><span class="versionmodified changed">버전 3.12에서 변경: </span><span class="target" id="index-20"></span><a class="pep reference external" href="https://peps.python.org/pep-0684/"><strong>PEP 684</strong></a> 는 <a class="reference internal" href="#per-interpreter-gil"><span class="std std-ref">인터프리터별 GIL</span></a> 가능성을 도입했습니다. <a class="reference internal" href="#c.Py_NewInterpreterFromConfig" title="Py_NewInterpreterFromConfig"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreterFromConfig()</span></code></a> 를 참조하십시오.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_Get">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_Get</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Get" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.9 이후로.</em><p data-msgid="e3206862e17408808f5a4a239bf3f8621ba0e197" data-score="0" data-since="260603">Get the current interpreter.</p>
-<p data-msgid="b57cb3750f890ee223f57bd3de8cbd70398c86e0" data-score="0" data-since="260608">Issue a fatal error if there is no <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.
-It cannot return NULL.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.9 이후로.</em><p data-msgid="e3206862e17408808f5a4a239bf3f8621ba0e197" data-since="260611">현재 인터프리터를 가져옵니다.</p>
+<p data-msgid="b57cb3750f890ee223f57bd3de8cbd70398c86e0" data-since="260611">:term:<a href="#id1"><span class="problematic" id="id2">`</span></a>첨부된 스레드 상태 &lt;attached thread state&gt;`가 없는 경우 치명적 오류를 발생시킵니다. NULL을 반환할 수 없습니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
 </div>
@@ -432,9 +294,8 @@ It cannot return NULL.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_GetID">
 <span class="n"><span class="pre">int64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_GetID</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_GetID" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="59e77d80f0ea04bf087a689f5d88f6a61e18dc95" data-score="0" data-since="260603">Return the interpreter’s unique ID.  If there was any error in doing
-so then <code class="docutils literal notranslate"><span class="pre">-1</span></code> is returned and an error is set.</p>
-<p data-msgid="48e2f00d5194fe217b73e579773f4cdf4df8931f" data-score="0" data-since="260603">The caller must have an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.7 이후로.</em><p data-msgid="59e77d80f0ea04bf087a689f5d88f6a61e18dc95" data-since="260611">인터프리터의 고유 ID를 반환합니다. 만약 이를 수행하는 데 오류가 있었다면 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 이 반환되고 오류가 설정됩니다.</p>
+<p data-msgid="48e2f00d5194fe217b73e579773f4cdf4df8931f" data-since="260611">호출자는 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>첨부된 스레드 상태 &lt;attached thread state&gt;`를 가지고 있어야 합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.7.</span></p>
 </div>
@@ -443,13 +304,9 @@ so then <code class="docutils literal notranslate"><span class="pre">-1</span></
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_GetDict">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_GetDict</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_GetDict" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="refcount return_borrowed_ref">반환값: 빌린 참조.</em><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.8 이후로.</em><p data-msgid="119075216ba903af49c1db1ccbf8264d2aa8144c" data-score="0" data-since="260603">Return a dictionary in which interpreter-specific data may be stored.
-If this function returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> then no exception has been raised and
-the caller should assume no interpreter-specific dict is available.</p>
-<p data-msgid="e2cfba11b2d76be1337146dfdfe3320c2f6a1cae" data-score="0" data-since="260603">This is not a replacement for <a class="reference internal" href="module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a>, which
-extensions should use to store interpreter-specific state information.</p>
-<p data-msgid="4948cedd21767cecb4b3e8924df987ae0b856fd9" data-score="0" data-since="260603">The returned dictionary is borrowed from the interpreter and is valid until
-interpreter shutdown.</p>
+<dd><em class="refcount return_borrowed_ref">반환값: 빌린 참조.</em><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.8 이후로.</em><p data-msgid="119075216ba903af49c1db1ccbf8264d2aa8144c" data-since="260611">인터프리터별 데이터를 저장할 수 있는 딕셔너리를 반환합니다. 이 함수가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환하면 예외가 발생하지 않았으며, 호출자는 인터프리터별 딕셔너리가 사용 가능하지 않다고 가정해야 합니다.</p>
+<p data-msgid="e2cfba11b2d76be1337146dfdfe3320c2f6a1cae" data-since="260611">이것은 확장 기능이 인터프리터별 상태 정보를 저장하는 데 사용해야 하는 <a href="#id1"><span class="problematic" id="id2">`</span></a>:c:func:<a href="#id3"><span class="problematic" id="id4">`</span></a>PyModule_GetState()`를 대체하는 것이 아닙니다.</p>
+<p data-msgid="4948cedd21767cecb4b3e8924df987ae0b856fd9" data-since="260611">반환되는 딕셔너리는 인터프리터에서 가져온 것이며, 인터프리터가 종료될 때까지 유효합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.8.</span></p>
 </div>
@@ -458,22 +315,21 @@ interpreter shutdown.</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c._PyFrameEvalFunction">
 <span class="k"><span class="pre">typedef</span></span><span class="w"> </span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">_PyFrameEvalFunction</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="frame.html#c._PyInterpreterFrame" title="_PyInterpreterFrame"><span class="n"><span class="pre">_PyInterpreterFrame</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">throwflag</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c._PyFrameEvalFunction" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="0480ee19c435dfe36e887539e146fe84b8fd3899" data-score="0" data-since="260603">Type of a frame evaluation function.</p>
-<p data-msgid="2b576d4799fc729cc0210d7b3a7db5764b6e51fb" data-score="0" data-since="260603">The <em>throwflag</em> parameter is used by the <code class="docutils literal notranslate"><span class="pre">throw()</span></code> method of generators:
-if non-zero, handle the current exception.</p>
-<div class="versionchanged" data-msgid="1add47157319daf8a293732fe8948cf0448ea886" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.9에서 변경: </span>The function now takes a <em>tstate</em> parameter.</p>
+<dd><p data-msgid="0480ee19c435dfe36e887539e146fe84b8fd3899" data-since="260611">프레임 평가 함수의 형식입니다.</p>
+<p data-msgid="2b576d4799fc729cc0210d7b3a7db5764b6e51fb" data-since="260611"><em>throwflag</em> 매개 변수는 제네레이터의 <code class="docutils literal notranslate"><span class="pre">throw()</span></code> 메서드에서 사용됩니다: 0이 아니면 현재 예외를 처리합니다.</p>
+<div class="versionchanged" data-msgid="1add47157319daf8a293732fe8948cf0448ea886" data-since="260611">
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>함수는 이제 <em>tstate</em> 매개 변수를 받습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="d1bf2c3c786e45f4453a921eb3d1fd7b682254d6" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.11에서 변경: </span>The <em>frame</em> parameter changed from <code class="docutils literal notranslate"><span class="pre">PyFrameObject*</span></code> to <code class="docutils literal notranslate"><span class="pre">_PyInterpreterFrame*</span></code>.</p>
+<div class="versionchanged" data-msgid="d1bf2c3c786e45f4453a921eb3d1fd7b682254d6" data-since="260611">
+<p><span class="versionmodified changed">버전 3.11에서 변경: </span><em>frame</em> 매개 변수가 <code class="docutils literal notranslate"><span class="pre">PyFrameObject*</span></code> 에서 <code class="docutils literal notranslate"><span class="pre">_PyInterpreterFrame*</span></code> 로 변경되었습니다.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c._PyInterpreterState_GetEvalFrameFunc">
 <a class="reference internal" href="#c._PyFrameEvalFunction" title="_PyFrameEvalFunction"><span class="n"><span class="pre">_PyFrameEvalFunction</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">_PyInterpreterState_GetEvalFrameFunc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c._PyInterpreterState_GetEvalFrameFunc" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="53374093d39a1ae94eed0f707ee957fec294deee" data-score="0" data-since="260603">Get the frame evaluation function.</p>
-<p data-msgid="75c101def377166e232defd5d5ec82e58218c785" data-score="0" data-since="260603">See the <span class="target" id="index-9"></span><a class="pep reference external" href="https://peps.python.org/pep-0523/"><strong>PEP 523</strong></a> “Adding a frame evaluation API to CPython”.</p>
+<dd><p data-msgid="53374093d39a1ae94eed0f707ee957fec294deee" data-since="260611">프레임 평가 함수를 가져옵니다.</p>
+<p data-msgid="75c101def377166e232defd5d5ec82e58218c785" data-since="260611"><span class="target" id="index-21"></span><a class="pep reference external" href="https://peps.python.org/pep-0523/"><strong>PEP 523</strong></a> “CPython에 프레임 평가 API 추가”를 참조하세요.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
 </div>
@@ -482,8 +338,8 @@ if non-zero, handle the current exception.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c._PyInterpreterState_SetEvalFrameFunc">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">_PyInterpreterState_SetEvalFrameFunc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="#c._PyFrameEvalFunction" title="_PyFrameEvalFunction"><span class="n"><span class="pre">_PyFrameEvalFunction</span></span></a><span class="w"> </span><span class="n"><span class="pre">eval_frame</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c._PyInterpreterState_SetEvalFrameFunc" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="08ef12106a4cc393c5156668359dc6ce9f30354d" data-score="0" data-since="260603">Set the frame evaluation function.</p>
-<p data-msgid="75c101def377166e232defd5d5ec82e58218c785" data-score="0" data-since="260603">See the <span class="target" id="index-10"></span><a class="pep reference external" href="https://peps.python.org/pep-0523/"><strong>PEP 523</strong></a> “Adding a frame evaluation API to CPython”.</p>
+<dd><p data-msgid="08ef12106a4cc393c5156668359dc6ce9f30354d" data-since="260611">프레임 평가 함수를 설정합니다.</p>
+<p data-msgid="75c101def377166e232defd5d5ec82e58218c785" data-since="260611"><span class="target" id="index-22"></span><a class="pep reference external" href="https://peps.python.org/pep-0523/"><strong>PEP 523</strong></a> “CPython에 프레임 평가 API 추가”를 참조하세요.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
 </div>
@@ -492,13 +348,8 @@ if non-zero, handle the current exception.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c._PyInterpreterState_SetEvalFrameAllowSpecialization">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">_PyInterpreterState_SetEvalFrameAllowSpecialization</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allow_specialization</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c._PyInterpreterState_SetEvalFrameAllowSpecialization" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="7293d1a750ebb53772d4e3848d50b35e6e9eebab" data-score="0" data-since="260608">Enables or disables specialization why a custom frame evaluator is in place.</p>
-<p data-msgid="427c17f9d370467c767c5cb8c1ec900904f498b3" data-score="0" data-since="260608">If <em>allow_specialization</em> is non-zero, the adaptive specializer will
-continue to specialize bytecodes even though a custom eval frame function
-is set. When <em>allow_specialization</em> is zero, setting a custom eval frame
-disables specialization. The standard interpreter loop will continue to deopt
-while a frame evaluation API is in place - the frame evaluation function needs
-to handle the specialized opcodes to take advantage of this.</p>
+<dd><p data-msgid="7293d1a750ebb53772d4e3848d50b35e6e9eebab" data-since="260611">사용자 정의 프레임 평가기(evaluator)가 설정되어 있는지 여부를 활성화하거나 비활성화합니다.</p>
+<p data-msgid="427c17f9d370467c767c5cb8c1ec900904f498b3" data-since="260611"><em>allow_specialization</em> 이 0이 아니면, 사용자 정의 eval 프레임 함수가 설정되어 있더라도 적응형 특수화기(adaptive specializer)는 바이트코드를 계속 특수화합니다. <em>allow_specialization</em> 이 0이면, 사용자 정의 eval 프레임 함수를 설정해도 특수화는 비활성화됩니다. 표준 인터프리터 루프는 프레임 평가 API가 있는 동안 계속해서 deopt할 것이므로, 프레임 평가 함수는 특수화된 opcode를 처리해야 이점을 얻을 수 있습니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
@@ -507,9 +358,7 @@ to handle the specialized opcodes to take advantage of this.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c._PyInterpreterState_IsSpecializationEnabled">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">_PyInterpreterState_IsSpecializationEnabled</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c._PyInterpreterState_IsSpecializationEnabled" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="8640759d4cb44fbdd0add8aacb2d44fdfb81d7e3" data-score="0" data-since="260608">Return non-zero if adaptive specialization is enabled for the interpreter.
-Specialization is enabled when no custom eval frame function is set, or
-when one is set with <em>allow_specialization</em> enabled.</p>
+<dd><p data-msgid="8640759d4cb44fbdd0add8aacb2d44fdfb81d7e3" data-since="260611">인터프리터에 대해 적응형 특수화가 활성화되어 있으면 0이 아닌 값을 반환합니다. 사용자 정의 eval 프레임 함수가 설정되지 않았거나 <em>allow_specialization</em> 이 활성화된 경우 특수화가 활성화됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
@@ -517,8 +366,8 @@ when one is set with <em>allow_specialization</em> enabled.</p>
 
 </section>
 <section id="low-level-apis">
-<h2 data-msgid="b38b638f8a783319921b9ded343024596436ca9a" data-score="0" data-since="260603">Low-level APIs<a class="headerlink" href="#low-level-apis" title="Link to this heading">¶</a></h2>
-<p data-msgid="cd6cefbec6eb0bea4d99adfdbb7617034b2b153f" data-score="0" data-since="260603">All of the following functions must be called after <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>.</p>
+<h2 data-msgid="b38b638f8a783319921b9ded343024596436ca9a" data-since="260611">저수준 API<a class="headerlink" href="#low-level-apis" title="Link to this heading">¶</a></h2>
+<p data-msgid="cd6cefbec6eb0bea4d99adfdbb7617034b2b153f" data-since="260611">다음 모든 함수는 <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a> 다음에 호출되어야 합니다.</p>
 <div class="versionchanged" data-msgid="3602b2058d23f214991f7c2c3e56072ee281d8c0" data-score="0" data-since="260603">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span><a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a> now initializes the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>
 and sets an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
@@ -526,63 +375,55 @@ and sets an <a class="reference internal" href="../glossary.html#term-attached-t
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_New">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_New</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_New" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="d6374bd67f1a81ab3eb6137197613db253eb00f1" data-score="0" data-since="260603">Create a new interpreter state object.  An <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> is not needed,
-but may optionally exist if it is necessary to serialize calls to this
-function.</p>
-<p class="audit-hook" data-msgid="2dabda2efa1b488b25771d37fdaa481697261bf0" data-score="0" data-since="260603">Raises an <a class="reference internal" href="../library/sys.html#auditing"><span class="std std-ref">auditing event</span></a> <code class="docutils literal notranslate"><span class="pre">cpython.PyInterpreterState_New</span></code> with no arguments.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="d6374bd67f1a81ab3eb6137197613db253eb00f1" data-since="260611">새로운 인터프리터 상태 객체를 생성합니다. :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`는 필요하지 않지만, 이 함수에 대한 호출을 직렬화해야 하는 경우 선택적으로 존재할 수 있습니다.</p>
+<p class="audit-hook" data-msgid="2dabda2efa1b488b25771d37fdaa481697261bf0" data-since="260611">인자 없이 <a class="reference internal" href="../library/sys.html#auditing"><span class="std std-ref">auditing event</span></a> <code class="docutils literal notranslate"><span class="pre">cpython.PyInterpreterState_New</span></code> 를 발생시킵니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_Clear">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_Clear</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Clear" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="bc70f2e2e214fc58c999a3ce0f58ffa3b4f0a4f6" data-score="0" data-since="260603">Reset all information in an interpreter state object.  There must be
-an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> for the interpreter.</p>
-<p class="audit-hook" data-msgid="eabadfcf26ee8b9b8da2c9bf390ad8b395818793" data-score="0" data-since="260603">Raises an <a class="reference internal" href="../library/sys.html#auditing"><span class="std std-ref">auditing event</span></a> <code class="docutils literal notranslate"><span class="pre">cpython.PyInterpreterState_Clear</span></code> with no arguments.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="bc70f2e2e214fc58c999a3ce0f58ffa3b4f0a4f6" data-since="260611">인터프리터 상태 객체의 모든 정보를 재설정합니다. 인터프리터에는 반드시 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`가 있어야 합니다.</p>
+<p class="audit-hook" data-msgid="eabadfcf26ee8b9b8da2c9bf390ad8b395818793" data-since="260611">인자 없이 <a class="reference internal" href="../library/sys.html#auditing"><span class="std std-ref">auditing event</span></a> <code class="docutils literal notranslate"><span class="pre">cpython.PyInterpreterState_Clear</span></code> 를 발생시킵니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_Delete">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_Delete</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Delete" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="361c18e64a938cea115388b7b1316b574e074290" data-score="0" data-since="260603">Destroy an interpreter state object.  There <strong>should not</strong> be an
-<a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> for the target interpreter. The interpreter
-state must have been reset with a previous call to <a class="reference internal" href="#c.PyInterpreterState_Clear" title="PyInterpreterState_Clear"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Clear()</span></code></a>.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="361c18e64a938cea115388b7b1316b574e074290" data-since="260611">인터프리터 상태 객체를 파괴합니다. 대상 인터프리터에 <span class="xref std std-term">attached thread state`가 **있어서는 안 됩니다**. 인터프리터 상태는 :c:func:`PyInterpreterState_Clear</span> 호출로 이전에 재설정되었어야 합니다.</p>
 </dd></dl>
 
 </section>
 <section id="advanced-debugger-support">
-<span id="advanced-debugging"></span><h2 data-msgid="d9daf94507db895b8a9a83c026cfd0094e83418f" data-score="0" data-since="260608">Advanced debugger support<a class="headerlink" href="#advanced-debugger-support" title="Link to this heading">¶</a></h2>
-<p data-msgid="ac2c6c60a26266cbbe52d901b95a45e3ab2d3a58" data-score="0" data-since="260603">These functions are only intended to be used by advanced debugging tools.</p>
+<span id="advanced-debugging"></span><h2 data-msgid="d9daf94507db895b8a9a83c026cfd0094e83418f" data-since="260611">고급 디버거 지원<a class="headerlink" href="#advanced-debugger-support" title="Link to this heading">¶</a></h2>
+<p data-msgid="ac2c6c60a26266cbbe52d901b95a45e3ab2d3a58" data-since="260611">이 함수들은 고급 디버깅 도구에서만 사용하도록 의도되었습니다.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_Head">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_Head</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Head" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="8f394d06a8e772056e3fdb753f33da570e018d8f" data-score="0" data-since="260603">Return the interpreter state object at the head of the list of all such objects.</p>
+<dd><p data-msgid="8f394d06a8e772056e3fdb753f33da570e018d8f" data-since="260611">모든 객체 목록의 맨 위에 있는 인터프리터 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_Main">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_Main</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Main" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="758f6c1fb66db2fbeefdc3d06ed4e2fdfbdff9fe" data-score="0" data-since="260603">Return the main interpreter state object.</p>
+<dd><p data-msgid="758f6c1fb66db2fbeefdc3d06ed4e2fdfbdff9fe" data-since="260611">메인 인터프리터 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_Next">
 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_Next</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_Next" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="99d671c24715fa1443821f2882e574bcfdcd78dc" data-score="0" data-since="260603">Return the next interpreter state object after <em>interp</em> from the list of all
-such objects.</p>
+<dd><p data-msgid="99d671c24715fa1443821f2882e574bcfdcd78dc" data-since="260611">모든 객체 목록에서 <em>interp</em> 다음의 다음 인터프리터 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyInterpreterState_ThreadHead">
 <a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyInterpreterState_ThreadHead</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyInterpreterState_ThreadHead" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="09b2f1cfb188d544e52355d44bb30a079e790310" data-score="0" data-since="260603">Return the pointer to the first <a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> object in the list of
-threads associated with the interpreter <em>interp</em>.</p>
+<dd><p data-msgid="09b2f1cfb188d544e52355d44bb30a079e790310" data-since="260611">인터프리터 <em>interp</em> 와 관련된 스레드 목록에서 첫 번째 <a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> 객체에 대한 포인터를 반환합니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_Next">
 <a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_Next</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="threads.html#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Next" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="229014633a0db6451bae1f1fd1ef8a69a303c874" data-score="0" data-since="260603">Return the next thread state object after <em>tstate</em> from the list of all such
-objects belonging to the same <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> object.</p>
+<dd><p data-msgid="229014633a0db6451bae1f1fd1ef8a69a303c874" data-since="260611">동일한 <a class="reference internal" href="#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> 객체에 속하는 모든 객체 목록에서 <em>tstate</em> 다음의 다음 스레드 상태 객체를 반환합니다.</p>
 </dd></dl>
 
 </section>
@@ -590,17 +431,17 @@ objects belonging to the same <a class="reference internal" href="#c.PyInterpret
 <div class="lost-and-found-section">
     <h4>분실물 보관소</h4>
     <div class="lost-and-found-items">
-        <span data-msgid="084e602145f274e9b60a8d207f38cfc446a4f14d" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="3802004be6e6a36f15ac6a6aabe42d2960b2e037" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="3a64a9fca18e24c6cc560c53c3603d38f21d45e1" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="59b0189029b8cc75e8a05033d3f39dda6b88bd1d" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="7c6e3d10c096afb3f1c102d6d8da5941c5e52f45" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="8021e7df07d6c14b89cbc875509ae035ff9c8667" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="826dab006f0627593734a5e9670d593c62f7ab73" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="b4c56ee8d2854166dec66644f541b85247105b2c" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="bd1dc6f71297c711fd62c63df1bdbc3f49918cb3" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="fad28f982babf46e5392013a4f23a6b15076b81b" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="fbd34a2b6e6a9fe8161f97dc435642609ac0bc29" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+        <span data-msgid="084e602145f274e9b60a8d207f38cfc446a4f14d" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="3802004be6e6a36f15ac6a6aabe42d2960b2e037" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="3a64a9fca18e24c6cc560c53c3603d38f21d45e1" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="59b0189029b8cc75e8a05033d3f39dda6b88bd1d" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="7c6e3d10c096afb3f1c102d6d8da5941c5e52f45" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="8021e7df07d6c14b89cbc875509ae035ff9c8667" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="826dab006f0627593734a5e9670d593c62f7ab73" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="b4c56ee8d2854166dec66644f541b85247105b2c" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="bd1dc6f71297c711fd62c63df1bdbc3f49918cb3" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="fad28f982babf46e5392013a4f23a6b15076b81b" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="fbd34a2b6e6a9fe8161f97dc435642609ac0bc29" data-since="260611" class="lost-and-found-item"></span>
     </div>
 </div>
 
