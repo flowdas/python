@@ -23,7 +23,7 @@
     <link rel="prev" title="타이머 파일 디스크립터 사용법" href="timerfd.html" />
     
       
-      <link rel="canonical" href="https://python.flowdas.com/howto/mro.html">
+      <link rel="canonical" href="https://docs.python.org/3/howto/mro.html">
       
     
 
@@ -77,12 +77,12 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">파이썬 2.3 메서드 결정 순서</a><ul>
-<li><a class="reference internal" href="#the-beginning">The beginning</a></li>
-<li><a class="reference internal" href="#the-c3-method-resolution-order">The C3 Method Resolution Order</a></li>
-<li><a class="reference internal" href="#examples">Examples</a></li>
-<li><a class="reference internal" href="#bad-method-resolution-orders">Bad Method Resolution Orders</a></li>
-<li><a class="reference internal" href="#the-end">The end</a></li>
-<li><a class="reference internal" href="#resources">Resources</a></li>
+<li><a class="reference internal" href="#the-beginning">시작</a></li>
+<li><a class="reference internal" href="#the-c3-method-resolution-order">C3 메서드 결정 순서</a></li>
+<li><a class="reference internal" href="#examples">예제</a></li>
+<li><a class="reference internal" href="#bad-method-resolution-orders">잘못된 메서드 결정 순서</a></li>
+<li><a class="reference internal" href="#the-end">끝</a></li>
+<li><a class="reference internal" href="#resources">자료</a></li>
 </ul>
 </li>
 </ul>
@@ -126,33 +126,21 @@
 <p data-msgid="e52127ab04e57b8f31a6eb3a21893ba1d9046c9a" data-score="100" data-since="260611">Michele Simionato 작성. (<a class="reference external" href="https://www.phyast.pitt.edu/~micheles/">https://www.phyast.pitt.edu/~micheles/</a>)</p>
 <dl class="field-list simple">
 <dt class="field-odd">개요<span class="colon">:</span></dt>
-<dd class="field-odd"><p data-msgid="b8e212e85195717554659392703966ed21af6973" data-score="0" data-since="260603"><em>This document is intended for Python programmers who want to
-understand the C3 Method Resolution Order used in Python 2.3.
-Although it is not intended for newbies, it is quite pedagogical with
-many worked out examples.  I am not aware of other publicly available
-documents with the same scope, therefore it should be useful.</em></p>
+<dd class="field-odd"><p data-msgid="b8e212e85195717554659392703966ed21af6973" data-since="260611"><em>이 문서는 Python 2.3에서 사용되는 C3 메서드 결정 순서에 대해 이해하고자 하는 Python 프로그래머를 위한 것입니다. 초보자에게 의도된 것은 아니지만, 많은 예시를 통해 상당히 교육적입니다. 저는 동일한 범위를 가진 다른 공개적으로 사용 가능한 문서를 알지 못하므로, 유용할 것입니다.</em></p>
 </dd>
 </dl>
-<p data-msgid="7f874ced60563f83d28f2df2d03c0de6fcba4ab8" data-score="0" data-since="260603">Disclaimer:</p>
+<p data-msgid="7f874ced60563f83d28f2df2d03c0de6fcba4ab8" data-since="260611">면책 조항:</p>
 <blockquote>
-<div><p data-msgid="05e68baa004a09cf0536f73911ae4ae4bdd6a5df" data-score="0" data-since="260603"><em>I donate this document to the Python Software Foundation, under the
-Python 2.3 license.  As usual in these circumstances, I warn the
-reader that what follows</em> should <em>be correct, but I don’t give any
-warranty.  Use it at your own risk and peril!</em></p>
+<div><p data-msgid="05e68baa004a09cf0536f73911ae4ae4bdd6a5df" data-since="260611"><em>저는 이 문서를 Python Software Foundation에 Python 2.3 라이선스 기준으로 기증합니다. 평소와 같이, 저는 독자에게 다음 내용이</em> 정확해야 <em>한다고 경고하지만, 어떠한 보증도 하지 않습니다. 독자님의 자체적인 위험과 책임하에 사용하십시오!</em></p>
 </div></blockquote>
-<p data-msgid="0340e6600600e36dbb7a439e0b3a902e6610c5dd" data-score="0" data-since="260603">Acknowledgments:</p>
+<p data-msgid="0340e6600600e36dbb7a439e0b3a902e6610c5dd" data-since="260611">감사의 글:</p>
 <blockquote>
-<div><p data-msgid="27cf031fd9d2b66ae850f39101ad652582a3ce7a" data-score="0" data-since="260603"><em>All the people of the Python mailing list who sent me their support.
-Paul Foley who pointed out various imprecisions and made me to add the
-part on local precedence ordering. David Goodger for help with the
-formatting in reStructuredText. David Mertz for help with the editing.
-Finally, Guido van Rossum who enthusiastically added this document to
-the official Python 2.3 home-page.</em></p>
+<div><p data-msgid="27cf031fd9d2b66ae850f39101ad652582a3ce7a" data-since="260611"><em>저의 지원을 보내준 Python 메일링 리스트의 모든 분들께. 다양한 부정확한 점을 지적하고 로컬 우선순위 순서에 대한 부분을 추가하게 해준 Paul Foley님께. reStructuredText 서식 지정에 도움을 준 David Goodger님께. 편집에 도움을 준 David Mertz님께. 마지막으로, 이 문서를 공식 Python 2.3 홈페이지에 열정적으로 추가해주신 Guido van Rossum님께.</em></p>
 </div></blockquote>
 <section id="the-beginning">
-<h2 data-msgid="207e16af4e5210b0e3d91db94a56a984ecbe98bf" data-score="0" data-since="260603">The beginning<a class="headerlink" href="#the-beginning" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="207e16af4e5210b0e3d91db94a56a984ecbe98bf" data-since="260611">시작<a class="headerlink" href="#the-beginning" title="Link to this heading">¶</a></h2>
 <blockquote>
-<div><p data-msgid="580b622cb064424899fbc7c2e3bde3453c96acff" data-score="0" data-since="260603"><em>Felix qui potuit rerum cognoscere causas</em> – Virgilius</p>
+<div><p data-msgid="580b622cb064424899fbc7c2e3bde3453c96acff" data-since="260611"><em>Felix qui potuit rerum cognoscere causas</em> – Virgilius</p>
 </div></blockquote>
 <p data-msgid="97fc4c9a424e4ff8b1ecf551bf4c8fc54f989542" data-score="0" data-since="260603">Everything started with a post by Samuele Pedroni to the Python
 development mailing list <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.  In his post, Samuele showed that the
@@ -164,54 +152,21 @@ on Dylan and it is described in a paper intended for lispers <a class="footnote-
 present paper gives a (hopefully) readable discussion of the C3
 algorithm for Pythonistas who want to understand the reasons for the
 change.</p>
-<p data-msgid="0cf8da00c5d894fb75dd6c4dec9d460e97a58803" data-score="0" data-since="260603">First of all, let me point out that what I am going to say only applies
-to the <em>new style classes</em> introduced in Python 2.2:  <em>classic classes</em>
-maintain their old method resolution order, depth first and then left to
-right.  Therefore, there is no breaking of old code for classic classes;
-and even if in principle there could be breaking of code for Python 2.2
-new style classes, in practice the cases in which the C3 resolution
-order differs from the Python 2.2 method resolution order are so rare
-that no real breaking of code is expected.  Therefore:</p>
+<p data-msgid="0cf8da00c5d894fb75dd6c4dec9d460e97a58803" data-since="260611">우선, 제가 말씀드릴 내용은 Python 2.2에서 도입된 <em>새 스타일 클래스</em> 에만 적용된다는 점을 말씀드립니다: <em>클래식 클래스</em> 는 기존의 메서드 결정 순서를 유지하며, 깊이 우선 탐색 후 왼쪽에서 오른쪽 순서를 따릅니다. 따라서 클래식 클래스의 경우 기존 코드를 깨뜨리는 부분은 없습니다. 그리고 원칙적으로 Python 2.2 새 스타일 클래스의 경우 코드가 깨질 가능성이 있다 하더라도, C3 결정 순서가 Python 2.2의 메서드 결정 순서와 다른 경우는 매우 드물어서 실제 코드 깨짐은 예상되지 않습니다. 그러므로:</p>
 <blockquote>
-<div><p data-msgid="c2dcfc8042b03b3e57f974c7849306973018e178" data-score="0" data-since="260603"><em>Don’t be scared!</em></p>
+<div><p data-msgid="c2dcfc8042b03b3e57f974c7849306973018e178" data-since="260611"><em>무서워하지 마세요!</em></p>
 </div></blockquote>
-<p data-msgid="fd453c87e1db8fcaab9a25b9d76caf8705ed3c53" data-score="0" data-since="260603">Moreover, unless you make strong use of multiple inheritance and you
-have non-trivial hierarchies, you don’t need to understand the C3
-algorithm, and you can easily skip this paper.  On the other hand, if
-you really want to know how multiple inheritance works, then this paper
-is for you.  The good news is that things are not as complicated as you
-might expect.</p>
-<p data-msgid="b2616708bdf46edb3ff53990e21215bd2e28d368" data-score="0" data-since="260603">Let me begin with some basic definitions.</p>
+<p data-msgid="fd453c87e1db8fcaab9a25b9d76caf8705ed3c53" data-since="260611">게다가, 다중 상속을 강력하게 사용하거나 복잡한 계층 구조가 없다면 C3 알고리즘을 이해할 필요가 없으며, 이 논문을 쉽게 건너뛸 수 있습니다. 반면에, 다중 상속이 어떻게 작동하는지 정말 알고 싶다면 이 논문이 적합합니다. 좋은 소식은 예상했던 것만큼 복잡하지 않다는 것입니다.</p>
+<p data-msgid="b2616708bdf46edb3ff53990e21215bd2e28d368" data-since="260611">몇 가지 기본적인 정의부터 시작해 보겠습니다.</p>
 <ol class="arabic simple">
-<li><p data-msgid="017cda729b41b7f941b80ab481ff85e8902d2043" data-score="0" data-since="260603">Given a class C in a complicated multiple inheritance hierarchy, it
-is a non-trivial task to specify the order in which methods are
-overridden, i.e. to specify the order of the ancestors of C.</p></li>
-<li><p data-msgid="36046ed1e5c217ece8a2327ef83c74bfa10c1ca4" data-score="0" data-since="260603">The list of the ancestors of a class C, including the class itself,
-ordered from the nearest ancestor to the furthest, is called the
-class precedence list or the <em>linearization</em> of C.</p></li>
-<li><p data-msgid="e87a234d3e4f1d49c4e58265ea7081b9e0b6ac4f" data-score="0" data-since="260603">The <em>Method Resolution Order</em> (MRO) is the set of rules that
-construct the linearization.  In the Python literature, the idiom
-“the MRO of C” is also used as a synonymous for the linearization of
-the class C.</p></li>
-<li><p data-msgid="aa13201087ceb9c5a4e3337e83ae72670fa95aaa" data-score="0" data-since="260603">For instance, in the case of single inheritance hierarchy, if C is a
-subclass of C1, and C1 is a subclass of C2, then the linearization of
-C is simply the list [C, C1 , C2].  However, with multiple
-inheritance hierarchies, the construction of the linearization is
-more cumbersome, since it is more difficult to construct a
-linearization that respects <em>local precedence ordering</em> and
-<em>monotonicity</em>.</p></li>
-<li><p data-msgid="47e0625dea194c4c6dd667931a45e68d3f386e45" data-score="0" data-since="260603">I will discuss the local precedence ordering later, but I can give
-the definition of monotonicity here.  A MRO is monotonic when the
-following is true:  <em>if C1 precedes C2 in the linearization of C,
-then C1 precedes C2 in the linearization of any subclass of C</em>.
-Otherwise, the innocuous operation of deriving a new class could
-change the resolution order of methods, potentially introducing very
-subtle bugs.  Examples where this happens will be shown later.</p></li>
-<li><p data-msgid="6e3cb84395f8473e82cfbab046fd1d3ebc07a0ff" data-score="0" data-since="260603">Not all classes admit a linearization.  There are cases, in
-complicated hierarchies, where it is not possible to derive a class
-such that its linearization respects all the desired properties.</p></li>
+<li><p data-msgid="017cda729b41b7f941b80ab481ff85e8902d2043" data-since="260611">복잡한 다중 상속 계층에 속한 클래스 C의 경우, 메서드가 재정의되는 순서, 즉 C의 조상들의 순서를 지정하는 것은 까다로운 작업입니다.</p></li>
+<li><p data-msgid="36046ed1e5c217ece8a2327ef83c74bfa10c1ca4" data-since="260611">클래스 자체를 포함하여 클래스 C의 조상들의 목록을 가장 가까운 조상부터 가장 먼 조상까지의 순서로 배열한 것을 클래스 우선순위 목록 또는 C의 <em>선형화</em> 라고 합니다.</p></li>
+<li><p data-msgid="e87a234d3e4f1d49c4e58265ea7081b9e0b6ac4f" data-since="260611"><em>메서드 결정 순서</em> (MRO)는 선형화를 구성하는 규칙들의 집합입니다. 파이썬 문헌에서는 “C의 MRO”라는 관용구가 종종 클래스 C의 선형화와 동의어로 사용됩니다.</p></li>
+<li><p data-msgid="aa13201087ceb9c5a4e3337e83ae72670fa95aaa" data-since="260611">예를 들어, 단일 상속 계층의 경우, C가 C1의 서브클래스이고 C1이 C2의 서브클래스라면, C의 선형화는 단순히 [C, C1 , C2] 목록입니다. 하지만 다중 상속 계층에서는 <em>지역 우선순위 순서</em> 와 <em>단조성</em> 을 모두 존중하는 선형화를 구성하는 것이 더 까다롭습니다.</p></li>
+<li><p data-msgid="47e0625dea194c4c6dd667931a45e68d3f386e45" data-since="260611">지역 우선순위 순서는 나중에 논하겠습니다만, 여기서는 단조성의 정의를 할 수 있습니다. MRO는 다음이 참일 때 단조롭다고 합니다: <em>만약 C의 선형화에서 C1이 C2보다 먼저 오면, C의 모든 서브클래스의 선형화에서도 C1이 C2보다 먼저 와야 한다</em>. 그렇지 않으면, 단순히 새 클래스를 파생시키는 사소한 작업이라도 메서드의 결정 순서를 변경하여 매우 미묘한 버그를 유발할 수 있습니다. 이러한 현상이 발생하는 예시는 나중에 보여드리겠습니다.</p></li>
+<li><p data-msgid="6e3cb84395f8473e82cfbab046fd1d3ebc07a0ff" data-since="260611">모든 클래스가 선형화를 가질 수 있는 것은 아닙니다. 복잡한 계층 구조에서는 원하는 모든 속성을 존중하는 방식으로 클래스를 파생시키는 것이 불가능한 경우가 있습니다.</p></li>
 </ol>
-<p data-msgid="f0613f14fcccbada87aca2e2bb0405a1a2848af1" data-score="0" data-since="260603">Here I give an example of this situation. Consider the hierarchy</p>
+<p data-msgid="f0613f14fcccbada87aca2e2bb0405a1a2848af1" data-since="260611">여기서는 이러한 상황의 예시를 보여드리겠습니다. 다음 계층 구조를 고려해 보세요:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">O</span> <span class="o">=</span> <span class="nb">object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">X</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Y</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -219,9 +174,7 @@ such that its linearization respects all the desired properties.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="n">X</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="7435b8caa884f87f2fe09d2e4b5e03cb67c8b83c" data-score="0" data-since="260603">which can be represented with the following inheritance graph, where I
-have denoted with O the <code class="docutils literal notranslate"><span class="pre">object</span></code> class, which is the beginning of any
-hierarchy for new style classes:</p>
+<p data-msgid="7435b8caa884f87f2fe09d2e4b5e03cb67c8b83c" data-since="260611">이것은 다음과 같은 상속 그래프로 표현할 수 있으며, 여기서 저는 O로 새로운 스타일 클래스의 모든 계층 구조의 시작점인 “object” 클래스를 표시했습니다:</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="1b3ae689fc834e7045babace61e842117008c0ac" data-score="100" data-since="260607"><div class="highlight"><pre><span></span> -----------
 |           |
@@ -236,81 +189,56 @@ hierarchy for new style classes:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="10c93e8df97ffc2dd6a4fc7a39692216dee2f4e6" data-score="0" data-since="260603">In this case, it is not possible to derive a new class C from A and B,
-since X precedes Y in A, but Y precedes X in B, therefore the method
-resolution order would be ambiguous in C.</p>
-<p data-msgid="f0eb263c89e3b7d30035ac5842efa7d6293e052c" data-score="0" data-since="260603">Python 2.3 raises an exception in this situation (TypeError:  MRO
-conflict among bases Y, X) forbidding the naive programmer from creating
-ambiguous hierarchies.  Python 2.2 instead does not raise an exception,
-but chooses an <em>ad hoc</em> ordering (CABXYO in this case).</p>
+<p data-msgid="10c93e8df97ffc2dd6a4fc7a39692216dee2f4e6" data-since="260611">이 경우, A에서 B를 파생시킬 수 없습니다. 왜냐하면 X가 A에서 Y보다 먼저 오지만, B에서는 Y가 X보다 먼저 오기 때문에 C의 메서드 결정 순서가 모호해지기 때문입니다.</p>
+<p data-msgid="f0eb263c89e3b7d30035ac5842efa7d6293e052c" data-since="260611">Python 2.3은 이 상황에서 예외를 발생시켜 (TypeError: MRO conflict among bases Y, X) 초보 개발자가 모호한 계층 구조를 만드는 것을 금지합니다. 반면 Python 2.2는 예외를 발생시키지 않고 <em>임시적인</em> 순서(이 경우 CABXYO)를 선택합니다.</p>
 </section>
 <section id="the-c3-method-resolution-order">
-<h2 data-msgid="e2f3a90686e9299cc4b13bcc20a662618a034e69" data-score="0" data-since="260603">The C3 Method Resolution Order<a class="headerlink" href="#the-c3-method-resolution-order" title="Link to this heading">¶</a></h2>
-<p data-msgid="ec702382bc2ac2e2f76a4dd3dc204f38dc5de4a2" data-score="0" data-since="260603">Let me introduce a few simple notations which will be useful for the
-following discussion.  I will use the shortcut notation:</p>
-<div class="highlight-python3 notranslate" data-msgid="16461d449e52a740e2839c9ba20be2ba87bb0787" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
+<h2 data-msgid="e2f3a90686e9299cc4b13bcc20a662618a034e69" data-since="260611">C3 메서드 결정 순서<a class="headerlink" href="#the-c3-method-resolution-order" title="Link to this heading">¶</a></h2>
+<p data-msgid="ec702382bc2ac2e2f76a4dd3dc204f38dc5de4a2" data-since="260611">다음 논의에 유용할 몇 가지 간단한 표기법을 소개하겠습니다. 여기서는 이 줄임 표기법을 사용하겠습니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="16461d449e52a740e2839c9ba20be2ba87bb0787" data-since="260611"><div class="highlight"><pre><span></span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
 </pre></div>
 </div>
-<p data-msgid="3d5aff83b8181249d7c7953cdbac6e1604a4c3f2" data-score="0" data-since="260603">to indicate the list of classes [C1, C2, … , CN].</p>
-<p data-msgid="cfc53a4f74597265fc8d65625a13050356c411a8" data-score="0" data-since="260603">The <em>head</em> of the list is its first element:</p>
-<div class="highlight-python3 notranslate" data-msgid="fc912c42fdde12c2b71e2551756875de9335bb5a" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">head</span> <span class="o">=</span> <span class="n">C1</span>
+<p data-msgid="3d5aff83b8181249d7c7953cdbac6e1604a4c3f2" data-since="260611">은 [C1, C2, … , CN] 목록을 나타냅니다.</p>
+<p data-msgid="cfc53a4f74597265fc8d65625a13050356c411a8" data-since="260611">이 목록의 <em>머리</em> 는 첫 번째 요소입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="fc912c42fdde12c2b71e2551756875de9335bb5a" data-since="260611"><div class="highlight"><pre><span></span><span class="n">head</span> <span class="o">=</span> <span class="n">C1</span>
 </pre></div>
 </div>
-<p data-msgid="0102f4c86b716401ae5bd6f1fc00b25906c6f391" data-score="0" data-since="260603">whereas the <em>tail</em> is the rest of the list:</p>
-<div class="highlight-python3 notranslate" data-msgid="1ce7d08474d1f368e667d04b098e34cb79fcedde" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="o">=</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="o">.</span>
+<p data-msgid="0102f4c86b716401ae5bd6f1fc00b25906c6f391" data-since="260611">반면에 <em>꼬리</em> 는 목록의 나머지를 나타냅니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="1ce7d08474d1f368e667d04b098e34cb79fcedde" data-since="260611"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="o">=</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="o">.</span>
 </pre></div>
 </div>
-<p data-msgid="3bbb82da06e50030bc45ca174b890735bc4b66c2" data-score="0" data-since="260603">I shall also use the notation:</p>
-<div class="highlight-python3 notranslate" data-msgid="26155d973265c038d5352f39d21f8013599578fd" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">C</span> <span class="o">+</span> <span class="p">(</span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
+<p data-msgid="3bbb82da06e50030bc45ca174b890735bc4b66c2" data-since="260611">또한 다음 표기법도 사용하겠습니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="26155d973265c038d5352f39d21f8013599578fd" data-since="260611"><div class="highlight"><pre><span></span><span class="n">C</span> <span class="o">+</span> <span class="p">(</span><span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="n">C1</span> <span class="n">C2</span> <span class="o">...</span> <span class="n">CN</span>
 </pre></div>
 </div>
-<p data-msgid="9d12e5b4df5555ee96616aaa650f38e439469a6f" data-score="0" data-since="260603">to denote the sum of the lists [C] + [C1, C2, … ,CN].</p>
-<p data-msgid="b228baae251d50d49c61e74c2a1b0adca5ae52e9" data-score="0" data-since="260603">Now I can explain how the MRO works in Python 2.3.</p>
-<p data-msgid="8a88253753f2d11ed54628e777ab4bbbea3bb5cd" data-score="0" data-since="260603">Consider a class C in a multiple inheritance hierarchy, with C
-inheriting from the base classes B1, B2, …  , BN.  We want to
-compute the linearization L[C] of the class C. The rule is the
-following:</p>
+<p data-msgid="9d12e5b4df5555ee96616aaa650f38e439469a6f" data-since="260611">이는 [C] + [C1, C2, … ,CN] 목록의 합을 나타냅니다.</p>
+<p data-msgid="b228baae251d50d49c61e74c2a1b0adca5ae52e9" data-since="260611">이제 Python 2.3에서 MRO가 어떻게 작동하는지 설명할 수 있습니다.</p>
+<p data-msgid="8a88253753f2d11ed54628e777ab4bbbea3bb5cd" data-since="260611">B1, B2, … , BN 베이스 클래스들로부터 상속받는 다중 상속 계층의 클래스 C를 고려해 보겠습니다. 우리는 클래스 C의 선형화 L[C]를 계산하고자 합니다. 규칙은 다음과 같습니다:</p>
 <blockquote>
-<div><p data-msgid="65a3b501fd6175728a5e6e4b405f50f669a5c0bd" data-score="0" data-since="260603"><em>the linearization of C is the sum of C plus the merge of the
-linearizations of the parents and the list of the parents.</em></p>
+<div><p data-msgid="65a3b501fd6175728a5e6e4b405f50f669a5c0bd" data-since="260611">C의 선형화는 C에 부모들의 선형화 합치와 부모들의 리스트 합친 것과 같습니다.</p>
 </div></blockquote>
-<p data-msgid="4e2cc371e9cc94f02c9e9e836311e5eaa5603767" data-score="0" data-since="260603">In symbolic notation:</p>
-<div class="highlight-python3 notranslate" data-msgid="55a50d3a0d75e5f88a30d90776252cc33872f50b" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B1</span><span class="p">]</span> <span class="o">...</span> <span class="n">L</span><span class="p">[</span><span class="n">BN</span><span class="p">],</span> <span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)</span>
+<p data-msgid="4e2cc371e9cc94f02c9e9e836311e5eaa5603767" data-since="260611">기호 표기법으로:</p>
+<div class="highlight-python3 notranslate" data-msgid="55a50d3a0d75e5f88a30d90776252cc33872f50b" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B1</span><span class="p">]</span> <span class="o">...</span> <span class="n">L</span><span class="p">[</span><span class="n">BN</span><span class="p">],</span> <span class="n">B1</span> <span class="o">...</span> <span class="n">BN</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="b0fb99e55c387ea73ef8a9b9e10a4f5113c1dc88" data-score="0" data-since="260603">In particular, if C is the <code class="docutils literal notranslate"><span class="pre">object</span></code> class, which has no parents, the
-linearization is trivial:</p>
-<div class="highlight-python3 notranslate" data-msgid="d1a5a7c8322c48eca3cb07472ae9c7db67167102" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span>
+<p data-msgid="b0fb99e55c387ea73ef8a9b9e10a4f5113c1dc88" data-since="260611">특히 C가 부모가 없는 <code class="docutils literal notranslate"><span class="pre">object</span></code> 클래스라면, 선형화는 자명합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="d1a5a7c8322c48eca3cb07472ae9c7db67167102" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span>
 </pre></div>
 </div>
-<p data-msgid="1e504a8014c031c8b0c6618a4c323b3ccdab9cd3" data-score="0" data-since="260603">However, in general one has to compute the merge according to the following
-prescription:</p>
+<p data-msgid="1e504a8014c031c8b0c6618a4c323b3ccdab9cd3" data-since="260611">하지만 일반적으로는 다음 규정에 따라 merge를 계산해야 합니다:</p>
 <blockquote>
-<div><p data-msgid="1c403ed83f3ceca9ca2eea93c774bfbbc13153c7" data-score="0" data-since="260603"><em>take the head of the first list, i.e L[B1][0]; if this head is not in
-the tail of any of the other lists, then add it to the linearization
-of C and remove it from the lists in the merge, otherwise look at the
-head of the next list and take it, if it is a good head.  Then repeat
-the operation until all the class are removed or it is impossible to
-find good heads.  In this case, it is impossible to construct the
-merge, Python 2.3 will refuse to create the class C and will raise an
-exception.</em></p>
+<div><p data-msgid="1c403ed83f3ceca9ca2eea93c774bfbbc13153c7" data-since="260611"><em>첫 번째 리스트의 헤드, 즉 L[B1][0]를 가져옵니다. 이 헤드가 다른 어떤 리스트의 테일에 포함되어 있지 않다면, 이를 C의 선형화에 추가하고 merge의 리스트에서 제거합니다. 그렇지 않다면, 다음 리스트의 헤드를 보고 좋은 헤드인지 확인한 다음 가져옵니다. 이 작업을 모든 클래스가 제거되거나 좋은 헤드를 찾을 수 없게 될 때까지 반복합니다. 이 경우, merge를 구성하는 것은 불가능하며, Python 2.3은 클래스 C를 생성하는 것을 거부하고 예외를 발생시킵니다.</em></p>
 </div></blockquote>
-<p data-msgid="3fd0282a58977a73bf52aa00c5caff4a7cc81c1c" data-score="0" data-since="260603">This prescription ensures that the merge operation <em>preserves</em> the
-ordering, if the ordering can be preserved.  On the other hand, if the
-order cannot be preserved (as in the example of serious order
-disagreement discussed above) then the merge cannot be computed.</p>
-<p data-msgid="8c145a1a0ea38f6499b1cd4fc9e6dd83503aa5d7" data-score="0" data-since="260603">The computation of the merge is trivial if C has only one parent
-(single inheritance); in this case:</p>
-<div class="highlight-python3 notranslate" data-msgid="91d1242a885fc789023c1221f9524b2d033ef1dc" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">],</span><span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span>
+<p data-msgid="3fd0282a58977a73bf52aa00c5caff4a7cc81c1c" data-since="260611">이 규정은 merge 연산이 순서성을 <em>보존</em> 함을 보장합니다. 단, 순서성을 보존할 수 없는 경우(위에서 논의된 심각한 순서 불일치 예시와 같이)는 merge를 계산할 수 없습니다.</p>
+<p data-msgid="8c145a1a0ea38f6499b1cd4fc9e6dd83503aa5d7" data-since="260611">만약 C가 부모가 하나뿐인 경우(단일 상속) merge 계산은 자명합니다. 이 경우:</p>
+<div class="highlight-python3 notranslate" data-msgid="91d1242a885fc789023c1221f9524b2d033ef1dc" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">(</span><span class="n">B</span><span class="p">)]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">],</span><span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span>
 </pre></div>
 </div>
-<p data-msgid="a409b1d691694eb80cbf01e020c9f621d6db9a36" data-score="0" data-since="260603">However, in the case of multiple inheritance things are more cumbersome
-and I don’t expect you can understand the rule without a couple of
-examples ;-)</p>
+<p data-msgid="a409b1d691694eb80cbf01e020c9f621d6db9a36" data-since="260611">하지만 다중 상속의 경우 상황이 더 복잡하며, 몇 가지 예시 없이는 규칙을 이해하기 어렵다고 생각하지 않습니다 😉</p>
 </section>
 <section id="examples">
-<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="0" data-since="260603">Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
-<p data-msgid="484d6ec6265f52d190f871ed2ea38fbcfd60cd22" data-score="0" data-since="260603">First example. Consider the following hierarchy:</p>
+<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-since="260611">예제<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p data-msgid="484d6ec6265f52d190f871ed2ea38fbcfd60cd22" data-since="260611">첫 번째 예제입니다. 다음과 같은 위계 구조를 고려해 주십시오:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">O</span> <span class="o">=</span> <span class="nb">object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">E</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -320,7 +248,7 @@ examples ;-)</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="462d2a121c5180ad1c923ab14f83cb95d47797b3" data-score="0" data-since="260603">In this case the inheritance graph can be drawn as:</p>
+<p data-msgid="462d2a121c5180ad1c923ab14f83cb95d47797b3" data-since="260611">이 경우 상속 그래프는 다음과 같이 그릴 수 있습니다:</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="70d514ca272f8d1fc1e7f8d8b1a19130d8591984" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>                          6
                          ---
@@ -346,33 +274,29 @@ Level 0                 0 | A |                (more specialized)
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="4887f0ae39d192c4bb9dd3d21dcc9b09ddadaf0a" data-score="0" data-since="260603">The linearizations of O,D,E and F are trivial:</p>
+<p data-msgid="4887f0ae39d192c4bb9dd3d21dcc9b09ddadaf0a" data-since="260611">O, D, E, F의 선형화는 자명합니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="88afc7a78fb45629e09f4b87b164ac73f7f16cee" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">O</span><span class="p">]</span> <span class="o">=</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">E</span><span class="p">]</span> <span class="o">=</span> <span class="n">E</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">F</span><span class="p">]</span> <span class="o">=</span> <span class="n">F</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="219e6c2de799448855e902df89eee34cf6ddc0a2" data-score="0" data-since="260603">The linearization of B can be computed as:</p>
-<div class="highlight-python3 notranslate" data-msgid="6d4a2b49eb76a458a34161ae0a8f61944aad5bd3" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span> <span class="n">EO</span><span class="p">,</span> <span class="n">DE</span><span class="p">)</span>
+<p data-msgid="219e6c2de799448855e902df89eee34cf6ddc0a2" data-since="260611">B의 선형화는 다음과 같이 계산할 수 있습니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="6d4a2b49eb76a458a34161ae0a8f61944aad5bd3" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span> <span class="n">EO</span><span class="p">,</span> <span class="n">DE</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="73c197df43a4db69795d7c3f11573a7493da9a84" data-score="0" data-since="260603">We see that D is a good head, therefore we take it and we are reduced to
-compute <code class="docutils literal notranslate"><span class="pre">merge(O,EO,E)</span></code>.  Now O is not a good head, since it is in the
-tail of the sequence EO.  In this case the rule says that we have to
-skip to the next sequence.  Then we see that E is a good head; we take
-it and we are reduced to compute <code class="docutils literal notranslate"><span class="pre">merge(O,O)</span></code> which gives O. Therefore:</p>
-<div class="highlight-python3 notranslate" data-msgid="326bc1b2b28050486d080dced9880088441cd963" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span>  <span class="n">B</span> <span class="n">D</span> <span class="n">E</span> <span class="n">O</span>
+<p data-msgid="73c197df43a4db69795d7c3f11573a7493da9a84" data-since="260611">D가 좋은 헤드임을 확인할 수 있으므로, 이를 가져오고 <code class="docutils literal notranslate"><span class="pre">merge(O,EO,E)</span></code> 를 계산하는 것으로 축소됩니다. 이제 O는 순서 EO의 테일에 포함되어 있으므로 좋은 헤드가 아닙니다. 이 경우 규칙은 다음 순서로 건너뛰어야 한다고 말합니다. 다음으로 E가 좋은 헤드임 것을 확인하고, 이를 가져와 <code class="docutils literal notranslate"><span class="pre">merge(O,O)</span></code> 를 계산하는 것으로 축소되며, 이는 O를 반환합니다. 따라서:</p>
+<div class="highlight-python3 notranslate" data-msgid="326bc1b2b28050486d080dced9880088441cd963" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">D</span> <span class="n">E</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="c2b6e361d2870bc7f9703b2f090f23b0f7fe1e53" data-score="0" data-since="260603">Using the same procedure one finds:</p>
+<p data-msgid="c2b6e361d2870bc7f9703b2f090f23b0f7fe1e53" data-since="260611">동일한 절차를 사용하면 다음을 얻을 수 있습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="b67de5ebd8f07b7b9aa85f44fbd519e7654153f5" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DO</span><span class="p">,</span><span class="n">FO</span><span class="p">,</span><span class="n">DF</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">O</span><span class="p">,</span><span class="n">FO</span><span class="p">,</span><span class="n">F</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span> <span class="o">+</span> <span class="n">F</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">O</span><span class="p">,</span><span class="n">O</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="n">D</span> <span class="n">F</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="acd6b5feb77bf2d4493d17bd5fe291148f022b16" data-score="0" data-since="260603">Now we can compute:</p>
+<p data-msgid="acd6b5feb77bf2d4493d17bd5fe291148f022b16" data-since="260611">이제 계산할 수 있습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="3da8bfb7879033558d4e6a858f78efb52376c266" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">A</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">BDEO</span><span class="p">,</span><span class="n">CDFO</span><span class="p">,</span><span class="n">BC</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DEO</span><span class="p">,</span><span class="n">CDFO</span><span class="p">,</span><span class="n">C</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">DEO</span><span class="p">,</span><span class="n">DFO</span><span class="p">)</span>
@@ -382,12 +306,8 @@ it and we are reduced to compute <code class="docutils literal notranslate"><spa
      <span class="o">=</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span> <span class="n">D</span> <span class="n">E</span> <span class="n">F</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="c6316882965a62695a511ac5bb28059d61ddf2f1" data-score="0" data-since="260603">In this example, the linearization is ordered in a pretty nice way
-according to the inheritance level, in the sense that lower levels (i.e.
-more specialized classes) have higher precedence (see the inheritance
-graph).  However, this is not the general case.</p>
-<p data-msgid="f41f1473a86849411ae3917e0d86881bd3b0847c" data-score="0" data-since="260603">I leave as an exercise for the reader to compute the linearization for
-my second example:</p>
+<p data-msgid="c6316882965a62695a511ac5bb28059d61ddf2f1" data-since="260611">이 예제에서는 선형화가 상속 레벨에 따라 매우 보기 좋은 순서로 정렬되어 있습니다. 즉, 하위 레벨(더 전문화된 클래스)이 더 높은 우선순위를 갖습니다(상속 그래프 참조). 그러나 이것이 일반적인 경우는 아닙니다.</p>
+<p data-msgid="f41f1473a86849411ae3917e0d86881bd3b0847c" data-since="260611">독자들에게 저의 두 번째 예제에 대한 선형화를 계산하는 숙제를 드립니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">O</span> <span class="o">=</span> <span class="nb">object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">E</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -397,9 +317,7 @@ my second example:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="cd123d782fbcc9905b25090a3aefba1f9e7df691" data-score="0" data-since="260603">The only difference with the previous example is the change B(D,E) –&gt;
-B(E,D); however even such a little modification completely changes the
-ordering of the hierarchy:</p>
+<p data-msgid="cd123d782fbcc9905b25090a3aefba1f9e7df691" data-since="260611">이전 예제와 유일한 차이점은 B(D,E)가 B(E,D)로 변경되었다는 점입니다. 하지만 이런 작은 수정만으로도 위계의 순서가 완전히 바뀝니다:</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="1775ceb8dce27423589d456a8753077b9875b811" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>                           6
                           ---
@@ -425,21 +343,15 @@ Level 0                0 | A |
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="00cc6316f8d5dd1eae3a3b6e8b4d1282bcb611fe" data-score="0" data-since="260603">Notice that the class E, which is in the second level of the hierarchy,
-precedes the class C, which is in the first level of the hierarchy, i.e.
-E is more specialized than C, even if it is in a higher level.</p>
-<p data-msgid="150e0d5df457769296a11dde915d17e3568202dd" data-score="0" data-since="260603">A lazy programmer can obtain the MRO directly from Python 2.2, since in
-this case it coincides with the Python 2.3 linearization.  It is enough
-to invoke the <a class="reference internal" href="../reference/datamodel.html#type.mro" title="type.mro"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mro()</span></code></a> method of class A:</p>
+<p data-msgid="00cc6316f8d5dd1eae3a3b6e8b4d1282bcb611fe" data-since="260611">계층 구조의 두 번째 레벨에 있는 클래스 E가 첫 번째 레벨에 있는 클래스 C 앞에 온다는 점에 주목하세요. 즉, E는 높은 레벨에 있더라도 C보다 더 전문화되어 있습니다.</p>
+<p data-msgid="150e0d5df457769296a11dde915d17e3568202dd" data-since="260611">게으른 프로그래머는 Python 2.2에서 MRO를 직접 얻을 수 있는데, 이 경우 Python 2.3의 선형화와 일치하기 때문입니다. 클래스 A의 <a class="reference internal" href="../reference/datamodel.html#type.mro" title="type.mro"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mro()</span></code></a> 메서드를 호출하기만 하면 됩니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">mro</span><span class="p">()</span>
 <span class="go">[&lt;class &#39;A&#39;&gt;, &lt;class &#39;B&#39;&gt;, &lt;class &#39;E&#39;&gt;,</span>
 <span class="go">&lt;class &#39;C&#39;&gt;, &lt;class &#39;D&#39;&gt;, &lt;class &#39;F&#39;&gt;,</span>
 <span class="go">&lt;class &#39;object&#39;&gt;]</span>
 </pre></div>
 </div>
-<p data-msgid="d3cad6a38849a434a38c1c21d6457d279e92c400" data-score="0" data-since="260603">Finally, let me consider the example discussed in the first section,
-involving a serious order disagreement.  In this case, it is
-straightforward to compute the linearizations of O, X, Y, A and B:</p>
+<p data-msgid="d3cad6a38849a434a38c1c21d6457d279e92c400" data-since="260611">마지막으로, 심각한 순서 불일치를 포함하는 첫 번째 섹션에서 논의된 예제를 생각해 보겠습니다. 이 경우, O, X, Y, A, B의 선형화를 계산하는 것은 간단합니다:</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="226059bbfef1663993d9b64f2bd419e98277b9d9" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>L[O] = 0
 L[X] = X O
@@ -449,32 +361,24 @@ L[B] = B Y X O
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="8f7a4efb30ea6d9c4fdbd976c0196e94f6f9135c" data-score="0" data-since="260603">However, it is impossible to compute the linearization for a class C
-that inherits from A and B:</p>
+<p data-msgid="8f7a4efb30ea6d9c4fdbd976c0196e94f6f9135c" data-since="260611">하지만 A와 B로부터 상속받는 클래스 C의 선형화를 계산하는 것은 불가능합니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="74ec1cf309dd4cd72684d395b6920320c3213362" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">AXYO</span><span class="p">,</span> <span class="n">BYXO</span><span class="p">,</span> <span class="n">AB</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">A</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">XYO</span><span class="p">,</span> <span class="n">BYXO</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
      <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span> <span class="o">+</span> <span class="n">merge</span><span class="p">(</span><span class="n">XYO</span><span class="p">,</span> <span class="n">YXO</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="8a3be765aa02e73b836fc214c76beebe5a008ab1" data-score="0" data-since="260603">At this point we cannot merge the lists XYO and YXO, since X is in the
-tail of YXO whereas Y is in the tail of XYO:  therefore there are no
-good heads and the C3 algorithm stops.  Python 2.3 raises an error and
-refuses to create the class C.</p>
+<p data-msgid="8a3be765aa02e73b836fc214c76beebe5a008ab1" data-since="260611">이 시점에서 우리는 X가 YXO의 테일에 있고 Y가 XYO의 테일에 있기 때문에 리스트 XYO와 YXO를 merge할 수 없습니다. 따라서 좋은 헤드가 없으며 C3 알고리즘은 중지됩니다. Python 2.3은 오류를 발생시키고 클래스 C의 생성을 거부합니다.</p>
 </section>
 <section id="bad-method-resolution-orders">
-<h2 data-msgid="08e495be47b6ce7f9b3ab3d7f81071e149f27abc" data-score="0" data-since="260603">Bad Method Resolution Orders<a class="headerlink" href="#bad-method-resolution-orders" title="Link to this heading">¶</a></h2>
-<p data-msgid="81e34021e3a9a3f7b98dbae6f0905a7d2d7399a6" data-score="0" data-since="260603">A MRO is <em>bad</em> when it breaks such fundamental properties as local
-precedence ordering and monotonicity.  In this section, I will show
-that both the MRO for classic classes and the MRO for new style classes
-in Python 2.2 are bad.</p>
-<p data-msgid="5010fa2009ad9103d8f074911c180f2cd8b4fb58" data-score="0" data-since="260603">It is easier to start with the local precedence ordering.  Consider the
-following example:</p>
+<h2 data-msgid="08e495be47b6ce7f9b3ab3d7f81071e149f27abc" data-since="260611">잘못된 메서드 결정 순서<a class="headerlink" href="#bad-method-resolution-orders" title="Link to this heading">¶</a></h2>
+<p data-msgid="81e34021e3a9a3f7b98dbae6f0905a7d2d7399a6" data-since="260611">MRO가 국소 우선순서 순서나 단조성과 같은 근본적인 속성을 깨뜨릴 때 <em>나쁩니다</em>. 이 섹션에서는 클래식 클래스에 대한 MRO와 Python 2.2의 새로운 스타일 클래스에 대한 MRO 모두 나쁘다는 것을 보여드리겠습니다.</p>
+<p data-msgid="5010fa2009ad9103d8f074911c180f2cd8b4fb58" data-since="260611">국소 우선순서 순서로 시작하는 것이 더 쉽습니다. 다음 예제를 고려해 보십시오:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;Food&#39;</span><span class="p">,(),{</span><span class="s1">&#39;remember2buy&#39;</span><span class="p">:</span><span class="s1">&#39;spam&#39;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">E</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;Eggs&#39;</span><span class="p">,(</span><span class="n">F</span><span class="p">,),{</span><span class="s1">&#39;remember2buy&#39;</span><span class="p">:</span><span class="s1">&#39;eggs&#39;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">G</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;GoodFood&#39;</span><span class="p">,(</span><span class="n">F</span><span class="p">,</span><span class="n">E</span><span class="p">),{})</span> <span class="c1"># under Python 2.3 this is an error!</span>
 </pre></div>
 </div>
-<p data-msgid="b91aca82f29a070a65c0cfe0afd9cb8a78297549" data-score="0" data-since="260603">with inheritance diagram</p>
+<p data-msgid="b91aca82f29a070a65c0cfe0afd9cb8a78297549" data-since="260611">상속 다이어그램</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="64105dd73e11b98c5ea9a16dbaa6b5bef1b4519b" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>             O
              |
@@ -488,25 +392,16 @@ following example:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="51096cc966bcc7796034156224119afd8adac840" data-score="0" data-since="260603">We see that class G inherits from F and E, with F <em>before</em> E:  therefore
-we would expect the attribute <em>G.remember2buy</em> to be inherited by
-<em>F.remember2buy</em> and not by <em>E.remember2buy</em>:  nevertheless Python 2.2
-gives</p>
+<p data-msgid="51096cc966bcc7796034156224119afd8adac840" data-since="260611">클래스 G는 F와 E를 상속받으며, F가 E <em>보다 먼저</em> 옵니다: 따라서 우리는 속성 <em>G.remember2buy</em> 가 <em>F.remember2buy</em> 로부터 상속되고 <em>E.remember2buy</em> 로부터 상속되지 않을 것이라고 예상합니다: 그럼에도 불구하고 Python 2.2는</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">G</span><span class="o">.</span><span class="n">remember2buy</span>
 <span class="go">&#39;eggs&#39;</span>
 </pre></div>
 </div>
-<p data-msgid="1cecf4d60b2eb18c1c161e6de15270df3a6da01d" data-score="0" data-since="260603">This is a breaking of local precedence ordering since the order in the
-local precedence list, i.e. the list of the parents of G, is not
-preserved in the Python 2.2 linearization of G:</p>
-<div class="highlight-python3 notranslate" data-msgid="e6c23bd98ff204d0e2e8c52d324585e9dcffe11e" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">G</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span><span class="o">=</span> <span class="n">G</span> <span class="n">E</span> <span class="n">F</span> <span class="nb">object</span>   <span class="c1"># F *follows* E</span>
+<p data-msgid="1cecf4d60b2eb18c1c161e6de15270df3a6da01d" data-since="260611">이는 로컬 선행 순서(local precedence ordering)를 깨뜨리는 것입니다. 왜냐하면 로컬 선행 목록, 즉 G의 부모 목록의 순서가 Python 2.2의 G 선형화 과정에서 보존되지 않기 때문입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="e6c23bd98ff204d0e2e8c52d324585e9dcffe11e" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">G</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span><span class="o">=</span> <span class="n">G</span> <span class="n">E</span> <span class="n">F</span> <span class="nb">object</span>   <span class="c1"># F는 E *다음*입니다</span>
 </pre></div>
 </div>
-<p data-msgid="b30bf48dcf085d2d0c1e2f1dc7649a7bebe58026" data-score="0" data-since="260603">One could argue that the reason why F follows E in the Python 2.2
-linearization is that F is less specialized than E, since F is the
-superclass of E; nevertheless the breaking of local precedence ordering
-is quite non-intuitive and error prone.  This is particularly true since
-it is a different from old style classes:</p>
+<p data-msgid="b30bf48dcf085d2d0c1e2f1dc7649a7bebe58026" data-since="260611">F가 E의 슈퍼클래스이기 때문에 F가 E보다 덜 특화되었다고 주장할 수 있습니다. 그럼에도 불구하고 로컬 선행 순서의 파괴는 상당히 직관적이지 않고 오류가 발생하기 쉽습니다. 특히 구형 스타일의 클래스와는 다르기 때문에 더욱 그렇습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">:</span> <span class="n">remember2buy</span><span class="o">=</span><span class="s1">&#39;spam&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">E</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="n">remember2buy</span><span class="o">=</span><span class="s1">&#39;eggs&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">G</span><span class="p">(</span><span class="n">F</span><span class="p">,</span><span class="n">E</span><span class="p">):</span> <span class="k">pass</span>
@@ -514,22 +409,13 @@ it is a different from old style classes:</p>
 <span class="go">&#39;spam&#39;</span>
 </pre></div>
 </div>
-<p data-msgid="9037b3d570201280a2ff53be48f1360cc9c7375b" data-score="0" data-since="260603">In this case the MRO is GFEF and the local precedence ordering is
-preserved.</p>
-<p data-msgid="607103506183b1240d8b1dc48b07b22d59ac6a24" data-score="0" data-since="260603">As a general rule, hierarchies such as the previous one should be
-avoided, since it is unclear if F should override E or vice-versa.
-Python 2.3 solves the ambiguity by raising an exception in the creation
-of class G, effectively stopping the programmer from generating
-ambiguous hierarchies.  The reason for that is that the C3 algorithm
-fails when the merge:</p>
-<div class="highlight-python3 notranslate" data-msgid="9072c53b0da99fbf52806b2787852c192a2d7216" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">merge</span><span class="p">(</span><span class="n">FO</span><span class="p">,</span><span class="n">EFO</span><span class="p">,</span><span class="n">FE</span><span class="p">)</span>
+<p data-msgid="9037b3d570201280a2ff53be48f1360cc9c7375b" data-since="260611">이 경우 MRO는 GFEF이며 로컬 선행 순서가 유지됩니다.</p>
+<p data-msgid="607103506183b1240d8b1dc48b07b22d59ac6a24" data-since="260611">일반적으로는 이전과 같은 계층 구조를 피해야 합니다. 왜냐하면 F가 E를 오버라이드해야 하는지 아니면 그 반대인지 불분명하기 때문입니다. Python 2.3은 클래스 G 생성 시 예외를 발생시켜 이 모호성을 해결하며, 사실상 프로그래머가 모호한 계층 구조 생성을 막습니다. 그 이유는 merge::를 할 때 C3 알고리즘이 실패하기 때문입니다.</p>
+<div class="highlight-python3 notranslate" data-msgid="9072c53b0da99fbf52806b2787852c192a2d7216" data-since="260611"><div class="highlight"><pre><span></span><span class="n">merge</span><span class="p">(</span><span class="n">FO</span><span class="p">,</span><span class="n">EFO</span><span class="p">,</span><span class="n">FE</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="7099a0b228acb537c8038b126d1a86679ece83fb" data-score="0" data-since="260603">cannot be computed, because F is in the tail of EFO and E is in the tail
-of FE.</p>
-<p data-msgid="bf0a6769f65784bffbeb73cdd6d0e88c88b1652f" data-score="0" data-since="260603">The real solution is to design a non-ambiguous hierarchy, i.e. to derive
-G from E and F (the more specific first) and not from F and E; in this
-case the MRO is GEF without any doubt.</p>
+<p data-msgid="7099a0b228acb537c8038b126d1a86679ece83fb" data-since="260611">계산될 수 없습니다. 왜냐하면 F는 EFO의 꼬리(tail)에 있고 E는 FE의 꼬리(tail)에 있기 때문입니다.</p>
+<p data-msgid="bf0a6769f65784bffbeb73cdd6d0e88c88b1652f" data-since="260611">진짜 해결책은 모호하지 않은 계층 구조를 설계하는 것입니다. 즉, G를 F와 E(더 특수한 것부터)로부터 파생시키고 F와 E로부터 파생시키지 않는 것입니다. 이 경우 MRO는 의심할 여지 없이 GEF입니다.</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="61b59aeb69c53852ef7017f1ec864d6970ef9271" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>           O
            |
@@ -542,11 +428,8 @@ case the MRO is GEF without any doubt.</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="f768b42e4e32aa96dff46243768c0b1c408b976f" data-score="0" data-since="260603">Python 2.3 forces the programmer to write good hierarchies (or, at
-least, less error-prone ones).</p>
-<p data-msgid="497ba4076b6e745fdca57794e825a611c0157dce" data-score="0" data-since="260603">On a related note, let me point out that the Python 2.3 algorithm is
-smart enough to recognize obvious mistakes, as the duplication of
-classes in the list of parents:</p>
+<p data-msgid="f768b42e4e32aa96dff46243768c0b1c408b976f" data-since="260611">Python 2.3은 프로그래머가 좋은 계층 구조(또는 적어도 오류가 덜 발생할 수 있는 구조)를 작성하도록 강제합니다.</p>
+<p data-msgid="497ba4076b6e745fdca57794e825a611c0157dce" data-since="260611">관련하여 말씀드리자면, Python 2.3 알고리즘이 부모 목록의 클래스 중복을 인식할 만큼 충분히 똑똑하다는 점을 말씀드리겠습니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">C</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">A</span><span class="p">):</span> <span class="k">pass</span> <span class="c1"># error</span>
 <span class="gt">Traceback (most recent call last):</span>
@@ -554,22 +437,14 @@ classes in the list of parents:</p>
 <span class="gr">TypeError</span>: <span class="n">duplicate base class A</span>
 </pre></div>
 </div>
-<p data-msgid="de79b3f1b0b100233f0f0b43a336915ff2526fe4" data-score="0" data-since="260603">Python 2.2 (both for classic classes and new style classes) in this
-situation, would not raise any exception.</p>
-<p data-msgid="ba565c677ef59c23e3f826d1c43e7fa18df18743" data-score="0" data-since="260603">Finally, I would like to point out two lessons we have learned from this
-example:</p>
+<p data-msgid="de79b3f1b0b100233f0f0b43a336915ff2526fe4" data-since="260611">이 상황에서 Python 2.2(클래식 클래스 및 새로운 스타일 클래스 모두)는 예외를 발생시키지 않습니다.</p>
+<p data-msgid="ba565c677ef59c23e3f826d1c43e7fa18df18743" data-since="260611">마지막으로, 이 예제를 통해 우리가 배운 두 가지 교훈을 말씀드리겠습니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="6a4adfc998c0771ca303afae4ad43c6333e41cdd" data-score="0" data-since="260603">despite the name, the MRO determines the resolution order of
-attributes, not only of methods;</p></li>
-<li><p data-msgid="1e80b14c30c6051ea8dda0bf5c50b3135fbdfed7" data-score="0" data-since="260603">the default food for Pythonistas is spam !  (but you already knew
-that ;-)</p></li>
+<li><p data-msgid="6a4adfc998c0771ca303afae4ad43c6333e41cdd" data-since="260611">이름과는 달리, MRO는 메서드뿐만 아니라 속성의 해결 순서를 결정합니다;</p></li>
+<li><p data-msgid="1e80b14c30c6051ea8dda0bf5c50b3135fbdfed7" data-since="260611">Python 개발자들에게 인기 있는 음식은 스팸입니다! (이미 알고 계시겠지만 ;-))</p></li>
 </ol>
-<p data-msgid="833c3d1305bf9d677924d27c3f20755bb8e1abf0" data-score="0" data-since="260603">Having discussed the issue of local precedence ordering, let me now
-consider the issue of monotonicity.  My goal is to show that neither the
-MRO for classic classes nor that for Python 2.2 new style classes is
-monotonic.</p>
-<p data-msgid="d58ef645364f31e06303a6fd764ed9321a63749a" data-score="0" data-since="260603">To prove that the MRO for classic classes is non-monotonic is rather
-trivial, it is enough to look at the diamond diagram:</p>
+<p data-msgid="833c3d1305bf9d677924d27c3f20755bb8e1abf0" data-since="260611">로컬 선행 순서 이슈에 대해 논의했으니, 이제 단조성(monotonicity) 이슈를 살펴보겠습니다. 저의 목표는 클래식 클래스의 MRO와 Python 2.2 새로운 스타일 클래스의 MRO 모두 단조롭지 않다는 것을 보여주는 것입니다.</p>
+<p data-msgid="d58ef645364f31e06303a6fd764ed9321a63749a" data-since="260611">클래식 클래스의 MRO가 비단조롭다는 것을 증명하는 것은 매우 간단합니다. 다이아몬드 다이어그램을 살펴보는 것만으로 충분합니다:</p>
 <blockquote>
 <div><div class="highlight-text notranslate" data-msgid="0d51e298814ac2bfaca198338e2cf4b0c223c0fe" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>   C
   / \
@@ -581,14 +456,13 @@ A     B
 </pre></div>
 </div>
 </div></blockquote>
-<p data-msgid="b9fae8b4c4ebd22fc87208c97bc86dc6ee9f3bf8" data-score="0" data-since="260603">One easily discerns the inconsistency:</p>
-<div class="highlight-python3 notranslate" data-msgid="25c965713d764b356a727a2dd539adea55f604d6" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">C</span>        <span class="c1"># B precedes C : B&#39;s methods win</span>
-<span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">C</span> <span class="n">B</span> <span class="n">C</span>  <span class="c1"># B follows C  : C&#39;s methods win!</span>
+<p data-msgid="b9fae8b4c4ebd22fc87208c97bc86dc6ee9f3bf8" data-since="260611">불일치를 쉽게 알 수 있습니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="25c965713d764b356a727a2dd539adea55f604d6" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">C</span>        <span class="c1"># B가 C보다 선행합니다 : B의 메서드가 우선합니다</span>
+<span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">,</span><span class="n">P21</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">C</span> <span class="n">B</span> <span class="n">C</span>  <span class="c1"># B가 C보다 후행합니다  : C의 메서드가 우선합니다!</span>
 </pre></div>
 </div>
-<p data-msgid="1cbb847a4dbf4051e2d0f0c920254c7f557aa270" data-score="0" data-since="260603">On the other hand, there are no problems with the Python 2.2 and 2.3
-MROs, they give both:</p>
-<div class="highlight-python3 notranslate" data-msgid="7fc3690a3d57cde2f554b0cc0084f5b2d8cc3f88" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span>
+<p data-msgid="1cbb847a4dbf4051e2d0f0c920254c7f557aa270" data-since="260611">한편으로는, Python 2.2와 2.3 MRO에는 문제가 없습니다. 둘 다 제공합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="7fc3690a3d57cde2f554b0cc0084f5b2d8cc3f88" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">D</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span>
 </pre></div>
 </div>
 <p data-msgid="bc8e84321589562c8a2928a8f5f1ed3535586dbc" data-score="0" data-since="260603">Guido points out in his essay <a class="footnote-reference brackets" href="#id6" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> that the classic MRO is not so bad in
@@ -596,9 +470,7 @@ practice, since one can typically avoids diamonds for classic classes.
 But all new style classes inherit from <code class="docutils literal notranslate"><span class="pre">object</span></code>, therefore diamonds are
 unavoidable and inconsistencies shows up in every multiple inheritance
 graph.</p>
-<p data-msgid="f8b4e5e81809a77962121a7df0225084f2b5b7c0" data-score="0" data-since="260603">The MRO of Python 2.2 makes breaking monotonicity difficult, but not
-impossible.  The following example, originally provided by Samuele
-Pedroni, shows that the MRO of Python 2.2 is non-monotonic:</p>
+<p data-msgid="f8b4e5e81809a77962121a7df0225084f2b5b7c0" data-since="260611">Python 2.2의 MRO는 단조성을 깨뜨리기 어렵게 만들지만, 불가능하지는 않습니다. 다음 예제는 Samuele Pedroni가 originally 제공한 것이며, Python 2.2의 MRO가 비단조롭다는 것을 보여줍니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">C</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="k">pass</span>
@@ -610,9 +482,7 @@ Pedroni, shows that the MRO of Python 2.2 is non-monotonic:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Z</span><span class="p">(</span><span class="n">K1</span><span class="p">,</span><span class="n">K2</span><span class="p">,</span><span class="n">K3</span><span class="p">):</span> <span class="k">pass</span>
 </pre></div>
 </div>
-<p data-msgid="d6071c1bb4cce7fede53c4ba0ce76d193fe92903" data-score="0" data-since="260603">Here are the linearizations according to the C3 MRO (the reader should
-verify these linearizations as an exercise and draw the inheritance
-diagram ;-)</p>
+<p data-msgid="d6071c1bb4cce7fede53c4ba0ce76d193fe92903" data-since="260611">다음은 C3 MRO에 따른 선형화(linearizations)입니다. (독자는 연습 문제로 이 선형화 과정들을 확인하고 상속 다이어그램을 그려보시기 바랍니다 😉):</p>
 <div class="highlight-python3 notranslate" data-msgid="90f4d59aeec0d41e79cc775c82e0bb5cdad66217" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">A</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span> <span class="n">O</span>
 <span class="n">L</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span> <span class="n">O</span>
@@ -624,56 +494,37 @@ diagram ;-)</p>
 <span class="n">L</span><span class="p">[</span><span class="n">Z</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span> <span class="n">K1</span> <span class="n">K2</span> <span class="n">K3</span> <span class="n">D</span> <span class="n">A</span> <span class="n">B</span> <span class="n">C</span> <span class="n">E</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="c853ef09faab5dd9d9f287984db9b45ea59c91b9" data-score="0" data-since="260603">Python 2.2 gives exactly the same linearizations for A, B, C, D, E, K1,
-K2 and K3, but a different linearization for Z:</p>
-<div class="highlight-python3 notranslate" data-msgid="1dca42408536ad2ce9d57e96c77e97794274944e" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">Z</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span> <span class="n">K1</span> <span class="n">K3</span> <span class="n">A</span> <span class="n">K2</span> <span class="n">D</span> <span class="n">B</span> <span class="n">C</span> <span class="n">E</span> <span class="n">O</span>
+<p data-msgid="c853ef09faab5dd9d9f287984db9b45ea59c91b9" data-since="260611">Python 2.2는 A, B, C, D, E, K1, K2, K3에 대해 정확히 같은 선형화를 제공하지만, Z에 대해서는 다른 선형화를 제공합니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="1dca42408536ad2ce9d57e96c77e97794274944e" data-since="260611"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">[</span><span class="n">Z</span><span class="p">,</span><span class="n">P22</span><span class="p">]</span> <span class="o">=</span> <span class="n">Z</span> <span class="n">K1</span> <span class="n">K3</span> <span class="n">A</span> <span class="n">K2</span> <span class="n">D</span> <span class="n">B</span> <span class="n">C</span> <span class="n">E</span> <span class="n">O</span>
 </pre></div>
 </div>
-<p data-msgid="03b09e65ea2297e3e93eb01f0063cd92a0bf5508" data-score="0" data-since="260603">It is clear that this linearization is <em>wrong</em>, since A comes before D
-whereas in the linearization of K3 A comes <em>after</em> D. In other words, in
-K3 methods derived by D override methods derived by A, but in Z, which
-still is a subclass of K3, methods derived by A override methods derived
-by D!  This is a violation of monotonicity.  Moreover, the Python 2.2
-linearization of Z is also inconsistent with local precedence ordering,
-since the local precedence list of the class Z is [K1, K2, K3] (K2
-precedes K3), whereas in the linearization of Z K2 <em>follows</em> K3.  These
-problems explain why the 2.2 rule has been dismissed in favor of the C3
-rule.</p>
+<p data-msgid="03b09e65ea2297e3e93eb01f0063cd92a0bf5508" data-since="260611">이 선형화는 <em>잘못*되었습니다. 왜냐하면 A가 D보다 먼저 오지만 K3의 선형화에서는 A가 D보다 *나중에</em> 오기 때문입니다. 다시 말해, K3에서는 D가 파생시킨 메서드가 A가 파생시킨 메서드를 덮어쓰지만, Z에서는 [K3의 서브클래스]가 여전히 K3인 경우 A가 파생시킨 메서드가 D가 파생시킨 메서드를 덮어씁니다! 이것은 단조성 위반입니다. 게다가 Z의 Python 2.2 선형화는 로컬 우선순위 순서와도 일치하지 않습니다. 왜냐하면 클래스 Z의 로컬 우선순위 목록은 [K1, K2, K3]이며 (K2가 K3보다 먼저 오지만), Z의 선형화에서는 K2가 K3보다 <em>나중에</em> 오기 때문입니다. 이러한 문제들이 2.2 규칙이 C3 규칙에 의해 폐기된 이유를 설명합니다.</p>
 </section>
 <section id="the-end">
-<h2 data-msgid="73e47d4a5ad24b600e1d823e4fb2f7f9b37a4db5" data-score="0" data-since="260603">The end<a class="headerlink" href="#the-end" title="Link to this heading">¶</a></h2>
-<p data-msgid="fa2ac2574a0ffa82e9ea45abd1fac0504bc44136" data-score="0" data-since="260603">This section is for the impatient reader, who skipped all the previous
-sections and jumped immediately to the end.  This section is for the
-lazy programmer too, who didn’t want to exercise her/his brain.
-Finally, it is for the programmer with some hubris, otherwise s/he would
-not be reading a paper on the C3 method resolution order in multiple
-inheritance hierarchies ;-) These three virtues taken all together (and
-<em>not</em> separately) deserve a prize:  the prize is a short Python 2.2
-script that allows you to compute the 2.3 MRO without risk to your
-brain.  Simply change the last line to play with the various examples I
-have discussed in this paper.:</p>
-<div class="highlight-python3 notranslate" data-msgid="b958f1fd1bf613429648ff624f49f6879ed34656" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="c1">#&lt;mro.py&gt;</span>
+<h2 data-msgid="73e47d4a5ad24b600e1d823e4fb2f7f9b37a4db5" data-since="260611">끝<a class="headerlink" href="#the-end" title="Link to this heading">¶</a></h2>
+<p data-msgid="fa2ac2574a0ffa82e9ea45abd1fac0504bc44136" data-since="260611">이 섹션은 이전 섹션들을 건너뛰고 바로 끝까지 점프한 조급한 독자를 위한 것입니다. 또한 두뇌를 사용하고 싶지 않은 게으른 프로그래머를 위한 것이기도 합니다. 마지막으로, 어느 정도의 오만함을 지닌 프로그래머를 위한 것입니다. 그렇지 않다면/그녀는 다중 상속 계층 구조에서 C3 메서드 결정 순서에 대한 논문을 읽고 있지 않을 것입니다 😉 이 세 가지 미덕을 모두 갖춘 (그리고 <em>개별적으로</em> 아닌) 이들은 상을 받을 자격이 있습니다. 그 상은 당신의 두뇌에 위험을 주지 않으면서 2.3 MRO를 계산할 수 있게 해주는 짧은 Python 2.2 스크립트입니다. 단순히 마지막 줄을 변경하여 이 논문에서 논의한 다양한 예시를 가지고 놀아 보세요.</p>
+<div class="highlight-python3 notranslate" data-msgid="b958f1fd1bf613429648ff624f49f6879ed34656" data-since="260611"><div class="highlight"><pre><span></span><span class="c1">#&lt;mro.py&gt;</span>
 
-<span class="sd">&quot;&quot;&quot;C3 algorithm by Samuele Pedroni (with readability enhanced by me).&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;Samuele Pedroni가 작성한 C3 알고리즘입니다 (가독성 향상은 제가 담당했습니다).&quot;&quot;&quot;</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">__metaclass__</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="s2">&quot;All classes are metamagically modified to be nicely printed&quot;</span>
+    <span class="s2">&quot;모든 클래스는 보기 좋게 출력되도록 메타마법적으로 수정됩니다.&quot;</span>
     <span class="fm">__repr__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">cls</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ex_2</span><span class="p">:</span>
-    <span class="s2">&quot;Serious order disagreement&quot;</span> <span class="c1">#From Guido</span>
+    <span class="s2">&quot;심각한 순서 불일치&quot;</span> <span class="c1">#From Guido</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">O</span><span class="p">:</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">X</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">Y</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="n">X</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">class</span><span class="w"> </span><span class="nc">Z</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">):</span> <span class="k">pass</span> <span class="c1">#creates Z(A,B) in Python 2.2</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">Z</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">):</span> <span class="k">pass</span> <span class="c1"># Python 2.2에서는 Z(A,B)를 생성합니다</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="k">pass</span> <span class="c1"># Z(A,B) cannot be created in Python 2.3</span>
+        <span class="k">pass</span> <span class="c1"># Python 2.3에서는 Z(A,B)를 생성할 수 없습니다</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ex_5</span><span class="p">:</span>
-    <span class="s2">&quot;My first example&quot;</span>
+    <span class="s2">&quot;첫 번째 예제&quot;</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">O</span><span class="p">:</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">E</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -683,7 +534,7 @@ have discussed in this paper.:</p>
     <span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">):</span> <span class="k">pass</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ex_6</span><span class="p">:</span>
-    <span class="s2">&quot;My second example&quot;</span>
+    <span class="s2">&quot;두 번째 예제&quot;</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">O</span><span class="p">:</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">F</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">E</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -693,7 +544,7 @@ have discussed in this paper.:</p>
     <span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">):</span> <span class="k">pass</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ex_9</span><span class="p">:</span>
-    <span class="s2">&quot;Difference between Python 2.2 MRO and C3&quot;</span> <span class="c1">#From Samuele</span>
+    <span class="s2">&quot;Python 2.2 MRO와 C3의 차이점&quot;</span> <span class="c1">#From Samuele</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">O</span><span class="p">:</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="p">(</span><span class="n">O</span><span class="p">):</span> <span class="k">pass</span>
@@ -712,18 +563,18 @@ have discussed in this paper.:</p>
       <span class="n">nonemptyseqs</span><span class="o">=</span><span class="p">[</span><span class="n">seq</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">seqs</span> <span class="k">if</span> <span class="n">seq</span><span class="p">]</span>
       <span class="k">if</span> <span class="ow">not</span> <span class="n">nonemptyseqs</span><span class="p">:</span> <span class="k">return</span> <span class="n">res</span>
       <span class="n">i</span><span class="o">+=</span><span class="mi">1</span><span class="p">;</span> <span class="nb">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s1">&#39;round: candidates...&#39;</span><span class="p">,</span>
-      <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">nonemptyseqs</span><span class="p">:</span> <span class="c1"># find merge candidates among seq heads</span>
+      <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">nonemptyseqs</span><span class="p">:</span> <span class="c1"># 시퀀스 헤드들 중에서 병합 후보를 찾습니다.</span>
           <span class="n">cand</span> <span class="o">=</span> <span class="n">seq</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="nb">print</span> <span class="s1">&#39; &#39;</span><span class="p">,</span><span class="n">cand</span><span class="p">,</span>
           <span class="n">nothead</span><span class="o">=</span><span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">nonemptyseqs</span> <span class="k">if</span> <span class="n">cand</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
-          <span class="k">if</span> <span class="n">nothead</span><span class="p">:</span> <span class="n">cand</span><span class="o">=</span><span class="kc">None</span> <span class="c1">#reject candidate</span>
+          <span class="k">if</span> <span class="n">nothead</span><span class="p">:</span> <span class="n">cand</span><span class="o">=</span><span class="kc">None</span> <span class="c1">#후보를 거부합니다</span>
           <span class="k">else</span><span class="p">:</span> <span class="k">break</span>
       <span class="k">if</span> <span class="ow">not</span> <span class="n">cand</span><span class="p">:</span> <span class="k">raise</span> <span class="s2">&quot;Inconsistent hierarchy&quot;</span>
       <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cand</span><span class="p">)</span>
-      <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">nonemptyseqs</span><span class="p">:</span> <span class="c1"># remove cand</span>
+      <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">nonemptyseqs</span><span class="p">:</span> <span class="c1"># 후보를 제거합니다</span>
           <span class="k">if</span> <span class="n">seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">cand</span><span class="p">:</span> <span class="k">del</span> <span class="n">seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">mro</span><span class="p">(</span><span class="n">C</span><span class="p">):</span>
-    <span class="s2">&quot;Compute the class precedence list (mro) according to C3&quot;</span>
+    <span class="s2">&quot;C3에 따라 클래스 우선순위 목록(mro)을 계산합니다.&quot;</span>
     <span class="k">return</span> <span class="n">merge</span><span class="p">([[</span><span class="n">C</span><span class="p">]]</span><span class="o">+</span><span class="nb">map</span><span class="p">(</span><span class="n">mro</span><span class="p">,</span><span class="n">C</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">)</span><span class="o">+</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">)])</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">print_mro</span><span class="p">(</span><span class="n">C</span><span class="p">):</span>
@@ -735,28 +586,25 @@ have discussed in this paper.:</p>
 <span class="c1">#&lt;/mro.py&gt;</span>
 </pre></div>
 </div>
-<p data-msgid="6b72f12fad9c1717a10ebe2921fbb0a27df6df88" data-score="0" data-since="260603">That’s all folks,</p>
+<p data-msgid="6b72f12fad9c1717a10ebe2921fbb0a27df6df88" data-since="260611">여것으로 끝!</p>
 <blockquote>
-<div><p data-msgid="dd6d8bdbbbc4baff520d9affaf0d75ba7c238a0b" data-score="0" data-since="260603">enjoy !</p>
+<div><p data-msgid="dd6d8bdbbbc4baff520d9affaf0d75ba7c238a0b" data-since="260611">즐겁게 사용하세요!</p>
 </div></blockquote>
 </section>
 <section id="resources">
-<h2 data-msgid="87df60de337fb58864343e396696d74611e0d403" data-score="0" data-since="260603">Resources<a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="87df60de337fb58864343e396696d74611e0d403" data-since="260611">자료<a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id4" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p data-msgid="56140e684e03a7f37082ce83b9b5649d58508b54" data-score="0" data-since="260603">The thread on python-dev started by Samuele Pedroni:
-<a class="reference external" href="https://mail.python.org/pipermail/python-dev/2002-October/029035.html">https://mail.python.org/pipermail/python-dev/2002-October/029035.html</a></p>
+<p data-msgid="56140e684e03a7f37082ce83b9b5649d58508b54" data-since="260611">Samuele Pedroni가 시작한 python-dev 스레드: <a class="reference external" href="https://mail.python.org/pipermail/python-dev/2002-October/029035.html">https://mail.python.org/pipermail/python-dev/2002-October/029035.html</a></p>
 </aside>
 <aside class="footnote brackets" id="id5" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
-<p data-msgid="666fc564aaa0c9e328a72bbcfe1ca7fcc292cfad" data-score="0" data-since="260603">The paper <em>A Monotonic Superclass Linearization for Dylan</em>:
-<a class="reference external" href="https://doi.org/10.1145/236337.236343">https://doi.org/10.1145/236337.236343</a></p>
+<p data-msgid="666fc564aaa0c9e328a72bbcfe1ca7fcc292cfad" data-since="260611">논문 <em>A Monotonic Superclass Linearization for Dylan</em>: <a class="reference external" href="https://doi.org/10.1145/236337.236343">https://doi.org/10.1145/236337.236343</a></p>
 </aside>
 <aside class="footnote brackets" id="id6" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
-<p data-msgid="924c0585bcb09f261bed71193363fe31187c89ab" data-score="0" data-since="260603">Guido van Rossum’s essay, <em>Unifying types and classes in Python 2.2</em>:
-<a class="reference external" href="https://web.archive.org/web/20140210194412/http://www.python.org/download/releases/2.2.2/descrintro">https://web.archive.org/web/20140210194412/http://www.python.org/download/releases/2.2.2/descrintro</a></p>
+<p data-msgid="924c0585bcb09f261bed71193363fe31187c89ab" data-since="260611">Guido van Rossum의 에세이, <em>Unifying types and classes in Python 2.2</em>: <a class="reference external" href="https://web.archive.org/web/20140210194412/http://www.python.org/download/releases/2.2.2/descrintro">https://web.archive.org/web/20140210194412/http://www.python.org/download/releases/2.2.2/descrintro</a></p>
 </aside>
 </aside>
 </section>

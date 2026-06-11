@@ -23,7 +23,7 @@
     <link rel="prev" title="자유 스레딩에 대한 파이썬 지원" href="free-threading-python.html" />
     
       
-      <link rel="canonical" href="https://python.flowdas.com/howto/free-threading-extensions.html">
+      <link rel="canonical" href="https://docs.python.org/3/howto/free-threading-extensions.html">
       
     
 
@@ -337,34 +337,34 @@ extensions to support free threading.</p>
 </section>
 <section id="how-critical-sections-work">
 <h3 data-msgid="718069fcb628ef90e5bc61d2ef56c1962e8237ee" data-score="100" data-since="260611">임계 영역 작동 방식<a class="headerlink" href="#how-critical-sections-work" title="Link to this heading">¶</a></h3>
-<p data-msgid="3667665b823e626069783a9aabe0a5ef70b2aea8" data-since="260611">전통적인 록과 달리, 임계 영역은 전체 지속 시간 동안 독점적인 접근을 보장하지 않습니다. 스레드가 임계 영역을 보유하는 동안 블로킹될 것인 경우 (예: 다른 록을 획득하거나 I/O를 수행하는 경우), 임계 영역은 일시 중단되어 모든 록이 해제된 후, 블로킹 작업이 완료되면 다시 재개됩니다.</p>
-<p data-msgid="87f1cea84fe6037b170d312c55276be273571bcd" data-since="260611">이 동작은 스레드가 블로킹 호출을 할 때 GIL이 하는 일과 유사합니다. 주요 차이점은 다음과 같습니다:</p>
+<p data-msgid="3667665b823e626069783a9aabe0a5ef70b2aea8" data-score="93" data-since="260611">전통적인 록과 달리, 임계 영역은 전체 지속 시간 동안 독점적인 접근을 보장하지 않습니다. 스레드가 임계 영역을 보유하는 동안 블로킹될 것인 경우 (예: 다른 록을 획득하거나 I/O를 수행하는 경우), 임계 영역은 일시 중단되어 모든 록이 해제된 후, 블로킹 작업이 완료되면 다시 재개됩니다.</p>
+<p data-msgid="87f1cea84fe6037b170d312c55276be273571bcd" data-score="90" data-since="260611">이 동작은 스레드가 블로킹 호출을 할 때 GIL이 하는 일과 유사합니다. 주요 차이점은 다음과 같습니다:</p>
 <ul class="simple">
-<li><p data-msgid="58b02ff6c6f468f81302fae7bbca1a5a1a870027" data-since="260611">임계 영역은 전역적이기보다는 객체별로 작동합니다.</p></li>
-<li><p data-msgid="164153e0462d87c577fb6e316bf63ba06831bef7" data-since="260611">임계 영역은 각 스레드 내에서 스택 규율을 따릅니다 (“begin”과 “end” 매크로는 쌍을 이루고 동일한 범위 내에 있어야 하므로 이를 강제합니다).</p></li>
-<li><p data-msgid="5401957bda5714ab1d063b0dc2821ee84d16fae5" data-since="260611">임계 영역은 잠재적인 블로킹 작업 주변에서 록을 자동으로 해제하고 다시 획득합니다.</p></li>
+<li><p data-msgid="58b02ff6c6f468f81302fae7bbca1a5a1a870027" data-score="89" data-since="260611">임계 영역은 전역적이기보다는 객체별로 작동합니다.</p></li>
+<li><p data-msgid="164153e0462d87c577fb6e316bf63ba06831bef7" data-score="85" data-since="260611">임계 영역은 각 스레드 내에서 스택 규율을 따릅니다 (“begin”과 “end” 매크로는 쌍을 이루고 동일한 범위 내에 있어야 하므로 이를 강제합니다).</p></li>
+<li><p data-msgid="5401957bda5714ab1d063b0dc2821ee84d16fae5" data-score="87" data-since="260611">임계 영역은 잠재적인 블로킹 작업 주변에서 록을 자동으로 해제하고 다시 획득합니다.</p></li>
 </ul>
 </section>
 <section id="deadlock-avoidance">
-<h3 data-msgid="ebd3aa5eb5bf105246134dc329770f1517a2d7f0" data-since="260611">교착 상태 회피<a class="headerlink" href="#deadlock-avoidance" title="Link to this heading">¶</a></h3>
-<p data-msgid="5b13acf93c92097c1f8d0224aab33d778c70898f" data-since="260611">임계 영역은 두 가지 방식으로 교착 상태를 방지하는 데 도움이 됩니다:</p>
+<h3 data-msgid="ebd3aa5eb5bf105246134dc329770f1517a2d7f0" data-score="100" data-since="260611">교착 상태 회피<a class="headerlink" href="#deadlock-avoidance" title="Link to this heading">¶</a></h3>
+<p data-msgid="5b13acf93c92097c1f8d0224aab33d778c70898f" data-score="87" data-since="260611">임계 영역은 두 가지 방식으로 교착 상태를 방지하는 데 도움이 됩니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="5e17180539802c2cc9961ae00d131a62f6fd6744" data-since="260611">스레드가 이미 다른 스레드에 의해 획득된 록을 획득하려고 시도하는 경우, 모든 활성 중요 섹션을 일시 중지하고, 해당 록이 해제될 때까지 대기합니다.</p></li>
-<li><p data-msgid="951e108072df0c8b8163d849f5c97c33af4b309a" data-since="260611">블로킹 작업이 완료되면, 가장 상위 중요 섹션만 먼저 재획득됩니다.</p></li>
+<li><p data-msgid="5e17180539802c2cc9961ae00d131a62f6fd6744" data-score="90" data-since="260611">스레드가 이미 다른 스레드에 의해 획득된 록을 획득하려고 시도하는 경우, 모든 활성 중요 섹션을 일시 중지하고, 해당 록이 해제될 때까지 대기합니다.</p></li>
+<li><p data-msgid="951e108072df0c8b8163d849f5c97c33af4b309a" data-score="89" data-since="260611">블로킹 작업이 완료되면, 가장 상위 중요 섹션만 먼저 재획득됩니다.</p></li>
 </ol>
-<p data-msgid="42d48b2ba05cb125991456c476d1219a73e49b3f" data-since="260611">이는 중첩된 중요 섹션에 의존하여 여러 객체를 한 번에 록 할 수 없다는 의미입니다. 내부 중요 섹션이 외부를 중지시킬 수 있기 때문입니다. 대신, :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_BEGIN_CRITICAL_SECTION2`를 사용하여 두 객체를 동시에 록 하세요.</p>
-<p data-msgid="6a51cede788adf447fad1279805939131f80901f" data-since="260611">위에서 설명한 록들은 <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> 기반의 록에만 해당합니다. 중요 섹션 구현은 POSIX 뮤텍스와 같이 사용될 수 있는 다른 록 메커니즘에 대해서는 알거나 영향을 미치지 않습니다. 또한, 모든 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyMutex`에 블로킹하는 것은 중요 섹션이 중지되게 하지만, 중요 섹션의 일부인 뮤텍스만 해제됩니다. :c:type:<a href="#id3"><span class="problematic" id="id4">`</span></a>PyMutex`를 중요 섹션 없이 사용하는 경우 해제되지 않으며, 따라서 데드락 방지 메커니즘을 적용하지 못합니다.</p>
+<p data-msgid="42d48b2ba05cb125991456c476d1219a73e49b3f" data-score="73" data-since="260611">이는 중첩된 중요 섹션에 의존하여 여러 객체를 한 번에 록 할 수 없다는 의미입니다. 내부 중요 섹션이 외부를 중지시킬 수 있기 때문입니다. 대신, :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_BEGIN_CRITICAL_SECTION2`를 사용하여 두 객체를 동시에 록 하세요.</p>
+<p data-msgid="6a51cede788adf447fad1279805939131f80901f" data-score="78" data-since="260611">위에서 설명한 록들은 <a class="reference internal" href="../c-api/synchronization.html#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> 기반의 록에만 해당합니다. 중요 섹션 구현은 POSIX 뮤텍스와 같이 사용될 수 있는 다른 록 메커니즘에 대해서는 알거나 영향을 미치지 않습니다. 또한, 모든 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyMutex`에 블로킹하는 것은 중요 섹션이 중지되게 하지만, 중요 섹션의 일부인 뮤텍스만 해제됩니다. :c:type:<a href="#id3"><span class="problematic" id="id4">`</span></a>PyMutex`를 중요 섹션 없이 사용하는 경우 해제되지 않으며, 따라서 데드락 방지 메커니즘을 적용하지 못합니다.</p>
 </section>
 <section id="important-considerations">
-<h3 data-msgid="ff26c29eb7b1c46c278b57b3fc856b309f2c1b49" data-since="260611">주요 고려 사항<a class="headerlink" href="#important-considerations" title="Link to this heading">¶</a></h3>
+<h3 data-msgid="ff26c29eb7b1c46c278b57b3fc856b309f2c1b49" data-score="100" data-since="260611">주요 고려 사항<a class="headerlink" href="#important-considerations" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p data-msgid="4fb2a8cd838cf7cf563f129b61338a26c2ad596f" data-since="260611">중요 섹션은 록을 일시적으로 해제할 수 있어 다른 스레드가 보호되는 데이터를 수정할 수 있게 합니다. 블로킹을 유발할 수 있는 작업 이후 데이터 상태를 가정하는 것에 주의하십시오.</p></li>
-<li><p data-msgid="ef24eee0dc61efff5e4480d58aef35a8ee19bf72" data-since="260611">록은 일시적으로 해제(중지)될 수 있으므로, 중요 섹션에 진입한다고 해서 해당 섹션의 전체 기간 동안 보호된 자원에 대한 독점적인 접근이 보장되는 것은 아닙니다. 중요 섹션 내의 코드가 블로킹하는 다른 함수(예: 다른 록을 획득하거나 블로킹 I/O를 수행)를 호출하면, 해당 스레드가 중요 섹션을 통해 보유하고 있던 모든 록이 해제됩니다. 이는 GIL이 블로킹 호출 중에 해제될 수 있는 방식과 유사합니다.</p></li>
-<li><p data-msgid="407d9f1dac97524edff7f10c8fe6cfc9e8fff480" data-since="260611">어떤 시점에서도 가장 최근에 진입한(가장 상위의) 중요 섹션과 관련된 록만 보유가 보장됩니다. 외부 및 중첩된 중요 섹션의 록은 중지되었을 수 있습니다.</p></li>
-<li><p data-msgid="de49681ec9a1a374d720a360986ef9373620d3b4" data-since="260611">이 API로는 최대 두 개의 객체만 동시에 록 할 수 있습니다. 더 많은 객체를 록 해야 한다면 코드를 재구성해야 합니다.</p></li>
-<li><p data-msgid="6df4e336c34be6a4cbe6721d5b8920c94717188d" data-since="260611">중요 섹션은 같은 객체를 두 번 록 하려고 시도해도 데드락이 발생하지는 않지만, 이 사용 사례에는 목적에 맞게 설계된 재진입 록보다 효율적이지 않습니다.</p></li>
-<li><p data-msgid="1ada6878b7da570ae5e174a2fcbcf880c3dbe157" data-since="260611">:c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_BEGIN_CRITICAL_SECTION2`를 사용할 때, 객체의 순서는 정확성에 영향을 미치지 않습니다(구현이 데드락을 방지하기 때문입니다). 하지만 일관된 순서로 객체를 록 하는 것이 좋습니다.</p></li>
-<li><p data-msgid="1614d81dc4e5b182cf685156a043051edfd901d4" data-since="260611">중요 섹션 매크로가 주로 위에서 설명된 데드락 시나리오에 취약한 내부 CPython 작업에 대한 접근을 보호하기 위한 것임을 기억하십시오. 순전히 내부 확장 상태를 보호하는 경우에는 표준 뮤텍스나 다른 동기화 프라이미티브가 더 적절할 수 있습니다.</p></li>
+<li><p data-msgid="4fb2a8cd838cf7cf563f129b61338a26c2ad596f" data-score="85" data-since="260611">중요 섹션은 록을 일시적으로 해제할 수 있어 다른 스레드가 보호되는 데이터를 수정할 수 있게 합니다. 블로킹을 유발할 수 있는 작업 이후 데이터 상태를 가정하는 것에 주의하십시오.</p></li>
+<li><p data-msgid="ef24eee0dc61efff5e4480d58aef35a8ee19bf72" data-score="90" data-since="260611">록은 일시적으로 해제(중지)될 수 있으므로, 중요 섹션에 진입한다고 해서 해당 섹션의 전체 기간 동안 보호된 자원에 대한 독점적인 접근이 보장되는 것은 아닙니다. 중요 섹션 내의 코드가 블로킹하는 다른 함수(예: 다른 록을 획득하거나 블로킹 I/O를 수행)를 호출하면, 해당 스레드가 중요 섹션을 통해 보유하고 있던 모든 록이 해제됩니다. 이는 GIL이 블로킹 호출 중에 해제될 수 있는 방식과 유사합니다.</p></li>
+<li><p data-msgid="407d9f1dac97524edff7f10c8fe6cfc9e8fff480" data-score="86" data-since="260611">어떤 시점에서도 가장 최근에 진입한(가장 상위의) 중요 섹션과 관련된 록만 보유가 보장됩니다. 외부 및 중첩된 중요 섹션의 록은 중지되었을 수 있습니다.</p></li>
+<li><p data-msgid="de49681ec9a1a374d720a360986ef9373620d3b4" data-score="93" data-since="260611">이 API로는 최대 두 개의 객체만 동시에 록 할 수 있습니다. 더 많은 객체를 록 해야 한다면 코드를 재구성해야 합니다.</p></li>
+<li><p data-msgid="6df4e336c34be6a4cbe6721d5b8920c94717188d" data-score="92" data-since="260611">중요 섹션은 같은 객체를 두 번 록 하려고 시도해도 데드락이 발생하지는 않지만, 이 사용 사례에는 목적에 맞게 설계된 재진입 록보다 효율적이지 않습니다.</p></li>
+<li><p data-msgid="1ada6878b7da570ae5e174a2fcbcf880c3dbe157" data-score="90" data-since="260611">:c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_BEGIN_CRITICAL_SECTION2`를 사용할 때, 객체의 순서는 정확성에 영향을 미치지 않습니다(구현이 데드락을 방지하기 때문입니다). 하지만 일관된 순서로 객체를 록 하는 것이 좋습니다.</p></li>
+<li><p data-msgid="1614d81dc4e5b182cf685156a043051edfd901d4" data-score="86" data-since="260611">중요 섹션 매크로가 주로 위에서 설명된 데드락 시나리오에 취약한 내부 CPython 작업에 대한 접근을 보호하기 위한 것임을 기억하십시오. 순전히 내부 확장 상태를 보호하는 경우에는 표준 뮤텍스나 다른 동기화 프라이미티브가 더 적절할 수 있습니다.</p></li>
 </ul>
 </section>
 <section id="per-object-locks-ob-mutex">
