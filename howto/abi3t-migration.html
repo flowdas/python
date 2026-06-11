@@ -78,23 +78,23 @@
                 <ul>
 <li><a class="reference internal" href="#">무료 스레딩을 위한 Stable ABI(<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)로 마이그레이션</a><ul>
 <li><a class="reference internal" href="#why-do-this">이유</a><ul>
-<li><a class="reference internal" href="#why-not-do-this">Why <em>not</em> do this</a></li>
+<li><a class="reference internal" href="#why-not-do-this">이 방법을 사용하지 않는 이유</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
+<li><a class="reference internal" href="#prerequisites">사전 요구 사항</a><ul>
 <li><a class="reference internal" href="#non-free-threaded-stable-abi">Non-free-threaded Stable ABI</a></li>
-<li><a class="reference internal" href="#free-threading-support">Free-threading support</a></li>
-<li><a class="reference internal" href="#isolating-extension-modules">Isolating extension modules</a></li>
-<li><a class="reference internal" href="#avoiding-variable-sized-types">Avoiding variable-sized types</a></li>
+<li><a class="reference internal" href="#free-threading-support">Free-threading 지원</a></li>
+<li><a class="reference internal" href="#isolating-extension-modules">확장 모듈 격리</a></li>
+<li><a class="reference internal" href="#avoiding-variable-sized-types">가변 크기 데이터 타입 피하기</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#setting-up-the-build">Setting up the build</a></li>
-<li><a class="reference internal" href="#module-export-hook">Module export hook</a><ul>
-<li><a class="reference internal" href="#associated-pymoduledef">Associated <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code></a></li>
+<li><a class="reference internal" href="#setting-up-the-build">빌드 설정</a></li>
+<li><a class="reference internal" href="#module-export-hook">모듈 내보내기 훅</a><ul>
+<li><a class="reference internal" href="#associated-pymoduledef">연관 <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pyobject-opaqueness"><code class="docutils literal notranslate"><span class="pre">PyObject</span></code> opaqueness</a><ul>
-<li><a class="reference internal" href="#custom-type-definitions">Custom type definitions</a></li>
+<li><a class="reference internal" href="#pyobject-opaqueness"><code class="docutils literal notranslate"><span class="pre">PyObject</span></code> 불투명성</a><ul>
+<li><a class="reference internal" href="#custom-type-definitions">사용자 정의 타입 정의</a></li>
 <li><a class="reference internal" href="#custom-type-data-access">Custom type data access</a></li>
 </ul>
 </li>
@@ -143,18 +143,18 @@ that supports <a class="reference internal" href="../glossary.html#term-free-thr
 Stable ABI for Free-Threaded Builds, or <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> for short.
 This document describes how to adapt C API extensions to support free threading.</p>
 <section id="why-do-this">
-<h2 data-msgid="722e5626112cfcb3cb2288b9af085e94a7d5c894" data-since="260611">이유<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
-<p data-msgid="2e19892758d39b41b12803850c30b3cc93553dbe" data-since="260611">Stable ABI를 사용하는 일반적인 이유는 라이브러리 버전마다 빌드하고 배포해야 하는 아티팩트의 수를 줄이기 위함입니다.</p>
-<p data-msgid="f0031c77244355796e9643c38bffe653191ddb2c" data-since="260611">Stable ABI가 없으면, 지원하려는 각 CPython 기능 버전에 대해 별도의 공유 라이브러리, 그리고 일반적으로 <em>wheel</em> 배포판을 빌드해야 합니다. 예를 들어, 다음 표의 각 태그는 별도의 라이브러리/휠을 나타냅니다:</p>
+<h2 data-msgid="722e5626112cfcb3cb2288b9af085e94a7d5c894" data-score="100" data-since="260611">이유<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
+<p data-msgid="2e19892758d39b41b12803850c30b3cc93553dbe" data-score="91" data-since="260611">Stable ABI를 사용하는 일반적인 이유는 라이브러리 버전마다 빌드하고 배포해야 하는 아티팩트의 수를 줄이기 위함입니다.</p>
+<p data-msgid="f0031c77244355796e9643c38bffe653191ddb2c" data-score="96" data-since="260611">Stable ABI가 없으면, 지원하려는 각 CPython 기능 버전에 대해 별도의 공유 라이브러리, 그리고 일반적으로 <em>wheel</em> 배포판을 빌드해야 합니다. 예를 들어, 다음 표의 각 태그는 별도의 라이브러리/휠을 나타냅니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-since="260611">CPython 버전</p></th>
-<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-since="260611">비자유 스레드</p></th>
-<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-since="260611">자유 스레드</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="100" data-since="260611">CPython 버전</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="100" data-since="260611">비자유 스레드</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="100" data-since="260611">자유 스레드</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-since="260611">3.12</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="100" data-since="260611">3.12</p></td>
 <td><p data-msgid="59b3f96d4cdb58ec406ddbc09632f1e530572025" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-312</span></code></p></td>
 <td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-since="260611">—</p></td>
 </tr>
@@ -184,13 +184,13 @@ This document describes how to adapt C API extensions to support free threading.
 <p data-msgid="532215f32c07bba7b1bfc5028433f8c45ea8d3c4" data-since="260611">Stable ABI (CPython 3.2에서 도입된 <code class="docutils literal notranslate"><span class="pre">abi3</span></code>)를 사용하면 단일 확장(플랫폼별)으로 모든 <em>비자유 스레드</em> CPython 빌드를 커버할 수 있습니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-since="260611">CPython 버전</p></th>
-<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-since="260611">비자유 스레드</p></th>
-<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-since="260611">자유 스레드</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="100" data-since="260611">CPython 버전</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="100" data-since="260611">비자유 스레드</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="100" data-since="260611">자유 스레드</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-since="260611">3.12</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="100" data-since="260611">3.12</p></td>
 <td rowspan="6"><p data-msgid="18850cb7c90f4997fea2d3c06fdab5880e3d942b" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3</span></code></p></td>
 <td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-since="260611">—</p></td>
 </tr>
@@ -214,13 +214,13 @@ This document describes how to adapt C API extensions to support free threading.
 <p data-msgid="b84aa31f41bf03f4440aa135dac191388e5bf4b8" data-since="260611">CPython 3.15에서 도입된 자유 스레드 빌드용 Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)는 자유 스레드 빌드에 대해서도 동일하게 작동합니다. 그리고 비자유 스레드 빌드와도 호환됩니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-since="260611">CPython 버전</p></th>
-<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-since="260611">비자유 스레드</p></th>
-<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-since="260611">자유 스레드</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="100" data-since="260611">CPython 버전</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="100" data-since="260611">비자유 스레드</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="100" data-since="260611">자유 스레드</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-since="260611">3.12</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="100" data-since="260611">3.12</p></td>
 <td rowspan="3"><p data-msgid="0a98eea0a46ea880fb3e73018fc8ce7c3e1f3450" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3</span></code> *</p></td>
 <td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-since="260611">—</p></td>
 </tr>
@@ -239,127 +239,77 @@ This document describes how to adapt C API extensions to support free threading.
 </tr>
 </tbody>
 </table>
-<p data-msgid="daea5dfc398d34da14491d1c6a1c3f04886609f8" data-score="0" data-since="260608">* (As above, the <code class="docutils literal notranslate"><span class="pre">abi3</span></code> extension is compatible with all non-free-threaded
-builds; even the 3.15+ ones that this table “attributes” to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.)</p>
+<p data-msgid="daea5dfc398d34da14491d1c6a1c3f04886609f8" data-since="260611">* (위와 같이, <code class="docutils literal notranslate"><span class="pre">abi3</span></code> 확장은 모든 non-free-threaded 빌드와 호환됩니다. 이 표는 3.15 이상의 버전물까지 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 “속성”을 부여합니다.)</p>
 <section id="why-not-do-this">
-<h3 data-msgid="adfd7291c21da9c35e7f054391e838ef693e915f" data-score="0" data-since="260608">Why <em>not</em> do this<a class="headerlink" href="#why-not-do-this" title="Link to this heading">¶</a></h3>
-<p data-msgid="7def07f30197a26598fa2836781f33a5651eb2c8" data-score="0" data-since="260608">There are two main downsides to Stable ABI.</p>
-<p data-msgid="97b10eeecf707023395d5549946a242e4ef527f5" data-score="0" data-since="260608">First, you extension may become slower, since Stable ABI prioritizes
-compatibility over performance.
-The difference is usually not noticeable, and often can be mitigated by
-using the same source to build both a Stable ABI build and a few
-version-specific ones for “tier 1” CPython versions.</p>
-<p data-msgid="e25d7307ee3b8730c118be82f06abe68760371a0" data-score="0" data-since="260608">Second, not all of the C API is available.
-Extensions need to be ported to build for Stable ABI, which may be difficult
-or, in rare cases, impossible.</p>
-<p data-msgid="3b963f78d0399c05c4b9db903c0e3e0f0317fb53" data-score="0" data-since="260608">Specifically, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> requires APIs added in CPython 3.15.
-If you want to build your extension for older versions of CPython from the
-same source, you have two main options:</p>
+<h3 data-msgid="adfd7291c21da9c35e7f054391e838ef693e915f" data-since="260611">이 방법을 사용하지 않는 이유<a class="headerlink" href="#why-not-do-this" title="Link to this heading">¶</a></h3>
+<p data-msgid="7def07f30197a26598fa2836781f33a5651eb2c8" data-since="260611">Stable ABI에는 두 가지 주요 단점이 있습니다.</p>
+<p data-msgid="97b10eeecf707023395d5549946a242e4ef527f5" data-since="260611">첫째, Stable ABI는 성능보다 호환성을 우선시하기 때문에 확장 기능이 더 느려질 수 있습니다. 이러한 차이는 일반적으로 눈에 띄지 않으며, “1단계” CPython 버전을 위한 Stable ABI 빌드와 몇 가지 버전별 빌드를 같은 소스를 사용하여 빌드함으로써 종종 완화할 수 있습니다.</p>
+<p data-msgid="e25d7307ee3b8730c118be82f06abe68760371a0" data-since="260611">둘째, 모든 C API가 사용 가능한 것은 아닙니다. 확장은 Stable ABI용으로 포팅되어야 하며, 이 과정은 어려울 수 있거나 드문 경우 불가능할 수도 있습니다.</p>
+<p data-msgid="3b963f78d0399c05c4b9db903c0e3e0f0317fb53" data-since="260611">구체적으로, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 는 CPython 3.15에서 추가된 API를 필요로 합니다. 동일한 소스에서 이전 버전의 CPython을 위해 확장 기능을 빌드하려면 두 가지 주요 옵션이 있습니다:</p>
 <ul>
-<li><p data-msgid="54dd9f44cb38718f410c491df490eb344976c645" data-score="0" data-since="260608">Use preprocessor conditionals.</p>
-<p data-msgid="91c1cad2f180a24ed0894c47e365930bbdaf2109" data-score="0" data-since="260608">When following this guide, use <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_TARGET_ABI3T</span></code> blocks whenever
-you are told to do a change that breaks the build on CPython versions you
-care about. Keep the pre-existing code in <code class="docutils literal notranslate"><span class="pre">#else</span></code> blocks.</p>
-<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-score="0" data-since="260608">For hand-written C extensions, this approach is reasonable down to
-CPython 3.12, due to additions introduced in <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0697/"><strong>PEP 697</strong></a>.
-Keeping compatibility with 3.11 and below may be worth it for code
-generators (for example, Cython).</p>
+<li><p data-msgid="54dd9f44cb38718f410c491df490eb344976c645" data-since="260611">전처리기 조건 사용.</p>
+<p data-msgid="91c1cad2f180a24ed0894c47e365930bbdaf2109" data-since="260611">이 가이드를 따를 때, 관심 있는 CPython 버전에서 빌드를 깨뜨리는 변경을 수행하라는 지시를 받을 때는 항상 <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_TARGET_ABI3T</span></code> 블록을 사용하십시오. 기존 코드는 <code class="docutils literal notranslate"><span class="pre">#else</span></code> 블록에 유지하십시오.</p>
+<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-since="260611">수동으로 작성된 C 확장 기능의 경우, :pep:<a href="#id1"><span class="problematic" id="id2">`</span></a>697`에서 도입된 추가 사항 덕분에 이 접근 방식은 CPython 3.12까지 합리적입니다. 3.11 이하와의 호환성을 유지하는 것은 코드 생성기(예를 들어, Cython)가 사용할 만한 가치가 있을 수 있습니다.</p>
 </li>
-<li><p data-msgid="9d6b903576bfd5d510e0a4c4bd1ea8e27c504f72" data-score="0" data-since="260608">Do not port to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>, and continue building separate extensions for
-each version of CPython, until you can drop support for the older versions.</p>
-<p data-msgid="a6f8b7ded5da5787e8ef07cc5583b4ad7a12ecb0" data-score="0" data-since="260608">This is a valid approach. Not all extensions need to switch to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>
-right now.</p>
+<li><p data-msgid="9d6b903576bfd5d510e0a4c4bd1ea8e27c504f72" data-since="260611">이전 버전의 지원을 중단할 수 있을 때까지 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 포팅하지 말고, 각 CPython 버전을 위한 확장 기능을 계속 별도로 빌드해야 합니다.</p>
+<p data-msgid="a6f8b7ded5da5787e8ef07cc5583b4ad7a12ecb0" data-since="260611">이것은 유효한 접근 방식입니다. 모든 확장 기능이 지금 당장 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 전환할 필요는 없습니다.</p>
 </li>
 </ul>
 </section>
 </section>
 <section id="prerequisites">
-<h2 data-msgid="eed036e414a34a0c245858652e6d88f14c3faefb" data-score="0" data-since="260603">Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
-<p data-msgid="4c99ee55665251a2c7d143fd39c1d3282c290c12" data-score="0" data-since="260608">This guide assumes that you have an extension written directly in C (or C++),
-which you want to port to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.</p>
-<p data-msgid="ccd4e07b79441d69d3f7d02c45650285b004e993" data-score="0" data-since="260608">If your extenstion uses a code generator (like Cython) or language binding
-(like PyO3), it’s best to wait until that tool has support for <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
-If you maintain such a tool, you might be able to adapt the instructions
-here for your tool.</p>
+<h2 data-msgid="eed036e414a34a0c245858652e6d88f14c3faefb" data-since="260611">사전 요구 사항<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
+<p data-msgid="4c99ee55665251a2c7d143fd39c1d3282c290c12" data-since="260611">이 가이드는 C(또는 C++)에 직접 작성된 확장 기능을 가지고 있으며, 이를 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 포팅하려는 것을 가정합니다.</p>
+<p data-msgid="ccd4e07b79441d69d3f7d02c45650285b004e993" data-since="260611">확장 기능이 코드 생성기(예: Cython) 또는 언어 바인딩(예: PyO3)을 사용하는 경우, 해당 도구가 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 를 지원할 때까지 기다리는 것이 가장 좋습니다. 만약 그러한 도구를 직접 유지 관리한다면, 여기에 있는 지침을 여러분의 도구에 맞게 조정할 수 있을 것입니다.</p>
 <section id="non-free-threaded-stable-abi">
-<h3 data-msgid="995366a82bdce8cb8147db88a92c0e7ca4fa962f" data-score="0" data-since="260608">Non-free-threaded Stable ABI<a class="headerlink" href="#non-free-threaded-stable-abi" title="Link to this heading">¶</a></h3>
-<p data-msgid="47ff80d8253dd4de79dbf417e0faf0b04482b214" data-score="0" data-since="260608">Your extension should support the Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>).
-If not, either port it first, or follow this guide but be prepared to fix
-issues it does not mention.</p>
+<h3 data-msgid="995366a82bdce8cb8147db88a92c0e7ca4fa962f" data-since="260611">Non-free-threaded Stable ABI<a class="headerlink" href="#non-free-threaded-stable-abi" title="Link to this heading">¶</a></h3>
+<p data-msgid="47ff80d8253dd4de79dbf417e0faf0b04482b214" data-since="260611">확장 기능은 Stable ABI(<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)를 지원해야 합니다. 그렇지 않다면, 먼저 포팅하거나, 이 가이드를 따르되 가이드에서 언급하지 않는 문제를 수정할 준비를 해야 합니다.</p>
 </section>
 <section id="free-threading-support">
-<h3 data-msgid="5c7ac705ab4e36493607d8b68a7eee58b1bd8d02" data-score="0" data-since="260608">Free-threading support<a class="headerlink" href="#free-threading-support" title="Link to this heading">¶</a></h3>
-<p data-msgid="f3f01d76bccc5e16cd28cabb0b8844746da0842a" data-score="0" data-since="260608">While it’s technically not a hard prerequisite, you will most likely want to
-prepare your extension for free threading before you port it to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
-See <a class="reference internal" href="free-threading-extensions.html#freethreading-extensions-howto"><span class="std std-ref">Free 스레딩을 위한 C API 확장 지원</span></a> for instructions.</p>
+<h3 data-msgid="5c7ac705ab4e36493607d8b68a7eee58b1bd8d02" data-since="260611">Free-threading 지원<a class="headerlink" href="#free-threading-support" title="Link to this heading">¶</a></h3>
+<p data-msgid="f3f01d76bccc5e16cd28cabb0b8844746da0842a" data-since="260611">기술적으로는 필수 전제 조건은 아니지만, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 포팅하기 전에 확장 기능을 free-threading을 위해 준비하는 것이 거의 확실하게 필요합니다. 지침은 <a class="reference internal" href="free-threading-extensions.html#freethreading-extensions-howto"><span class="std std-ref">Free 스레딩을 위한 C API 확장 지원</span></a> 를 참조하십시오.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="c57b6e4effa36972d6c9083fe31af9c1f6ca855a" data-score="0" data-since="260608"><a class="reference external" href="https://py-free-threading.github.io/porting/">Porting Extension Modules to Support Free-Threading</a>:
-A community-maintained porting guide for extension authors.</p>
+<p data-msgid="c57b6e4effa36972d6c9083fe31af9c1f6ca855a" data-since="260611"><code class="docutils literal notranslate"><span class="pre">자유</span> <span class="pre">스레딩</span> <span class="pre">사용</span> <span class="pre">지원을</span> <span class="pre">위한</span> <span class="pre">확장</span> <span class="pre">모듈</span> <span class="pre">포팅</span> <span class="pre">&lt;https://py-free-threading.github.io/porting/&gt;</span></code>: 확장 작성자를 위한 커뮤니티 유지 관리 포팅 가이드입니다.</p>
 </div>
 </section>
 <section id="isolating-extension-modules">
-<h3 data-msgid="95c9f43383d41b4a9567e489d2ba52f581473fd8" data-score="0" data-since="260608">Isolating extension modules<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h3>
-<p data-msgid="9f3330335ca46f8c0a00fa3f25fa667b5adebd2c" data-score="0" data-since="260608">Your module should use <a class="reference internal" href="../c-api/extension-modules.html#multi-phase-initialization"><span class="std std-ref">multi-phase initialization</span></a>,
-and it should either be isolated or limit itself to be loaded at most once
-per process.
-If it is not your case, follow <a class="reference internal" href="isolating-extensions.html#isolating-extensions-howto"><span class="std std-ref">확장 모듈 격리하기</span></a> first.
-(See the <a class="reference internal" href="isolating-extensions.html#isolating-extensions-optout"><span class="std std-ref">opt-out section</span></a> for a shortcut.)</p>
+<h3 data-msgid="95c9f43383d41b4a9567e489d2ba52f581473fd8" data-since="260611">확장 모듈 격리<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h3>
+<p data-msgid="9f3330335ca46f8c0a00fa3f25fa667b5adebd2c" data-since="260611">모듈은 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>multi-phase initialization &lt;multi-phase-initialization&gt;`을 사용해야 하며, 격리되거나 프로세스당 최대 한 번만 로드되도록 제한해야 합니다. 그렇지 않은 경우, 먼저 :ref:<a href="#id3"><span class="problematic" id="id4">`</span></a>isolating-extensions-howto`를 따르십시오. (바로 가속이 필요한 경우 :ref:<a href="#id5"><span class="problematic" id="id6">`</span></a>opt-out section &lt;isolating-extensions-optout&gt;`을 참조합니다.)</p>
 </section>
 <section id="avoiding-variable-sized-types">
-<h3 data-msgid="b901bedd3b298fbc75544103a984deac9baa3c7e" data-score="0" data-since="260608">Avoiding variable-sized types<a class="headerlink" href="#avoiding-variable-sized-types" title="Link to this heading">¶</a></h3>
-<p data-msgid="f4a3a5b2d6d6f682caf7ad658a8e9251c75947aa" data-score="0" data-since="260608">If your extension defines variable-sized types (using <a class="reference internal" href="../c-api/type.html#c.Py_tp_itemsize" title="Py_tp_itemsize"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_itemsize</span></code></a>
-or <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyTypeObject.tp_itemsize</span></code></a>), it cannot be ported to
-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 3.15.</p>
+<h3 data-msgid="b901bedd3b298fbc75544103a984deac9baa3c7e" data-since="260611">가변 크기 데이터 타입 피하기<a class="headerlink" href="#avoiding-variable-sized-types" title="Link to this heading">¶</a></h3>
+<p data-msgid="f4a3a5b2d6d6f682caf7ad658a8e9251c75947aa" data-since="260611">확장 기능에서 가변 크기 타입( <a class="reference internal" href="../c-api/type.html#c.Py_tp_itemsize" title="Py_tp_itemsize"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_itemsize</span></code></a> 또는 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyTypeObject.tp_itemsize</span></code></a> 사용)을 정의하는 경우, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 3.15로 포팅할 수 없습니다.</p>
 </section>
 </section>
 <section id="setting-up-the-build">
-<h2 data-msgid="2ec8d6bb858d1d17c02c12d6c0f2724e03e96dcb" data-score="0" data-since="260608">Setting up the build<a class="headerlink" href="#setting-up-the-build" title="Link to this heading">¶</a></h2>
-<p data-msgid="bbec9e021287bcb36558f900a0b7adaa53a3d4da" data-score="0" data-since="260608">If you use a build tool (such as setuptools, meson-python, scikit-build-core),
-search its documentation for a way to select <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
-At the time of writing, not all of them have this; but if your tool does,
-use it.
-You may want to verify that it set the right flag by temporarily adding the
-following just after <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;Python.h&gt;</span></code>:</p>
+<h2 data-msgid="2ec8d6bb858d1d17c02c12d6c0f2724e03e96dcb" data-since="260611">빌드 설정<a class="headerlink" href="#setting-up-the-build" title="Link to this heading">¶</a></h2>
+<p data-msgid="bbec9e021287bcb36558f900a0b7adaa53a3d4da" data-since="260611">빌드 도구(setuptools, meson-python, scikit-build-core 등)를 사용하는 경우, <code class="docutils literal notranslate"><span class="pre">abi3t``를</span> <span class="pre">선택하는</span> <span class="pre">방법을</span> <span class="pre">해당</span> <span class="pre">문서에서</span> <span class="pre">검색하십시오.</span> <span class="pre">현재까지는</span> <span class="pre">모든</span> <span class="pre">도구가</span> <span class="pre">이를</span> <span class="pre">갖춘</span> <span class="pre">것은</span> <span class="pre">아니지만,</span> <span class="pre">도구가</span> <span class="pre">지원한다면</span> <span class="pre">사용하십시오.</span> <span class="pre">다음</span> <span class="pre">내용을</span> <span class="pre">``#include</span> <span class="pre">&lt;Python.h&gt;</span></code> 바로 뒤에 임시로 추가하여 올바른 플래그가 설정되었는지 확인할 수 있습니다:</p>
 <div class="highlight-c notranslate" data-msgid="56f113ea28a552d0f273c222bc6e70328ef2c4d2" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="cp">#if Py_TARGET_ABI3T+0 &lt;= 0x30f0000</span>
 <span class="cp">#error &quot;abi3t define is not set!&quot;</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p data-msgid="b4e36c30b8f70f87f10e6dd06937eccf63348711" data-score="0" data-since="260608">This should result in a different error than “<code class="docutils literal notranslate"><span class="pre">abt3t</span></code> define is not set”.</p>
+<p data-msgid="b4e36c30b8f70f87f10e6dd06937eccf63348711" data-since="260611">이는 “<code class="docutils literal notranslate"><span class="pre">abt3t</span></code> define is not set”과 다른 오류를 발생시킬 것입니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="c17fb4f74351ff701d31b9bf6ccbf38061f68477" data-score="0" data-since="260608">If your build tool doesn’t support <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> yet, set the following macro
-before including <code class="docutils literal notranslate"><span class="pre">Python.h</span></code>:</p>
-<div class="highlight-c notranslate" data-msgid="df0e9a29b0b80ae1b19a5dfb6b231e239d7e4859" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="cp">#define Py_TARGET_ABI3T 0x30f0000</span>
+<p data-msgid="c17fb4f74351ff701d31b9bf6ccbf38061f68477" data-since="260611">빌드 도구가 아직 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 를 지원하지 않는 경우, <code class="docutils literal notranslate"><span class="pre">Python.h</span></code> 를 포함하기 전에 다음 매크로를 설정하십시오:</p>
+<div class="highlight-c notranslate" data-msgid="df0e9a29b0b80ae1b19a5dfb6b231e239d7e4859" data-since="260611"><div class="highlight"><pre><span></span><span class="cp">#define Py_TARGET_ABI3T 0x30f0000</span>
 </pre></div>
 </div>
-<p data-msgid="015f510db1f5c324a2424cda7c687a0a73f30982" data-score="0" data-since="260608">or specify it as a compiler flag, for example:</p>
-<div class="highlight-c notranslate" data-msgid="9a75a13e5e85fba3cdf860a53121b70d6ca0d6aa" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">DPy_TARGET_ABI3T</span><span class="o">=</span><span class="mh">0x30f0000</span>
+<p data-msgid="015f510db1f5c324a2424cda7c687a0a73f30982" data-since="260611">또는 컴파일러 플래그로 지정합니다. 예를 들면:</p>
+<div class="highlight-c notranslate" data-msgid="9a75a13e5e85fba3cdf860a53121b70d6ca0d6aa" data-since="260611"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">DPy_TARGET_ABI3T</span><span class="o">=</span><span class="mh">0x30f0000</span>
 </pre></div>
 </div>
-<p data-msgid="fea805af9fcff9dbf24d798e60033d14ca7fc396" data-score="0" data-since="260608">Once your extension builds with this setting, it will be compatible with
-CPython 3.15 and above.</p>
-<p data-msgid="1896e4f1a98087be704d7e1d80c3eed1f466e1af" data-score="0" data-since="260608">If you set this macro manually, you will later need to name and tag the
-resulting extension manually as well.
-This is covered in <a class="reference internal" href="#abi3t-migration-tagging"><span class="std std-ref">Tagging and distribution</span></a> below.</p>
+<p data-msgid="fea805af9fcff9dbf24d798e60033d14ca7fc396" data-since="260611">확장이 이 설정으로 빌드되면 CPython 3.15 이상과 호환됩니다.</p>
+<p data-msgid="1896e4f1a98087be704d7e1d80c3eed1f466e1af" data-since="260611">이 매크로를 수동으로 설정하는 경우, 나중에 결과 확장 기능의 이름과 태그도 수동으로 지정해야 합니다. 이는 아래 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>abi3t-migration-tagging`에서 다룹니다.</p>
 </div>
-<p data-msgid="7ed66dd2bc541e868c292f1bb3e484aaeb3985cb" data-score="0" data-since="260608">This guide will ask you to make a series of changes.
-After each one, verify that your extension still builds in the original
-(non-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>) configuration, and ideally run tests on all Python
-versions you support.
-This will ensure that nothing breaks as you are porting.</p>
+<p data-msgid="7ed66dd2bc541e868c292f1bb3e484aaeb3985cb" data-since="260611">이 가이드는 일련의 변경 사항을 요구합니다. 각 변경 사항 후에는 확장 모듈이 원래의 (non-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>) 구성에서 계속 빌드되는지 확인하고, 이상적으로는 지원하는 모든 파이썬 버전에 대해 테스트를 실행하십시오. 이렇게 하면 포팅하는 과정에서 아무것도 깨지지 않도록 보장할 수 있습니다.</p>
 </section>
 <section id="module-export-hook">
-<h2 data-msgid="407bd245b0bea9b74dfe7abc504c667213e58735" data-score="0" data-since="260608">Module export hook<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
-<p data-msgid="8a9b02037946625402762b86e741d9a2a95fc47f" data-score="0" data-since="260608">Unless you’ve done this step already, your extension module defines a
-<a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">module initialization function</span></a>
-named <code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;module_name&gt;</span></em></code>.
-You will need to port it to a <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">module export hook</span></a>,
-<code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;module</span> <span class="pre">name&gt;</span></em></code>, a feature added in CPython 3.15 in
-<span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a>.</p>
-<p data-msgid="5564e7ea30b32b69b339ee8fa61bc8f66df6e550" data-score="0" data-since="260608">Your existing init function should look like this (with your own names
-for <code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code>):</p>
+<h2 data-msgid="407bd245b0bea9b74dfe7abc504c667213e58735" data-since="260611">모듈 내보내기 훅<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
+<p data-msgid="8a9b02037946625402762b86e741d9a2a95fc47f" data-since="260611">아직 이 단계를 수행하지 않았다면, 확장 모듈은 <a href="#id1"><span class="problematic" id="id2">`</span></a>:ref:<a href="#id3"><span class="problematic" id="id4">`</span></a>모듈 초기화 함수 &lt;extension-pyinit&gt;`인 <a href="#id5"><span class="problematic" id="id6">`</span></a>:samp:<a href="#id7"><span class="problematic" id="id8">`</span></a>PyInit_{&lt;module_name&gt;}`을 정의합니다. 이 기능을 <a href="#id9"><span class="problematic" id="id10">`</span></a>:pep:<a href="#id11"><span class="problematic" id="id12">`</span></a>793`에서 CPython 3.15에 추가된 <a href="#id13"><span class="problematic" id="id14">`</span></a>:ref:<a href="#id15"><span class="problematic" id="id16">`</span></a>모듈 내보내기 훅 &lt;extension-export-hook&gt;`인 <a href="#id17"><span class="problematic" id="id18">`</span></a>:samp:<a href="#id19"><span class="problematic" id="id20">`</span></a>PyModExport_{&lt;module name&gt;}`으로 포팅해야 합니다.</p>
+<p data-msgid="5564e7ea30b32b69b339ee8fa61bc8f66df6e550" data-since="260611">기존 초기화 함수는 다음과 같아야 합니다 (<code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;</span></code> 및 <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> 에 사용자 이름이 포함됨):</p>
 <div class="bad highlight-c notranslate" data-msgid="192592385f2b45a738f6b16036f6390734f37d2a" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
@@ -367,13 +317,8 @@ for <code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="1c721f2ff137552549ceb2b5e16c7bf79ae1aa8b" data-score="0" data-since="260608">If there is some code before the <code class="docutils literal notranslate"><span class="pre">return</span></code>, move it to
-a <a class="reference internal" href="../c-api/module.html#c.Py_mod_create" title="Py_mod_create"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_create</span></code></a> or <a class="reference internal" href="../c-api/module.html#c.Py_mod_exec" title="Py_mod_exec"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_exec</span></code></a> slot function.
-See the <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">PyInit documentation</span></a> for related information.</p>
-<p data-msgid="822acd3c877d909c4d6856ac4d97157c6fe6af13" data-score="0" data-since="260608">The function references a <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> object (<code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> in the code
-above).
-Its definition should be similar to the following, with different values
-and perhaps some fields unnnamed or left out:</p>
+<p data-msgid="1c721f2ff137552549ceb2b5e16c7bf79ae1aa8b" data-since="260611"><code class="docutils literal notranslate"><span class="pre">return</span></code> 앞에 코드가 있는 경우, 이를 <cite>:c:macro:`Py_mod_create</cite> 또는 <a class="reference internal" href="../c-api/module.html#c.Py_mod_exec" title="Py_mod_exec"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_exec</span></code></a> 슬롯 함수로 옮기십시오. 관련 정보는 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyInit 문서 &lt;extension-pyinit&gt;`를 참조하십시오.</p>
+<p data-msgid="822acd3c877d909c4d6856ac4d97157c6fe6af13" data-since="260611">함수는 <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> 객체 (위 코드의 <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code>)를 참조합니다. 그 정의는 다음과 유사해야 하며, 값은 다를 수 있고 일부 필드는 이름이 없거나 생략될 수 있습니다:</p>
 <div class="bad highlight-c notranslate" data-msgid="5b3b4ce8f6ed3e11d5517313ddccd83669c628fc" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">&lt;</span><span class="n">moddef</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">PyModuleDef_HEAD_INIT</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">m_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;my_module&quot;</span><span class="p">,</span>
@@ -387,9 +332,7 @@ and perhaps some fields unnnamed or left out:</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p data-msgid="f6caca592ec1de237d0272f9c90e3ce352f05349" data-score="0" data-since="260608">Remove this definition and the <code class="docutils literal notranslate"><span class="pre">PyInit</span></code> function (or put them in
-an <code class="docutils literal notranslate"><span class="pre">#ifndef</span> <span class="pre">Py_TARGET_ABI3T</span></code> block, to retain backwards compatibility),
-and replace them with the following:</p>
+<p data-msgid="f6caca592ec1de237d0272f9c90e3ce352f05349" data-since="260611">이 정의와 <code class="docutils literal notranslate"><span class="pre">PyInit</span></code> 함수를 제거하고 (또는 후방 호환성을 유지하기 위해 <code class="docutils literal notranslate"><span class="pre">#ifndef</span> <span class="pre">Py_TARGET_ABI3T</span></code> 블록에 넣고) 다음으로 대체하십시오:</p>
 <div class="good highlight-c notranslate" data-msgid="d10e74c8de0f6c4b5b666aa3c6013a2c354d1a0e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">PyABIInfo_VAR</span><span class="p">(</span><span class="n">abi_info</span><span class="p">);</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
@@ -412,37 +355,26 @@ and replace them with the following:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="bf8375c6151f1339d037dd08adbca2f00bfced33" data-score="0" data-since="260608">Leave out any fields that were missing (except the new <a class="reference internal" href="../c-api/module.html#c.Py_mod_abi" title="Py_mod_abi"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_abi</span></code></a>),
-and substitute your own values.</p>
-<p data-msgid="7d6763744d785273081f03473caaf9521fd42709" data-score="0" data-since="260608">See the <a class="reference internal" href="../c-api/slots.html#c.PySlot" title="PySlot"><code class="xref c c-type docutils literal notranslate"><span class="pre">PySlot</span></code></a> and <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">export hook</span></a>
-documentation for details on this API.</p>
+<p data-msgid="bf8375c6151f1339d037dd08adbca2f00bfced33" data-since="260611">누락된 필드는 무시하고 (새로운 <a class="reference internal" href="../c-api/module.html#c.Py_mod_abi" title="Py_mod_abi"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_abi</span></code></a> 제외), 사용자의 값을 대체하십시오.</p>
+<p data-msgid="7d6763744d785273081f03473caaf9521fd42709" data-since="260611">이 API에 대한 자세한 내용은 <a class="reference internal" href="../c-api/slots.html#c.PySlot" title="PySlot"><code class="xref c c-type docutils literal notranslate"><span class="pre">PySlot</span></code></a> 및 <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">내보내기 훅</span></a> 문서를 참조하십시오.</p>
 <section id="associated-pymoduledef">
-<h3 data-msgid="03503e55393ae3e70a6cece3f00e1e35958b976c" data-score="0" data-since="260608">Associated <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code><a class="headerlink" href="#associated-pymoduledef" title="Link to this heading">¶</a></h3>
-<p data-msgid="de78666028c15cce18d964713d765f11f194e6f2" data-score="0" data-since="260608">Since the new API does not use a <code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code> structure, a definition
-will not be associated with the resulting module.
-This changes the behavior of the following functions:</p>
+<h3 data-msgid="03503e55393ae3e70a6cece3f00e1e35958b976c" data-since="260611">연관 <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code><a class="headerlink" href="#associated-pymoduledef" title="Link to this heading">¶</a></h3>
+<p data-msgid="de78666028c15cce18d964713d765f11f194e6f2" data-since="260611">새로운 API는 <code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code> 구조를 사용하지 않으므로, 결과 모듈과 연결되는 정의가 없습니다. 이는 다음 함수들의 동작을 변경합니다:</p>
 <ul class="simple">
 <li><p data-msgid="499498a32e3910641afb46ac418f6d7cdfb0ed62" data-score="100" data-since="260609"><a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a></p></li>
-<li><p data-msgid="aff548b19170763fab1825ded02b2d833aebd0ba" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a></p></li>
+<li><p data-msgid="aff548b19170763fab1825ded02b2d833aebd0ba" data-since="260611"><a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a></p></li>
 </ul>
-<p data-msgid="bf387d73c9c6cc9ba921d67b57962d80fd442b3f" data-score="0" data-since="260608">Check your code for these.
-If you do not use them, you can skip this section.</p>
-<p data-msgid="011de5ae0b78a027b02029aafef60beadf3d1bd8" data-score="0" data-since="260608">These functions are typically used for two purposes:</p>
+<p data-msgid="bf387d73c9c6cc9ba921d67b57962d80fd442b3f" data-since="260611">코드를 검색하여 이것들을 확인하십시오. 사용하지 않으면 이 섹션은 건너뛰어도 됩니다.</p>
+<p data-msgid="011de5ae0b78a027b02029aafef60beadf3d1bd8" data-since="260611">이 함수들은 일반적으로 두 가지 목적으로 사용됩니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="83186122fa86278199c1be04dbb259463c812071" data-score="0" data-since="260608">To get the definition the module was created with.
-This is no longer possible using the new API.
-Modules no longer keep a reference to the definition, so you will need to
-figure out a different way to pass the relevant data around.</p></li>
+<li><p data-msgid="83186122fa86278199c1be04dbb259463c812071" data-since="260611">모듈이 생성될 때 사용된 정의를 가져옵니다. 새로운 API를 사용하면 더 이상 불가능합니다. 모듈은 더 이상 정의에 대한 참조를 유지하지 않으므로, 관련 데이터를 전달하는 다른 방법을 마련해야 합니다.</p></li>
 </ol>
 <ol class="arabic" id="abi3t-migration-module-token" start="2">
-<li><p data-msgid="0b99b641ef3153399cd35d8cf96811fcc43ce043" data-score="0" data-since="260608">To check if a given module object is “yours”.
-This use case is now served by <a class="reference internal" href="../c-api/module.html#ext-module-token"><span class="std std-ref">module tokens</span></a> –
-opaque pointers that identify a module.
-To use a token, declare (or reuse) a unique static variable, for example:</p>
-<div class="good highlight-c notranslate" data-msgid="4ff55626d284d0295648b67dd8cbb5b273693e68" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">my_token</span><span class="p">;</span>
+<li><p data-msgid="0b99b641ef3153399cd35d8cf96811fcc43ce043" data-since="260611">주어진 모듈 객체가 “본인의 것”인지 확인합니다. 이 사용 사례는 이제 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>모듈 토큰 &lt;ext-module-token&gt;`이 제공합니다. 이는 모듈을 식별하는 불투명(opaque) 포인터입니다. 토큰을 사용하려면 다음과 같이 고유한 정적 변수를 선언하거나 재사용하십시오:</p>
+<div class="good highlight-c notranslate" data-msgid="4ff55626d284d0295648b67dd8cbb5b273693e68" data-since="260611"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">my_token</span><span class="p">;</span>
 </pre></div>
 </div>
-<p data-msgid="e202602abfd4d333224b619b3aab7b0867acf888" data-score="0" data-since="260608">and add a pointer to it in a new entry to your module’s <code class="docutils literal notranslate"><span class="pre">PySlot</span></code> array:</p>
+<p data-msgid="e202602abfd4d333224b619b3aab7b0867acf888" data-since="260611">그리고 모듈의 <code class="docutils literal notranslate"><span class="pre">PySlot</span></code> 배열에 새 항목으로 포인터를 추가하십시오:</p>
 <div class="good highlight-c notranslate" data-msgid="f31d4fc9556b31dd4ddc67dc841a6f11ed3bd83e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="p">...</span>
 <span class="hll"><span class="w">   </span><span class="n">PySlot_STATIC_DATA</span><span class="p">(</span><span class="n">Py_mod_token</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_token</span><span class="p">),</span>
@@ -450,26 +382,25 @@ To use a token, declare (or reuse) a unique static variable, for example:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="e3f8267a8dc4d4d83731a68b44e7b43983ec5fea" data-score="0" data-since="260608">Then, switch from <a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a> calls such as:</p>
-<div class="bad highlight-c notranslate" data-msgid="a470e86bd74e832e15a54d0fe91d0947a71a776e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyModule_GetDef</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
+<p data-msgid="e3f8267a8dc4d4d83731a68b44e7b43983ec5fea" data-since="260611">그런 다음, 다음과 같은 <a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a> 호출을 사용에서 전환하십시오:</p>
+<div class="bad highlight-c notranslate" data-msgid="a470e86bd74e832e15a54d0fe91d0947a71a776e" data-since="260611"><div class="highlight"><pre><span></span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyModule_GetDef</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
 </pre></div>
 </div>
-<p data-msgid="0f83bf1c36ceb1747998a7a43e9aabe43a7f9602" data-score="0" data-since="260608">to <a class="reference internal" href="../c-api/module.html#c.PyModule_GetToken" title="PyModule_GetToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetToken()</span></code></a> (which uses an output argument and may fail
-with an exception):</p>
-<div class="good highlight-c notranslate" data-msgid="49192ba8ba4a056852562f19d8107daf9c961808" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="p">;</span>
+<p data-msgid="0f83bf1c36ceb1747998a7a43e9aabe43a7f9602" data-since="260611"><a class="reference internal" href="../c-api/module.html#c.PyModule_GetToken" title="PyModule_GetToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetToken()</span></code></a> (출력 인수를 사용하며 예외로 실패할 수 있음)으로:</p>
+<div class="good highlight-c notranslate" data-msgid="49192ba8ba4a056852562f19d8107daf9c961808" data-since="260611"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="p">;</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyModule_GetToken</span><span class="p">(</span><span class="n">module</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">token</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="cm">/* handle error */</span>
+<span class="w">    </span><span class="cm">/* 오류 처리 */</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="aa603f4eb7db546caa4e78ccc9bd8bcb48e41a7e" data-score="0" data-since="260608">and from <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a> calls such as:</p>
-<div class="bad highlight-c notranslate" data-msgid="896455025df4c492693b1f9f2a80add77143bb62" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByDef</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_def</span><span class="p">);</span>
-<span class="cm">/* handle error; use module */</span>
+<p data-msgid="aa603f4eb7db546caa4e78ccc9bd8bcb48e41a7e" data-since="260611">그리고 다음과 같은 <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a> 호출에서 벗어나서:</p>
+<div class="bad highlight-c notranslate" data-msgid="896455025df4c492693b1f9f2a80add77143bb62" data-since="260611"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByDef</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_def</span><span class="p">);</span>
+<span class="cm">/* 오류 처리; module 사용 */</span>
 </pre></div>
 </div>
-<p data-msgid="7c3d34450de9cc3af0c551a8e8eeac8c87f07135" data-score="0" data-since="260608">to <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByToken" title="PyType_GetModuleByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByToken()</span></code></a> (which returns a strong reference):</p>
-<div class="good highlight-c notranslate" data-msgid="1182ff52a20e972a29f8f2dd43b8f1bb43f383e2" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByToken</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_token</span><span class="p">);</span>
-<span class="cm">/* handle error; use module */</span>
+<p data-msgid="7c3d34450de9cc3af0c551a8e8eeac8c87f07135" data-since="260611"><a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByToken" title="PyType_GetModuleByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByToken()</span></code></a> (강한 참조를 반환):</p>
+<div class="good highlight-c notranslate" data-msgid="1182ff52a20e972a29f8f2dd43b8f1bb43f383e2" data-since="260611"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByToken</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_token</span><span class="p">);</span>
+<span class="cm">/* 오류 처리; module 사용 */</span>
 <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -478,32 +409,22 @@ with an exception):</p>
 </section>
 </section>
 <section id="pyobject-opaqueness">
-<h2 data-msgid="8877d596c5958f373aeaf44137baf02a0eb2114d" data-score="0" data-since="260608"><code class="docutils literal notranslate"><span class="pre">PyObject</span></code> opaqueness<a class="headerlink" href="#pyobject-opaqueness" title="Link to this heading">¶</a></h2>
-<p data-msgid="ca44708ba40ba3944089450c881d8b4e5d4afdeb" data-score="0" data-since="260608">The <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> and <a class="reference internal" href="../c-api/structures.html#c.PyVarObject" title="PyVarObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyVarObject</span></code></a> structures are opaque
-in <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.</p>
-<p data-msgid="7ed2e5e68bedfd7c40184bf9cce99a46a56ff642" data-score="0" data-since="260608">Accessing their members is prohibited.
-If you do this, switch to getter/setter functions mentioned in
-their documentation:</p>
+<h2 data-msgid="8877d596c5958f373aeaf44137baf02a0eb2114d" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyObject</span></code> 불투명성<a class="headerlink" href="#pyobject-opaqueness" title="Link to this heading">¶</a></h2>
+<p data-msgid="ca44708ba40ba3944089450c881d8b4e5d4afdeb" data-since="260611"><a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> 및 <a class="reference internal" href="../c-api/structures.html#c.PyVarObject" title="PyVarObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyVarObject</span></code></a> 구조는 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 에서 불투명합니다.</p>
+<p data-msgid="7ed2e5e68bedfd7c40184bf9cce99a46a56ff642" data-since="260611">멤버에 액세스하는 것은 금지됩니다. 이렇게 할 경우, 설명서에 언급된 getter/setter 함수로 전환하십시오:</p>
 <ul class="simple">
-<li><p data-msgid="d14a19a849b206d0d6837a045eea6cb2b50c9aa6" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_type" title="PyObject.ob_type"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_type</span></code></a></p></li>
-<li><p data-msgid="795f065cbecf8a0a8fb3ca7bdf31ae11fa283b15" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_refcnt" title="PyObject.ob_refcnt"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_refcnt</span></code></a></p></li>
-<li><p data-msgid="fb67f14d5f36f172550ae27c3fabdbff5c4819e6" data-score="0" data-since="260603"><a class="reference internal" href="../c-api/structures.html#c.PyVarObject.ob_size" title="PyVarObject.ob_size"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyVarObject.ob_size</span></code></a></p></li>
+<li><p data-msgid="d14a19a849b206d0d6837a045eea6cb2b50c9aa6" data-since="260611"><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_type" title="PyObject.ob_type"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_type</span></code></a></p></li>
+<li><p data-msgid="795f065cbecf8a0a8fb3ca7bdf31ae11fa283b15" data-since="260611"><a class="reference internal" href="../c-api/structures.html#c.PyObject.ob_refcnt" title="PyObject.ob_refcnt"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyObject.ob_refcnt</span></code></a></p></li>
+<li><p data-msgid="fb67f14d5f36f172550ae27c3fabdbff5c4819e6" data-since="260611"><a class="reference internal" href="../c-api/structures.html#c.PyVarObject.ob_size" title="PyVarObject.ob_size"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyVarObject.ob_size</span></code></a></p></li>
 </ul>
-<p data-msgid="d11a0fa2e7084997cd4f75d1ec39b745543d17d9" data-score="0" data-since="260608">Also, the <em>size</em> of the <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> structures is
-unknown to the compiler.
-It can – and <em>does</em> – change between different CPython builds.</p>
+<p data-msgid="d11a0fa2e7084997cd4f75d1ec39b745543d17d9" data-since="260611">또한, <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> 구조의 <em>size</em> 는 컴파일러가 알 수 없습니다. 이는 다른 CPython 빌드 간에 변경될 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="5cc9ddee3f26e90bec71849ab86f9cad9aed8469" data-score="0" data-since="260608">While the size is available at runtime (for example as
-<code class="docutils literal notranslate"><span class="pre">sys.getsizeof(object())</span></code> in Python code), you should resist the
-temptation to calculate pointer offsets from it.
-The object memory layout is subject to change in future
-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> implementations.</p>
+<p data-msgid="5cc9ddee3f26e90bec71849ab86f9cad9aed8469" data-since="260611">런타임에는 크기가 사용 가능하지만(예: Python 코드에서 <code class="docutils literal notranslate"><span class="pre">sys.getsizeof(object())</span></code>), 여기에서 포인터 오프셋을 계산하려는 유혹을 저항해야 합니다. 객체 메모리 레이아웃은 향후 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 구현에서 변경될 수 있습니다.</p>
 </div>
 <section id="custom-type-definitions">
-<h3 data-msgid="16cf2a3600ea8685225a42b6a955228c519bb525" data-score="0" data-since="260608">Custom type definitions<a class="headerlink" href="#custom-type-definitions" title="Link to this heading">¶</a></h3>
-<p data-msgid="57c28620b5cecab2561a8130458c3b8ccdc9579e" data-score="0" data-since="260608">Since <code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code> is opaque, the traditional way of defining
-custom types no longer works:</p>
+<h3 data-msgid="16cf2a3600ea8685225a42b6a955228c519bb525" data-since="260611">사용자 정의 타입 정의<a class="headerlink" href="#custom-type-definitions" title="Link to this heading">¶</a></h3>
+<p data-msgid="57c28620b5cecab2561a8130458c3b8ccdc9579e" data-since="260611">:c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>!PyObject`가 불투명하기 때문에, 사용자 정의 타입을 정의하는 기존 방식은 더 이상 작동하지 않습니다:</p>
 <div class="bad highlight-c notranslate" data-msgid="06cb31e0614d1acf4c92a4d7292dca3881c53058" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="n">PyObject_HEAD</span><span class="w">  </span><span class="c1">// expands to `PyObject ob_base;` which has unknown size</span>
 
