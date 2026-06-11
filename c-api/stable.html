@@ -23,7 +23,7 @@
     <link rel="prev" title="소개" href="intro.html" />
     
       
-      <link rel="canonical" href="https://docs.python.org/3/c-api/stable.html">
+      <link rel="canonical" href="https://python.flowdas.com/c-api/stable.html">
       
     
 
@@ -77,9 +77,9 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">C API 및 ABI 안정성</a><ul>
-<li><a class="reference internal" href="#unstable-c-api">Unstable C API</a></li>
-<li><a class="reference internal" href="#stable-application-binary-interfaces">Stable Application Binary Interfaces</a><ul>
-<li><a class="reference internal" href="#compiling-for-stable-abi">Compiling for Stable ABI</a></li>
+<li><a class="reference internal" href="#unstable-c-api">불안정한 C API</a></li>
+<li><a class="reference internal" href="#stable-application-binary-interfaces">안정적인 응용 프로그램 바이너리 인터페이스</a><ul>
+<li><a class="reference internal" href="#compiling-for-stable-abi">안정 ABI용으로 컴파일하기</a></li>
 <li><a class="reference internal" href="#stable-abi-scope-and-performance">Stable ABI Scope and Performance</a></li>
 <li><a class="reference internal" href="#stable-abi-caveats">Stable ABI Caveats</a></li>
 </ul>
@@ -123,97 +123,48 @@
                 
   <section id="c-api-and-abi-stability">
 <span id="stable"></span><h1 data-msgid="7fbb39de3816661896b02d437725d5a3a3ce12d7" data-score="100" data-since="260610">C API 및 ABI 안정성<a class="headerlink" href="#c-api-and-abi-stability" title="Link to this heading">¶</a></h1>
-<p data-msgid="355b836c47e6bf0774bfda09be09df8393a7c527" data-score="0" data-since="260603">Unless documented otherwise, Python’s C API is covered by the Backwards
-Compatibility Policy, <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0387/"><strong>PEP 387</strong></a>.
-Most changes to it are source-compatible (typically by only adding new API).
-Changing existing API or removing API is only done after a deprecation period
-or to fix serious issues.</p>
-<p data-msgid="71550347a6535544e8e3903949c6b0c0e4c7e292" data-score="0" data-since="260603">CPython’s Application Binary Interface (ABI) is forward- and
-backwards-compatible across a minor release (if these are compiled the same
-way; see <a class="reference internal" href="#stable-abi-platform"><span class="std std-ref">Platform Considerations</span></a> below).
-So, code compiled for Python 3.10.0 will work on 3.10.8 and vice versa,
-but will need to be compiled separately for 3.9.x and 3.11.x.</p>
-<p data-msgid="97fe6c5b4bd7262c835d126ed7a510053d9c6822" data-score="0" data-since="260603">There are two tiers of C API with different stability expectations:</p>
+<p data-msgid="355b836c47e6bf0774bfda09be09df8393a7c527" data-score="87" data-since="260611">달리 문서화되지 않은 한, Python의 C API는 하위 호환성 정책(Backwards Compatibility Policy), :pep:<a href="#id1"><span class="problematic" id="id2">`</span></a>387`에 의해 보호됩니다. 여기에 대한 대부분의 변경은 소스 호환적입니다(일반적으로 새로운 API만 추가하여). 기존 API를 변경하거나 API를 제거하는 것은 폐기 기간이 지난 후 또는 심각한 문제를 해결할 때만 이루어집니다.</p>
+<p data-msgid="71550347a6535544e8e3903949c6b0c0e4c7e292" data-score="97" data-since="260611">CPython의 응용 프로그램 바이너리 인터페이스(ABI)는 마이너 버전 전반에 걸쳐 순방향 및 역방향 호환성을 유지합니다 (동일하게 컴파일된 경우에 한함; 아래 <a class="reference internal" href="#stable-abi-platform"><span class="std std-ref">Platform Considerations</span></a> 참조). 따라서 Python 3.10.0용으로 컴파일된 코드는 3.10.8에서도 작동하며 그 반대도 마찬가지이지만, 3.9.x 및 3.11.x용으로는 별도로 컴파일해야 합니다.</p>
+<p data-msgid="97fe6c5b4bd7262c835d126ed7a510053d9c6822" data-score="100" data-since="260611">C API에는 서로 다른 안정성 기대치를 가진 두 가지 등급이 있습니다:</p>
 <ul class="simple">
-<li><p data-msgid="4dfec2db8c6b9d065ad40c661a87bb771a93f705" data-score="0" data-since="260603"><a class="reference internal" href="#unstable-c-api"><span class="std std-ref">Unstable API</span></a>, may change in minor versions without
-a deprecation period. It is marked by the <code class="docutils literal notranslate"><span class="pre">PyUnstable</span></code> prefix in names.</p></li>
-<li><p data-msgid="24965979244eb6375521d18fb943a6a24f43db5a" data-score="0" data-since="260603"><a class="reference internal" href="#limited-c-api"><span class="std std-ref">Limited API</span></a>, is compatible across several minor releases.
-When <a class="reference internal" href="#c.Py_LIMITED_API" title="Py_LIMITED_API"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_LIMITED_API</span></code></a> is defined, only this subset is exposed
-from <code class="docutils literal notranslate"><span class="pre">Python.h</span></code>.</p></li>
+<li><p data-msgid="4dfec2db8c6b9d065ad40c661a87bb771a93f705" data-score="93" data-since="260611"><span class="xref std std-ref">&lt;unstable-c-api&gt;</span> 에서 불안정한 API`는 비사용 지원 중단 기간 없이 마이너 버전에서 변경될 수 있습니다. 이름에서는 <code class="docutils literal notranslate"><span class="pre">PyUnstable</span></code> 접두사로 표시됩니다.</p></li>
+<li><p data-msgid="24965979244eb6375521d18fb943a6a24f43db5a" data-score="97" data-since="260611"><span class="xref std std-ref">&lt;limited-c-api&gt;</span> 의 제한형 API`는 몇몇 마이너 버전에서 호환됩니다. <a class="reference internal" href="#c.Py_LIMITED_API" title="Py_LIMITED_API"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_LIMITED_API</span></code></a> 가 정의되면, <code class="docutils literal notranslate"><span class="pre">Python.h</span></code> 에서 이 서브셋만 노출됩니다.</p></li>
 </ul>
-<p data-msgid="03be07e96eae9d8b58707244d454d044ea824677" data-score="0" data-since="260603">These are discussed in more detail below.</p>
-<p data-msgid="488b766c0952827c33e2fc9ac1d555e1a0b1e691" data-score="0" data-since="260603">Names prefixed by an underscore, such as <code class="docutils literal notranslate"><span class="pre">_Py_InternalState</span></code>,
-are private API that can change without notice even in patch releases.
-If you need to use this API, consider reaching out to
-<a class="reference external" href="https://discuss.python.org/c/core-dev/c-api/30">CPython developers</a>
-to discuss adding public API for your use case.</p>
+<p data-msgid="03be07e96eae9d8b58707244d454d044ea824677" data-score="10" data-since="260611">이는 아래에서 더 자세히 논의합니다.</p>
+<p data-msgid="488b766c0952827c33e2fc9ac1d555e1a0b1e691" data-score="91" data-since="260611"><code class="docutils literal notranslate"><span class="pre">_Py_InternalState</span></code> 와 같이 밑줄로 접두가 붙은 이름은 패치 릴리스에서도 예고 없이 변경될 수 있는 비공개 API입니다. 이 API를 사용해야 하는 경우, 사용 예를 위해 공개 API 추가를 논의하는 것이므로 <a class="reference external" href="https://discuss.python.org/c/core-dev/c-api/30">CPython developers</a> 에 연락하는 것을 고려해 보십시오.</p>
 <section id="unstable-c-api">
-<span id="id1"></span><h2 data-msgid="1a5af576e0ec96009d4e974908c31dabad24fbee" data-score="0" data-since="260603">Unstable C API<a class="headerlink" href="#unstable-c-api" title="Link to this heading">¶</a></h2>
-<p data-msgid="354f86923655fdc467a73988f3b8d0eb5df05e8a" data-score="0" data-since="260603" id="index-1">Any API named with the <code class="docutils literal notranslate"><span class="pre">PyUnstable</span></code> prefix exposes CPython implementation
-details, and may change in every minor release (e.g. from 3.9 to 3.10) without
-any deprecation warnings.
-However, it will not change in a bugfix release (e.g. from 3.10.0 to 3.10.1).</p>
-<p data-msgid="a762e589fad1766d66d929d39133fcea8f8080dd" data-score="0" data-since="260603">It is generally intended for specialized, low-level tools like debuggers.</p>
-<p data-msgid="13d1b33e3d0d3b4c8bc42be971401bc771a50cff" data-score="0" data-since="260603">Projects that use this API are expected to follow
-CPython development and spend extra effort adjusting to changes.</p>
+<span id="id1"></span><h2 data-msgid="1a5af576e0ec96009d4e974908c31dabad24fbee" data-score="100" data-since="260611">불안정한 C API<a class="headerlink" href="#unstable-c-api" title="Link to this heading">¶</a></h2>
+<p data-msgid="354f86923655fdc467a73988f3b8d0eb5df05e8a" data-score="96" data-since="260611" id="index-1"><code class="docutils literal notranslate"><span class="pre">PyUnstable</span></code> 접두사가 붙은 모든 API는 CPython 구현 세부 정보를 노출하며, 모든 마이너 릴리스에서 (예: 3.9에서 3.10으로) 비사용 지원 중단 경고 없이 변경될 수 있습니다. 하지만 버그 수정 릴리스(예: 3.10.0에서 3.10.1)에서는 변경되지 않습니다.</p>
+<p data-msgid="a762e589fad1766d66d929d39133fcea8f8080dd" data-score="72" data-since="260611">이것은 일반적으로 디버거와 같은 전문적인, 낮은 수준의 도구용으로 의도된 것입니다.</p>
+<p data-msgid="13d1b33e3d0d3b4c8bc42be971401bc771a50cff" data-score="85" data-since="260611">이 API를 사용하는 프로젝트는 CPython 개발을 준수하고 변경 사항에 적응하기 위해 추가적인 노력을 기울일 것으로 예상됩니다.</p>
 </section>
 <section id="stable-application-binary-interfaces">
-<span id="stable-application-binary-interface"></span><span id="stable-abi"></span><h2 data-msgid="d7e0a532b0cf4592877935da038eb60bcdfb2b53" data-score="0" data-since="260608">Stable Application Binary Interfaces<a class="headerlink" href="#stable-application-binary-interfaces" title="Link to this heading">¶</a></h2>
-<p data-msgid="9770cdc70b8f2509ec96c8c90bec4738e886cc54" data-score="0" data-since="260608">Python’s <em class="dfn">Stable ABI</em> allows extensions to be compatible with multiple
-versions of Python, without recompilation.</p>
+<span id="stable-application-binary-interface"></span><span id="stable-abi"></span><h2 data-msgid="d7e0a532b0cf4592877935da038eb60bcdfb2b53" data-score="100" data-since="260611">안정적인 응용 프로그램 바이너리 인터페이스<a class="headerlink" href="#stable-application-binary-interfaces" title="Link to this heading">¶</a></h2>
+<p data-msgid="9770cdc70b8f2509ec96c8c90bec4738e886cc54" data-score="100" data-since="260611">Python의 :dfn:<a href="#id1"><span class="problematic" id="id2">`</span></a>안정 ABI`는 확장 모듈이 재컴파일 없이 여러 Python 버전과 호환되도록 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="65b3dc94f43c79c1a145456ab9dd390ddf58e66b" data-score="0" data-since="260608">For simplicity, this document talks about <em>extensions</em>, but Stable ABI
-works the same way for all uses of the API – for example, embedding Python.</p>
+<p data-msgid="65b3dc94f43c79c1a145456ab9dd390ddf58e66b" data-score="89" data-since="260611">간단하게 설명하기 위해, 이 문서는 <em>확장 모듈</em> 에 대해 이야기하지만, 안정 ABI는 Python 임베딩과 같이 API의 모든 사용처에서 동일하게 작동합니다.</p>
 </div>
-<p data-msgid="d35046531b665dd3cd426d9ff2365c2878474fa5" data-score="0" data-since="260608">There are two Stable ABIs:</p>
+<p data-msgid="d35046531b665dd3cd426d9ff2365c2878474fa5" data-score="100" data-since="260611">두 가지 안정 ABI가 있습니다:</p>
 <ul>
-<li><p data-msgid="4ebe5fc3a6ff9adab01e62376a19808e0df8bbfa" data-score="0" data-since="260608"><code class="docutils literal notranslate"><span class="pre">abi3</span></code>, introduced in Python 3.2, is compatible with
-<strong>non</strong>-<a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded</span></a> builds of CPython.</p></li>
-<li><p data-msgid="68b195ff3f09214f377b92635ae9778693a48617" data-score="0" data-since="260608"><code class="docutils literal notranslate"><span class="pre">abi3t</span></code>, introduced in Python 3.15, is compatible with
-<a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded</span></a> builds of CPython.
-It has stricter API limitations than <code class="docutils literal notranslate"><span class="pre">abi3</span></code>.</p>
+<li><p data-msgid="4ebe5fc3a6ff9adab01e62376a19808e0df8bbfa" data-score="100" data-since="260611">Python 3.2에서 도입된 <code class="docutils literal notranslate"><span class="pre">abi3</span></code> 는 <strong>non</strong>-<span class="xref std std-term">&lt;free-threaded build&gt;</span> 의 자유 스레드 구현 CPython 빌드와 호환됩니다.</p></li>
+<li><p data-msgid="68b195ff3f09214f377b92635ae9778693a48617" data-score="95" data-since="260611">Python 3.15에서 도입된 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 는 <span class="xref std std-term">&lt;free-threaded build&gt;</span> 의 자유 스레드 구현 CPython 빌드와 호환됩니다. <code class="docutils literal notranslate"><span class="pre">abi3</span></code> <a href="#id1"><span class="problematic" id="id2">`</span></a>보다 더 엄격한 API 제한 사항을 가지고 있습니다.</p>
 <blockquote>
 <div><div class="versionadded">
-<p><span class="versionmodified added">Added in version 3.15: </span><code class="docutils literal notranslate"><span class="pre">abi3t</span></code> was added in <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0803/"><strong>PEP 803</strong></a></p>
+<p><span class="versionmodified added">Added in version 3.15: </span><code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 는 <span class="target" id="index-4"></span><a class="pep reference external" href="https://peps.python.org/pep-0803/"><strong>PEP 803</strong></a> 에서 추가되었습니다.</p>
 </div>
 </div></blockquote>
 </li>
 </ul>
-<p data-msgid="a8dd5d5aecd0f41aa03554747d21912f59116c1d" data-score="0" data-since="260608">It is possible for an extension to be compiled for <em>both</em> <code class="docutils literal notranslate"><span class="pre">abi3</span></code> and
-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> at the same time; the result will be compatible with
-both free-threaded and non-free-threaded builds of Python.
-Currently, this has no downsides compared to compiling for <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> only.</p>
-<p data-msgid="f1e6e6470f131b57f914ff3b0a25f13c7968fea9" data-score="0" data-since="260608">Each Stable ABI is versioned using the first two numbers of the Python version.
-For example, Stable ABI 3.14 corresponds to Python 3.14.
-An extension compiled for Stable ABI 3.x is ABI-compatible with Python 3.x
-and above.</p>
-<p data-msgid="3637d7b77e460a1691d42008bcae08ad020d1625" data-score="0" data-since="260608">Extensions that target a stable ABI must only use a limited subset of
-the C API. This subset is known as the <em class="dfn">Limited API</em>; its contents
-are <a class="reference internal" href="#limited-api-list"><span class="std std-ref">listed below</span></a>.</p>
-<p data-msgid="387405847df4058c6e6ac00c6de273b32e0af82b" data-score="0" data-since="260608">On Windows, extensions that use a Stable ABI should be linked against
-<code class="docutils literal notranslate"><span class="pre">python3.dll</span></code> rather than a version-specific library such as
-<code class="docutils literal notranslate"><span class="pre">python39.dll</span></code>.
-This library only exposes the relevant symbols.</p>
-<p data-msgid="17f327fa8082866ae6ebf1547e2a5da212003f19" data-score="0" data-since="260608">On some platforms, Python will look for and load shared library files named
-with the <code class="docutils literal notranslate"><span class="pre">abi3</span></code> or <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> tag (for example, <code class="docutils literal notranslate"><span class="pre">mymodule.abi3.so</span></code>).
-<a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">Free-threaded</span></a> interpreters only recognize the
-<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> tag, while non-free-threaded ones will prefer <code class="docutils literal notranslate"><span class="pre">abi3</span></code> but fall back
-to <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
-Thus, extensions compatible with both ABIs should use the <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> tag.</p>
-<p data-msgid="413ddfbd6421140f95b2abffe069fc4112e6eacd" data-score="0" data-since="260608">Python does not necessarily check that extensions it loads
-have compatible ABI.
-Extension authors are encouraged to add a check using the <a class="reference internal" href="module.html#c.Py_mod_abi" title="Py_mod_abi"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_abi</span></code></a>
-slot or the <a class="reference internal" href="#c.PyABIInfo_Check" title="PyABIInfo_Check"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyABIInfo_Check()</span></code></a> function, but the user
-(or their packaging tool) is ultimately responsible for ensuring that,
-for example, extensions built for Stable ABI 3.10 are not installed for lower
-versions of Python.</p>
-<p data-msgid="755f60751d8b2c73149c1b6949556542118c8b40" data-score="0" data-since="260608">All functions in Stable ABI are present as functions in Python’s shared
-library, not solely as macros.
-This makes them usable in languages that don’t use the C
-preprocessor, including Python’s <a class="reference internal" href="../library/ctypes.html#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a>.</p>
+<p data-msgid="a8dd5d5aecd0f41aa03554747d21912f59116c1d" data-since="260611">확장 모듈은 동시에 <em>두</em> <code class="docutils literal notranslate"><span class="pre">abi3</span></code> 와 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 용으로 컴파일하는 것이 가능하며; 결과는 자유 스레드 및 비자유 스레드 Python 빌드와 모두 호환됩니다. 현재로서는 이는 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 만 컴파일하는 것과 비교하여 단점이 없습니다.</p>
+<p data-msgid="f1e6e6470f131b57f914ff3b0a25f13c7968fea9" data-since="260611">각 안정 ABI는 Python 버전의 앞 두 숫자를 사용하여 버전 관리됩니다. 예를 들어, 안정 ABI 3.14는 Python 3.14에 해당합니다. 안정 ABI 3.x용으로 컴파일된 확장 모듈은 Python 3.x 이상과 ABI 호환됩니다.</p>
+<p data-msgid="3637d7b77e460a1691d42008bcae08ad020d1625" data-since="260611">안정 ABI를 대상으로 하는 확장 모듈은 제한된 C API의 제한된 서브셋만 사용해야 합니다. 이 서브셋은 <em class="dfn">제한형 API`로 알려져 있으며, 그 내용은 :ref:`아래에 나열됩니다 &lt;limited-api-list&gt;</em>.</p>
+<p data-msgid="387405847df4058c6e6ac00c6de273b32e0af82b" data-since="260611">Windows에서 안정 ABI를 사용하는 확장 모듈은 버전별 라이브러리(예: <code class="docutils literal notranslate"><span class="pre">python39.dll</span></code>) 대신 <code class="docutils literal notranslate"><span class="pre">python3.dll</span></code> 과 링크되어야 합니다. 이 라이브러리는 관련 심볼만 노출합니다.</p>
+<p data-msgid="17f327fa8082866ae6ebf1547e2a5da212003f19" data-since="260611">일부 플랫폼에서는 Python이 <code class="docutils literal notranslate"><span class="pre">abi3</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 태그가 지정된 공유 라이브러리 파일(예: <code class="docutils literal notranslate"><span class="pre">mymodule.abi3.so</span></code>)을 검색하고 로드합니다. <span class="xref std std-term">&lt;free-threaded build&gt;</span> 해석기`는 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 태그만 인식하며, non-free-threaded 해석기는 <code class="docutils literal notranslate"><span class="pre">abi3</span></code> 를 선호하지만 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 폴백합니다. 따라서, 두 ABI와 호환되는 확장 모듈은 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 태그를 사용해야 합니다.</p>
+<p data-msgid="413ddfbd6421140f95b2abffe069fc4112e6eacd" data-since="260611">Python은 로드하는 확장 모듈이 호환되는 ABI를 갖는지 반드시 확인하지 않습니다. 확장 모듈 작성자는 <a class="reference internal" href="module.html#c.Py_mod_abi" title="Py_mod_abi"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_abi</span></code></a> 슬롯이나 <a class="reference internal" href="#c.PyABIInfo_Check" title="PyABIInfo_Check"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyABIInfo_Check()</span></code></a> 함수를 사용하여 확인을 추가할 것을 권장하지만, 사용자(또는 패키징 도구)는 예를 들어 안정 ABI 3.10용으로 빌드된 확장 모듈이 이전 버전의 Python용으로 설치되지 않도록 보장하는 궁극적인 책임이 있습니다.</p>
+<p data-msgid="755f60751d8b2c73149c1b6949556542118c8b40" data-since="260611">안정 ABI의 모든 함수는 C 전처리기(preprocessor)를 사용하지 않는 언어(Python의 :py:mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>ctypes`를 포함)에서도 사용 가능하도록 Python의 공유 라이브러리에 함수 형태로 존재하며, 단순히 매크로 형태가 아닙니다.</p>
 <section id="compiling-for-stable-abi">
-<span id="abi3-compiling"></span><h3 data-msgid="dd123629e07fcce1a13071427b3dd485beeb78c1" data-score="0" data-since="260608">Compiling for Stable ABI<a class="headerlink" href="#compiling-for-stable-abi" title="Link to this heading">¶</a></h3>
+<span id="abi3-compiling"></span><h3 data-msgid="dd123629e07fcce1a13071427b3dd485beeb78c1" data-since="260611">안정 ABI용으로 컴파일하기<a class="headerlink" href="#compiling-for-stable-abi" title="Link to this heading">¶</a></h3>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="61d82ef23eadc63aaa2ca9e34f335e2e5c8f2782" data-score="0" data-since="260608">Build tools (such as, for example, meson-python, scikit-build-core,
@@ -1722,7 +1673,7 @@ Python 3.16:</p>
 <div class="lost-and-found-section">
     <h4>분실물 보관소</h4>
     <div class="lost-and-found-items">
-        <span data-msgid="969ce4e881a929effc62daee20618440e405e113" data-score="0" data-since="260608" class="lost-and-found-item"></span>
+        <span data-msgid="969ce4e881a929effc62daee20618440e405e113" data-score="100" data-since="260611" class="lost-and-found-item"></span>
         <span data-msgid="984167ce703bd69f9a59c1718428ab206a637bd5" data-score="0" data-since="260603" class="lost-and-found-item"></span>
     </div>
 </div>
