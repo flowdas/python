@@ -91,7 +91,7 @@
 <li><a class="reference internal" href="#a-conceptual-overview-part-2-the-nuts-and-bolts">개념적 개요 파트 2: 내부 작동 원리</a><ul>
 <li><a class="reference internal" href="#the-inner-workings-of-coroutines">코루틴의 내부 작동 원리</a></li>
 <li><a class="reference internal" href="#futures">Future</a></li>
-<li><a class="reference internal" href="#a-homemade-asyncio-sleep">A homemade asyncio.sleep</a></li>
+<li><a class="reference internal" href="#a-homemade-asyncio-sleep">직접 만든 asyncio.sleep</a></li>
 </ul>
 </li>
 </ul>
@@ -141,7 +141,7 @@
 <p class="admonition-title">더 보기</p>
 <ul class="simple">
 <li><p data-msgid="e95e1ac50a97c1502919c7e31125a1329cd4ba44" data-score="80" data-since="260611">Alexander Nordin이 작성한 이 HOWTO 기호에 영감을 준 <a href="#id1"><span class="problematic" id="id2">`</span></a>guide &lt;<a class="reference external" href="https://github.com/anordin95/a-conceptual-overview-of-asyncio/">https://github.com/anordin95/a-conceptual-overview-of-asyncio/</a> tree/main&gt;`_입니다.</p></li>
-<li><p data-msgid="24fa7a99fb08f2c8a9f7c988d21c4f48ef17f1a1" data-since="260611">이심도 있는 <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> 관련 <a href="#id1"><span class="problematic" id="id2">`</span></a>YouTube 튜토리얼 시리즈 &lt;<a class="reference external" href="https://www.youtube.com/">https://www.youtube.com/</a> watch?v=Xbl7XjFYsN4&amp;list=PLhNSoGM2ik6SIkVGXWBwerucXjgP1rHmB&gt;`은 Python 핵심 팀원 Łukasz Langa가 제작했습니다.</p></li>
+<li><p data-msgid="24fa7a99fb08f2c8a9f7c988d21c4f48ef17f1a1" data-score="53" data-since="260611">이심도 있는 <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> 관련 <a href="#id1"><span class="problematic" id="id2">`</span></a>YouTube 튜토리얼 시리즈 &lt;<a class="reference external" href="https://www.youtube.com/">https://www.youtube.com/</a> watch?v=Xbl7XjFYsN4&amp;list=PLhNSoGM2ik6SIkVGXWBwerucXjgP1rHmB&gt;`은 Python 핵심 팀원 Łukasz Langa가 제작했습니다.</p></li>
 <li><p data-msgid="a5343dcaa6d09ca07bb2736d90ba82b07028fe76" data-since="260611"><a class="reference external" href="https://aosabook.org/en/500L/a-web-crawler-with-asyncio-coroutines.html">500 Lines or Less: A Web Crawler With asyncio Coroutines</a> (저자: A. Jesse Jiryu Davis 및 Guido van Rossum).</p></li>
 </ul>
 </div>
@@ -393,95 +393,62 @@ async generators.</p>
 <p data-msgid="cb90bf1c9cd3b5dceb59ce39cf10168efb6f3f8e" data-since="260611">:ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>future &lt;asyncio-future-obj&gt;`는 계산의 상태와 결과를 나타내기 위해 사용되는 객체입니다. 이 용어는 아직 오지 않았거나 아직 발생하지 않은 무언가라는 아이디어에서 비롯되었으며, 이 객체는 그 무언가를 주시하는 방법입니다.</p>
 <p data-msgid="74ac46ccc22f828cc493c4376d26a8cc7ac42118" data-since="260611">Future는 몇 가지 중요한 속성을 가지고 있습니다. 하나는 상태(state)로, “pending”, “cancelled”, 또는 “done” 중 하나일 수 있습니다. 다른 하나는 결과(result)로, 상태가 done으로 전환될 때 설정됩니다. 코루틴과 달리, Future는 수행해야 할 실제 계산을 나타내지 않습니다. 대신, 마치 상태 표시등(빨간색, 노란색 또는 녹색)이나 지표처럼, 해당 계산의 상태와 결과를 나타냅니다.</p>
 <p data-msgid="de521e5f48f566c6476e330a23b6a30ce79281dd" data-since="260611"><a class="reference internal" href="../library/asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Task</span></code></a> 는 이러한 다양한 기능을 얻기 위해 <a class="reference internal" href="../library/asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> 를 상속합니다. 이전 섹션에서는 태스크가 콜백 목록을 저장한다고 했지만, 이는 완전히 정확하지 않았습니다. 실제로 이 로직을 구현하는 것은 <code class="docutils literal notranslate"><span class="pre">Future</span></code> 클래스이며, <code class="docutils literal notranslate"><span class="pre">Task</span></code> 가 이를 상속받습니다.</p>
-<p data-msgid="686c458f2b0be922fed8f432eb7bc49108bbef62" data-score="0" data-since="260603">Futures may also be used directly (not via tasks).
-Tasks mark themselves as done when their coroutine is complete.
-Futures are much more versatile and will be marked as done when you say so.
-In this way, they’re the flexible interface for you to make your own conditions
-for waiting and resuming.</p>
+<p data-msgid="686c458f2b0be922fed8f432eb7bc49108bbef62" data-since="260611">Futures는 태스크를 거치지 않고 직접 사용될 수도 있습니다. 태스크는 코루틴이 완료되면 완료된 것으로 표시합니다. Future는 훨씬 더 다재다능하며, 필요할 때 완료된 것으로 표시됩니다. 이런 방식으로, 미래(Future)는 대기 및 재개에 대한 자체 조건을 만들 수 있는 유연한 인터페이스입니다.</p>
 </section>
 <section id="a-homemade-asyncio-sleep">
-<h3 data-msgid="e52cec309727a5b3ff6cd121c60e92f64f5aebaf" data-score="0" data-since="260603">A homemade asyncio.sleep<a class="headerlink" href="#a-homemade-asyncio-sleep" title="Link to this heading">¶</a></h3>
-<p data-msgid="11e39f6fb927dfc2f582cd9ce5aa8f726a1bd445" data-score="0" data-since="260603">We’ll go through an example of how you could leverage a future to create your
-own variant of asynchronous sleep (<code class="docutils literal notranslate"><span class="pre">async_sleep</span></code>) which mimics
-<a class="reference internal" href="../library/asyncio-task.html#asyncio.sleep" title="asyncio.sleep"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.sleep()</span></code></a>.</p>
-<p data-msgid="d9956462a3099656b8489d5da0cdf5d0d17df0f6" data-score="0" data-since="260608">This snippet registers a few tasks with the event loop and then awaits the task
-created by <code class="docutils literal notranslate"><span class="pre">asyncio.create_task</span></code>, which wraps the <code class="docutils literal notranslate"><span class="pre">async_sleep(3)</span></code> coroutine.
-We want that task to finish only after three seconds have elapsed, but without
-preventing other tasks from running.</p>
-<div class="highlight-python3 notranslate" data-msgid="47dc0d89d9e9fbbe6d9d685d5a329d40f9970e45" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">other_work</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I like work. Work work.&quot;</span><span class="p">)</span>
+<h3 data-msgid="e52cec309727a5b3ff6cd121c60e92f64f5aebaf" data-since="260611">직접 만든 asyncio.sleep<a class="headerlink" href="#a-homemade-asyncio-sleep" title="Link to this heading">¶</a></h3>
+<p data-msgid="11e39f6fb927dfc2f582cd9ce5aa8f726a1bd445" data-since="260611">여기에서는 future를 활용하여 비동기 슬립(<code class="docutils literal notranslate"><span class="pre">async_sleep</span></code>)의 변형을 만드는 방법을 예로 살펴보겠습니다. 이는 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio.sleep`를 모방합니다.</p>
+<p data-msgid="d9956462a3099656b8489d5da0cdf5d0d17df0f6" data-since="260611">이 스니펫은 이벤트 루프에 몇 가지 태스크를 등록한 다음, <code class="docutils literal notranslate"><span class="pre">asyncio.create_task``로</span> <span class="pre">생성된</span> <span class="pre">태스크를</span> <span class="pre">기다립니다.</span> <span class="pre">이</span> <span class="pre">태스크는</span> <span class="pre">``async_sleep(3)</span></code> 코루틴을 래핑합니다. 우리는 이 태스크가 3초가 경과한 후에만 완료되도록 하되, 다른 태스크가 실행되는 것을 막지는 않기를 원합니다.</p>
+<div class="highlight-python3 notranslate" data-msgid="47dc0d89d9e9fbbe6d9d685d5a329d40f9970e45" data-since="260611"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">other_work</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;나는 일이 좋아요. 일하는 일.&quot;</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="c1"># Add a few other tasks to the event loop, so there&#39;s something</span>
-    <span class="c1"># to do while asynchronously sleeping.</span>
+    <span class="c1"># 비동기 슬립을 하는 동안 할 다른 몇 가지 작업을 이벤트 루프에 추가합니다.</span>
     <span class="n">work_tasks</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">other_work</span><span class="p">()),</span>
         <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">other_work</span><span class="p">()),</span>
         <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">other_work</span><span class="p">())</span>
     <span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;Beginning asynchronous sleep at time: &quot;</span>
+        <span class="s2">&quot;다음 시간부터 비동기 슬립 시작: &quot;</span>
         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%H:%M:%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
     <span class="p">)</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">async_sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;Done asynchronous sleep at time: &quot;</span>
+        <span class="s2">&quot;다음 시간 비동기 슬립 완료: &quot;</span>
         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%H:%M:%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
     <span class="p">)</span>
-    <span class="c1"># asyncio.gather effectively awaits each task in the collection.</span>
+    <span class="c1"># asyncio.gather는 컬렉션의 각 태스크를 효과적으로 기다립니다.</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">work_tasks</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="e3090763c3d91a326dbd3240f2a6f2406d873ebe" data-score="0" data-since="260603">Below, we use a future to enable custom control over when that task will be
-marked as done.
-If <a class="reference internal" href="../library/asyncio-future.html#asyncio.Future.set_result" title="asyncio.Future.set_result"><code class="xref py py-meth docutils literal notranslate"><span class="pre">future.set_result()</span></code></a> (the method
-responsible for marking that future as done) is never called, then this task
-will never finish.
-We’ve also enlisted the help of another task, which we’ll see in a moment, that
-will monitor how much time has elapsed and, accordingly, call
-<code class="docutils literal notranslate"><span class="pre">future.set_result()</span></code>.</p>
-<div class="highlight-python3 notranslate" data-msgid="2f37f9e4bfed15b94c461edb15badcab701712e0" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<p data-msgid="e3090763c3d91a326dbd3240f2a6f2406d873ebe" data-since="260611">아래에서는 future를 사용하여 해당 태스크가 언제 완료된 것으로 표시될지 사용자 지정 제어를 활성화합니다. <a class="reference internal" href="../library/asyncio-future.html#asyncio.Future.set_result" title="asyncio.Future.set_result"><code class="xref py py-meth docutils literal notranslate"><span class="pre">future.set_result()</span></code></a> (해당 future를 완료된 것으로 표시하는 메서드)가 호출되지 않으면, 이 태스크는 절대 완료되지 않습니다. 또한, 현재 얼마의 시간이 경과했는지 모니터링하고 그에 따라 <code class="docutils literal notranslate"><span class="pre">future.set_result()</span></code> 를 호출하는 또 다른 태스크의 도움도 받았습니다.</p>
+<div class="highlight-python3 notranslate" data-msgid="2f37f9e4bfed15b94c461edb15badcab701712e0" data-since="260611"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
     <span class="n">future</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
     <span class="n">time_to_wake</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">seconds</span>
-    <span class="c1"># Add the watcher-task to the event loop.</span>
+    <span class="c1"># 워처-태스크를 이벤트 루프에 추가합니다.</span>
     <span class="n">watcher_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">_sleep_watcher</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">time_to_wake</span><span class="p">))</span>
-    <span class="c1"># Block until the future is marked as done.</span>
+    <span class="c1"># future가 완료된 것으로 표시될 때까지 대기합니다.</span>
     <span class="k">await</span> <span class="n">future</span>
 </pre></div>
 </div>
-<p data-msgid="36679d0819a33d2e7833baa7ce0901fbd157539b" data-score="0" data-since="260608">Below, we use a rather bare <code class="docutils literal notranslate"><span class="pre">YieldToEventLoop()</span></code> object to <code class="docutils literal notranslate"><span class="pre">yield</span></code>
-from its <code class="docutils literal notranslate"><span class="pre">__await__</span></code> method, ceding control to the event loop.
-This is effectively the same as calling <code class="docutils literal notranslate"><span class="pre">asyncio.sleep(0)</span></code>, but this approach
-offers more clarity, not to mention it’s somewhat cheating to use
-<code class="docutils literal notranslate"><span class="pre">asyncio.sleep</span></code> when showcasing how to implement it!</p>
-<p data-msgid="f874e166931443f78255bb5df2dec43d27920a79" data-score="0" data-since="260608">As usual, the event loop cycles through its tasks, giving them control
-and receiving control back when they pause or finish.
-The <code class="docutils literal notranslate"><span class="pre">watcher_task</span></code>, which runs the coroutine <code class="docutils literal notranslate"><span class="pre">_sleep_watcher(...)</span></code>, will
-be invoked once per full cycle of the event loop.
-On each resumption, it’ll check the time and if not enough has elapsed, then
-it’ll pause once again and hand control back to the event loop.
-Once enough time has elapsed, <code class="docutils literal notranslate"><span class="pre">_sleep_watcher(...)</span></code>
-marks the future as done and completes by exiting its
-infinite <code class="docutils literal notranslate"><span class="pre">while</span></code> loop.
-Given this helper task is only invoked once per cycle of the event loop,
-you’d be correct to note that this asynchronous sleep will sleep <em>at least</em>
-three seconds, rather than exactly three seconds.
-Note this is also true of <code class="docutils literal notranslate"><span class="pre">asyncio.sleep</span></code>.</p>
-<div class="highlight-python3 notranslate" data-msgid="e179d614f1cdf1f579fbe5952f3810b253877443" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">YieldToEventLoop</span><span class="p">:</span>
+<p data-msgid="36679d0819a33d2e7833baa7ce0901fbd157539b" data-since="260611">아래에서는 상당히 미니멀한 <code class="docutils literal notranslate"><span class="pre">YieldToEventLoop()</span></code> 객체를 사용하여 그 <code class="docutils literal notranslate"><span class="pre">__await__</span></code> 메서드에서 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 하여 제어권을 이벤트 루프에 넘겨줍니다. 이는 <code class="docutils literal notranslate"><span class="pre">asyncio.sleep(0)</span></code> 를 호출하는 것과 본질적으로 동일하지만, 이 접근 방식은 더 명확하다는 것 외에도 구현하는 방법을 보여줄 때 <code class="docutils literal notranslate"><span class="pre">asyncio.sleep</span></code> 을 사용하는 것이 다소 속임수라는 점을 알려줍니다!</p>
+<p data-msgid="f874e166931443f78255bb5df2dec43d27920a79" data-since="260611">평소처럼 이벤트 루프는 자신의 태스크들을 순차적으로 순회하며 제어권을 주고받고, 일시 중지하거나 완료될 때 제어권을 돌려받습니다. 코루틴 <code class="docutils literal notranslate"><span class="pre">_sleep_watcher(...)</span></code> 를 실행하는 <code class="docutils literal notranslate"><span class="pre">watcher_task</span></code> 는 이벤트 루프의 완전한 주기마다 한 번 호출됩니다. 재개될 때마다 시간을 확인하고 충분히 경과하지 않았다면, 다시 일시 중지한 다음 제어권을 이벤트 루프에 넘겨줍니다. 충분한 시간이 경과하면, <code class="docutils literal notranslate"><span class="pre">_sleep_watcher(...)</span></code> 는 future를 완료되었음으로 표시하고 무한 <code class="docutils literal notranslate"><span class="pre">while</span></code> 루프를 종료하며 완료됩니다. 이 헬퍼 태스크가 이벤트 루프 주기당 한 번만 호출되기 때문에, 이 비동기 슬립은 정확히 3초가 아니라 <em>최소</em> 3초 동안 슬립할 것이라고 언급하는 것이 맞습니다. 이 역시 <code class="docutils literal notranslate"><span class="pre">asyncio.sleep</span></code> 이 그렇다는 점에 유의하십시오.</p>
+<div class="highlight-python3 notranslate" data-msgid="e179d614f1cdf1f579fbe5952f3810b253877443" data-since="260611"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">YieldToEventLoop</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__await__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">yield</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_sleep_watcher</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">time_to_wake</span><span class="p">):</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">time_to_wake</span><span class="p">:</span>
-            <span class="c1"># This marks the future as done.</span>
+            <span class="c1"># 이 부분이 future를 완료된 것으로 표시합니다.</span>
             <span class="n">future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
             <span class="k">break</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">YieldToEventLoop</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="ded12eff37d11f4a8b93188a1d232cc674da38d2" data-score="0" data-since="260603">Here is the full program’s output:</p>
+<p data-msgid="ded12eff37d11f4a8b93188a1d232cc674da38d2" data-since="260611">다음은 전체 프로그램의 출력입니다:</p>
 <div class="highlight-none notranslate" data-msgid="06a5344b2e91072a88d8b15b2f164772e82f676a" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>$ python custom-async-sleep.py
 Beginning asynchronous sleep at time: 14:52:22.
 I like work. Work work.
@@ -490,12 +457,7 @@ I like work. Work work.
 Done asynchronous sleep at time: 14:52:25.
 </pre></div>
 </div>
-<p data-msgid="6b3c32e60fb8bc906d335480ad75b24f119baac8" data-score="0" data-since="260603">You might feel this implementation of asynchronous sleep was unnecessarily
-convoluted.
-And, well, it was.
-The example was meant to showcase the versatility of futures with a simple
-example that could be mimicked for more complex needs.
-For reference, you could implement it without futures, like so:</p>
+<p data-msgid="6b3c32e60fb8bc906d335480ad75b24f119baac8" data-since="260611">비동기 슬립을 구현한 것이 불필요하게 복잡하다고 느낄 수도 있습니다. 그리고, 실제로 그랬습니다. 이 예제는 더 복잡한 요구사항에 모방될 수 있는 간단한 예제로 future의 다재다능함을 보여주기 위한 것이었습니다. 참고용으로, future 없이 이처럼 구현할 수 있습니다.</p>
 <div class="highlight-python3 notranslate" data-msgid="4c334d3e63ce5512302932011d0ade6aa6296d2f" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">simpler_async_sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">):</span>
     <span class="n">time_to_wake</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">seconds</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
