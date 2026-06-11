@@ -77,8 +77,8 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">확장 모듈 격리하기</a><ul>
-<li><a class="reference internal" href="#who-should-read-this">Who should read this</a></li>
-<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#who-should-read-this">이 문서를 읽어야 할 사람</a></li>
+<li><a class="reference internal" href="#background">배경 지식</a><ul>
 <li><a class="reference internal" href="#enter-per-module-state">Enter Per-Module State</a></li>
 <li><a class="reference internal" href="#isolated-module-objects">Isolated Module Objects</a></li>
 <li><a class="reference internal" href="#surprising-edge-cases">Surprising Edge Cases</a></li>
@@ -151,26 +151,16 @@
 <span id="isolating-extensions-howto"></span><h1 data-msgid="6d0972ad7fb623215aaffb8bb4fcf1422023f0e8" data-score="100" data-since="260610">확장 모듈 격리하기<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h1>
 <aside class="topic">
 <p class="topic-title" data-msgid="d79da395b5d7a09c6439a5f2660d8c568186ab7e" data-score="100" data-since="260611">개요</p>
-<p>Traditionally, state belonging to Python extension modules was kept in C
-<code class="docutils literal notranslate"><span class="pre">static</span></code> variables, which have process-wide scope. This document
-describes problems of such per-process state and shows a safer way:
-per-module state.</p>
-<p>The document also describes how to switch to per-module state where
-possible. This transition involves allocating space for that state, potentially
-switching from static types to heap types, and—perhaps most
-importantly—accessing per-module state from code.</p>
+<p>전통적으로 Python 확장 모듈에 속한 상태는 프로세스 전체 범위의 C <code class="docutils literal notranslate"><span class="pre">static</span></code> 변수에 보관되어 왔습니다. 이 문서는 이러한 프로세스별 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태를 보여줍니다.</p>
+<p>이 문서는 또한 가능할 때 모듈별 상태로 전환하는 방법을 설명합니다. 이 전환에는 해당 상태를 위한 공간 할당, 정적 타입에서 힙 타입으로의 잠재적 전환, 그리고 무엇보다 중요한 모듈별 상태에 코드로 접근하는 것이 포함됩니다.</p>
 </aside>
 <section id="who-should-read-this">
-<h2>Who should read this<a class="headerlink" href="#who-should-read-this" title="Link to this heading">¶</a></h2>
-<p>This guide is written for maintainers of <a class="reference internal" href="../c-api/index.html#c-api-index"><span class="std std-ref">C-API</span></a> extensions
-who would like to make that extension safer to use in applications where
-Python itself is used as a library.</p>
+<h2>이 문서를 읽어야 할 사람<a class="headerlink" href="#who-should-read-this" title="Link to this heading">¶</a></h2>
+<p>이 지침서는 파이썬 자체를 라이브러리로 사용하는 애플리케이션에서 해당 확장을 더 안전하게 사용할 수 있도록 하려는 <a class="reference internal" href="../c-api/index.html#c-api-index"><span class="std std-ref">C-API</span></a> 확장 개발자를 위해 작성되었습니다.</p>
 </section>
 <section id="background">
-<h2 data-msgid="64dd60fe1a049fe6db3eb1369dec2e42bf428e21">Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
-<p>An <em>interpreter</em> is the context in which Python code runs. It contains
-configuration (e.g. the import path) and runtime state (e.g. the set of
-imported modules).</p>
+<h2 data-msgid="64dd60fe1a049fe6db3eb1369dec2e42bf428e21">배경 지식<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p><em>인터프리터</em> 는 파이썬 코드가 실행되는 환경입니다. 여기에는 구성(예: import 경로)과 런타임 상태(예: 임포트된 모듈 세트)가 포함되어 있습니다.</p>
 <p>Python supports running multiple interpreters in one process. There are
 two cases to think about—users may run interpreters:</p>
 <ul class="simple">
