@@ -77,7 +77,7 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">무료 스레딩을 위한 Stable ABI(<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)로 마이그레이션</a><ul>
-<li><a class="reference internal" href="#why-do-this">Why do this</a><ul>
+<li><a class="reference internal" href="#why-do-this">이유</a><ul>
 <li><a class="reference internal" href="#why-not-do-this">Why <em>not</em> do this</a></li>
 </ul>
 </li>
@@ -143,35 +143,30 @@ that supports <a class="reference internal" href="../glossary.html#term-free-thr
 Stable ABI for Free-Threaded Builds, or <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> for short.
 This document describes how to adapt C API extensions to support free threading.</p>
 <section id="why-do-this">
-<h2 data-msgid="722e5626112cfcb3cb2288b9af085e94a7d5c894" data-score="0" data-since="260608">Why do this<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
-<p data-msgid="2e19892758d39b41b12803850c30b3cc93553dbe" data-score="0" data-since="260608">The typical reason to use Stable ABI is to reduce the number of artifacts that
-you need to build and distribute for each version of your library.</p>
-<p data-msgid="f0031c77244355796e9643c38bffe653191ddb2c" data-score="0" data-since="260608">Without the Stable ABI, you must build a separate shared library, and typically
-a <em>wheel</em> distribution, for each feature version of CPython you wish
-to support.
-For example, each tag in the following table represents a separate
-library/wheel:</p>
+<h2 data-msgid="722e5626112cfcb3cb2288b9af085e94a7d5c894" data-since="260611">이유<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
+<p data-msgid="2e19892758d39b41b12803850c30b3cc93553dbe" data-since="260611">Stable ABI를 사용하는 일반적인 이유는 라이브러리 버전마다 빌드하고 배포해야 하는 아티팩트의 수를 줄이기 위함입니다.</p>
+<p data-msgid="f0031c77244355796e9643c38bffe653191ddb2c" data-since="260611">Stable ABI가 없으면, 지원하려는 각 CPython 기능 버전에 대해 별도의 공유 라이브러리, 그리고 일반적으로 <em>wheel</em> 배포판을 빌드해야 합니다. 예를 들어, 다음 표의 각 태그는 별도의 라이브러리/휠을 나타냅니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="0" data-since="260608">CPython version</p></th>
-<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="0" data-since="260608">Non-free-threaded</p></th>
-<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="0" data-since="260608">Free-threaded</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-since="260611">CPython 버전</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-since="260611">비자유 스레드</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-since="260611">자유 스레드</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="0" data-since="260603">3.12</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-since="260611">3.12</p></td>
 <td><p data-msgid="59b3f96d4cdb58ec406ddbc09632f1e530572025" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-312</span></code></p></td>
-<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-score="0" data-since="260603">—</p></td>
+<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-since="260611">—</p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-score="0" data-since="260603">3.13</p></td>
+<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-since="260611">3.13</p></td>
 <td><p data-msgid="e99295d17f71b2ac4613adf2e3d2e3b6c5ef80e0" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313</span></code></p></td>
 <td><p data-msgid="5eb43d9008197e2fb88baf7026e859389795cb01" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-score="0" data-since="260603">3.14</p></td>
+<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-since="260611">3.14</p></td>
 <td><p data-msgid="090aca08f69984c164a36147d4ca3ebf2e03eba1" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314</span></code></p></td>
 <td><p data-msgid="2ead94c2f230f1b382c3a9d758602fced7ba178d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-score="0" data-since="260603">3.15</p></td>
+<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-since="260611">3.15</p></td>
 <td><p data-msgid="ee3f12412394fdb7887b3af1400633323d47d04d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-315</span></code></p></td>
 <td><p data-msgid="99d4a60a6817ef270decb2107a6faae74a3b4dff" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-315t</span></code></p></td>
 </tr>
@@ -179,72 +174,68 @@ library/wheel:</p>
 <td><p data-msgid="5a5a537a36e396f69b22b2618f49a3245149f65c" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-316</span></code></p></td>
 <td><p data-msgid="1010b74e246cdeb243ea272e444df49fac2a4fe2" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-316t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-score="0" data-since="260608">Later versions</p></td>
+<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-since="260611">나중 버전</p></td>
 <td><p data-msgid="a1b7eb4ee8c7dacf5e6aad793076cda4c201fc96" data-score="100" data-since="260609"><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em></code></p></td>
 <td><p data-msgid="b1448775d553ac78f52e6d6f44d27acb1d6f0299" data-score="100" data-since="260609"><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em><span class="pre">t</span></code></p></td>
 </tr>
 </tbody>
 </table>
-<p data-msgid="b89b63b9cb86ee7096afb1f3e152ac624970e4da" data-score="0" data-since="260608">That’s a lot of builds, especially when multiplied by the number
-of supported platforms.</p>
-<p data-msgid="532215f32c07bba7b1bfc5028433f8c45ea8d3c4" data-score="0" data-since="260608">With the Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3</span></code>, introduced in CPython 3.2), a single extension
-(per platform) can cover all <em>non-free-threaded</em> builds of CPython:</p>
+<p data-msgid="b89b63b9cb86ee7096afb1f3e152ac624970e4da" data-since="260611">지원하는 플랫폼 수로 곱하면 빌드 수가 많습니다.</p>
+<p data-msgid="532215f32c07bba7b1bfc5028433f8c45ea8d3c4" data-since="260611">Stable ABI (CPython 3.2에서 도입된 <code class="docutils literal notranslate"><span class="pre">abi3</span></code>)를 사용하면 단일 확장(플랫폼별)으로 모든 <em>비자유 스레드</em> CPython 빌드를 커버할 수 있습니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="0" data-since="260608">CPython version</p></th>
-<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="0" data-since="260608">Non-free-threaded</p></th>
-<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="0" data-since="260608">Free-threaded</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-since="260611">CPython 버전</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-since="260611">비자유 스레드</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-since="260611">자유 스레드</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="0" data-since="260603">3.12</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-since="260611">3.12</p></td>
 <td rowspan="6"><p data-msgid="18850cb7c90f4997fea2d3c06fdab5880e3d942b" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3</span></code></p></td>
-<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-score="0" data-since="260603">—</p></td>
+<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-since="260611">—</p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-score="0" data-since="260603">3.13</p></td>
+<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-since="260611">3.13</p></td>
 <td><p data-msgid="5eb43d9008197e2fb88baf7026e859389795cb01" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-score="0" data-since="260603">3.14</p></td>
+<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-since="260611">3.14</p></td>
 <td><p data-msgid="2ead94c2f230f1b382c3a9d758602fced7ba178d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-score="0" data-since="260603">3.15</p></td>
+<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-since="260611">3.15</p></td>
 <td><p data-msgid="99d4a60a6817ef270decb2107a6faae74a3b4dff" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-315t</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p data-msgid="f23b5a8bb75e941c84fca2c0808368e5ac02a651" data-score="100" data-since="260609">3.16</p></td>
 <td><p data-msgid="1010b74e246cdeb243ea272e444df49fac2a4fe2" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-316t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-score="0" data-since="260608">Later versions</p></td>
+<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-since="260611">나중 버전</p></td>
 <td><p data-msgid="b1448775d553ac78f52e6d6f44d27acb1d6f0299" data-score="100" data-since="260609"><code class="samp docutils literal notranslate"><span class="pre">cpython-3</span><em><span class="pre">XX</span></em><span class="pre">t</span></code></p></td>
 </tr>
 </tbody>
 </table>
-<p data-msgid="b84aa31f41bf03f4440aa135dac191388e5bf4b8" data-score="0" data-since="260608">The Stable ABI for free-threaded builds (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>), introduced in
-CPython 3.15, does the same for free-threaded builds.
-And it’s compatible with non-free-threaded ones as well:</p>
+<p data-msgid="b84aa31f41bf03f4440aa135dac191388e5bf4b8" data-since="260611">CPython 3.15에서 도입된 자유 스레드 빌드용 Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)는 자유 스레드 빌드에 대해서도 동일하게 작동합니다. 그리고 비자유 스레드 빌드와도 호환됩니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-score="0" data-since="260608">CPython version</p></th>
-<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-score="0" data-since="260608">Non-free-threaded</p></th>
-<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-score="0" data-since="260608">Free-threaded</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="80b10774588e9d6593aad9cc750237a6e0561197" data-since="260611">CPython 버전</p></th>
+<th class="head"><p data-msgid="58313e12456919d0ef3a8164a7e8e56bb678b8ea" data-since="260611">비자유 스레드</p></th>
+<th class="head"><p data-msgid="f2c6a9ace293de1ee2cbc13d40978fb15d177d94" data-since="260611">자유 스레드</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-score="0" data-since="260603">3.12</p></td>
+<tr class="row-even"><td><p data-msgid="3f7bfa45d49eb2959eadf985c850dd39c0d2146f" data-since="260611">3.12</p></td>
 <td rowspan="3"><p data-msgid="0a98eea0a46ea880fb3e73018fc8ce7c3e1f3450" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3</span></code> *</p></td>
-<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-score="0" data-since="260603">—</p></td>
+<td><p data-msgid="58b63e273b964039d6ef432a415df3f177c818e5" data-since="260611">—</p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-score="0" data-since="260603">3.13</p></td>
+<tr class="row-odd"><td><p data-msgid="c1d404f10706d40f4217b57d522765f22fec3f43" data-since="260611">3.13</p></td>
 <td><p data-msgid="5eb43d9008197e2fb88baf7026e859389795cb01" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-313t</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-score="0" data-since="260603">3.14</p></td>
+<tr class="row-even"><td><p data-msgid="983b34771fb7185d04c9603559c9e46f4b70496d" data-since="260611">3.14</p></td>
 <td><p data-msgid="2ead94c2f230f1b382c3a9d758602fced7ba178d" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">cpython-314t</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-score="0" data-since="260603">3.15</p></td>
+<tr class="row-odd"><td><p data-msgid="a15b1600fed3b04089da4599ba8c2833b5ec7b34" data-since="260611">3.15</p></td>
 <td colspan="2" rowspan="3"><p data-msgid="b7b24072f8ee0deebe3f557f1baa1bd915fd71ae" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">abi3t</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p data-msgid="f23b5a8bb75e941c84fca2c0808368e5ac02a651" data-score="100" data-since="260609">3.16</p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-score="0" data-since="260608">Later versions</p></td>
+<tr class="row-odd"><td><p data-msgid="5a5115ed4722d088df99ea0d1e9403663da33a0e" data-since="260611">나중 버전</p></td>
 </tr>
 </tbody>
 </table>
