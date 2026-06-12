@@ -184,8 +184,7 @@
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyType_AddWatcher</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyType_WatchCallback" title="PyType_WatchCallback"><span class="n"><span class="pre">PyType_WatchCallback</span></span></a><span class="w"> </span><span class="n"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_AddWatcher" title="Link to this definition">¶</a><br /></dt>
 <dd><p data-msgid="79872f37dd00b921fa70dc0f8fcab6f945e7c836" data-score="94" data-since="260612">[msgid]
 Register <em>callback</em> as a type watcher. Return a non-negative integer ID which must be passed to future calls to <a class="reference internal" href="#c.PyType_Watch" title="PyType_Watch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Watch()</span></code></a>. In case of error (e.g. no more watcher IDs available), return <code class="docutils literal notranslate"><span class="pre">-1</span></code> and set an exception.</p>
-<p data-msgid="344e5a0fed6443c9f848f29bc9f5644e289c9255" data-score="0" data-since="260603">In free-threaded builds, <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> is not thread-safe,
-so it must be called at start up (before spawning the first thread).</p>
+<p data-msgid="344e5a0fed6443c9f848f29bc9f5644e289c9255" data-since="260612">플리 스레드 빌드에서는 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyType_AddWatcher`가 스레드에 안전하지 않으므로, 시작 시(첫 번째 스레드를 생성하기 전에) 호출해야 합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
@@ -194,12 +193,8 @@ so it must be called at start up (before spawning the first thread).</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyType_ClearWatcher">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyType_ClearWatcher</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">watcher_id</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_ClearWatcher" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="82a60247d43e933aca9f13143fbae48b2772460c" data-score="0" data-since="260603">Clear watcher identified by <em>watcher_id</em> (previously returned from
-<a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a>). Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error (e.g.
-if <em>watcher_id</em> was never registered.)</p>
-<p data-msgid="156c9f0da43c746c9045dade69a64d5bb7472483" data-score="0" data-since="260603">An extension should never call <code class="docutils literal notranslate"><span class="pre">PyType_ClearWatcher</span></code> with a <em>watcher_id</em>
-that was not returned to it by a previous call to
-<a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a>.</p>
+<dd><p data-msgid="82a60247d43e933aca9f13143fbae48b2772460c" data-since="260612"><em>watcher_id</em> 로 식별된 감시자를 지웁니다 (이전에는 <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> 에서 반환됨). 성공 시 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을, 에러 발생 시 (”<em>watcher_id</em> 가 등록된 적이 없는 경우” 등) <code class="docutils literal notranslate"><span class="pre">-1</span></code> 을 반환합니다.</p>
+<p data-msgid="156c9f0da43c746c9045dade69a64d5bb7472483" data-since="260612">확장 기능은 이전 <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> 호출에서 자신에게 반환되지 않은 <em>watcher_id</em> 를 사용하여 <code class="docutils literal notranslate"><span class="pre">PyType_ClearWatcher</span></code> 를 절대 호출해서는 안 됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
@@ -208,32 +203,23 @@ that was not returned to it by a previous call to
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyType_Watch">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyType_Watch</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">watcher_id</span></span>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_Watch" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="4babdca4b7bc4bdd73e52c0a92c1fe9f5e6264a0" data-score="0" data-since="260603">Mark <em>type</em> as watched. The callback granted <em>watcher_id</em> by
-<a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> will be called whenever
-<a class="reference internal" href="#c.PyType_Modified" title="PyType_Modified"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Modified()</span></code></a> reports a change to <em>type</em>. (The callback may be
-called only once for a series of consecutive modifications to <em>type</em>, if
-<code class="xref c c-func docutils literal notranslate"><span class="pre">_PyType_Lookup()</span></code> is not called on <em>type</em> between the modifications;
-this is an implementation detail and subject to change.)</p>
-<p data-msgid="ec4499507696610b2475bd80c0839f9524b2ce45" data-score="0" data-since="260608">The callback is also invoked when a watched heap type is deallocated.</p>
-<p data-msgid="b401f0ab29d5783d38f2b96c756ccebd610dfd10" data-score="0" data-since="260603">An extension should never call <code class="docutils literal notranslate"><span class="pre">PyType_Watch</span></code> with a <em>watcher_id</em> that was
-not returned to it by a previous call to <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a>.</p>
+<dd><p data-msgid="4babdca4b7bc4bdd73e52c0a92c1fe9f5e6264a0" data-since="260612"><em>type</em> 을 감시 중으로 지정합니다. <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> 가 부여한 <em>watcher_id</em> 를 가진 콜백은 <a class="reference internal" href="#c.PyType_Modified" title="PyType_Modified"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Modified()</span></code></a> 가 <em>type</em> 의 변경 사항을 보고할 때마다 호출됩니다. (만약 수정 사이에 <code class="xref c c-func docutils literal notranslate"><span class="pre">_PyType_Lookup()</span></code> 이 <em>type</em> 에 대해 호출되지 않으면, 연속적인 수정 시리즈에 대해 콜백이 한 번만 호출될 수 있습니다. 이는 구현 세부 사항이며 변경될 수 있습니다.)</p>
+<p data-msgid="ec4499507696610b2475bd80c0839f9524b2ce45" data-since="260612">감시 중인 힙 타입이 해제될 때도 콜백이 호출됩니다.</p>
+<p data-msgid="b401f0ab29d5783d38f2b96c756ccebd610dfd10" data-since="260612">확장은 이전의 <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> 호출로 자신에게 반환되지 않은 <em>watcher_id</em> 를 사용하여 <code class="docutils literal notranslate"><span class="pre">PyType_Watch</span></code> 를 호출해서는 안 됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
-<div class="versionchanged" data-msgid="097d10d72c7e17d5ea9702b6c94a4a893a22e9e0" data-score="0" data-since="260608">
-<p><span class="versionmodified changed">버전 3.15에서 변경: </span>The callback is now also invoked when a watched heap type is deallocated.</p>
+<div class="versionchanged" data-msgid="097d10d72c7e17d5ea9702b6c94a4a893a22e9e0" data-since="260612">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>콜백은 이제 감시된 힙 타입이 해제될 때도 호출됩니다.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyType_Unwatch">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyType_Unwatch</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">watcher_id</span></span>, <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_Unwatch" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="e0463cedc6f0525c1a0fe73a75ebabf3b8972b3e" data-score="0" data-since="260608">Mark <em>type</em> as not watched. This undoes a previous call to
-<a class="reference internal" href="#c.PyType_Watch" title="PyType_Watch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Watch()</span></code></a>. <em>type</em> must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
-<p data-msgid="b853e3343312f07d9146084588459af8317db71f" data-score="0" data-since="260608">An extension should never call this function with a <em>watcher_id</em> that was
-not returned to it by a previous call to <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a>.</p>
-<p data-msgid="8e8b7914b486f39a6bfa60aa5b58ce5548ba793a" data-score="0" data-since="260608">On success, this function returns <code class="docutils literal notranslate"><span class="pre">0</span></code>. On failure, this function returns
-<code class="docutils literal notranslate"><span class="pre">-1</span></code> with an exception set.</p>
+<dd><p data-msgid="e0463cedc6f0525c1a0fe73a75ebabf3b8972b3e" data-since="260612"><em>type</em> 을 관찰하지 않도록 표시합니다. 이는 <a class="reference internal" href="#c.PyType_Watch" title="PyType_Watch"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Watch()</span></code></a> 의 이전 호출을 취소합니다. <em>type</em> 은 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 이 아니어야 합니다.</p>
+<p data-msgid="b853e3343312f07d9146084588459af8317db71f" data-since="260612">확장은 이전의 <a class="reference internal" href="#c.PyType_AddWatcher" title="PyType_AddWatcher"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_AddWatcher()</span></code></a> 호출로 자신에게 반환되지 않은 <em>watcher_id</em> 를 사용하여 이 함수를 호출해서는 안 됩니다.</p>
+<p data-msgid="8e8b7914b486f39a6bfa60aa5b58ce5548ba793a" data-since="260612">성공 시 0을, 실패 시 예외가 설정된 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 을 반환합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
@@ -242,20 +228,14 @@ not returned to it by a previous call to <a class="reference internal" href="#c.
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyType_WatchCallback">
 <span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyType_WatchCallback</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.PyType_WatchCallback" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="05dbbed168c3bed4762d99b28817370c811171a2" data-score="0" data-since="260603">Type of a type-watcher callback function.</p>
-<p data-msgid="c6d8981535b00c98b340d05cee745f49519c4186" data-score="0" data-since="260603">The callback must not modify <em>type</em> or cause <a class="reference internal" href="#c.PyType_Modified" title="PyType_Modified"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_Modified()</span></code></a> to be
-called on <em>type</em> or any type in its MRO; violating this rule could cause
-infinite recursion.</p>
-<p data-msgid="75c44ad6d5a951d2cb535c4aa09440b426f31e8a" data-score="0" data-since="260608">The callback may be called during type deallocation. In this case, the type
-object is temporarily resurrected (its reference count is at least 1) and all
-its attributes are still valid. However, the callback should not store new
-strong references to the type, as this would resurrect the object and prevent
-its deallocation.</p>
+<dd><p data-msgid="05dbbed168c3bed4762d99b28817370c811171a2" data-since="260612">타입 감시자 콜백 함수의 타입입니다.</p>
+<p data-msgid="c6d8981535b00c98b340d05cee745f49519c4186" data-since="260612">콜백은 <em>type*을 수정하거나, *type</em> 또는 MRO의 어떤 타입에 대해서도 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyType_Modified`가 호출되도록 유발해서는 안 됩니다. 이 규칙을 위반하면 무한 재귀를 일으킬 수 있습니다.</p>
+<p data-msgid="75c44ad6d5a951d2cb535c4aa09440b426f31e8a" data-since="260612">콜백은 타입 해제 중에 호출될 수 있습니다. 이 경우, 타입 객체는 일시적으로 부활하고(참조 횟수가 최소 1 이상이 되어) 모든 속성은 여전히 유효합니다. 하지만 콜백은 해당 타입에 대한 새로운 강한 참조를 저장해서는 안 됩니다. 그렇게 하면 객체가 부활하여 해제를 방해하게 되기 때문입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.12.</span></p>
 </div>
-<div class="versionchanged" data-msgid="4a37ad1ca606982e658289e616bdeaccffde2c50" data-score="0" data-since="260608">
-<p><span class="versionmodified changed">버전 3.15에서 변경: </span>The callback may now be called during deallocation of a watched heap type.</p>
+<div class="versionchanged" data-msgid="4a37ad1ca606982e658289e616bdeaccffde2c50" data-since="260612">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>콜백이 감시된 힙 타입의 해제 중에 호출될 수 있게 되었습니다.</p>
 </div>
 </dd></dl>
 
@@ -268,14 +248,10 @@ its deallocation.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyType_FastSubclass">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyType_FastSubclass</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flag</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_FastSubclass" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="8f42ff960e1222a3a4abccee95222a56a2920e2d" data-score="0" data-since="260608">Return non-zero if the type object <em>type</em> sets the subclass flag <em>flag</em>.
-Subclass flags are denoted by
-<a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_LONG_SUBCLASS" title="Py_TPFLAGS_LONG_SUBCLASS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_*_SUBCLASS</span></code></a>.
-This function is used by many <code class="docutils literal notranslate"><span class="pre">_Check</span></code> functions for common types.</p>
+<dd><p data-msgid="8f42ff960e1222a3a4abccee95222a56a2920e2d" data-since="260612">만약 타입 객체 <em>type</em> 가 서브클래스 플래그 <em>flag</em> 을 설정하면 0이 아닌 값을 반환합니다. 서브클래스 플래그는 <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_LONG_SUBCLASS" title="Py_TPFLAGS_LONG_SUBCLASS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_*_SUBCLASS</span></code></a> 로 표시됩니다. 이 함수는 공통 타입에 대해 많은 <code class="docutils literal notranslate"><span class="pre">_Check</span></code> 함수에서 사용됩니다.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="b1cea1b363395f83ea1f8a8ff2c82e4e9fb49053" data-score="0" data-since="260608"><a class="reference internal" href="object.html#c.PyObject_TypeCheck" title="PyObject_TypeCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_TypeCheck()</span></code></a>, which is used as a slower alternative in
-<code class="docutils literal notranslate"><span class="pre">_Check</span></code> functions for types that don’t come with subclass flags.</p>
+<p data-msgid="b1cea1b363395f83ea1f8a8ff2c82e4e9fb49053" data-since="260612"><a class="reference internal" href="object.html#c.PyObject_TypeCheck" title="PyObject_TypeCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_TypeCheck()</span></code></a> 는 서브클래스 플래그가 없는 타입을 위한 느린 대안으로 <code class="docutils literal notranslate"><span class="pre">_Check</span></code> 함수에서 사용됩니다.</p>
 </div>
 </dd></dl>
 
@@ -295,12 +271,8 @@ This function is used by many <code class="docutils literal notranslate"><span c
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyType_GenericAlloc">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyType_GenericAlloc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyTypeObject" title="PyTypeObject"><span class="n"><span class="pre">PyTypeObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span>, <a class="reference internal" href="intro.html#c.Py_ssize_t" title="Py_ssize_t"><span class="n"><span class="pre">Py_ssize_t</span></span></a><span class="w"> </span><span class="n"><span class="pre">nitems</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyType_GenericAlloc" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="refcount return_new_ref">반환값: 새 참조.</em><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="26e745120cbdf4d8486ade4cfb31f0178f2ab85e" data-score="0" data-since="260603">Generic handler for the <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot of a type
-object.  Uses Python’s default memory allocation mechanism to allocate memory
-for a new instance, zeros the memory, then initializes the memory as if by
-calling <a class="reference internal" href="allocation.html#c.PyObject_Init" title="PyObject_Init"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_Init()</span></code></a> or <a class="reference internal" href="allocation.html#c.PyObject_InitVar" title="PyObject_InitVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_InitVar()</span></code></a>.</p>
-<p data-msgid="a40889daa58d5367a99957a43135f525c9793492" data-score="0" data-since="260603">Do not call this directly to allocate memory for an object; call the type’s
-<a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> slot instead.</p>
+<dd><em class="refcount return_new_ref">반환값: 새 참조.</em><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="26e745120cbdf4d8486ade4cfb31f0178f2ab85e" data-since="260612">타입 객체의 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> 슬롯에 대한 일반 처리기입니다. 파이썬의 기본 메모리 할당 메커니즘을 사용하여 새 인스턴스에 메모리를 할당하고, 메모리에 0으로 초기화한 다음, <cite>:c:func:`PyObject_Init</cite> 또는 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyObject_InitVar`를 호출하는 것처럼 메모리를 초기화합니다.</p>
+<p data-msgid="a40889daa58d5367a99957a43135f525c9793492" data-since="260612">메모리 할당을 위해 이 함수를 직접 호출하지 마십시오. 대신 타입의 <a class="reference internal" href="typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> 슬롯을 호출하십시오.</p>
 <p data-msgid="ca1a89d5232579b0a4633e90c0ac7fafb5084064" data-score="0" data-since="260603">For types that support garbage collection (i.e., the
 <a class="reference internal" href="typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> flag is set), this function behaves like
 <a class="reference internal" href="gcsupport.html#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_New</span></code></a> or <a class="reference internal" href="gcsupport.html#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PyObject_GC_NewVar</span></code></a> (except the
