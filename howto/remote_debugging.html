@@ -81,13 +81,13 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#permission-requirements">권한 요구 사항</a></li>
-<li><a class="reference internal" href="#locating-the-pyruntime-structure">Locating the PyRuntime structure</a></li>
-<li><a class="reference internal" href="#reading-py-debugoffsets">Reading _Py_DebugOffsets</a></li>
-<li><a class="reference internal" href="#locating-the-interpreter-and-thread-state">Locating the interpreter and thread state</a></li>
-<li><a class="reference internal" href="#writing-control-information">Writing control information</a></li>
-<li><a class="reference internal" href="#summary">Summary</a></li>
-<li><a class="reference internal" href="#security-and-threat-model">Security and threat model</a><ul>
-<li><a class="reference internal" href="#when-to-use-python-disable-remote-debug">When to use <code class="docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a></li>
+<li><a class="reference internal" href="#locating-the-pyruntime-structure">PyRuntime 구조 찾기</a></li>
+<li><a class="reference internal" href="#reading-py-debugoffsets">_Py_DebugOffsets 읽기</a></li>
+<li><a class="reference internal" href="#locating-the-interpreter-and-thread-state">인터프리터 및 스레드 상태 찾기</a></li>
+<li><a class="reference internal" href="#writing-control-information">제어 정보 작성</a></li>
+<li><a class="reference internal" href="#summary">요약</a></li>
+<li><a class="reference internal" href="#security-and-threat-model">보안 및 위협 모델</a><ul>
+<li><a class="reference internal" href="#when-to-use-python-disable-remote-debug"><cite>PYTHON_DISABLE_REMOTE_DEBUG</cite> 사용 시점</a></li>
 </ul>
 </li>
 </ul>
@@ -130,7 +130,7 @@
 <h2 data-msgid="b7067cd1a6e947fad026c96a3081e3368ab7e438" data-score="100" data-since="260611">원격 디버깅 비활성화<a class="headerlink" href="#disabling-remote-debugging" title="Link to this heading">¶</a></h2>
 <p data-msgid="765d88c327f4866edadf9736c82ae4f5e3c4a774" data-score="91" data-since="260611">원격 디버깅 지원을 비활성화하려면 다음 중 하나를 사용하십시오:</p>
 <ul class="simple">
-<li><p data-msgid="b9f7a16117bb2175460a4ad1e4cace9d1e009455" data-score="92" data-since="260611">인터프리터를 시작하기 전에 <span class="target" id="index-3"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_DISABLE_REMOTE_DEBUG"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a> 환경 변수를 <code class="docutils literal notranslate"><span class="pre">1</span></code> 로 설정합니다.</p></li>
+<li><p data-msgid="b9f7a16117bb2175460a4ad1e4cace9d1e009455" data-score="92" data-since="260611">인터프리터를 시작하기 전에 <span class="target" id="index-4"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_DISABLE_REMOTE_DEBUG"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a> 환경 변수를 <code class="docutils literal notranslate"><span class="pre">1</span></code> 로 설정합니다.</p></li>
 <li><p data-msgid="49e934f8d2663cfb5b655708440b91538d586415" data-score="94" data-since="260611"><a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">disable_remote_debug</span></code></a> 명령줄 옵션을 사용하십시오.</p></li>
 <li><p data-msgid="97db002a457ec2ebd23d617cff68d5f18ef06a40" data-score="94" data-since="260611"><a class="reference internal" href="../using/configure.html#cmdoption-without-remote-debug"><code class="xref std std-option docutils literal notranslate"><span class="pre">--without-remote-debug</span></code></a> 빌드 플래그를 사용하여 Python을 컴파일하십시오.</p></li>
 </ul>
@@ -156,278 +156,165 @@
 </div></blockquote>
 <p class="rubric">macOS</p>
 <p data-msgid="066b0a651c1c479adbccee7632626e355c1331c8" data-score="97" data-since="260611">다른 프로세스에 연결(attach)하려면 일반적으로 디버깅 도구를 높은 권한(elevated privileges)으로 실행해야 합니다. 이는 <code class="docutils literal notranslate"><span class="pre">sudo</span></code> 를 사용하거나 root로 실행하여 수행할 수 있습니다.</p>
-<p data-msgid="f56e11af22d9df46279b91d02d7fee4f1ebaf6ba" data-score="0" data-since="260603">Even when attaching to processes you own, macOS may block debugging unless
-the debugger is run with root privileges due to system security restrictions.</p>
+<p data-msgid="f56e11af22d9df46279b91d02d7fee4f1ebaf6ba" data-score="84" data-since="260611">소유한 프로세스에 연결할 때도, 시스템 보안 제한 때문에 디버거가 root 권한으로 실행되지 않으면 macOS에서 디버깅을 차단할 수 있습니다.</p>
 <p class="rubric">Windows</p>
-<p data-msgid="0d8750e315bb38d2b4c342d919dc68b09606abbd" data-score="0" data-since="260603">To attach to another process, you usually need to run your debugging tool
-with administrative privileges. Start the command prompt or terminal as
-Administrator.</p>
-<p data-msgid="92c6ad15645cf1b0e758322f3638a9f5b9e0396b" data-score="0" data-since="260603">Some processes may still be inaccessible even with Administrator rights,
-unless you have the <code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code> privilege enabled.</p>
-<p data-msgid="988bd51c78d4b9745fabba31cb41742c0918f69e" data-score="0" data-since="260603">To resolve file or folder access issues, adjust the security permissions:</p>
+<p data-msgid="0d8750e315bb38d2b4c342d919dc68b09606abbd" data-score="92" data-since="260611">다른 프로세스에 연결하려면, 일반적으로 디버깅 도구를 관리자 권한으로 실행해야 합니다. 명령 프롬프트나 터미널을 관리자로 시작하십시오.</p>
+<p data-msgid="92c6ad15645cf1b0e758322f3638a9f5b9e0396b" data-score="95" data-since="260611">일부 프로세스는 : <code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code> 권한이 활성화되어 있지 않으면 관리자 권한으로도 액세스가 불가능할 수 있습니다.</p>
+<p data-msgid="988bd51c78d4b9745fabba31cb41742c0918f69e" data-score="84" data-since="260611">파일이나 폴더 액세스 문제를 해결하려면, 보안 권한을 조정하십시오:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><p data-msgid="016ce613f00b385be5fd8a69d2fddb52860f7f39" data-score="0" data-since="260603">Right-click the file or folder and select <strong>Properties</strong>.</p></li>
-<li><p data-msgid="84556867cf9d9fcb9ac32f9b666d05edd495a18a" data-score="0" data-since="260603">Go to the <strong>Security</strong> tab to view users and groups with access.</p></li>
-<li><p data-msgid="0ca52b805c82098b88bb834e6846733b455f5fe6" data-score="0" data-since="260603">Click <strong>Edit</strong> to modify permissions.</p></li>
-<li><p data-msgid="b715d320844e63d121d3474e3e4f6a2bf8041234" data-score="0" data-since="260603">Select your user account.</p></li>
-<li><p data-msgid="7f3283e453cf0800a27002f80e2caa31ef90eafa" data-score="0" data-since="260603">In <strong>Permissions</strong>, check <strong>Read</strong> or <strong>Full control</strong> as needed.</p></li>
-<li><p data-msgid="180d6378c3ed9a156c4dc923922ec7ef98491fdd" data-score="0" data-since="260603">Click <strong>Apply</strong>, then <strong>OK</strong> to confirm.</p></li>
+<li><p data-msgid="016ce613f00b385be5fd8a69d2fddb52860f7f39" data-score="100" data-since="260611">파일이나 폴더를 마우스 오른쪽 버튼으로 클릭하고 <strong>속성</strong> 을 선택합니다.</p></li>
+<li><p data-msgid="84556867cf9d9fcb9ac32f9b666d05edd495a18a" data-score="91" data-since="260611">사용자 및 액세스 그룹을 보려면 <strong>보안</strong> 탭으로 이동합니다.</p></li>
+<li><p data-msgid="0ca52b805c82098b88bb834e6846733b455f5fe6" data-score="100" data-since="260611">권한을 수정하려면 <strong>편집</strong> 을 클릭합니다.</p></li>
+<li><p data-msgid="b715d320844e63d121d3474e3e4f6a2bf8041234" data-score="79" data-since="260611">사용자 계정을 선택합니다.</p></li>
+<li><p data-msgid="7f3283e453cf0800a27002f80e2caa31ef90eafa" data-score="100" data-since="260611"><strong>권한</strong> 에서 필요한 대로 <strong>읽기</strong> 또는 <strong>모든 권한</strong> 을 확인합니다.</p></li>
+<li><p data-msgid="180d6378c3ed9a156c4dc923922ec7ef98491fdd" data-score="100" data-since="260611"><strong>적용</strong> 을 클릭한 다음, 확인하려면 <strong>확인</strong> 을 클릭합니다.</p></li>
 </ol>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="4fa4db844c0212f52cb29e809b6c7f13936ef29a" data-score="0" data-since="260603">Ensure you’ve satisfied all <a class="reference internal" href="#permission-requirements"><span class="std std-ref">권한 요구 사항</span></a> before proceeding.</p>
+<p data-msgid="4fa4db844c0212f52cb29e809b6c7f13936ef29a" data-score="95" data-since="260611">진행하기 전에 모든 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>permission-requirements`를 충족했는지 확인하십시오.</p>
 </div>
-<p data-msgid="4cb978c8b03aa782a8b1ee604e0ad66be2932b6e" data-score="0" data-since="260603">This section describes the low-level protocol that enables external tools to
-inject and execute a Python script within a running CPython process.</p>
-<p data-msgid="e6e6600f5640db30692cc788d1a314215708b69b" data-score="0" data-since="260603">This mechanism forms the basis of the <a class="reference internal" href="../library/sys.html#sys.remote_exec" title="sys.remote_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.remote_exec()</span></code></a> function, which
-instructs a remote Python process to execute a <code class="docutils literal notranslate"><span class="pre">.py</span></code> file. However, this
-section does not document the usage of that function. Instead, it provides a
-detailed explanation of the underlying protocol, which takes as input the
-<code class="docutils literal notranslate"><span class="pre">pid</span></code> of a target Python process and the path to a Python source file to be
-executed. This information supports independent reimplementation of the
-protocol, regardless of programming language.</p>
+<p data-msgid="4cb978c8b03aa782a8b1ee604e0ad66be2932b6e" data-score="94" data-since="260611">이 섹션은 외부 도구가 실행 중인 CPython 프로세스 내에 Python 스크립트를 주입하고 실행할 수 있게 하는 낮은 수준의 프로토콜을 설명합니다.</p>
+<p data-msgid="e6e6600f5640db30692cc788d1a314215708b69b" data-score="85" data-since="260611">이 메커니즘은 원격 Python 프로세스에게 <code class="docutils literal notranslate"><span class="pre">.py</span></code> 파일을 실행하도록 지시하는 <a class="reference internal" href="../library/sys.html#sys.remote_exec" title="sys.remote_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.remote_exec()</span></code></a> 함수의 기초를 이룹니다. 하지만 이 섹션은 그 함수의 사용법을 문서화하지 않습니다. 대신, 이 섹션은 대상 Python 프로세스의 <code class="docutils literal notranslate"><span class="pre">pid</span></code> 와 실행할 Python 소스 파일의 경로를 입력으로 받는 기본 프로토콜에 대한 자세한 설명을 제공합니다. 이 정보는 프로그래밍 언어에 관계없이 프로토콜의 독립적인 재구현을 지원합니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="0d9d6dfab38cb30280f9f9f598117a2129c09ae5" data-score="0" data-since="260603">The execution of the injected script depends on the interpreter reaching a
-safe evaluation point. As a result, execution may be delayed depending on
-the runtime state of the target process.</p>
+<p data-msgid="0d9d6dfab38cb30280f9f9f598117a2129c09ae5" data-score="93" data-since="260611">주입된 스크립트의 실행은 인터프리터가 안전한 평가 지점에 도달하는지에 달려 있습니다. 그 결과, 실행은 대상 프로세스의 런타임 상태에 따라 지연될 수 있습니다.</p>
 </div>
-<p data-msgid="f30737442a7911fcad7cebfc5231b146cf9fabba" data-score="0" data-since="260603">Once injected, the script is executed by the interpreter within the target
-process the next time a safe evaluation point is reached. This approach enables
-remote execution capabilities without modifying the behavior or structure of
-the running Python application.</p>
-<p data-msgid="4c640c38d9a6fd80f4c321f6de92e4b8f35e50a8" data-score="0" data-since="260603">Subsequent sections provide a step-by-step description of the protocol,
-including techniques for locating interpreter structures in memory, safely
-accessing internal fields, and triggering code execution. Platform-specific
-variations are noted where applicable, and example implementations are included
-to clarify each operation.</p>
+<p data-msgid="f30737442a7911fcad7cebfc5231b146cf9fabba" data-score="93" data-since="260611">주입된 후, 스크립트는 안전한 평가 지점에 도달할 때마다 인터프리터에 의해 대상 프로세스 내에서 실행됩니다. 이 접근 방식은 실행 중인 Python 애플리케이션의 동작이나 구조를 수정하지 않고 원격 실행 기능을 가능하게 합니다.</p>
+<p data-msgid="4c640c38d9a6fd80f4c321f6de92e4b8f35e50a8" data-score="88" data-since="260611">뒤따르는 절에서는 메모리에서 인터프리터 구조를 찾는 기술, 내부 필드를 안전하게 접근하는 방법, 코드 실행을 트리거하는 방법 등을 포함하여 프로토콜에 대한 단계별 설명을 제공합니다. 해당되는 경우에는 플랫폼별 변형 사항이 명시되며, 각 작업을 명확히 하기 위해 예제 구현이 포함됩니다.</p>
 </section>
 <section id="locating-the-pyruntime-structure">
-<h1 data-msgid="dbf21d9760f33bb08004115ad7a93905c4ca7433" data-score="0" data-since="260603">Locating the PyRuntime structure<a class="headerlink" href="#locating-the-pyruntime-structure" title="Link to this heading">¶</a></h1>
-<p data-msgid="62b288107c28f5b007a56b8f11378637f4302e2a" data-score="0" data-since="260603">CPython places the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure in a dedicated binary section to
-help external tools find it at runtime. The name and format of this section
-vary by platform. For example, <code class="docutils literal notranslate"><span class="pre">.PyRuntime</span></code> is used on ELF systems, and
-<code class="docutils literal notranslate"><span class="pre">__DATA,__PyRuntime</span></code> is used on macOS. Tools can find the offset of this
-structure by examining the binary on disk.</p>
-<p data-msgid="454d0aa54b90749e1d876e96fe4e7be356d96eca" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure contains CPython’s global interpreter state and
-provides access to other internal data, including the list of interpreters,
-thread states, and debugger support fields.</p>
-<p data-msgid="2035cb72c5d639e2d19d065565376b4688492a0e" data-score="0" data-since="260603">To work with a remote Python process, a debugger must first find the memory
-address of the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure in the target process. This address
-can’t be hardcoded or calculated from a symbol name, because it depends on
-where the operating system loaded the binary.</p>
-<p data-msgid="73c106ca791006c0dbb071334a586aa9a95f04c5" data-score="0" data-since="260603">The method for finding <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> depends on the platform, but the steps are
-the same in general:</p>
+<h1 data-msgid="dbf21d9760f33bb08004115ad7a93905c4ca7433" data-score="100" data-since="260611">PyRuntime 구조 찾기<a class="headerlink" href="#locating-the-pyruntime-structure" title="Link to this heading">¶</a></h1>
+<p data-msgid="62b288107c28f5b007a56b8f11378637f4302e2a" data-score="95" data-since="260611">CPython은 외부 도구가 런타임에 해당 구조를 찾을 수 있도록 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조를 전용 바이너리 섹션에 배치합니다. 이 섹션의 이름과 형식은 플랫폼마다 다릅니다. 예를 들어, ELF 시스템에서는 <code class="docutils literal notranslate"><span class="pre">.PyRuntime</span></code> 이 사용되고, macOS에서는 <code class="docutils literal notranslate"><span class="pre">__DATA,__PyRuntime</span></code> 이 사용됩니다. 도구는 디스크의 바이너리를 검사하여 이 구조의 오프셋을 찾을 수 있습니다.</p>
+<p data-msgid="454d0aa54b90749e1d876e96fe4e7be356d96eca" data-score="93" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조는 CPython의 전역 인터프리터 상태를 포함하고 있으며, 인터프리터 목록, 스레드 상태, 디버거 지원 필드를 포함한 다른 내부 데이터에 대한 접근을 제공합니다.</p>
+<p data-msgid="2035cb72c5d639e2d19d065565376b4688492a0e" data-score="96" data-since="260611">원격 Python 프로세스를 사용하려면 디버거가 먼저 대상 프로세스 내에서 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조의 메모리 주소를 찾아야 합니다. 이 주소는 운영체제가 바이너리를 로드한 위치에 따라 달라지기 때문에 하드코딩하거나 심볼 이름으로부터 계산할 수 없습니다.</p>
+<p data-msgid="73c106ca791006c0dbb071334a586aa9a95f04c5" data-score="70" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 을 찾는 방법은 플랫폼에 따라 다르지만, 단계는 일반적으로 동일합니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="75a0361448cbc093166b2f4fff275d2713668482" data-score="0" data-since="260603">Find the base address where the Python binary or shared library was loaded
-in the target process.</p></li>
-<li><p data-msgid="0c7431f0d122f1b0838da9cfa49962156392da3c" data-score="0" data-since="260603">Use the on-disk binary to locate the offset of the <code class="docutils literal notranslate"><span class="pre">.PyRuntime</span></code> section.</p></li>
-<li><p data-msgid="80bfdf631862817931bb12347c5c4963df0bceb1" data-score="0" data-since="260603">Add the section offset to the base address to compute the address in memory.</p></li>
+<li><p data-msgid="75a0361448cbc093166b2f4fff275d2713668482" data-score="100" data-since="260611">대상 프로세스에서 Python 바이너리 또는 공유 라이브러리가 로드된 기본 주소를 찾습니다.</p></li>
+<li><p data-msgid="0c7431f0d122f1b0838da9cfa49962156392da3c" data-score="88" data-since="260611">디스크에 있는 바이너리를 사용하여 <code class="docutils literal notranslate"><span class="pre">.PyRuntime</span></code> 섹션의 오프셋을 찾습니다.</p></li>
+<li><p data-msgid="80bfdf631862817931bb12347c5c4963df0bceb1" data-score="100" data-since="260611">식별된 섹션 오프셋을 기본 주소에 더하여 메모리 주소를 계산합니다.</p></li>
 </ol>
-<p data-msgid="2623ff921beb3f8d548a6a0c1ce6743e28984c35" data-score="0" data-since="260603">The sections below explain how to do this on each supported platform and
-include example code.</p>
+<p data-msgid="2623ff921beb3f8d548a6a0c1ce6743e28984c35" data-score="100" data-since="260611">아래 섹션들은 지원되는 각 플랫폼별로 이 작업을 수행하는 방법과 예제 코드를 설명합니다.</p>
 <p class="rubric">Linux (ELF)</p>
-<p data-msgid="65c9ccc6bc28bccb3182e590caf6e326e2c9b1e1" data-score="0" data-since="260603">To find the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure on Linux:</p>
+<p data-msgid="65c9ccc6bc28bccb3182e590caf6e326e2c9b1e1" data-score="81" data-since="260611">Linux에서 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조를 찾으려면:</p>
 <ol class="arabic simple">
-<li><p data-msgid="ba66c32206c48245b1d78d42213d71c2207a2a02" data-score="0" data-since="260603">Read the process’s memory map (for example, <code class="docutils literal notranslate"><span class="pre">/proc/&lt;pid&gt;/maps</span></code>) to find
-the address where the Python executable or <code class="docutils literal notranslate"><span class="pre">libpython</span></code> was loaded.</p></li>
-<li><p data-msgid="23cf6494e63fc8224bfdd28730d7920cf37bd344" data-score="0" data-since="260603">Parse the ELF section headers in the binary to get the offset of the
-<code class="docutils literal notranslate"><span class="pre">.PyRuntime</span></code> section.</p></li>
-<li><p data-msgid="5a17d58ee5238eebece5f1ac62f75e9cbac28f9a" data-score="0" data-since="260603">Add that offset to the base address from step 1 to get the memory address of
-<code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code>.</p></li>
+<li><p data-msgid="ba66c32206c48245b1d78d42213d71c2207a2a02" data-score="93" data-since="260611">프로세스의 메모리 맵(예: <code class="docutils literal notranslate"><span class="pre">/proc/&lt;pid&gt;/maps</span></code>)을 읽어서 Python 실행 파일 또는 <code class="docutils literal notranslate"><span class="pre">libpython</span></code> 이 로드된 주소를 찾습니다.</p></li>
+<li><p data-msgid="23cf6494e63fc8224bfdd28730d7920cf37bd344" data-score="96" data-since="260611">바이너리 내의 ELF 섹션 헤더를 구문 분석하여 <code class="docutils literal notranslate"><span class="pre">.PyRuntime</span></code> 섹션의 오프셋을 얻습니다.</p></li>
+<li><p data-msgid="5a17d58ee5238eebece5f1ac62f75e9cbac28f9a" data-score="83" data-since="260611">이 오프셋을 단계 1의 기본 주소에 더하여 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 의 메모리 주소를 얻습니다.</p></li>
 </ol>
-<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="0" data-since="260603">The following is an example implementation:</p>
-<div class="highlight-python3 notranslate" data-msgid="dfdc8b74257c05e568c444ff8ef977ef88cc94cd" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_py_runtime_linux</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="c1"># Step 1: Try to find the Python executable in memory</span>
+<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="93" data-since="260611">다음은 예제 구현입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="dfdc8b74257c05e568c444ff8ef977ef88cc94cd" data-score="95" data-since="260611"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_py_runtime_linux</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="c1"># 단계 1: 메모리에서 Python 실행 파일을 찾으려고 시도합니다</span>
     <span class="n">binary_path</span><span class="p">,</span> <span class="n">base_address</span> <span class="o">=</span> <span class="n">find_mapped_binary</span><span class="p">(</span>
         <span class="n">pid</span><span class="p">,</span> <span class="n">name_contains</span><span class="o">=</span><span class="s2">&quot;python&quot;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Step 2: Fallback to shared library if executable is not found</span>
+    <span class="c1"># 단계 2: 실행 파일이 없으면 공유 라이브러리로 대체합니다</span>
     <span class="k">if</span> <span class="n">binary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">binary_path</span><span class="p">,</span> <span class="n">base_address</span> <span class="o">=</span> <span class="n">find_mapped_binary</span><span class="p">(</span>
             <span class="n">pid</span><span class="p">,</span> <span class="n">name_contains</span><span class="o">=</span><span class="s2">&quot;libpython&quot;</span>
         <span class="p">)</span>
 
-    <span class="c1"># Step 3: Parse ELF headers to get .PyRuntime section offset</span>
+    <span class="c1"># 단계 3: ELF 헤더를 구문 분석하여 .PyRuntime 섹션 오프셋을 얻습니다</span>
     <span class="n">section_offset</span> <span class="o">=</span> <span class="n">parse_elf_section_offset</span><span class="p">(</span>
         <span class="n">binary_path</span><span class="p">,</span> <span class="s2">&quot;.PyRuntime&quot;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Step 4: Compute PyRuntime address in memory</span>
+    <span class="c1"># 단계 4: 메모리에서 PyRuntime 주소 계산</span>
     <span class="k">return</span> <span class="n">base_address</span> <span class="o">+</span> <span class="n">section_offset</span>
 </pre></div>
 </div>
-<p data-msgid="53421f20b7165372aa48098fdf325bb7d9221159" data-score="0" data-since="260603">On Linux systems, there are two main approaches to read memory from another
-process. The first is through the <code class="docutils literal notranslate"><span class="pre">/proc</span></code> filesystem, specifically by reading from
-<code class="docutils literal notranslate"><span class="pre">/proc/[pid]/mem</span></code> which provides direct access to the process’s memory. This
-requires appropriate permissions - either being the same user as the target
-process or having root access. The second approach is using the
-<code class="docutils literal notranslate"><span class="pre">process_vm_readv()</span></code> system call which provides a more efficient way to copy
-memory between processes. While ptrace’s <code class="docutils literal notranslate"><span class="pre">PTRACE_PEEKTEXT</span></code> operation can also be
-used to read memory, it is significantly slower as it only reads one word at a
-time and requires multiple context switches between the tracer and tracee
-processes.</p>
-<p data-msgid="5cc8057b4344b309e9769d7f13f404d1d291baa7" data-score="0" data-since="260603">For parsing ELF sections, the process involves reading and interpreting the ELF
-file format structures from the binary file on disk. The ELF header contains a
-pointer to the section header table. Each section header contains metadata about
-a section including its name (stored in a separate string table), offset, and
-size. To find a specific section like .PyRuntime, you need to walk through these
-headers and match the section name. The section header then provides the offset
-where that section exists in the file, which can be used to calculate its
-runtime address when the binary is loaded into memory.</p>
-<p data-msgid="b9b78e21a88f0b8ccffc1ca71b3e7e03f4829192" data-score="0" data-since="260603">You can read more about the ELF file format in the <a class="reference external" href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">ELF specification</a>.</p>
+<p data-msgid="53421f20b7165372aa48098fdf325bb7d9221159" data-score="97" data-since="260611">리눅스 시스템에서는 다른 프로세스로부터 메모리를 읽는 두 가지 주요 접근 방식이 있습니다. 첫 번째는 <code class="docutils literal notranslate"><span class="pre">/proc</span></code> 파일 시스템을 통해, 구체적으로 <code class="docutils literal notranslate"><span class="pre">/proc/[pid]/mem``에서</span> <span class="pre">읽어</span> <span class="pre">프로세스의</span> <span class="pre">메모리에</span> <span class="pre">직접</span> <span class="pre">접근하는</span> <span class="pre">것입니다.</span> <span class="pre">이를</span> <span class="pre">위해서는</span> <span class="pre">적절한</span> <span class="pre">권한(대상</span> <span class="pre">프로세스와</span> <span class="pre">동일한</span> <span class="pre">사용자가거나</span> <span class="pre">root</span> <span class="pre">접근이</span> <span class="pre">필요함)이</span> <span class="pre">필요합니다.</span> <span class="pre">두</span> <span class="pre">번째</span> <span class="pre">접근</span> <span class="pre">방식은</span> <span class="pre">프로세스</span> <span class="pre">간에</span> <span class="pre">메모리를</span> <span class="pre">복사하는</span> <span class="pre">보다</span> <span class="pre">효율적인</span> <span class="pre">방법인</span> <span class="pre">``process_vm_readv()</span></code> 시스템 호출을 사용하는 것입니다. <cite>ptrace`의 ``PTRACE_PEEKTEXT`</cite> 작업으로도 메모리를 읽을 수 있지만, 현재는 한 워드씩만 읽고 트레이서와 트레이스이 프로세스 간 여러 컨텍스트 전환이 필요하기 때문에 훨씬 느립니다.</p>
+<p data-msgid="5cc8057b4344b309e9769d7f13f404d1d291baa7" data-score="95" data-since="260611">ELF 섹션을 파싱하는 과정은 디스크의 바이너리 파일에서 ELF 파일 형식 구조를 읽고 해석하는 것을 포함합니다. ELF 헤더에는 섹션 헤더 테이블에 대한 포인터가 포함되어 있습니다. 각 섹션 헤더는 이름(별도의 문자열 테이블에 저장됨), 오프셋, 크기를 포함하여 섹션에 대한 메타데이터를 담고 있습니다. 예를 들어 <a href="#id1"><span class="problematic" id="id2">`</span></a>.PyRuntime`과 같은 특정 섹션을 찾으려면, 이러한 헤더를 탐색하여 섹션 이름을 일치시켜야 합니다. 섹션 헤더는 파일 내에 해당 섹션이 존재하는 오프셋을 제공하며, 이 오프셋은 바이너리가 메모리에 로드될 때 런타임 주소를 계산하는 데 사용될 수 있습니다.</p>
+<p data-msgid="b9b78e21a88f0b8ccffc1ca71b3e7e03f4829192" data-score="97" data-since="260611">ELF 파일 형식에 대한 자세한 내용은 <a href="#id1"><span class="problematic" id="id2">`</span></a>ELF specification &lt;<a class="reference external" href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">https://en.wikipedia.org/wiki/Executable_and_Linkable_Format</a>&gt;`에서 읽어보실 수 있습니다.</p>
 <p class="rubric">macOS (Mach-O)</p>
-<p data-msgid="a0a7097798f660024d8f07063ffe575e1b7691f5" data-score="0" data-since="260603">To find the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure on macOS:</p>
+<p data-msgid="a0a7097798f660024d8f07063ffe575e1b7691f5" data-score="95" data-since="260611">macOS에서 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조를 찾으려면 다음 단계를 따르세요:</p>
 <ol class="arabic simple">
-<li><p data-msgid="02b427d26359ccb6ad642414aa12fb839c03f01d" data-score="0" data-since="260603">Call <code class="docutils literal notranslate"><span class="pre">task_for_pid()</span></code> to get the <code class="docutils literal notranslate"><span class="pre">mach_port_t</span></code> task port for the target
-process. This handle is needed to read memory using APIs like
-<code class="docutils literal notranslate"><span class="pre">mach_vm_read_overwrite</span></code> and <code class="docutils literal notranslate"><span class="pre">mach_vm_region</span></code>.</p></li>
-<li><p data-msgid="550a5ff8e2c89cb5b268822fa8755cb09c98b734" data-score="0" data-since="260603">Scan the memory regions to find the one containing the Python executable or
-<code class="docutils literal notranslate"><span class="pre">libpython</span></code>.</p></li>
-<li><p data-msgid="c7eaf6e57a21e06125e77cdf5ca0f411caa1e8ad" data-score="0" data-since="260603">Load the binary file from disk and parse the Mach-O headers to find the
-section named <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> in the <code class="docutils literal notranslate"><span class="pre">__DATA</span></code> segment.  On macOS, symbol
-names are automatically prefixed with an underscore, so the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code>
-symbol appears as <code class="docutils literal notranslate"><span class="pre">_PyRuntime</span></code> in the symbol table, but the section name
-is not affected.</p></li>
+<li><p data-msgid="02b427d26359ccb6ad642414aa12fb839c03f01d" data-score="91" data-since="260611"><code class="docutils literal notranslate"><span class="pre">task_for_pid()</span></code> 를 호출하여 대상 프로세스의 <code class="docutils literal notranslate"><span class="pre">mach_port_t</span></code> 태스크 포트를 가져오세요. 이 핸들은 <code class="docutils literal notranslate"><span class="pre">mach_vm_read_overwrite</span></code> 및 <code class="docutils literal notranslate"><span class="pre">mach_vm_region</span></code> 과 같은 API를 사용하여 메모리를 읽는 데 필요합니다.</p></li>
+<li><p data-msgid="550a5ff8e2c89cb5b268822fa8755cb09c98b734" data-score="85" data-since="260611">메모리 영역을 스캔하여 Python 실행 파일 또는 <code class="docutils literal notranslate"><span class="pre">libpython</span></code> 을 포함하는 영역을 찾으세요.</p></li>
+<li><p data-msgid="c7eaf6e57a21e06125e77cdf5ca0f411caa1e8ad" data-score="85" data-since="260611">디스크에서 바이너리 파일을 로드하고 Mach-O 헤더를 파싱하여 <code class="docutils literal notranslate"><span class="pre">__DATA</span></code> 세그먼트에서 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 이라는 이름을 가진 섹션을 찾으세요. macOS에서는 심볼 이름이 자동으로 언더스코어(underscore)로 접두사가 붙기 때문에, <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 심볼은 심볼 테이블에 <code class="docutils literal notranslate"><span class="pre">_PyRuntime</span></code> 으로 나타나지만, 섹션 이름은 영향을 받지 않습니다.</p></li>
 </ol>
-<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="0" data-since="260603">The following is an example implementation:</p>
-<div class="highlight-python3 notranslate" data-msgid="ea8fc4b7beb1932864f1df60dcfde6a0a7a68e07" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_py_runtime_macos</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="c1"># Step 1: Get access to the process&#39;s memory</span>
+<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="93" data-since="260611">다음은 예제 구현입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="ea8fc4b7beb1932864f1df60dcfde6a0a7a68e07" data-score="100" data-since="260611"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_py_runtime_macos</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="c1"># 1단계: 프로세스의 메모리에 접근합니다.</span>
     <span class="n">handle</span> <span class="o">=</span> <span class="n">get_memory_access_handle</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
 
-    <span class="c1"># Step 2: Try to find the Python executable in memory</span>
+    <span class="c1"># 2단계: 메모리에서 Python 실행 파일을 찾으려고 시도합니다.</span>
     <span class="n">binary_path</span><span class="p">,</span> <span class="n">base_address</span> <span class="o">=</span> <span class="n">find_mapped_binary</span><span class="p">(</span>
         <span class="n">handle</span><span class="p">,</span> <span class="n">name_contains</span><span class="o">=</span><span class="s2">&quot;python&quot;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Step 3: Fallback to libpython if the executable is not found</span>
+    <span class="c1"># 3단계: 실행 파일을 찾지 못한 경우 libpython으로 폴백합니다.</span>
     <span class="k">if</span> <span class="n">binary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">binary_path</span><span class="p">,</span> <span class="n">base_address</span> <span class="o">=</span> <span class="n">find_mapped_binary</span><span class="p">(</span>
             <span class="n">handle</span><span class="p">,</span> <span class="n">name_contains</span><span class="o">=</span><span class="s2">&quot;libpython&quot;</span>
         <span class="p">)</span>
 
-    <span class="c1"># Step 4: Parse Mach-O headers to get __DATA,__PyRuntime section offset</span>
+    <span class="c1"># 4단계: Mach-O 헤더를 파싱하여 __DATA,__PyRuntime 섹션 오프셋을 얻습니다.</span>
     <span class="n">section_offset</span> <span class="o">=</span> <span class="n">parse_macho_section_offset</span><span class="p">(</span>
         <span class="n">binary_path</span><span class="p">,</span> <span class="s2">&quot;__DATA&quot;</span><span class="p">,</span> <span class="s2">&quot;__PyRuntime&quot;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Step 5: Compute the PyRuntime address in memory</span>
+    <span class="c1"># 5단계: 메모리 내 PyRuntime 주소를 계산하여 반환합니다.</span>
     <span class="k">return</span> <span class="n">base_address</span> <span class="o">+</span> <span class="n">section_offset</span>
 </pre></div>
 </div>
-<p data-msgid="febbe0e094f7fd6cdca6a3a8bf3e3dde73b24974" data-score="0" data-since="260603">On macOS, accessing another process’s memory requires using Mach-O specific APIs
-and file formats. The first step is obtaining a <code class="docutils literal notranslate"><span class="pre">task_port</span></code> handle via
-<code class="docutils literal notranslate"><span class="pre">task_for_pid()</span></code>, which provides access to the target process’s memory space.
-This handle enables memory operations through APIs like
-<code class="docutils literal notranslate"><span class="pre">mach_vm_read_overwrite()</span></code>.</p>
-<p data-msgid="af057719708cea3bcfa9c502e69806c0c98b1ca8" data-score="0" data-since="260603">The process memory can be examined using <code class="docutils literal notranslate"><span class="pre">mach_vm_region()</span></code> to scan through the
-virtual memory space, while <code class="docutils literal notranslate"><span class="pre">proc_regionfilename()</span></code> helps identify which binary
-files are loaded at each memory region. When the Python binary or library is
-found, its Mach-O headers need to be parsed to locate the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure.</p>
-<p data-msgid="3b5111225dd3213c60f9972522b4e69063563fdd" data-score="0" data-since="260603">The Mach-O format organizes code and data into segments and sections. The
-<code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure lives in a section named <code class="docutils literal notranslate"><span class="pre">__PyRuntime</span></code> within the
-<code class="docutils literal notranslate"><span class="pre">__DATA</span></code> segment. The actual runtime address calculation involves finding the
-<code class="docutils literal notranslate"><span class="pre">__TEXT</span></code> segment which serves as the binary’s base address, then locating the
-<code class="docutils literal notranslate"><span class="pre">__DATA</span></code> segment containing our target section. The final address is computed by
-combining the base address with the appropriate section offsets from the Mach-O
-headers.</p>
-<p data-msgid="4eac014398c0154fde2448b2f40edec8544b13e8" data-score="0" data-since="260603">Note that accessing another process’s memory on macOS typically requires
-elevated privileges - either root access or special security entitlements
-granted to the debugging process.</p>
+<p data-msgid="febbe0e094f7fd6cdca6a3a8bf3e3dde73b24974" data-score="97" data-since="260611">macOS에서 다른 프로세스의 메모리에 접근하려면 Mach-O 전용 API와 파일 형식을 사용해야 합니다. 첫 번째 단계는 <code class="docutils literal notranslate"><span class="pre">task_for_pid()</span></code> 를 통해 <code class="docutils literal notranslate"><span class="pre">task_port</span></code> 핸들을 얻는 것이며, 이는 대상 프로세스의 메모리 공간에 접근할 수 있게 해줍니다. 이 핸들은 <code class="docutils literal notranslate"><span class="pre">mach_vm_read_overwrite()</span></code> 와 같은 API를 통해 메모리 작업을 가능하게 합니다.</p>
+<p data-msgid="af057719708cea3bcfa9c502e69806c0c98b1ca8" data-score="95" data-since="260611">프로세스 메모리는 <code class="docutils literal notranslate"><span class="pre">mach_vm_region()``을</span> <span class="pre">사용하여</span> <span class="pre">가상</span> <span class="pre">메모리</span> <span class="pre">공간을</span> <span class="pre">스캔하여</span> <span class="pre">검사할</span> <span class="pre">수</span> <span class="pre">있으며,</span> <span class="pre">``proc_regionfilename()``은</span> <span class="pre">각</span> <span class="pre">메모리</span> <span class="pre">영역에</span> <span class="pre">로드된</span> <span class="pre">바이너리</span> <span class="pre">파일을</span> <span class="pre">식별하는</span> <span class="pre">데</span> <span class="pre">도움이</span> <span class="pre">됩니다.</span> <span class="pre">Python</span> <span class="pre">바이너리나</span> <span class="pre">라이브러리를</span> <span class="pre">찾으면,</span> <span class="pre">해당</span> <span class="pre">Mach-O</span> <span class="pre">헤더를</span> <span class="pre">파싱하여</span> <span class="pre">``PyRuntime</span></code> 구조를 찾게 됩니다.</p>
+<p data-msgid="3b5111225dd3213c60f9972522b4e69063563fdd" data-score="85" data-since="260611">Mach-O 형식은 코드와 데이터를 세그먼트와 섹션으로 구성합니다. <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조는 <code class="docutils literal notranslate"><span class="pre">__DATA</span></code> 세그먼트 내에 <code class="docutils literal notranslate"><span class="pre">__PyRuntime``이라는</span> <span class="pre">이름을</span> <span class="pre">가진</span> <span class="pre">섹션에</span> <span class="pre">존재합니다.</span> <span class="pre">실제</span> <span class="pre">런타임</span> <span class="pre">주소</span> <span class="pre">계산은</span> <span class="pre">바이너리의</span> <span class="pre">기본</span> <span class="pre">주소</span> <span class="pre">역할을</span> <span class="pre">하는</span> <span class="pre">``__TEXT</span></code> 세그먼트를 찾고, 그런 다음 대상 섹션을 포함하는 <code class="docutils literal notranslate"><span class="pre">__DATA</span></code> 세그먼트를 찾는 것을 포함합니다. 최종 주소는 기본 주소에 Mach-O 헤더의 적절한 섹션 오프셋을 결합하여 계산됩니다.</p>
+<p data-msgid="4eac014398c0154fde2448b2f40edec8544b13e8" data-score="83" data-since="260611">macOS에서 다른 프로세스의 메모리에 접근하려면 일반적으로 높은 권한이 필요하다는 점에 유의하세요. 즉, 루트 접근 권한이거나 디버깅 프로세스에 부여된 특별한 보안 권한이 필요합니다.</p>
 <p class="rubric">Windows (PE)</p>
-<p data-msgid="08b6b672355cbaba2a03f8067e3f58d5f34dd14d" data-score="0" data-since="260603">To find the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure on Windows:</p>
+<p data-msgid="08b6b672355cbaba2a03f8067e3f58d5f34dd14d" data-score="96" data-since="260611">Windows에서 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조를 찾으려면 다음 단계를 따르세요:</p>
 <ol class="arabic simple">
-<li><p data-msgid="fdf56eae0728398ccc379cbb18bb11b89196e9dd" data-score="0" data-since="260603">Use the ToolHelp API to enumerate all modules loaded in the target process.
-This is done using functions such as <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot">CreateToolhelp32Snapshot</a>,
-<a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-module32first">Module32First</a>,
-and <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-module32next">Module32Next</a>.</p></li>
-<li><p data-msgid="051506db0df1f5a7dc0865817348bfe5a7c7dab4" data-score="0" data-since="260603">Identify the module corresponding to <code class="file docutils literal notranslate"><span class="pre">python.exe</span></code> or
-<code class="file docutils literal notranslate"><span class="pre">python</span><em><span class="pre">XY</span></em><span class="pre">.dll</span></code>, where <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> are the major and minor
-version numbers of the Python version, and record its base address.</p></li>
-<li><p data-msgid="5d80629cfd87c05fa90b409fa112b3922208afcd" data-score="0" data-since="260603">Locate the <code class="docutils literal notranslate"><span class="pre">PyRuntim</span></code> section. Due to the PE format’s 8-character limit
-on section names (defined as <code class="docutils literal notranslate"><span class="pre">IMAGE_SIZEOF_SHORT_NAME</span></code>), the original
-name <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> is truncated. This section contains the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code>
-structure.</p></li>
-<li><p data-msgid="fbc11a8c6d6c9e0b80d864b2528bb81de64a7051" data-score="0" data-since="260603">Retrieve the section’s relative virtual address (RVA) and add it to the base
-address of the module.</p></li>
+<li><p data-msgid="fdf56eae0728398ccc379cbb18bb11b89196e9dd" data-score="94" data-since="260611">ToolHelp API를 사용하여 대상 프로세스에 로드된 모든 모듈을 열거하세요. 이는 <cite>CreateToolhelp32Snapshot …</cite>, <cite>Module32First …</cite>, 및 <a href="#id1"><span class="problematic" id="id2">`</span></a>Module32Next …`와 같은 함수를 사용하여 수행됩니다.</p></li>
+<li><p data-msgid="051506db0df1f5a7dc0865817348bfe5a7c7dab4" data-score="84" data-since="260611"><code class="file docutils literal notranslate"><span class="pre">python.exe</span></code> 또는 :file:<a href="#id1"><span class="problematic" id="id2">`</span></a>python{XY}.dll`에 해당하는 모듈을 식별하고, 여기에 기록된 기본 주소를 기록합니다.</p></li>
+<li><p data-msgid="5d80629cfd87c05fa90b409fa112b3922208afcd" data-score="81" data-since="260611"><cite>PyRuntim</cite> 섹션을 찾습니다. PE 형식은 섹션 이름에 8자 제한이 있기 때문에 (<code class="docutils literal notranslate"><span class="pre">IMAGE_SIZEOF_SHORT_NAME``으로</span> <span class="pre">정의됨),</span> <span class="pre">원래</span> <span class="pre">이름</span> <span class="pre">``PyRuntime``이</span> <span class="pre">잘렸습니다.</span> <span class="pre">이</span> <span class="pre">섹션에는</span> <span class="pre">``PyRuntime</span></code> 구조가 포함되어 있습니다.</p></li>
+<li><p data-msgid="fbc11a8c6d6c9e0b80d864b2528bb81de64a7051" data-score="90" data-since="260611">섹션의 상대 가상 주소(RVA)를 검색하여 모듈의 기본 주소에 더합니다.</p></li>
 </ol>
-<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="0" data-since="260603">The following is an example implementation:</p>
-<div class="highlight-python3 notranslate" data-msgid="01ae5a0c99c8e65b19b82f84dee06bc3dc5d4332" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_py_runtime_windows</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="c1"># Step 1: Try to find the Python executable in memory</span>
+<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="93" data-since="260611">다음은 예제 구현입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="01ae5a0c99c8e65b19b82f84dee06bc3dc5d4332" data-score="98" data-since="260611"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_py_runtime_windows</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="c1"># 단계 1: 메모리에서 Python 실행 파일을 찾으려고 시도합니다.</span>
     <span class="n">binary_path</span><span class="p">,</span> <span class="n">base_address</span> <span class="o">=</span> <span class="n">find_loaded_module</span><span class="p">(</span>
         <span class="n">pid</span><span class="p">,</span> <span class="n">name_contains</span><span class="o">=</span><span class="s2">&quot;python&quot;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Step 2: Fallback to shared pythonXY.dll if the executable is not</span>
-    <span class="c1"># found</span>
+    <span class="c1"># 단계 2: 실행 파일을 찾지 못한 경우 shared pythonXY.dll로 폴백합니다.</span>
     <span class="k">if</span> <span class="n">binary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">binary_path</span><span class="p">,</span> <span class="n">base_address</span> <span class="o">=</span> <span class="n">find_loaded_module</span><span class="p">(</span>
             <span class="n">pid</span><span class="p">,</span> <span class="n">name_contains</span><span class="o">=</span><span class="s2">&quot;python3&quot;</span>
         <span class="p">)</span>
 
-    <span class="c1"># Step 3: Parse PE section headers to get the RVA of the PyRuntime</span>
-    <span class="c1"># section. The section name appears as &quot;PyRuntim&quot; due to the</span>
-    <span class="c1"># 8-character limit defined by the PE format (IMAGE_SIZEOF_SHORT_NAME).</span>
+    <span class="c1"># 단계 3: PE 섹션 헤더를 파싱하여 PyRuntime 섹션의 RVA를 가져옵니다. 섹션 이름은 PE 형식에 의해 정의된 8자 제한 때문에 &quot;PyRuntim&quot;으로 나타납니다.</span>
     <span class="n">section_rva</span> <span class="o">=</span> <span class="n">parse_pe_section_offset</span><span class="p">(</span><span class="n">binary_path</span><span class="p">,</span> <span class="s2">&quot;PyRuntim&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Step 4: Compute PyRuntime address in memory</span>
+    <span class="c1"># 단계 4: 메모리에서 PyRuntime 주소 계산</span>
     <span class="k">return</span> <span class="n">base_address</span> <span class="o">+</span> <span class="n">section_rva</span>
 </pre></div>
 </div>
-<p data-msgid="cc97c1ab89b7b94e60065e0372e0defbca2756b7" data-score="0" data-since="260603">On Windows, accessing another process’s memory requires using the Windows API
-functions like <code class="docutils literal notranslate"><span class="pre">CreateToolhelp32Snapshot()</span></code> and <code class="docutils literal notranslate"><span class="pre">Module32First()/Module32Next()</span></code>
-to enumerate loaded modules. The <code class="docutils literal notranslate"><span class="pre">OpenProcess()</span></code> function provides a handle to
-access the target process’s memory space, enabling memory operations through
-<code class="docutils literal notranslate"><span class="pre">ReadProcessMemory()</span></code>.</p>
-<p data-msgid="88fb57ed739b0d88b7199f87228ba1f1d019f427" data-score="0" data-since="260603">The process memory can be examined by enumerating loaded modules to find the
-Python binary or DLL. When found, its PE headers need to be parsed to locate the
-<code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure.</p>
-<p data-msgid="5369ee610781ab738c78f28ada00e04937adde13" data-score="0" data-since="260603">The PE format organizes code and data into sections. The <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure
-lives in a section named “PyRuntim” (truncated from “PyRuntime” due to PE’s
-8-character name limit). The actual runtime address calculation involves finding
-the module’s base address from the module entry, then locating our target
-section in the PE headers. The final address is computed by combining the base
-address with the section’s virtual address from the PE section headers.</p>
-<p data-msgid="9d74df36993b4e74fba7cfb6ece559eb6cdf05e3" data-score="0" data-since="260603">Note that accessing another process’s memory on Windows typically requires
-appropriate privileges - either administrative access or the <code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code>
-privilege granted to the debugging process.</p>
+<p data-msgid="cc97c1ab89b7b94e60065e0372e0defbca2756b7" data-score="91" data-since="260611">Windows에서 다른 프로세스의 메모리에 접근하려면 <code class="docutils literal notranslate"><span class="pre">CreateToolhelp32Snapshot()</span></code> 및 <code class="docutils literal notranslate"><span class="pre">Module32First()/Module32Next()</span></code> 와 같은 Windows API 함수를 사용하여 로드된 모듈을 열거해야 합니다. <code class="docutils literal notranslate"><span class="pre">OpenProcess()</span></code> 함수는 대상 프로세스의 메모리 공간에 접근할 핸들을 제공하며, 이를 통해 <code class="docutils literal notranslate"><span class="pre">ReadProcessMemory()</span></code> 를 사용하여 메모리 작업을 수행할 수 있습니다.</p>
+<p data-msgid="88fb57ed739b0d88b7199f87228ba1f1d019f427" data-score="63" data-since="260611">프로세스 메모리는 로드된 모듈을 열거하여 Python 바이너리나 DLL을 찾음으로써 검사할 수 있습니다. 발견되면, <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조를 찾기 위해 해당 PE 헤더를 파싱해야 합니다.</p>
+<p data-msgid="5369ee610781ab738c78f28ada00e04937adde13" data-score="89" data-since="260611">PE 형식은 코드와 데이터를 섹션으로 구성합니다. <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조는 “PyRuntim”이라는 섹션에 존재하며 (IE PE의 8자 이름 제한 때문에 “PyRuntime”에서 잘렸습니다), 실제 런타임 주소 계산에는 모듈 진입점으로부터 모듈의 기본 주소를 찾은 다음, PE 헤더에서 대상 섹션을 찾아야 합니다. 최종 주소는 기본 주소와 PE 섹션 헤더의 섹션 가상 주소를 결합하여 계산됩니다.</p>
+<p data-msgid="9d74df36993b4e74fba7cfb6ece559eb6cdf05e3" data-score="82" data-since="260611">Windows에서 다른 프로세스의 메모리에 접근하려면 일반적으로 적절한 권한이 필요하다는 점에 유의하십시오. 이는 관리자 액세스이거나 디버깅 프로세스에 부여된 <code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code> 권한이어야 합니다.</p>
 </section>
 <section id="reading-py-debugoffsets">
-<h1 data-msgid="673b865e1ec096d6046e9064de7e3bfbc26dfeff" data-score="0" data-since="260603">Reading _Py_DebugOffsets<a class="headerlink" href="#reading-py-debugoffsets" title="Link to this heading">¶</a></h1>
-<p data-msgid="ebd33ca9a3b44376067467599c099c6108a2bb82" data-score="0" data-since="260603">Once the address of the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure has been determined, the next
-step is to read the <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> structure located at the beginning of
-the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> block.</p>
-<p data-msgid="6638206d045b4deeb511e2de4122c493281bc7cb" data-score="0" data-since="260603">This structure provides version-specific field offsets that are needed to
-safely read interpreter and thread state memory. These offsets vary between
-CPython versions and must be checked before use to ensure they are compatible.</p>
-<p data-msgid="3a04d8f779782cffd564b6b64945b97bbc3ff34a" data-score="0" data-since="260603">To read and check the debug offsets, follow these steps:</p>
+<h1 data-msgid="673b865e1ec096d6046e9064de7e3bfbc26dfeff" data-score="100" data-since="260611">_Py_DebugOffsets 읽기<a class="headerlink" href="#reading-py-debugoffsets" title="Link to this heading">¶</a></h1>
+<p data-msgid="ebd33ca9a3b44376067467599c099c6108a2bb82" data-score="91" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조의 주소가 결정되면, 다음 단계는 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 블록의 시작 부분에 위치한 <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> 구조를 읽는 것입니다.</p>
+<p data-msgid="6638206d045b4deeb511e2de4122c493281bc7cb" data-score="96" data-since="260611">이 구조는 인터프리터 및 스레드 상태 메모리를 안전하게 읽는 데 필요한 버전별 필드 오프셋을 제공합니다. 이러한 오프셋은 CPython 버전에 따라 다르며, 호환성을 확인하기 위해 사용 전에 반드시 확인해야 합니다.</p>
+<p data-msgid="3a04d8f779782cffd564b6b64945b97bbc3ff34a" data-score="84" data-since="260611">디버그 오프셋을 읽고 확인하려면 다음 단계를 따르십시오:</p>
 <ol class="arabic simple">
-<li><p data-msgid="08a71aab728e387de948f5faef0a5e555634db48" data-score="0" data-since="260603">Read memory from the target process starting at the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> address,
-covering the same number of bytes as the <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> structure.
-This structure is located at the very start of the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> memory
-block. Its layout is defined in CPython’s internal headers and stays the
-same within a given minor version, but may change in major versions.</p></li>
-<li><p data-msgid="85f6ffb293f1acb4a412096e321c04a53aea3bc3" data-score="0" data-since="260603">Check that the structure contains valid data:</p>
+<li><p data-msgid="08a71aab728e387de948f5faef0a5e555634db48" data-score="97" data-since="260611">대상 프로세스의 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 주소부터 시작하여 <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> 구조와 동일한 바이트 수를 커버하도록 메모리를 읽습니다. 이 구조는 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 메모리 블록의 맨 처음에 위치합니다. 레이아웃은 CPython의 내부 헤더에 정의되어 있어 주어진 마이너 버전 내에서는 동일하게 유지되지만, 메이저 버전에서는 변경될 수 있습니다.</p></li>
+<li><p data-msgid="85f6ffb293f1acb4a412096e321c04a53aea3bc3" data-score="93" data-since="260611">구조가 유효한 데이터가 포함되어 있는지 확인합니다:</p>
 <ul class="simple">
-<li><p data-msgid="ee33088e1b04c70f49d60fad94e6ccd74adf95af" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">cookie</span></code> field must match the expected debug marker.</p></li>
-<li><p data-msgid="3c9cc35e6c66f7924467014ca329896318f13c34" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">version</span></code> field must match the version of the Python interpreter
-used by the debugger.</p></li>
-<li><p data-msgid="6cd27b9d434f5ff98538ddd34a1d732b655a53aa" data-score="0" data-since="260603">If either the debugger or the target process is using a pre-release
-version (for example, an alpha, beta, or release candidate), the versions
-must match exactly.</p></li>
-<li><p data-msgid="c7f231bd713684ea6b0f90e4a7d9c5a971f7f796" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">free_threaded</span></code> field must have the same value in both the debugger
-and the target process.</p></li>
+<li><p data-msgid="ee33088e1b04c70f49d60fad94e6ccd74adf95af" data-score="100" data-since="260611"><code class="docutils literal notranslate"><span class="pre">cookie</span></code> 필드는 예상되는 디버그 마커와 일치해야 합니다.</p></li>
+<li><p data-msgid="3c9cc35e6c66f7924467014ca329896318f13c34" data-score="100" data-since="260611"><code class="docutils literal notranslate"><span class="pre">version</span></code> 필드는 디버거가 사용하는 Python 인터프리터의 버전과 일치해야 합니다.</p></li>
+<li><p data-msgid="6cd27b9d434f5ff98538ddd34a1d732b655a53aa" data-score="94" data-since="260611">디버거나 대상 프로세스 중 하나가 사전 릴리스 버전(예: 알파, 베타 또는 릴리스 후보)을 사용하는 경우, 버전이 정확히 일치해야 합니다.</p></li>
+<li><p data-msgid="c7f231bd713684ea6b0f90e4a7d9c5a971f7f796" data-score="100" data-since="260611"><code class="docutils literal notranslate"><span class="pre">free_threaded</span></code> 필드는 디버거와 대상 프로세스 모두에서 동일한 값을 가져야 합니다.</p></li>
 </ul>
 </li>
-<li><p data-msgid="8c148693f313c953a5fb74dc8ea8084ba9328b55" data-score="0" data-since="260603">If the structure is valid, the offsets it contains can be used to locate
-fields in memory. If any check fails, the debugger should stop the operation
-to avoid reading memory in the wrong format.</p></li>
+<li><p data-msgid="8c148693f313c953a5fb74dc8ea8084ba9328b55" data-score="83" data-since="260611">구조가 유효하면, 포함된 오프셋을 사용하여 메모리 내 필드를 찾을 수 있습니다. 확인 중 오류가 발생하면, 잘못된 형식의 메모리 읽기를 방지하기 위해 디버거가 작업을 중지해야 합니다.</p></li>
 </ol>
-<p data-msgid="5377576e41df8ef791ad2036231ebfd121710217" data-score="0" data-since="260603">The following is an example implementation that reads and checks
-<code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code>:</p>
+<p data-msgid="5377576e41df8ef791ad2036231ebfd121710217" data-score="93" data-since="260611">다음은 <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> 를 읽고 확인하는 예시 구현입니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="5eb2156dd3d13a55a2a545b78f6628b40f8a2d33" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">read_debug_offsets</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">py_runtime_addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DebugOffsets</span><span class="p">:</span>
     <span class="c1"># Step 1: Read memory from the target process at the PyRuntime address</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">read_process_memory</span><span class="p">(</span>
@@ -452,99 +339,63 @@ to avoid reading memory in the wrong format.</p></li>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="6c0250684307e3121c394fa8d3730561a8c63814" data-score="0" data-since="260603"><strong>Process suspension recommended</strong></p>
-<p data-msgid="6780f29c8f8bc2fb61045c4710e45760637e3a75" data-score="0" data-since="260603">To avoid race conditions and ensure memory consistency, it is strongly
-recommended that the target process be suspended before performing any
-operations that read or write internal interpreter state. The Python runtime
-may concurrently mutate interpreter data structures—such as creating or
-destroying threads—during normal execution. This can result in invalid
-memory reads or writes.</p>
-<p data-msgid="d340cb9bf736b89057b7fc04c4e0c861c1ba33a0" data-score="0" data-since="260603">A debugger may suspend execution by attaching to the process with <code class="docutils literal notranslate"><span class="pre">ptrace</span></code>
-or by sending a <code class="docutils literal notranslate"><span class="pre">SIGSTOP</span></code> signal. Execution should only be resumed after
-debugger-side memory operations are complete.</p>
+<p data-msgid="6c0250684307e3121c394fa8d3730561a8c63814" data-score="100" data-since="260611"><strong>프로세스 일시 중지 권장</strong></p>
+<p data-msgid="6780f29c8f8bc2fb61045c4710e45760637e3a75" data-score="91" data-since="260611">경합 상태를 방지하고 메모리 일관성을 보장하기 위해, 내부 인터프리터 상태를 읽거나 쓰는 작업을 수행하기 전에 대상 프로세스를 일시 중지하는 것이 강력히 권장됩니다. 파이썬 런타임은 정상적인 실행 중에 스레드를 생성하거나 파괴하는 것과 같은 인터프리터 데이터 구조를 동시에 수정할 수 있습니다. 이는 무효한 메모리 읽기나 쓰기를 초래할 수 있습니다.</p>
+<p data-msgid="d340cb9bf736b89057b7fc04c4e0c861c1ba33a0" data-score="96" data-since="260611">디버거는 <cite>ptrace`를 사용하여 프로세스에 연결하거나 `SIGSTOP</cite> 시그널을 보내어 실행을 일시 중지할 수 있습니다. 디버거 측 메모리 작업이 완료된 후에만 실행을 재개해야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="ae00b8e2f21db3c5e617cc3f422d895d80e20e4e" data-score="0" data-since="260603">Some tools, such as profilers or sampling-based debuggers, may operate on
-a running process without suspension. In such cases, tools must be
-explicitly designed to handle partially updated or inconsistent memory.
-For most debugger implementations, suspending the process remains the
-safest and most robust approach.</p>
+<p data-msgid="ae00b8e2f21db3c5e617cc3f422d895d80e20e4e" data-score="87" data-since="260611">프로파일러나 샘플링 기반 디버거와 같은 일부 도구는 일시 중지 없이 실행 중인 프로세스에 작동할 수 있습니다. 이러한 경우, 도구는 부분적으로 업데이트되거나 불일치하는 메모리를 처리하도록 명시적으로 설계되어야 합니다. 대부분의 디버거 구현에서, 프로세스 일시 중지 여전히 가장 안전하고 견고한 접근 방식입니다.</p>
 </div>
 </div>
 </section>
 <section id="locating-the-interpreter-and-thread-state">
-<h1 data-msgid="1ee4c5329b3b3e738d196bb0bd6282e3ed62aa94" data-score="0" data-since="260603">Locating the interpreter and thread state<a class="headerlink" href="#locating-the-interpreter-and-thread-state" title="Link to this heading">¶</a></h1>
-<p data-msgid="00274dfe0a4c5c5185db39f319f825a85c54f93b" data-score="0" data-since="260603">Before code can be injected and executed in a remote Python process, the
-debugger must choose a thread in which to schedule execution. This is necessary
-because the control fields used to perform remote code injection are located in
-the <code class="docutils literal notranslate"><span class="pre">_PyRemoteDebuggerSupport</span></code> structure, which is embedded in a
-<code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> object. These fields are modified by the debugger to request
-execution of injected scripts.</p>
-<p data-msgid="86346cc9cbd9be32b84f4ba9c94c15721436b20b" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> structure represents a thread running inside a Python
-interpreter.  It maintains the thread’s evaluation context and contains the
-fields required for debugger coordination.  Locating a valid <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code>
-is therefore a key prerequisite for triggering execution remotely.</p>
-<p data-msgid="20acf3b8f9743383578095dd970c64e8ab62f8a1" data-score="0" data-since="260603">A thread is typically selected based on its role or ID. In most cases, the main
-thread is used, but some tools may target a specific thread by its native
-thread ID. Once the target thread is chosen, the debugger must locate both the
-interpreter and the associated thread state structures in memory.</p>
-<p data-msgid="f6ee7975fa3978d5c8d77cddf392692bff297267" data-score="0" data-since="260603">The relevant internal structures are defined as follows:</p>
+<h1 data-msgid="1ee4c5329b3b3e738d196bb0bd6282e3ed62aa94" data-score="100" data-since="260611">인터프리터 및 스레드 상태 찾기<a class="headerlink" href="#locating-the-interpreter-and-thread-state" title="Link to this heading">¶</a></h1>
+<p data-msgid="00274dfe0a4c5c5185db39f319f825a85c54f93b" data-score="83" data-since="260611">원격 파이썬 프로세스에서 코드를 주입하고 실행하기 전에, 디버거는 실행을 예약할 스레드를 선택해야 합니다. 이는 원격 코드 주입을 수행하는 데 사용되는 제어 필드가 <code class="docutils literal notranslate"><span class="pre">_PyRemoteDebuggerSupport</span></code> 구조체에 위치하며, 이 구조체는 <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 객체에 임베딩되어 있기 때문입니다. 이 필드들은 디버거가 주입된 스크립트의 실행을 요청하기 위해 수정합니다.</p>
+<p data-msgid="86346cc9cbd9be32b84f4ba9c94c15721436b20b" data-score="87" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 구조체는 파이썬 인터프리터 내부에서 실행되는 스레드를 나타냅니다. 이 구조체는 스레드의 평가 컨텍스트를 유지하며, 디버거 조정에 필요한 필드를 포함합니다. 따라서 유효한 <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 를 찾는 것은 원격 실행을 트리거하기 위한 핵심 전제 조건입니다.</p>
+<p data-msgid="20acf3b8f9743383578095dd970c64e8ab62f8a1" data-score="95" data-since="260611">스레드는 일반적으로 그 역할이나 ID를 기반으로 선택됩니다. 대부분의 경우 메인 스레드가 사용되지만, 일부 도구는 네이티브 스레드 ID를 통해 특정 스레드를 대상으로 할 수 있습니다. 대상 스레드가 선택되면, 디버거는 메모리에서 인터프리터와 연결된 스레드 상태 구조체 둘 다를 찾아야 합니다.</p>
+<p data-msgid="f6ee7975fa3978d5c8d77cddf392692bff297267" data-score="92" data-since="260611">관련 내부 구조체는 다음과 같이 정의됩니다:</p>
 <ul class="simple">
-<li><p data-msgid="d68c146f458c241e1479ff55480a4813180e70be" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">PyInterpreterState</span></code> represents an isolated Python interpreter instance.
-Each interpreter maintains its own set of imported modules, built-in state,
-and thread state list. Although most Python applications use a single
-interpreter, CPython supports multiple interpreters in the same process.</p></li>
-<li><p data-msgid="065faa9cdec983aeaa39e99e3f917dba36bb4e98" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> represents a thread running within an interpreter. It
-contains execution state and the control fields used by the debugger.</p></li>
+<li><p data-msgid="d68c146f458c241e1479ff55480a4813180e70be" data-score="91" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyInterpreterState</span></code> 는 격리된 파이썬 인터프리터 인스턴스를 나타냅니다. 각 인터프리터는 자체 가져온 모듈 세트, 내장 상태 및 스레드 상태 목록을 유지합니다. 대부분의 파이썬 애플리케이션이 단일 인터프리터를 사용하지만, CPython은 동일한 프로세스에 여러 인터프리터를 지원합니다.</p></li>
+<li><p data-msgid="065faa9cdec983aeaa39e99e3f917dba36bb4e98" data-score="90" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 는 인터프리터 내에서 실행되는 스레드를 나타냅니다. 여기에는 실행 상태와 디버거가 사용하는 제어 필드가 포함됩니다.</p></li>
 </ul>
-<p data-msgid="2a52dbfc9a4d71d8a80a1a3be7eb034d721f40ec" data-score="0" data-since="260603">To locate a thread:</p>
+<p data-msgid="2a52dbfc9a4d71d8a80a1a3be7eb034d721f40ec" data-score="100" data-since="260611">스레드를 찾는 방법:</p>
 <ol class="arabic simple">
-<li><p data-msgid="9f864ac8d7dc88bbcc6561a30be82f4c43abe4a4" data-score="0" data-since="260603">Use the offset <code class="docutils literal notranslate"><span class="pre">runtime_state.interpreters_head</span></code> to obtain the address of
-the first interpreter in the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure. This is the entry point
-to the linked list of active interpreters.</p></li>
-<li><p data-msgid="3cb0dccae4de2a67483ce51c934067e971f28c04" data-score="0" data-since="260603">Use the offset <code class="docutils literal notranslate"><span class="pre">interpreter_state.threads_main</span></code> to access the main thread
-state associated with the selected interpreter. This is typically the most
-reliable thread to target.</p></li>
-<li><p data-msgid="0a8301c91be462b2a2afd50450cba76a01ee0b37" data-score="0" data-since="260603">Optionally, use the offset <code class="docutils literal notranslate"><span class="pre">interpreter_state.threads_head</span></code> to iterate
-through the linked list of all thread states. Each <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code>
-structure contains a <code class="docutils literal notranslate"><span class="pre">native_thread_id</span></code> field, which may be compared to
-a target thread ID to find a specific thread.</p></li>
-<li><p data-msgid="e41eeccc5b86f24df1ee70be6d46d10611fb5c9f" data-score="0" data-since="260603">Once a valid <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> has been found, its address can be used in
-later steps of the protocol, such as writing debugger control fields and
-scheduling execution.</p></li>
+<li><p data-msgid="9f864ac8d7dc88bbcc6561a30be82f4c43abe4a4" data-score="91" data-since="260611">오프셋 <code class="docutils literal notranslate"><span class="pre">runtime_state.interpreters_head``를</span> <span class="pre">사용하여</span> <span class="pre">``PyRuntime</span></code> 구조체에서 첫 번째 인터프리터의 주소를 얻습니다. 이것은 활성 인터프리터의 연결 리스트 진입점입니다.</p></li>
+<li><p data-msgid="3cb0dccae4de2a67483ce51c934067e971f28c04" data-score="84" data-since="260611">오프셋 <code class="docutils literal notranslate"><span class="pre">interpreter_state.threads_main</span></code> 을 사용하여 선택된 인터프리터와 관련된 메인 스레드 상태에 접근합니다. 일반적으로 대상의 가장 신뢰할 수 있는 스레드입니다.</p></li>
+<li><p data-msgid="0a8301c91be462b2a2afd50450cba76a01ee0b37" data-score="75" data-since="260611">선택적으로, 오프셋 <code class="docutils literal notranslate"><span class="pre">interpreter_state.threads_head``를</span> <span class="pre">사용하여</span> <span class="pre">모든</span> <span class="pre">스레드</span> <span class="pre">상태의</span> <span class="pre">연결</span> <span class="pre">리스트를</span> <span class="pre">반복할</span> <span class="pre">수</span> <span class="pre">있습니다.</span> <span class="pre">각</span> <span class="pre">``PyThreadState</span></code> 구조체에는 대상 스레드 ID와 비교될 수 있는 <code class="docutils literal notranslate"><span class="pre">native_thread_id</span></code> 필드가 포함되어 있어 특정 스레드를 찾을 수 있습니다.</p></li>
+<li><p data-msgid="e41eeccc5b86f24df1ee70be6d46d10611fb5c9f" data-score="90" data-since="260611">일단 유효한 <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 를 찾았다면, 해당 주소는 디버거 제어 필드를 작성하거나 실행 일정을 잡는 등 프로토콜의 후속 단계에서 사용될 수 있습니다.</p></li>
 </ol>
-<p data-msgid="3c27c888f3901e68483edc9334d2c07c95500d49" data-score="0" data-since="260603">The following is an example implementation that locates the main thread state:</p>
-<div class="highlight-python3 notranslate" data-msgid="c86477f82d978aeb5466eb1a46d433e408f6f8e5" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_main_thread_state</span><span class="p">(</span>
+<p data-msgid="3c27c888f3901e68483edc9334d2c07c95500d49" data-score="93" data-since="260611">다음은 메인 스레드 상태를 찾는 예제 구현입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="c86477f82d978aeb5466eb1a46d433e408f6f8e5" data-score="97" data-since="260611"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_main_thread_state</span><span class="p">(</span>
     <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">py_runtime_addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">debug_offsets</span><span class="p">:</span> <span class="n">DebugOffsets</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="c1"># Step 1: Read interpreters_head from PyRuntime</span>
+    <span class="c1"># Step 1: PyRuntime에서 interpreters_head를 읽습니다.</span>
     <span class="n">interp_head_ptr</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">py_runtime_addr</span> <span class="o">+</span> <span class="n">debug_offsets</span><span class="o">.</span><span class="n">runtime_state</span><span class="o">.</span><span class="n">interpreters_head</span>
     <span class="p">)</span>
     <span class="n">interp_addr</span> <span class="o">=</span> <span class="n">read_pointer</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">interp_head_ptr</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">interp_addr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No interpreter found in the target process&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;대상 프로세스에서 인터프리터가 발견되지 않았습니다&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Step 2: Read the threads_main pointer from the interpreter</span>
+    <span class="c1"># Step 2: 인터프리터에서 threads_main 포인터를 읽습니다.</span>
     <span class="n">threads_main_ptr</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">interp_addr</span> <span class="o">+</span> <span class="n">debug_offsets</span><span class="o">.</span><span class="n">interpreter_state</span><span class="o">.</span><span class="n">threads_main</span>
     <span class="p">)</span>
     <span class="n">thread_state_addr</span> <span class="o">=</span> <span class="n">read_pointer</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">threads_main_ptr</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">thread_state_addr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Main thread state is not available&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;메인 스레드 상태를 사용할 수 없습니다&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">thread_state_addr</span>
 </pre></div>
 </div>
-<p data-msgid="fcc7c42ef2a2f3b5b26568917508958c9720daba" data-score="0" data-since="260603">The following example demonstrates how to locate a thread by its native thread
-ID:</p>
-<div class="highlight-python3 notranslate" data-msgid="0c8e7eca2179686dfdee3fbc888fdfae59e44cdb" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_thread_by_id</span><span class="p">(</span>
+<p data-msgid="fcc7c42ef2a2f3b5b26568917508958c9720daba" data-score="91" data-since="260611">다음 예제는 네이티브 스레드 ID를 사용하여 스레드를 찾는 방법을 보여줍니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="0c8e7eca2179686dfdee3fbc888fdfae59e44cdb" data-score="98" data-since="260611"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">find_thread_by_id</span><span class="p">(</span>
     <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">interp_addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">debug_offsets</span><span class="p">:</span> <span class="n">DebugOffsets</span><span class="p">,</span>
     <span class="n">target_tid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="c1"># Start at threads_head and walk the linked list</span>
+    <span class="c1"># threads_head에서 시작하여 연결 리스트를 순회합니다.</span>
     <span class="n">thread_ptr</span> <span class="o">=</span> <span class="n">read_pointer</span><span class="p">(</span>
         <span class="n">pid</span><span class="p">,</span>
         <span class="n">interp_addr</span> <span class="o">+</span> <span class="n">debug_offsets</span><span class="o">.</span><span class="n">interpreter_state</span><span class="o">.</span><span class="n">threads_head</span>
@@ -562,71 +413,54 @@ ID:</p>
             <span class="n">thread_ptr</span> <span class="o">+</span> <span class="n">debug_offsets</span><span class="o">.</span><span class="n">thread_state</span><span class="o">.</span><span class="n">next</span>
         <span class="p">)</span>
 
-    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Thread with the given ID was not found&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;주어진 ID의 스레드가 발견되지 않았습니다&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="72a2ee4f7f4fc521ca3c75588b62f37f0951cfff" data-score="0" data-since="260603">Once a valid thread state has been located, the debugger can proceed with
-modifying its control fields and scheduling execution, as described in the next
-section.</p>
+<p data-msgid="72a2ee4f7f4fc521ca3c75588b62f37f0951cfff" data-score="88" data-since="260611">유효한 스레드 상태가 확인되면, 디버거는 다음 섹션에서 설명하는 바와 같이 해당 제어 필드를 수정하고 실행을 예약하는 작업을 진행할 수 있습니다.</p>
 </section>
 <section id="writing-control-information">
-<h1 data-msgid="f7693b04a02c11f5fcc2f46f2ef08b4b280a0738" data-score="0" data-since="260603">Writing control information<a class="headerlink" href="#writing-control-information" title="Link to this heading">¶</a></h1>
-<p data-msgid="5be69003afb5e3697a087f89dc84a5263cb60f87" data-score="0" data-since="260603">Once a valid <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> structure has been identified, the debugger may
-modify control fields within it to schedule the execution of a specified Python
-script. These control fields are checked periodically by the interpreter, and
-when set correctly, they trigger the execution of remote code at a safe point
-in the evaluation loop.</p>
-<p data-msgid="98270ab0621f46d91b1a8128de5960ab3dacbded" data-score="0" data-since="260603">Each <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> contains a <code class="docutils literal notranslate"><span class="pre">_PyRemoteDebuggerSupport</span></code> structure used
-for communication between the debugger and the interpreter. The locations of
-its fields are defined by the <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> structure and include the
-following:</p>
+<h1 data-msgid="f7693b04a02c11f5fcc2f46f2ef08b4b280a0738" data-score="75" data-since="260611">제어 정보 작성<a class="headerlink" href="#writing-control-information" title="Link to this heading">¶</a></h1>
+<p data-msgid="5be69003afb5e3697a087f89dc84a5263cb60f87" data-score="93" data-since="260611">유효한 <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 구조가 확인되면, 디버거는 명시된 Python 스크립트의 실행을 예약하기 위해 내부 제어 필드를 수정할 수 있습니다. 이 제어 필드는 인터프리터에 의해 주기적으로 확인되며, 올바르게 설정되면 평가 루프의 안전 지점에서 원격 코드 실행을 트리거합니다.</p>
+<p data-msgid="98270ab0621f46d91b1a8128de5960ab3dacbded" data-score="92" data-since="260611">각 <code class="docutils literal notranslate"><span class="pre">PyThreadState``는</span> <span class="pre">디버거와</span> <span class="pre">인터프리터</span> <span class="pre">간의</span> <span class="pre">통신에</span> <span class="pre">사용되는</span> <span class="pre">``_PyRemoteDebuggerSupport</span></code> 구조를 포함합니다. 이 필드의 위치는 <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> 구조에 의해 정의되며 다음과 같습니다:</p>
 <ul class="simple">
-<li><p data-msgid="85d6577487d03b124e5056cdca62e4085e8fe1b2" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">debugger_script_path</span></code>: A fixed-size buffer that holds the full path to a
-Python source file (<code class="docutils literal notranslate"><span class="pre">.py</span></code>).  This file must be accessible and readable by
-the target process when execution is triggered.</p></li>
-<li><p data-msgid="d17ae37b14a1762f3b637a229f8427db07aeffbf" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">debugger_pending_call</span></code>: An integer flag. Setting this to <code class="docutils literal notranslate"><span class="pre">1</span></code> tells the
-interpreter that a script is ready to be executed.</p></li>
-<li><p data-msgid="9dfe7703c5e268c07728cc2fd9499118bf1c3903" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">eval_breaker</span></code>: A field checked by the interpreter during execution.
-Setting bit 5 (<code class="docutils literal notranslate"><span class="pre">_PY_EVAL_PLEASE_STOP_BIT</span></code>, value <code class="docutils literal notranslate"><span class="pre">1U</span> <span class="pre">&lt;&lt;</span> <span class="pre">5</span></code>) in this
-field causes the interpreter to pause and check for debugger activity.</p></li>
+<li><p data-msgid="85d6577487d03b124e5056cdca62e4085e8fe1b2" data-score="84" data-since="260611"><code class="docutils literal notranslate"><span class="pre">debugger_script_path</span></code>: Python 소스 파일(<code class="docutils literal notranslate"><span class="pre">.py</span></code>)의 전체 경로를 담고 있는 고정 크기 버퍼입니다. 실행이 트리거될 때 타겟 프로세스에서 이 파일에 접근하고 읽을 수 있어야 합니다.</p></li>
+<li><p data-msgid="d17ae37b14a1762f3b637a229f8427db07aeffbf" data-score="94" data-since="260611"><code class="docutils literal notranslate"><span class="pre">debugger_pending_call</span></code>: 정수 플래그입니다. 이 값을 <code class="docutils literal notranslate"><span class="pre">1</span></code> 로 설정하면 스크립트가 실행 준비가 되었음을 인터프리터에 알립니다.</p></li>
+<li><p data-msgid="9dfe7703c5e268c07728cc2fd9499118bf1c3903" data-score="89" data-since="260611"><code class="docutils literal notranslate"><span class="pre">eval_breaker</span></code>: 실행 중에 인터프리터가 확인하는 필드입니다. 이 필드의 비트 5를 (<code class="docutils literal notranslate"><span class="pre">_PY_EVAL_PLEASE_STOP_BIT</span></code>, 값 <code class="docutils literal notranslate"><span class="pre">1U</span> <span class="pre">&lt;&lt;</span> <span class="pre">5</span></code>) 설정하면 인터프리터가 일시 정지하고 디버거 활동を 확인하게 됩니다.</p></li>
 </ul>
-<p data-msgid="28ec6412ebd74c77cc0cae5a82102e0f3a8f12e9" data-score="0" data-since="260603">To complete the injection, the debugger must perform the following steps:</p>
+<p data-msgid="28ec6412ebd74c77cc0cae5a82102e0f3a8f12e9" data-score="75" data-since="260611">주입을 완료하려면, 디버거는 다음 단계를 수행해야 합니다:</p>
 <ol class="arabic simple">
-<li><p data-msgid="a76dfb22d2fedbe625e255791eef42ca72e48aaa" data-score="0" data-since="260603">Write the full script path into the <code class="docutils literal notranslate"><span class="pre">debugger_script_path</span></code> buffer.</p></li>
-<li><p data-msgid="fc15a88d4df66381f55b9999422e4031dee3d012" data-score="0" data-since="260603">Set <code class="docutils literal notranslate"><span class="pre">debugger_pending_call</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
-<li><p data-msgid="a47ff73b9f146882758f91db8a33cab0d14b4c4b" data-score="0" data-since="260603">Read the current value of <code class="docutils literal notranslate"><span class="pre">eval_breaker</span></code>, set bit 5
-(<code class="docutils literal notranslate"><span class="pre">_PY_EVAL_PLEASE_STOP_BIT</span></code>), and write the updated value back. This
-signals the interpreter to check for debugger activity.</p></li>
+<li><p data-msgid="a76dfb22d2fedbe625e255791eef42ca72e48aaa" data-score="89" data-since="260611">전체 스크립트 경로를 <code class="docutils literal notranslate"><span class="pre">debugger_script_path</span></code> 버퍼에 작성합니다.</p></li>
+<li><p data-msgid="fc15a88d4df66381f55b9999422e4031dee3d012" data-score="86" data-since="260611"><code class="docutils literal notranslate"><span class="pre">debugger_pending_call</span></code> 을 <code class="docutils literal notranslate"><span class="pre">1</span></code> 로 설정합니다.</p></li>
+<li><p data-msgid="a47ff73b9f146882758f91db8a33cab0d14b4c4b" data-score="94" data-since="260611"><code class="docutils literal notranslate"><span class="pre">eval_breaker``의</span> <span class="pre">현재</span> <span class="pre">값을</span> <span class="pre">읽고,</span> <span class="pre">비트</span> <span class="pre">5</span> <span class="pre">(``_PY_EVAL_PLEASE_STOP_BIT</span></code>)를 설정한 다음, 업데이트된 값을 다시 작성합니다. 이는 인터프리터에 디버거 활동 확인을 알리는 신호입니다.</p></li>
 </ol>
-<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="0" data-since="260603">The following is an example implementation:</p>
-<div class="highlight-python3 notranslate" data-msgid="fb8908855212d27ef71eef23e3bade4c4e5a729c" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">inject_script</span><span class="p">(</span>
+<p data-msgid="e51436538f3dc6c2eb6a48d70a6c25cb312f815f" data-score="93" data-since="260611">다음은 예제 구현입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="fb8908855212d27ef71eef23e3bade4c4e5a729c" data-score="100" data-since="260611"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">inject_script</span><span class="p">(</span>
     <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">thread_state_addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">debug_offsets</span><span class="p">:</span> <span class="n">DebugOffsets</span><span class="p">,</span>
     <span class="n">script_path</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="c1"># Compute the base offset of _PyRemoteDebuggerSupport</span>
+    <span class="c1"># _PyRemoteDebuggerSupport의 기본 오프셋을 계산합니다.</span>
     <span class="n">support_base</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">thread_state_addr</span> <span class="o">+</span>
         <span class="n">debug_offsets</span><span class="o">.</span><span class="n">debugger_support</span><span class="o">.</span><span class="n">remote_debugger_support</span>
     <span class="p">)</span>
 
-    <span class="c1"># Step 1: Write the script path into debugger_script_path</span>
+    <span class="c1"># 단계 1: 스크립트 경로를 debugger_script_path에 씁니다.</span>
     <span class="n">script_path_ptr</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">support_base</span> <span class="o">+</span>
         <span class="n">debug_offsets</span><span class="o">.</span><span class="n">debugger_support</span><span class="o">.</span><span class="n">debugger_script_path</span>
     <span class="p">)</span>
     <span class="n">write_string</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">script_path_ptr</span><span class="p">,</span> <span class="n">script_path</span><span class="p">)</span>
 
-    <span class="c1"># Step 2: Set debugger_pending_call to 1</span>
+    <span class="c1"># 단계 2: debugger_pending_call을 1로 설정합니다.</span>
     <span class="n">pending_ptr</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">support_base</span> <span class="o">+</span>
         <span class="n">debug_offsets</span><span class="o">.</span><span class="n">debugger_support</span><span class="o">.</span><span class="n">debugger_pending_call</span>
     <span class="p">)</span>
     <span class="n">write_int</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">pending_ptr</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c1"># Step 3: Set _PY_EVAL_PLEASE_STOP_BIT (bit 5, value 1 &lt;&lt; 5) in</span>
-    <span class="c1"># eval_breaker</span>
+    <span class="c1"># 단계 3: eval_breaker에 _PY_EVAL_PLEASE_STOP_BIT을 설정합니다 (비트 5, 값 1 &lt;&lt; 5).</span>
     <span class="n">eval_breaker_ptr</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">thread_state_addr</span> <span class="o">+</span>
         <span class="n">debug_offsets</span><span class="o">.</span><span class="n">debugger_support</span><span class="o">.</span><span class="n">eval_breaker</span>
@@ -636,94 +470,53 @@ signals the interpreter to check for debugger activity.</p></li>
     <span class="n">write_int</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">eval_breaker_ptr</span><span class="p">,</span> <span class="n">breaker</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="be664c3f0554e0316fbaa1f9e79d087758e5ec18" data-score="0" data-since="260603">Once these fields are set, the debugger may resume the process (if it was
-suspended).  The interpreter will process the request at the next safe
-evaluation point, load the script from disk, and execute it.</p>
-<p data-msgid="1e4e9b7769ab4ec63d9e82617b8e4ae950d33e7f" data-score="0" data-since="260603">It is the responsibility of the debugger to ensure that the script file remains
-present and accessible to the target process during execution.</p>
+<p data-msgid="be664c3f0554e0316fbaa1f9e79d087758e5ec18" data-score="94" data-since="260611">이 필드들이 설정되면, 디버거는 프로세스를 재개할 수 있습니다 (일시 중지된 경우). 인터프리터는 다음 안전한 평가 지점에서 요청을 처리하고, 디스크에서 스크립트를 로드한 후, 실행합니다.</p>
+<p data-msgid="1e4e9b7769ab4ec63d9e82617b8e4ae950d33e7f" data-score="75" data-since="260611">스크립트 파일이 실행 중인 동안 대상 프로세스에 계속 존재하고 액세스 가능하도록 보장하는 것은 디버거의 책임입니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="286e914d20170c3fcc9dfe6aab6f5771e3671160" data-score="0" data-since="260603">Script execution is asynchronous. The script file cannot be deleted
-immediately after injection. The debugger should wait until the injected
-script has produced an observable effect before removing the file.
-This effect depends on what the script is designed to do. For example,
-a debugger might wait until the remote process connects back to a socket
-before removing the script. Once such an effect is observed, it is safe to
-assume the file is no longer needed.</p>
+<p data-msgid="286e914d20170c3fcc9dfe6aab6f5771e3671160" data-score="89" data-since="260611">스크립트 실행은 비동기적입니다. 스크립트 파일은 주입된 직후 삭제할 수 없습니다. 디버거는 파일 제거 전에 주입된 스크립트가 관찰 가능한 효과를 생성할 때까지 기다려야 합니다. 이 효과는 스크립트가 수행하도록 설계된 작업에 따라 달라집니다. 예를 들어, 디버거는 원격 프로세스가 소켓에 다시 연결될 때까지 기다린 후에 스크립트를 제거할 수 있습니다. 이러한 효과가 관찰되면, 파일이 더 이상 필요하지 않다고 가정해도 안전합니다.</p>
 </div>
 </section>
 <section id="summary">
-<h1 data-msgid="12b71c3e0fe5f7c0b8d17cc03186e281412da4a8" data-score="0" data-since="260603">Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h1>
-<p data-msgid="e81e63cbf6387703724affad363518a884c6cca0" data-score="0" data-since="260603">To inject and execute a Python script in a remote process:</p>
+<h1 data-msgid="12b71c3e0fe5f7c0b8d17cc03186e281412da4a8" data-score="100" data-since="260611">요약<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h1>
+<p data-msgid="e81e63cbf6387703724affad363518a884c6cca0" data-score="100" data-since="260611">원격 프로세스에서 파이썬 스크립트를 주입하고 실행하는 방법:</p>
 <ol class="arabic simple">
-<li><p data-msgid="ba1e1391a56ec863b22c958f9937e7109ed9d771" data-score="0" data-since="260603">Locate the <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> structure in the target process’s memory.</p></li>
-<li><p data-msgid="125a847c021c5b955489e143c30e1ff33a4de876" data-score="0" data-since="260603">Read and validate the <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> structure at the beginning of
-<code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code>.</p></li>
-<li><p data-msgid="060744e2e92e8267df88cf84de73bf8593d48255" data-score="0" data-since="260603">Use the offsets to locate a valid <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code>.</p></li>
-<li><p data-msgid="59d9f7da20a7187d6fd827602184104fc7cd5674" data-score="0" data-since="260603">Write the path to a Python script into <code class="docutils literal notranslate"><span class="pre">debugger_script_path</span></code>.</p></li>
-<li><p data-msgid="eac5fcb4b94f210dcd971cb82c596182a6d3e49c" data-score="0" data-since="260603">Set the <code class="docutils literal notranslate"><span class="pre">debugger_pending_call</span></code> flag to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
-<li><p data-msgid="dc3adcb79761b1e31d82cefe85fd337b959a74eb" data-score="0" data-since="260603">Set <code class="docutils literal notranslate"><span class="pre">_PY_EVAL_PLEASE_STOP_BIT</span></code> in the <code class="docutils literal notranslate"><span class="pre">eval_breaker</span></code> field.</p></li>
-<li><p data-msgid="bb10c27dc8f1b340217ee0fd08c2a23e068711a4" data-score="0" data-since="260603">Resume the process (if suspended). The script will execute at the next safe
-evaluation point.</p></li>
+<li><p data-msgid="ba1e1391a56ec863b22c958f9937e7109ed9d771" data-score="92" data-since="260611">대상 프로세스의 메모리에서 <code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 구조를 찾습니다.</p></li>
+<li><p data-msgid="125a847c021c5b955489e143c30e1ff33a4de876" data-score="92" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyRuntime</span></code> 시작 부분에서 <code class="docutils literal notranslate"><span class="pre">_Py_DebugOffsets</span></code> 구조를 읽고 유효성을 검사합니다.</p></li>
+<li><p data-msgid="060744e2e92e8267df88cf84de73bf8593d48255" data-score="92" data-since="260611">오프셋을 사용하여 유효한 <code class="docutils literal notranslate"><span class="pre">PyThreadState</span></code> 를 찾습니다.</p></li>
+<li><p data-msgid="59d9f7da20a7187d6fd827602184104fc7cd5674" data-score="93" data-since="260611">파이썬 스크립트 경로를 <code class="docutils literal notranslate"><span class="pre">debugger_script_path</span></code> 에 작성합니다.</p></li>
+<li><p data-msgid="eac5fcb4b94f210dcd971cb82c596182a6d3e49c" data-score="100" data-since="260611"><code class="docutils literal notranslate"><span class="pre">debugger_pending_call</span></code> 플래그를 <code class="docutils literal notranslate"><span class="pre">1</span></code> 로 설정합니다.</p></li>
+<li><p data-msgid="dc3adcb79761b1e31d82cefe85fd337b959a74eb" data-score="100" data-since="260611"><code class="docutils literal notranslate"><span class="pre">eval_breaker</span></code> 필드에 <code class="docutils literal notranslate"><span class="pre">_PY_EVAL_PLEASE_STOP_BIT</span></code> 을 설정합니다.</p></li>
+<li><p data-msgid="bb10c27dc8f1b340217ee0fd08c2a23e068711a4" data-score="98" data-since="260611">프로세스를 재개합니다 (일시 중지된 경우). 스크립트는 다음 안전한 평가 지점에서 실행됩니다.</p></li>
 </ol>
 </section>
 <section id="security-and-threat-model">
-<span id="remote-debugging-threat-model"></span><h1 data-msgid="af58415b972ba30b3dc19151e389608c81f874cc" data-score="0" data-since="260608">Security and threat model<a class="headerlink" href="#security-and-threat-model" title="Link to this heading">¶</a></h1>
-<p data-msgid="e529e81c55539bcc214741c8c1aaab004787f18f" data-score="0" data-since="260608">The remote debugging protocol relies on the same operating system primitives
-used by native debuggers such as GDB and LLDB.  Attaching to a process
-requires the <strong>same privileges</strong> that those debuggers require, for example
-<code class="docutils literal notranslate"><span class="pre">ptrace</span></code> / Yama LSM on Linux, <code class="docutils literal notranslate"><span class="pre">task_for_pid</span></code> on macOS, and
-<code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code> on Windows.  Python does not introduce any new privilege
-escalation path; if an attacker already possesses the permissions needed to
-attach to a process, they could equally use GDB to read memory or inject
-code.</p>
-<p data-msgid="1a7795b761af8280af9810a285a2a6ae6abab944" data-score="0" data-since="260608">The following principles define what is, and is not, considered a security
-vulnerability in this feature:</p>
+<span id="remote-debugging-threat-model"></span><h1 data-msgid="af58415b972ba30b3dc19151e389608c81f874cc" data-score="100" data-since="260611">보안 및 위협 모델<a class="headerlink" href="#security-and-threat-model" title="Link to this heading">¶</a></h1>
+<p data-msgid="e529e81c55539bcc214741c8c1aaab004787f18f" data-score="96" data-since="260611">원격 디버깅 프로토콜은 GDB 및 LLDB와 같은 네이티브 디버거가 사용하는 것과 동일한 운영 체제 기본 기능에 의존합니다. 프로세스에 연결하려면 디버거가 필요로 하는 <strong>동일한 권한</strong> 이 필요합니다. 예를 들어, Linux의 <code class="docutils literal notranslate"><span class="pre">ptrace</span></code>/Yama LSM, macOS의 <code class="docutils literal notranslate"><span class="pre">task_for_pid</span></code>, Windows의 <code class="docutils literal notranslate"><span class="pre">SeDebugPrivilege</span></code> 등이 있습니다. 파이썬은 새로운 권한 상승 경로를 도입하지 않습니다. 공격자가 이미 프로세스에 연결하는 데 필요한 권한을 가지고 있다면, 그들은 GDB를 사용하여 메모리를 읽거나 코드를 주입하는 데 동일하게 사용할 수 있습니다.</p>
+<p data-msgid="1a7795b761af8280af9810a285a2a6ae6abab944" data-score="88" data-since="260611">이 기능에서 보안 취약점으로 간주되는 것과 그렇지 않은 것을 정의하는 원칙은 다음과 같습니다:</p>
 <dl class="simple">
-<dt data-msgid="4786637af44ede52278f29e82256ddb2af712129" data-score="0" data-since="260608">Attaching requires OS-level privileges</dt><dd><p data-msgid="59e52c95765598cb8f5fb4f574efd34884e38e21" data-score="0" data-since="260608">On every supported platform the operating system gates cross-process
-memory access behind privilege checks (<code class="docutils literal notranslate"><span class="pre">CAP_SYS_PTRACE</span></code>, root, or
-administrator rights).  A report that demonstrates an issue only after
-these privileges have already been obtained is <strong>not</strong> a vulnerability in
-CPython, since the OS security boundary was already crossed.</p>
+<dt data-msgid="4786637af44ede52278f29e82256ddb2af712129" data-score="83" data-since="260611">연결(Attach)에는 OS 레벨의 권한이 필요합니다</dt><dd><p data-msgid="59e52c95765598cb8f5fb4f574efd34884e38e21" data-score="82" data-since="260611">지원되는 모든 플랫폼에서 운영 체제는 교차 프로세스 메모리 액세스를 권한 검사(<code class="docutils literal notranslate"><span class="pre">CAP_SYS_PTRACE</span></code>, root, 또는 관리자 권한) 뒤에 배치합니다. 이러한 권한이 이미 획득된 후에만 문제가 있음이 입증되는 보고서는 OS 보안 경계가 이미 넘어갔기 때문에 CPython의 취약점은 <strong>아닙니다</strong>.</p>
 </dd>
-<dt data-msgid="f994884f518dab5567b18067873dee6e414db908" data-score="0" data-since="260608">Crashes or memory errors when reading a compromised process are not vulnerabilities</dt><dd><p data-msgid="5a296dcfc91c89eeff5370389a3608eb168f2b65" data-score="0" data-since="260608">A tool that reads internal interpreter state from a target process must
-trust that memory to be well-formed.  If the target process has been
-corrupted or is controlled by an attacker, the debugger or profiler may
-crash, produce garbage output, or behave unpredictably.  This is the same
-risk accepted by every <code class="docutils literal notranslate"><span class="pre">ptrace</span></code>-based debugger.  Bugs in this category
-(buffer overflows, segmentation faults, or undefined behaviour triggered
-by reading corrupted state) are <strong>not</strong> treated as security issues, though
-fixes that improve robustness are welcome.</p>
+<dt data-msgid="f994884f518dab5567b18067873dee6e414db908" data-score="86" data-since="260611">손상된 프로세스를 읽을 때 발생하는 충돌이나 메모리 오류는 취약점이 아닙니다</dt><dd><p data-msgid="5a296dcfc91c89eeff5370389a3608eb168f2b65" data-score="86" data-since="260611">대상 프로세스에서 내부 인터프리터 상태를 읽는 도구는 해당 메모리가 잘 형성되었다는 것을 신뢰해야 합니다. 대상 프로세스가 손상되었거나 공격자에 의해 제어되는 경우, 디버거나 프로파일러는 충돌하거나, 쓰레기 출력을 생성하거나, 예측할 수 없게 동작할 수 있습니다. 이는 모든 <code class="docutils literal notranslate"><span class="pre">ptrace</span></code> 기반 디버거가 수용하는 것과 동일한 위험입니다. 이러한 범주의 버그(버퍼 오버플로, 세그멘테이션 오류, 또는 손상된 상태를 읽는 것으로 유발된 정의되지 않은 동작)는 보안 문제로 취급되지 않지만, 견고성을 개선하는 수정 사항은 환영합니다.</p>
 </dd>
-<dt data-msgid="4c9e01fa409dfec3afcb543c59f90636e0ae75d9" data-score="0" data-since="260608">Vulnerabilities in the target process are not in scope</dt><dd><p data-msgid="a637c440f45a50def1250b7702e3728321e61ba6" data-score="0" data-since="260608">If the Python process being debugged has already been compromised, the
-attacker already controls execution in that process.  Demonstrating further
-impact from that starting point does not constitute a vulnerability in the
-remote debugging protocol.</p>
+<dt data-msgid="4c9e01fa409dfec3afcb543c59f90636e0ae75d9" data-score="68" data-since="260611">대상 프로세스에서 취약점은 스코프 외에 존재합니다.</dt><dd><p data-msgid="a637c440f45a50def1250b7702e3728321e61ba6" data-score="70" data-since="260611">디버깅하는 Python 프로세스가 이미 손상된 경우, 공격자는 이미 해당 프로세스에서 실행을 제어합니다. 그러한 시작점에서 추가적인 영향을 시연하는 것은 원격 디버깅 프로토콜의 취약점을 구성하지 않습니다.</p>
 </dd>
 </dl>
 <section id="when-to-use-python-disable-remote-debug">
-<h2 data-msgid="efffad803caf649f4354e5bda4172196004701cf" data-score="0" data-since="260608">When to use <code class="docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code><a class="headerlink" href="#when-to-use-python-disable-remote-debug" title="Link to this heading">¶</a></h2>
-<p data-msgid="193f3b1b97e36ab7e7ce827bd1943f5a280f428a" data-score="0" data-since="260608">The environment variable <span class="target" id="index-1"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_DISABLE_REMOTE_DEBUG"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a> (and the
-equivalent <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">disable_remote_debug</span></code></a> flag) allows operators to disable
-the in-process side of the protocol as a <strong>defence-in-depth</strong> measure.  This
-may be useful in hardened or sandboxed deployment environments where no
-debugging or profiling of the process is expected and reducing attack surface
-is a priority, even though the OS-level privilege checks already prevent
-unprivileged access.</p>
-<p data-msgid="d4d021d362f65474f9b3ad8cd2d148854ce56cc8" data-score="0" data-since="260608">Setting this variable does <strong>not</strong> affect other OS-level debugging interfaces
-(<code class="docutils literal notranslate"><span class="pre">ptrace</span></code>, <code class="docutils literal notranslate"><span class="pre">/proc</span></code>, <code class="docutils literal notranslate"><span class="pre">task_for_pid</span></code>, etc.), which remain available
-according to their own permission models.</p>
+<h2 data-msgid="efffad803caf649f4354e5bda4172196004701cf" data-score="100" data-since="260611"><cite>PYTHON_DISABLE_REMOTE_DEBUG</cite> 사용 시점<a class="headerlink" href="#when-to-use-python-disable-remote-debug" title="Link to this heading">¶</a></h2>
+<p data-msgid="193f3b1b97e36ab7e7ce827bd1943f5a280f428a" data-score="85" data-since="260611">환경 변수 <span class="target" id="index-5"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_DISABLE_REMOTE_DEBUG"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_DISABLE_REMOTE_DEBUG</span></code></a> (그리고 동등한 <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">disable_remote_debug</span></code></a> 플래그)는 오퍼레이터가 프로토콜의 인-프로세스 측면을 <strong>방어 심도</strong> 조치로 비활성화할 수 있도록 합니다. 이는 프로세스의 디버깅이나 프로파일링이 예상되지 않아 공격 표면을 줄이는 것이 우선순위인 강화되었거나 샌드박스 환경의 배포 환경에서 유용할 수 있습니다. 비록 OS 수준의 권한 검사가 이미 비특권적 접근을 방지하지만 말입니다.</p>
+<p data-msgid="d4d021d362f65474f9b3ad8cd2d148854ce56cc8" data-score="90" data-since="260611">이 변수를 설정하는 것은 다른 OS 수준 디버깅 인터페이스(<code class="docutils literal notranslate"><span class="pre">ptrace</span></code>, <code class="docutils literal notranslate"><span class="pre">/proc</span></code>, <code class="docutils literal notranslate"><span class="pre">task_for_pid</span></code> 등)에는 영향을 미치지 않습니다. 이 인터페이스들은 자체적인 권한 모델에 따라 여전히 사용할 수 있습니다.</p>
 </section>
 </section>
 <div class="lost-and-found-section">
     <h4>분실물 보관소</h4>
     <div class="lost-and-found-items">
-        <span data-msgid="0cf2cc3aaba8c7018ac678b7829fafc33d25e826" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="26d9c28d789c254f71ea99a3463b99a7ccc2f4fa" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+        <span data-msgid="0cf2cc3aaba8c7018ac678b7829fafc33d25e826" data-score="100" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="26d9c28d789c254f71ea99a3463b99a7ccc2f4fa" data-score="100" data-since="260611" class="lost-and-found-item"></span>
         <span data-msgid="83ad8510bbd3f22363d068e1c96f82fd0fcccd31" data-score="100" data-since="260611" class="lost-and-found-item"></span>
         <span data-msgid="cd6fdcbf5a860d174ac10af745972501941dc684" data-score="100" data-since="260611" class="lost-and-found-item"></span>
-        <span data-msgid="e085669ebb1810a7607b28d381e37d8373bf772e" data-score="0" data-since="260603" class="lost-and-found-item"></span>
-        <span data-msgid="f16e6a7b4ca15adb3f59edcd05f85612ffdeef9c" data-score="0" data-since="260603" class="lost-and-found-item"></span>
+        <span data-msgid="e085669ebb1810a7607b28d381e37d8373bf772e" data-score="100" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="f16e6a7b4ca15adb3f59edcd05f85612ffdeef9c" data-score="100" data-since="260611" class="lost-and-found-item"></span>
     </div>
 </div>
 
