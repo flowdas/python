@@ -77,21 +77,21 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">스레드 상태와 전역 인터프리터 록</a><ul>
-<li><a class="reference internal" href="#detaching-the-thread-state-from-extension-code">Detaching the thread state from extension code</a><ul>
-<li><a class="reference internal" href="#apis">APIs</a></li>
+<li><a class="reference internal" href="#detaching-the-thread-state-from-extension-code">확장 코드에서 쓰레드 상태 연결 해제</a><ul>
+<li><a class="reference internal" href="#apis">API</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#using-the-c-api-from-foreign-threads">Using the C API from foreign threads</a><ul>
-<li><a class="reference internal" href="#attaching-detaching-thread-states">Attaching/detaching thread states</a></li>
+<li><a class="reference internal" href="#using-the-c-api-from-foreign-threads">외부 스레드에서 C API 사용</a><ul>
+<li><a class="reference internal" href="#attaching-detaching-thread-states">스레드 상태의 연결/연결 해제</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#gil-state-apis">GIL-state APIs</a></li>
-<li><a class="reference internal" href="#cautions-about-fork">Cautions about fork()</a></li>
-<li><a class="reference internal" href="#high-level-apis">High-level APIs</a></li>
-<li><a class="reference internal" href="#low-level-apis">Low-level APIs</a></li>
+<li><a class="reference internal" href="#gil-state-apis">GIL 상태 API</a></li>
+<li><a class="reference internal" href="#cautions-about-fork">fork()에 대한 주의 사항</a></li>
+<li><a class="reference internal" href="#high-level-apis">고수준 API</a></li>
+<li><a class="reference internal" href="#low-level-apis">저수준 API</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#asynchronous-notifications">Asynchronous notifications</a></li>
+<li><a class="reference internal" href="#asynchronous-notifications">비동기 알림</a></li>
 <li><a class="reference internal" href="#operating-system-thread-apis">Operating system thread APIs</a></li>
 </ul>
 
@@ -127,243 +127,137 @@
                 
   <section id="thread-states-and-the-global-interpreter-lock">
 <span id="threads"></span><h1 data-msgid="6a089c8e00fc9d5c542d221aa7d9a01408922ba7" data-score="100" data-since="260610">스레드 상태와 전역 인터프리터 록<a class="headerlink" href="#thread-states-and-the-global-interpreter-lock" title="Link to this heading">¶</a></h1>
-<p data-msgid="32a57ead89ff625eb8f1d653ca4f21763958ff7b" data-score="0" data-since="260608" id="index-0">Unless on a <a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded build</span></a> of <a class="reference internal" href="../glossary.html#term-CPython"><span class="xref std std-term">CPython</span></a>,
-the Python interpreter is generally not thread-safe.  In order to support
-multi-threaded Python programs, there’s a global lock, called the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global
-interpreter lock</span></a> or <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>, that must be held by a thread before
-accessing Python objects. Without the lock, even the simplest operations
-could cause problems in a multi-threaded program: for example, when
-two threads simultaneously increment the reference count of the same object, the
-reference count could end up being incremented only once instead of twice.</p>
-<p data-msgid="93e43a94be1832c6cc34e74829d007ad0f8feaa5" data-score="0" data-since="260608">As such, only a thread that holds the GIL may operate on Python objects or
-invoke Python’s C API.</p>
-<p data-msgid="68c0a95d9a12e059fdbc581daa5ec63e17f6cafd" data-score="0" data-since="260608" id="index-1">In order to emulate concurrency, the interpreter regularly tries to switch
-threads between bytecode instructions (see <a class="reference internal" href="../library/sys.html#sys.setswitchinterval" title="sys.setswitchinterval"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.setswitchinterval()</span></code></a>).
-This is why locks are also necessary for thread-safety in pure-Python code.</p>
-<p data-msgid="8957126342b6d80d48112f7b0ec119552d70c71e" data-score="0" data-since="260608">Additionally, the global interpreter lock is released around blocking I/O
-operations, such as reading or writing to a file. From the C API, this is done
-by <a class="reference internal" href="#detaching-thread-state"><span class="std std-ref">detaching the thread state</span></a>.</p>
-<p data-msgid="7a8a95d46d85bfe501b72c69150acaaea30da449" data-score="0" data-since="260608" id="index-2">The Python interpreter keeps some thread-local information inside
-a data structure called <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a>, known as a <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a>.
-Each thread has a thread-local pointer to a <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a>; a thread state
-referenced by this pointer is considered to be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.</p>
-<p data-msgid="a0820aa4311fed49537587e6ea59cd050433019b" data-score="0" data-since="260608">A thread can only have one <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> at a time. An attached
-thread state is typically analogous with holding the GIL, except on
-free-threaded builds.  On builds with the GIL enabled, attaching a thread state
-will block until the GIL can be acquired. However, even on builds with the GIL
-disabled, it is still required to have an attached thread state, as the interpreter
-needs to keep track of which threads may access Python objects.</p>
+<p data-msgid="32a57ead89ff625eb8f1d653ca4f21763958ff7b" data-score="92" data-since="260612" id="index-0"><a class="reference internal" href="../glossary.html#term-CPython"><span class="xref std std-term">CPython</span></a>\의 <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">전역 인터프리터 록</span></a> 와 같이, 파이썬 인터프리터는 일반적으로 스레드 안전하지 않습니다. 다중 스레드 파이썬 프로그램을 지원하기 위해, 파이썬 객체에 액세스하기 전에 스레드가 보유해야 하는 전역 잠금인 <span class="xref std std-term">전역 인터프리터 록</span> 또는 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>GIL`가 있습니다. 이 잠금이 없으면, 가장 간단한 작업조차도 다중 스레드 프로그램에서 문제를 일으킬 수 있습니다. 예를 들어, 두 스레드가 동시에 같은 객체의 참조 카운트를 증가시킬 경우, 참조 카운트가 두 번이 아닌 한 번만 증가할 수 있습니다.</p>
+<p data-msgid="93e43a94be1832c6cc34e74829d007ad0f8feaa5" data-score="90" data-since="260612">따라서, GIL을 보유한 스레드만이 파이썬 객체에서 작동하거나 파이썬/C API 함수를 호출할 수 있습니다.</p>
+<p data-msgid="68c0a95d9a12e059fdbc581daa5ec63e17f6cafd" data-score="89" data-since="260612" id="index-1">동시성을 에뮬레이션하기 위해 인터프리터는 바이트 코드 명령어들 사이에서 정기적으로 스레드 전환을 시도합니다 ( <a class="reference internal" href="../library/sys.html#sys.setswitchinterval" title="sys.setswitchinterval"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.setswitchinterval()</span></code></a>\ 참조). 이것이 순수 파이썬 코드에서도 스레드 안전성을 위해 락이 필요한 이유입니다.</p>
+<p data-msgid="8957126342b6d80d48112f7b0ec119552d70c71e" data-score="94" data-since="260612">게다가, 전역 인터프리터 록은 파일 읽기 또는 쓰기와 같은 블로킹 I/O 작업 주변에서 해제됩니다. C API에서는 <a class="reference internal" href="#detaching-thread-state"><span class="std std-ref">스레드 상태 분리</span></a>\을 통해 이 작업을 수행합니다.</p>
+<p data-msgid="7a8a95d46d85bfe501b72c69150acaaea30da449" data-score="88" data-since="260612" id="index-2">파이썬 인터프리터는 <span class="xref std std-term">PyThreadState</span>\이라는 데이터 구조 내에 일부 스레드 지역 정보를 유지하며, 이를 <span class="xref std std-term">스레드 상태 &lt;thread state&gt;`라고 합니다. 각 스레드는 :c:type:`PyThreadState</span>\를 가리키는 스레드 지역 포인터를 가지며, 이 포인터로 참조된 스레드 상태는 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>첨부됨 &lt;attached thread state&gt;`으로 간주됩니다.</p>
+<p data-msgid="a0820aa4311fed49537587e6ea59cd050433019b" data-score="93" data-since="260612">스레드는 한 번에 하나의 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>첨부된 스레드 상태`만 가질 수 있습니다. 첨부된 스레드 상태는 일반적으로, 무료-쓰레드 빌드의 경우를 제외하고 GIL을 보유하는 것과 유사합니다. GIL이 활성화된 빌드의 경우, 스레드 상태를 첨부하면 GIL을 획득할 때까지 블록됩니다. 그러나 GIL이 비활성화된 빌드에서도 인터프리터가 어떤 스레드가 파이썬 객체에 액세스할 수 있는지 추적해야 하므로, 여전히 첨부된 스레드 상태를 가질 필요가 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="29dc68b6bd6abe139357a603b9a3bfcd8c249ca2" data-score="0" data-since="260608">Even on the free-threaded build, attaching a thread state may block, as the
-GIL can be re-enabled or threads might be temporarily suspended (such as during
-a garbage collection).</p>
+<p data-msgid="29dc68b6bd6abe139357a603b9a3bfcd8c249ca2" data-score="94" data-since="260612">프리 스레드 빌드에서도 쓰레드를 연결하면 차단될 수 있습니다. GIL이 다시 활성화되거나 가비지 컬렉션 중에 스레드가 일시적으로 중단되는 등의 이유가 있기 때문입니다.</p>
 </div>
-<p data-msgid="fae3b182c1c1c2bdefab1aabd90818e43bc83f11" data-score="0" data-since="260608">Generally, there will always be an attached thread state when using Python’s
-C API, including during embedding and when implementing methods, so it’s uncommon
-to need to set up a thread state on your own. Only in some specific cases, such
-as in a <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> block or in a fresh thread, will the
-thread not have an attached thread state.
-If uncertain, check if <a class="reference internal" href="#c.PyThreadState_GetUnchecked" title="PyThreadState_GetUnchecked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span></code></a> returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
-<p data-msgid="16fdc06d45ec4ec1cb924450e7711b300cc9a7fa" data-score="0" data-since="260608">If it turns out that you do need to create a thread state, it is recommended to
-use <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> or <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a>,
-which will manage the thread state for you.</p>
+<p data-msgid="fae3b182c1c1c2bdefab1aabd90818e43bc83f11" data-score="95" data-since="260612">일반적으로 파이썬 C API를 사용할 때, 임베딩 및 메서드 구현 중에도 항상 연결된 쓰레드 상태가 존재하므로 자체적으로 쓰레드 상태를 설정할 필요는 흔치 않습니다. <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> 블록 내부 또는 새 스레드의 경우에는 쓰레드가 연결된 쓰레드 상태를 갖지 못합니다. 확실하지 않다면, <a class="reference internal" href="#c.PyThreadState_GetUnchecked" title="PyThreadState_GetUnchecked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span></code></a> 가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환하는지 확인하십시오.</p>
+<p data-msgid="16fdc06d45ec4ec1cb924450e7711b300cc9a7fa" data-score="98" data-since="260612">만약 쓰레드 상태를 생성해야 하는 경우, <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> 또는 <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a> 사용을 권장합니다. 이 함수들은 쓰레드 상태 관리를 대신 수행해 줍니다.</p>
 <section id="detaching-the-thread-state-from-extension-code">
-<span id="detaching-thread-state"></span><h2 data-msgid="f9e82b288d0f4c19f87fb8fa219a3e6964dc0f26" data-score="0" data-since="260603">Detaching the thread state from extension code<a class="headerlink" href="#detaching-the-thread-state-from-extension-code" title="Link to this heading">¶</a></h2>
+<span id="detaching-thread-state"></span><h2 data-msgid="f9e82b288d0f4c19f87fb8fa219a3e6964dc0f26" data-score="100" data-since="260612">확장 코드에서 쓰레드 상태 연결 해제<a class="headerlink" href="#detaching-the-thread-state-from-extension-code" title="Link to this heading">¶</a></h2>
 <p data-msgid="5a9877bafabf023bb8fb775e9202ffb206b4b205" data-score="0" data-since="260603">Most extension code manipulating the <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> has the following simple
 structure:</p>
-<div class="highlight-c notranslate" data-msgid="51353c91945ed9a4693e0bdc0ae8052f5c09f4b0" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">Save</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="kr">thread</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="n">variable</span><span class="p">.</span>
-<span class="p">...</span><span class="w"> </span><span class="n">Do</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">blocking</span><span class="w"> </span><span class="n">I</span><span class="o">/</span><span class="n">O</span><span class="w"> </span><span class="n">operation</span><span class="w"> </span><span class="p">...</span>
-<span class="n">Restore</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="kr">thread</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="n">variable</span><span class="p">.</span>
+<div class="highlight-c notranslate" data-msgid="51353c91945ed9a4693e0bdc0ae8052f5c09f4b0" data-score="83" data-since="260612"><div class="highlight"><pre><span></span><span class="n">로컬</span><span class="w"> </span><span class="n">변수에</span><span class="w"> </span><span class="n">쓰레드</span><span class="w"> </span><span class="n">상태를</span><span class="w"> </span><span class="n">저장합니다</span><span class="p">.</span>
+<span class="p">...</span><span class="w"> </span><span class="n">블로킹</span><span class="w"> </span><span class="n">I</span><span class="o">/</span><span class="n">O</span><span class="w"> </span><span class="n">작업을</span><span class="w"> </span><span class="n">수행합니다</span><span class="w"> </span><span class="p">...</span>
+<span class="n">로컬</span><span class="w"> </span><span class="n">변수로부터</span><span class="w"> </span><span class="n">쓰레드</span><span class="w"> </span><span class="n">상태를</span><span class="w"> </span><span class="n">복원합니다</span><span class="p">.</span>
 </pre></div>
 </div>
-<p data-msgid="a9a09f1d2603182e91eda8e8f423d3e7fc10a9a1" data-score="0" data-since="260603">This is so common that a pair of macros exists to simplify it:</p>
-<div class="highlight-c notranslate" data-msgid="c6c9c4f29cb971480b6fe7d564d81b04fe91d848" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">Py_BEGIN_ALLOW_THREADS</span>
-<span class="p">...</span><span class="w"> </span><span class="n">Do</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">blocking</span><span class="w"> </span><span class="n">I</span><span class="o">/</span><span class="n">O</span><span class="w"> </span><span class="n">operation</span><span class="w"> </span><span class="p">...</span>
+<p data-msgid="a9a09f1d2603182e91eda8e8f423d3e7fc10a9a1" data-score="80" data-since="260612">이것은 매우 일반적인 작업이라서 이를 단순화하기 위한 매크로 쌍이 존재합니다:</p>
+<div class="highlight-c notranslate" data-msgid="c6c9c4f29cb971480b6fe7d564d81b04fe91d848" data-score="88" data-since="260612"><div class="highlight"><pre><span></span><span class="n">Py_BEGIN_ALLOW_THREADS</span>
+<span class="p">...</span><span class="w"> </span><span class="n">블로킹</span><span class="w"> </span><span class="n">I</span><span class="o">/</span><span class="n">O</span><span class="w"> </span><span class="n">작업을</span><span class="w"> </span><span class="n">수행합니다</span><span class="w"> </span><span class="p">...</span>
 <span class="n">Py_END_ALLOW_THREADS</span>
 </pre></div>
 </div>
-<p data-msgid="09c7ce9044c7230624d5b1fb7f7e685638900ec7" data-score="0" data-since="260603" id="index-3">The <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> macro opens a new block and declares a
-hidden local variable; the <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> macro closes the
-block.</p>
-<p data-msgid="10a700d230995f90b13f4f13f9012f310a6cdcd0" data-score="0" data-since="260603">The block above expands to the following code:</p>
-<div class="highlight-c notranslate" data-msgid="712e8923ebe630a78420aa427c8be8987f96b6dd" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">PyThreadState</span><span class="w"> </span><span class="o">*</span><span class="n">_save</span><span class="p">;</span>
+<p data-msgid="09c7ce9044c7230624d5b1fb7f7e685638900ec7" data-score="100" data-since="260612" id="index-3"><a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> 매크로는 새로운 블록을 열고 숨겨진 지역 변수를 선언하며, <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> 매크로가 이 블록을 닫습니다.</p>
+<p data-msgid="10a700d230995f90b13f4f13f9012f310a6cdcd0" data-score="90" data-since="260612">위의 블록은 다음 코드로 확장됩니다:</p>
+<div class="highlight-c notranslate" data-msgid="712e8923ebe630a78420aa427c8be8987f96b6dd" data-score="100" data-since="260612"><div class="highlight"><pre><span></span><span class="n">PyThreadState</span><span class="w"> </span><span class="o">*</span><span class="n">_save</span><span class="p">;</span>
 
 <span class="n">_save</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyEval_SaveThread</span><span class="p">();</span>
-<span class="p">...</span><span class="w"> </span><span class="n">Do</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">blocking</span><span class="w"> </span><span class="n">I</span><span class="o">/</span><span class="n">O</span><span class="w"> </span><span class="n">operation</span><span class="w"> </span><span class="p">...</span>
+<span class="p">...</span><span class="w"> </span><span class="n">블로킹</span><span class="w"> </span><span class="n">I</span><span class="o">/</span><span class="n">O</span><span class="w"> </span><span class="n">작업을</span><span class="w"> </span><span class="n">수행합니다</span><span class="w"> </span><span class="p">...</span>
 <span class="n">PyEval_RestoreThread</span><span class="p">(</span><span class="n">_save</span><span class="p">);</span>
 </pre></div>
 </div>
-<p data-msgid="df4040b374bbc6fb5be752878c46f6f0a16d1d04" data-score="0" data-since="260603" id="index-4">Here is how these functions work:</p>
-<p data-msgid="7b99b4984abd6f4a012cac1b713504d92cdbb351" data-score="0" data-since="260608">The attached thread state implies that the GIL is held for the interpreter.
-To detach it, <a class="reference internal" href="#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> is called and the result is stored
-in a local variable.</p>
-<p data-msgid="22dae45414f0f95decb3f4ac5806abf9bca2c109" data-score="0" data-since="260608">By detaching the thread state, the GIL is released, which allows other threads
-to attach to the interpreter and execute while the current thread performs
-blocking I/O. When the I/O operation is complete, the old thread state is
-reattached by calling <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a>, which will wait until
-the GIL can be acquired.</p>
+<p data-msgid="df4040b374bbc6fb5be752878c46f6f0a16d1d04" data-score="81" data-since="260612" id="index-4">이 함수들이 어떻게 작동하는지 알려 드립니다:</p>
+<p data-msgid="7b99b4984abd6f4a012cac1b713504d92cdbb351" data-score="96" data-since="260612">연결된 쓰레드 상태는 인터프리터에 GIL이 유지됨을 의미합니다. 이를 연결 해제하려면 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyEval_SaveThread`가 호출되고 결과가 로컬 변수에 저장됩니다.</p>
+<p data-msgid="22dae45414f0f95decb3f4ac5806abf9bca2c109" data-score="92" data-since="260612">쓰레드 상태를 분리함에 따라 GIL이 해제되어, 현재 스레드가 블로킹 I/O 작업을 수행하는 동안 다른 스레드들이 인터프리터에 연결하여 실행할 수 있게 됩니다. I/O 작업이 완료되면, :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyEval_RestoreThread`를 호출하여 이전 쓰레드 상태가 다시 연결되며, 이는 GIL을 획득할 때까지 기다립니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="1dc2c7de3dd2abf39a3693d760ad891cd187ee80" data-score="0" data-since="260608">Performing blocking I/O is the most common use case for detaching
-the thread state, but it is also useful to call it over long-running
-native code that doesn’t need access to Python objects or Python’s C API.
-For example, the standard <a class="reference internal" href="../library/zlib.html#module-zlib" title="zlib: Low-level interface to compression and decompression routines compatible with gzip."><code class="xref py py-mod docutils literal notranslate"><span class="pre">zlib</span></code></a> and <a class="reference internal" href="../library/hashlib.html#module-hashlib" title="hashlib: Secure hash and message digest algorithms."><code class="xref py py-mod docutils literal notranslate"><span class="pre">hashlib</span></code></a> modules detach the
-<a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">thread state</span></a> when compressing or hashing
-data.</p>
+<p data-msgid="1dc2c7de3dd2abf39a3693d760ad891cd187ee80" data-score="76" data-since="260612">블로킹 I/O를 수행하는 것이 쓰레드 상태 분리의 가장 흔한 사용 사례이지만, 파이썬 객체나 파이썬 C API에 접근할 필요가 없는 장기 실행 네이티브 코드에 호출하기에도 유용합니다. 예를 들어, 표준 <a class="reference internal" href="../library/zlib.html#module-zlib" title="zlib: Low-level interface to compression and decompression routines compatible with gzip."><code class="xref py py-mod docutils literal notranslate"><span class="pre">zlib</span></code></a> 및 <a class="reference internal" href="../library/hashlib.html#module-hashlib" title="hashlib: Secure hash and message digest algorithms."><code class="xref py py-mod docutils literal notranslate"><span class="pre">hashlib</span></code></a> 모듈은 데이터를 압축하거나 해싱할 때 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>쓰레드 상태 &lt;attached thread state&gt;`를 분리합니다.</p>
 </div>
-<p data-msgid="6fd84a68fd7eecaf298663986508ac3ebc798861" data-score="0" data-since="260608">On a <a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded build</span></a>, the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a> is usually out of the question,
-but <strong>detaching the thread state is still required</strong>, because the interpreter
-periodically needs to block all threads to get a consistent view of Python objects
-without the risk of race conditions.
-For example, CPython currently suspends all threads for a short period of time
-while running the garbage collector.</p>
+<p data-msgid="6fd84a68fd7eecaf298663986508ac3ebc798861" data-score="91" data-since="260612">:term:<a href="#id1"><span class="problematic" id="id2">`</span></a>free-threaded build`의 경우, 일반적으로 :term:<a href="#id3"><span class="problematic" id="id4">`</span></a>GIL`은 문제가 되지 않지만, 레이스 조건 없이 파이썬 객체에 대한 일관된 뷰를 얻기 위해 인터프리터가 주기적으로 모든 스레드를 차단해야 하므로 <strong>쓰레드 상태 연결 해제가 여전히 필요합니다</strong>. 예를 들어, CPython은 현재 가비지 컬렉터를 실행하는 동안 모든 스레드를 짧은 시간 동안 중단시킵니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="b405adc690a4c1fd3d4cb916a0fde758cd3bf4bd" data-score="0" data-since="260608">Detaching the thread state can lead to unexpected behavior during interpreter
-finalization. See <a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a> for more
-details.</p>
+<p data-msgid="b405adc690a4c1fd3d4cb916a0fde758cd3bf4bd" data-score="95" data-since="260612">쓰레드 상태 연결 해제는 인터프리터 최종화 중에 예기치 않은 동작을 초래할 수 있습니다. 자세한 내용은 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>cautions-regarding-runtime-finalization`을 참조하십시오.</p>
 </div>
 <section id="apis">
-<h3 data-msgid="4ca0a1dafaea5e84f002eb1c3a7a92dd033b7a8c" data-score="0" data-since="260608">APIs<a class="headerlink" href="#apis" title="Link to this heading">¶</a></h3>
-<p data-msgid="92c783a361d3ee177b12dd72bfbaa86285452535" data-score="0" data-since="260603">The following macros are normally used without a trailing semicolon; look for
-example usage in the Python source distribution.</p>
+<h3 data-msgid="4ca0a1dafaea5e84f002eb1c3a7a92dd033b7a8c" data-score="100" data-since="260612">API<a class="headerlink" href="#apis" title="Link to this heading">¶</a></h3>
+<p data-msgid="92c783a361d3ee177b12dd72bfbaa86285452535" data-score="82" data-since="260612">다음 매크로들은 보통 후행 세미콜론 없이 사용됩니다. 상세한 사용 예시는 파이썬 소스 배포판에서 찾아보십시오.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="fb14c746c317a0fb10a551350ce1cdda4f542024" data-score="0" data-since="260608">These macros are still necessary on the <a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded build</span></a> to prevent
-deadlocks.</p>
+<p data-msgid="fb14c746c317a0fb10a551350ce1cdda4f542024" data-score="90" data-since="260612">이 매크로들은 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>free-threaded build`에서도 데드락을 방지하기 위해 여전히 필요합니다.</p>
 </div>
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.Py_BEGIN_ALLOW_THREADS">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></span></span><a class="headerlink" href="#c.Py_BEGIN_ALLOW_THREADS" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="e78eab03308010efd7fb60c877d22908213a005e" data-score="0" data-since="260603">This macro expands to <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">PyThreadState</span> <span class="pre">*_save;</span> <span class="pre">_save</span> <span class="pre">=</span> <span class="pre">PyEval_SaveThread();</span></code>.
-Note that it contains an opening brace; it must be matched with a following
-<a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> macro.  See above for further discussion of this
-macro.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="e78eab03308010efd7fb60c877d22908213a005e" data-score="94" data-since="260612">이 매크로는 <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">PyThreadState</span> <span class="pre">*_save;</span> <span class="pre">_save</span> <span class="pre">=</span> <span class="pre">PyEval_SaveThread();</span></code> 로 확장됩니다. 열고 있는 중괄호가 포함되어 있음에 유의하십시오. 뒤따르는 <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> 매크로와 일치해야 합니다. 이 매크로에 대한 자세한 내용은 위를 참조하십시오.</p>
 </dd></dl>
 
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.Py_END_ALLOW_THREADS">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_END_ALLOW_THREADS</span></span></span><a class="headerlink" href="#c.Py_END_ALLOW_THREADS" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="89a9ec95f181439db55355ff69a8bc75f71ec678" data-score="0" data-since="260603">This macro expands to <code class="docutils literal notranslate"><span class="pre">PyEval_RestoreThread(_save);</span> <span class="pre">}</span></code>. Note that it contains
-a closing brace; it must be matched with an earlier
-<a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> macro.  See above for further discussion of
-this macro.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="89a9ec95f181439db55355ff69a8bc75f71ec678" data-score="99" data-since="260612">이 매크로는 <code class="docutils literal notranslate"><span class="pre">PyEval_RestoreThread(_save);</span> <span class="pre">}</span></code> 로 확장됩니다. 닫는 중괄호가 포함되어 있음에 유의하십시오. 이전 <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> 매크로와 일치해야 합니다. 이 매크로에 대한 자세한 내용은 위를 참조하십시오.</p>
 </dd></dl>
 
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.Py_BLOCK_THREADS">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_BLOCK_THREADS</span></span></span><a class="headerlink" href="#c.Py_BLOCK_THREADS" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="fe7de817baffa417aa5566ebb81c9b179d11b2ec" data-score="0" data-since="260603">This macro expands to <code class="docutils literal notranslate"><span class="pre">PyEval_RestoreThread(_save);</span></code>: it is equivalent to
-<a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> without the closing brace.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="fe7de817baffa417aa5566ebb81c9b179d11b2ec" data-score="95" data-since="260612">이 매크로는 <code class="docutils literal notranslate"><span class="pre">PyEval_RestoreThread(_save);</span></code> 로 확장됩니다: 닫는 중괄호가 없는 :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_END_ALLOW_THREADS`와 동등합니다.</p>
 </dd></dl>
 
 <dl class="c macro">
 <dt class="sig sig-object c" id="c.Py_UNBLOCK_THREADS">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_UNBLOCK_THREADS</span></span></span><a class="headerlink" href="#c.Py_UNBLOCK_THREADS" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="c40033c261d35e7aab41027caef84252245a30f7" data-score="0" data-since="260603">This macro expands to <code class="docutils literal notranslate"><span class="pre">_save</span> <span class="pre">=</span> <span class="pre">PyEval_SaveThread();</span></code>: it is equivalent to
-<a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> without the opening brace and variable
-declaration.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="c40033c261d35e7aab41027caef84252245a30f7" data-score="93" data-since="260612">이 매크로는 <code class="docutils literal notranslate"><span class="pre">_save</span> <span class="pre">=</span> <span class="pre">PyEval_SaveThread();</span></code> 로 확장됩니다: 열고 있는 중괄호 및 변수 선언이 없는 :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_BEGIN_ALLOW_THREADS`와 동등합니다.</p>
 </dd></dl>
 
 </section>
 </section>
 <section id="using-the-c-api-from-foreign-threads">
-<span id="c-api-foreign-threads"></span><span id="non-python-created-threads"></span><h2 data-msgid="c9634d5341d72e367374692a14241eb10edd9002" data-score="0" data-since="260608">Using the C API from foreign threads<a class="headerlink" href="#using-the-c-api-from-foreign-threads" title="Link to this heading">¶</a></h2>
-<p data-msgid="7ecca22d3c05eaedfa93c71079bd6e973cc49d2e" data-score="0" data-since="260608">When threads are created using the dedicated Python APIs (such as the
-<a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module), a thread state is automatically associated with them,
-However, when a thread is created from native code (for example, by a
-third-party library with its own thread management), it doesn’t hold an
-attached thread state.</p>
-<p data-msgid="383a163878ccfdeae3541aaf24ce343f35daeefe" data-score="0" data-since="260608">If you need to call Python code from these threads (often this will be part
-of a callback API provided by the aforementioned third-party library),
-you must first register these threads with the interpreter by
-creating a new thread state and attaching it.</p>
-<p data-msgid="aa735728a594afccc9a663c746cf79186f7aa22e" data-score="0" data-since="260608">The easiest way to do this is through <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a>
-or <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a>.</p>
+<span id="c-api-foreign-threads"></span><span id="non-python-created-threads"></span><h2 data-msgid="c9634d5341d72e367374692a14241eb10edd9002" data-score="100" data-since="260612">외부 스레드에서 C API 사용<a class="headerlink" href="#using-the-c-api-from-foreign-threads" title="Link to this heading">¶</a></h2>
+<p data-msgid="7ecca22d3c05eaedfa93c71079bd6e973cc49d2e" data-score="83" data-since="260612">스레드가 전용 Python API(예를 들어 <a class="reference internal" href="../library/threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 모듈)를 사용하여 생성될 때, 해당 스레드에는 자동으로 스레드 상태가 연결됩니다. 그러나 네이티브 코드에서 스레드를 생성하는 경우(예: 자체 스레드 관리를 가진 타사 라이브러리에 의한 경우), 연결된 스레드 상태를 가지지 않습니다.</p>
+<p data-msgid="383a163878ccfdeae3541aaf24ce343f35daeefe" data-score="81" data-since="260612">만약 이러한 스레드에서 Python 코드를 호출해야 하는 경우(이는 종종 앞서 언급한 타사 라이브러리에서 제공하는 콜백 API의 일부가 될 것입니다), 새로운 스레드 상태를 생성하고 연결하여 인터프리터에 이러한 스레드를 먼저 등록해야 합니다.</p>
+<p data-msgid="aa735728a594afccc9a663c746cf79186f7aa22e" data-score="97" data-since="260612">가장 쉬운 방법은 <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> 또는 <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a> 를 사용하는 것입니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="d3d1203f6b520da5dc174ce01b9921e33628904e" data-score="0" data-since="260608">These functions require an argument pointing to the desired
-interpreter; such a pointer can be acquired via a call to
-<a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterGuard_FromCurrent" title="PyInterpreterGuard_FromCurrent"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterGuard_FromCurrent()</span></code></a> (for <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code>) or
-<a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterView_FromCurrent" title="PyInterpreterView_FromCurrent"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterView_FromCurrent()</span></code></a> (for <code class="docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView</span></code>)
-from the function that creates the thread. If no pointer is available (such
-as when the given native thread library doesn’t provide a data argument),
-<a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterView_FromMain" title="PyInterpreterView_FromMain"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterView_FromMain()</span></code></a> can be used to get a view for the main
-interpreter, but note that this will make the code incompatible with
-subinterpreters.</p>
+<p data-msgid="d3d1203f6b520da5dc174ce01b9921e33628904e" data-score="88" data-since="260612">이러한 함수들은 원하는 인터프리터를 가리키는 인수를 필요로 합니다. 이러한 포인터는 스레드를 생성하는 함수에서 <a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterGuard_FromCurrent" title="PyInterpreterGuard_FromCurrent"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterGuard_FromCurrent()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code> 의 경우) 또는 <a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterView_FromCurrent" title="PyInterpreterView_FromCurrent"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterView_FromCurrent()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView</span></code> 의 경우) 호출을 통해 획득할 수 있습니다. 만약 포인터가 없는 경우(예를 들어 주어진 네이티브 스레드 라이브러리가 데이터 인수를 제공하지 않는 경우), <a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterView_FromMain" title="PyInterpreterView_FromMain"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterView_FromMain()</span></code></a> 을 사용하여 메인 인터프리터에 대한 뷰를 얻을 수 있지만, 이 경우 코드가 서브인터프리터와 호환되지 않게 된다는 점에 유의해야 합니다.</p>
 </div>
-<p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-score="0" data-since="260603">For example:</p>
-<div class="highlight-c notranslate" data-msgid="033ab3eba56021792ae8ae950a081f31f429d29c" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1">// The return value of PyInterpreterGuard_FromCurrent() from the</span>
-<span class="c1">// function that created this thread.</span>
+<p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-score="25" data-since="260612">예를 들어</p>
+<div class="highlight-c notranslate" data-msgid="033ab3eba56021792ae8ae950a081f31f429d29c" data-score="98" data-since="260612"><div class="highlight"><pre><span></span><span class="c1">// 이 스레드를 생성한 함수에서 반환되는 PyInterpreterGuard_FromCurrent()의 값입니다.</span>
 <span class="n">PyInterpreterGuard</span><span class="w"> </span><span class="o">*</span><span class="n">guard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">thread_data</span><span class="o">-&gt;</span><span class="n">guard</span><span class="p">;</span>
 
-<span class="c1">// Create a new thread state for the interpreter.</span>
+<span class="c1">// 인터프리터에 대한 새 스레드 상태를 생성합니다.</span>
 <span class="n">PyThreadStateToken</span><span class="w"> </span><span class="o">*</span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyThreadState_Ensure</span><span class="p">(</span><span class="n">guard</span><span class="p">);</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">token</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="n">PyInterpreterGuard_Close</span><span class="p">(</span><span class="n">guard</span><span class="p">);</span>
 <span class="w">   </span><span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="c1">// We have a valid thread state -- perform Python actions here.</span>
+<span class="c1">// 유효한 스레드 상태가 있음 -- 여기에 Python 작업을 수행합니다.</span>
 <span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CallSomeFunction</span><span class="p">();</span>
-<span class="c1">// Evaluate result or handle exceptions.</span>
+<span class="c1">// 결과를 평가하거나 예외를 처리합니다.</span>
 
-<span class="c1">// Release the thread state. No calls to the C API are allowed beyond this</span>
-<span class="c1">// point.</span>
+<span class="c1">// 스레드 상태를 해제합니다. 이 시점 이후로는 C API 호출이 허용되지 않습니다.</span>
 <span class="n">PyThreadState_Release</span><span class="p">(</span><span class="n">token</span><span class="p">);</span>
 <span class="n">PyInterpreterGuard_Close</span><span class="p">(</span><span class="n">guard</span><span class="p">);</span>
 </pre></div>
 </div>
-<p data-msgid="8a28490b98205ce0768de2d0095884114ab00d28" data-score="0" data-since="260608">Keep in mind that calling <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code> might not always create a new
-thread state, and calling <code class="docutils literal notranslate"><span class="pre">PyThreadState_Release</span></code> might not always detach it.
-These functions may reuse an existing attached thread state, or may re-attach
-a thread state that was previously attached for the current thread.</p>
+<p data-msgid="8a28490b98205ce0768de2d0095884114ab00d28" data-score="80" data-since="260612"><code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code> 를 호출하는 것이 항상 새 스레드 상태를 생성하지 않을 수 있으며, <code class="docutils literal notranslate"><span class="pre">PyThreadState_Release</span></code> 를 호출하는 것도 항상 연결을 해제하지 못할 수 있다는 점을 유념하십시오. 이 함수들은 기존에 연결된 스레드 상태를 재사용하거나, 현재 스레드를 위해 이전에 연결되었던 스레드 상태를 다시 연결할 수도 있습니다.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <p data-msgid="580816c7f68805ab6d83896d48188a25adaa9005" data-score="100" data-since="260609"><span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0788/"><strong>PEP 788</strong></a></p>
 </div>
 <section id="attaching-detaching-thread-states">
-<span id="c-api-attach-detach"></span><h3 data-msgid="5b91a422be837b3385a35f7b8579abcfe0c13de4" data-score="0" data-since="260608">Attaching/detaching thread states<a class="headerlink" href="#attaching-detaching-thread-states" title="Link to this heading">¶</a></h3>
+<span id="c-api-attach-detach"></span><h3 data-msgid="5b91a422be837b3385a35f7b8579abcfe0c13de4" data-score="81" data-since="260612">스레드 상태의 연결/연결 해제<a class="headerlink" href="#attaching-detaching-thread-states" title="Link to this heading">¶</a></h3>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_Ensure">
 <a class="reference internal" href="#c.PyThreadStateToken" title="PyThreadStateToken"><span class="n"><span class="pre">PyThreadStateToken</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_Ensure</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterGuard" title="PyInterpreterGuard"><span class="n"><span class="pre">PyInterpreterGuard</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">guard</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Ensure" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="0e6b4f51d0cf98459b4aa724ac3605c22f34b5fa" data-score="0" data-since="260608">Ensure that the thread has an attached thread state for the
-interpreter protected by <em>guard</em>, and thus can safely invoke that
-interpreter.</p>
-<p data-msgid="a9bc9e3614df616d26aa3b1b1201274396d3bc20" data-score="0" data-since="260608">It is OK to call this function if the thread already has an
-attached thread state, as long as there is a subsequent call to
-<a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> that matches this one (meaning that “nested”
-calls to this function are permitted).</p>
-<p data-msgid="ee4e5b8e5b036f428dff8313b77d68073c05286e" data-score="0" data-since="260608">The function’s effect (if any) will be reversed by the matching call to
-<a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a>.</p>
-<p data-msgid="008261efc6c9c47699496e68c08ba1558f243036" data-score="0" data-since="260608">On error, this function returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> <em>without</em> an exception set.
-Do not call <code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code> in this case.</p>
-<p data-msgid="a9f5f6d11285f86c2da005e15687e8577f689de3" data-score="0" data-since="260608">On success, this function returns a pointer value that must be passed
-to the matching call to <code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code>.</p>
-<p data-msgid="0f42e40b3a85a4be37013dd7bf9ccba0217db699" data-score="0" data-since="260608">The conditions in which this function creates a new <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> are
-considered unstable and implementation-dependent. If you need to control the
-exact lifetime of a thread state, consider using <a class="reference internal" href="#c.PyThreadState_New" title="PyThreadState_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_New()</span></code></a>.
-However, do not avoid this function solely on the basis that the lifetime
-of the thread state may be inconsistent across versions; changes to this
-function will be done with caution and in a backwards-compatible manner.
-In particular, the saving of thread-local variables and similar state will
-be retained across Python versions.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="0e6b4f51d0cf98459b4aa724ac3605c22f34b5fa" data-score="71" data-since="260612">스레드가 <em>guard</em> 에 의해 보호되는 인터프리터에 대한 연결된 스레드 상태를 가지고 있는지 확인하여, 해당 인터프리터를 안전하게 호출할 수 있도록 하십시오.</p>
+<p data-msgid="a9bc9e3614df616d26aa3b1b1201274396d3bc20" data-score="78" data-since="260612">이 함수는 이미 연결된 스레드 상태를 가진 경우 호출하는 것이 괜찮습니다. 단, 이와 일치하는 <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> 호출을 이후에 수행할 경우입니다 (이는 이 함수에 대한 “중첩” 호출이 허용됨을 의미합니다).</p>
+<p data-msgid="ee4e5b8e5b036f428dff8313b77d68073c05286e" data-score="91" data-since="260612">해당 함수의 효과(있는 경우)는 일치하는 <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> 호출에 의해 되돌려집니다.</p>
+<p data-msgid="008261efc6c9c47699496e68c08ba1558f243036" data-score="98" data-since="260612">오류가 발생하면, 이 함수는 예외를 설정하지 않은 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환합니다. 이런 경우에는 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code> 를 호출하지 마십시오.</p>
+<p data-msgid="a9f5f6d11285f86c2da005e15687e8577f689de3" data-score="99" data-since="260612">성공 시, 이 함수는 일치하는 <code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release`()</span></code> 호출에 전달되어야 하는 포인터 값을 반환합니다.</p>
+<p data-msgid="0f42e40b3a85a4be37013dd7bf9ccba0217db699" data-score="84" data-since="260612">이 함수가 새로운 <span class="xref std std-term">스레드 상태 &lt;thread state&gt;`를 생성하는 조건은 불안정하고 구현에 따라 달라지는 것으로 간주됩니다. 스레드 상태의 정확한 수명 주기를 제어해야 하는 경우, :c:func:`PyThreadState_New`</span> 사용을 고려하십시오. 다만, 이 함수는 단지 스레드 상태의 수명이 버전 간에 일관되지 않을 수 있다는 이유만으로 사용하는 것을 피해서는 안 됩니다. 이 함수의 변경 사항은 신중하고 하위 호환 가능한 방식으로 이루어질 것입니다. 특히, 스레드 로컬 변수 및 유사한 상태 저장소는 Python 버전을 거쳐 유지될 것입니다.</p>
 <div class="impl-detail compound">
-<p data-msgid="9f213b6e5fa1ca938d59b655f648ddb74edd304f" data-score="0" data-since="260608"><strong>CPython 구현 상세:</strong> The exact behavior of whether this function creates a new thread state is
-described below, but be aware that this may change in the future.</p>
-<p data-msgid="f9a5f1c903a89f808ea10f97d332c172bb91770d" data-score="0" data-since="260608">First, this function checks if an attached thread state is present.
-If there is, this function then checks if the interpreter of that
-thread state matches the interpreter guarded by <em>guard</em>. If that is
-the case, this function simply marks the thread state as being used
-by a <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code> call and returns.</p>
-<p data-msgid="6b2fcdba4ca0b03b83ea564004ece57667fc20f1" data-score="0" data-since="260608">If there is no attached thread state, then this function checks if any
-thread state has been used by the current OS thread. (This is
-returned by <a class="reference internal" href="#c.PyGILState_GetThisThreadState" title="PyGILState_GetThisThreadState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_GetThisThreadState()</span></code></a>.)
-If there was, then this function checks if that thread state’s interpreter
-matches <em>guard</em>. If it does, it is re-attached and marked as used.</p>
-<p data-msgid="6dad9080eec529b4b53f22a72eae5aa00942ab20" data-score="0" data-since="260608">Otherwise, if both of the above cases fail, a new thread state is created
-for <em>guard</em>. It is then attached and marked as owned by <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code>.</p>
+<p data-msgid="9f213b6e5fa1ca938d59b655f648ddb74edd304f" data-score="82" data-since="260612">이 함수가 새로운 스레드 상태를 생성하는지의 정확한 동작은 아래에 설명되어 있지만, 이는 향후 변경될 수 있다는 점을 유의하십시오.</p>
+<p data-msgid="f9a5f1c903a89f808ea10f97d332c172bb91770d" data-score="95" data-since="260612">먼저, 이 함수는 연결된 스레드 상태가 존재하는지 확인합니다. 존재한다면, 그 다음으로 해당 스레드 상태의 인터프리터가 <em>guard</em> 에 의해 보호되는 인터프리터와 일치하는지 확인합니다. 만약 그렇다면, 이 함수는 단순히 해당 스레드 상태를 <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code> 호출에 의해 사용되고 있음을 표시하고 반환합니다.</p>
+<p data-msgid="6b2fcdba4ca0b03b83ea564004ece57667fc20f1" data-score="93" data-since="260612">첨부된 스레드 상태가 없으면, 이 함수는 현재 OS 스레드가 어떤 스레드 상태를 사용했는지 확인합니다. (이는 <a class="reference internal" href="#c.PyGILState_GetThisThreadState" title="PyGILState_GetThisThreadState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_GetThisThreadState()</span></code></a> \에 의해 반환됩니다.) 만약 존재했다면, 이 함수는 해당 스레드 상태의 인터프리터가 <em>guard</em> 와 일치하는지 확인합니다. 일치하면 재첨부되어 사용됨으로 표시됩니다.</p>
+<p data-msgid="6dad9080eec529b4b53f22a72eae5aa00942ab20" data-score="84" data-since="260612">그렇지 않다면, 위 두 경우 모두 실패할 때 <em>guard</em> 를 위한 새로운 스레드 상태가 생성됩니다. 그런 다음 첨부되고 <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code> \에 의해 소유됨으로 표시됩니다.</p>
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
@@ -373,11 +267,8 @@ for <em>guard</em>. It is then attached and marked as owned by <code class="docu
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_EnsureFromView">
 <a class="reference internal" href="#c.PyThreadStateToken" title="PyThreadStateToken"><span class="n"><span class="pre">PyThreadStateToken</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_EnsureFromView</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="interp-lifecycle.html#c.PyInterpreterView" title="PyInterpreterView"><span class="n"><span class="pre">PyInterpreterView</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">view</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_EnsureFromView" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="f61131f67e4760a12142a2c49e1db7a61bcb69a9" data-score="0" data-since="260608">Get an attached thread state for the interpreter referenced by <em>view</em>.</p>
-<p data-msgid="fe2c495896d494e07531999b68572db034de2faa" data-score="0" data-since="260608">The behavior and return value are the same as for <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a>;
-additionally, if the function succeeds, the interpreter referenced by <em>view</em> will
-be implicitly guarded. The guard will be released upon the corresponding
-<a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> call.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="f61131f67e4760a12142a2c49e1db7a61bcb69a9" data-score="95" data-since="260612"><em>view</em> 에서 참조된 인터프리터에 연결된 스레드 상태를 가져옵니다.</p>
+<p data-msgid="fe2c495896d494e07531999b68572db034de2faa" data-score="96" data-since="260612">작동 방식과 반환 값은 <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> \와 동일합니다. 추가적으로, 함수가 성공하면 <em>view</em> 에서 참조된 인터프리터는 암시적으로 보호됩니다. 이 보호는 해당 <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> \ 호출 시 해제됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
@@ -386,21 +277,13 @@ be implicitly guarded. The guard will be released upon the corresponding
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_Release">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_Release</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadStateToken" title="PyThreadStateToken"><span class="n"><span class="pre">PyThreadStateToken</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Release" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="1170d4c7d9aafed1c2b4e9ae167f6e850b2eef88" data-score="0" data-since="260608">Undo a <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> or
-<a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a> call.</p>
-<p data-msgid="113a0b31ff0004dd54cbcd6ab1aaddfc833674c6" data-score="0" data-since="260608">This must be called exactly once for each successful <em>Ensure</em> call, with
-<em>token</em> set to that call’s return value.</p>
-<p data-msgid="5b3e3905e0593c7e9a16d19aafd96575a61e824c" data-score="0" data-since="260608">The state that was attached before the corresponding <em>Ensure</em> call
-(if any) will be attached when <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> returns.</p>
-<p data-msgid="5029ae95bce10ce0a2743286851e2f93eb26da06" data-score="0" data-since="260608">The exact behavior of whether this function deletes a thread state is
-considered unstable and implementation-dependent.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="1170d4c7d9aafed1c2b4e9ae167f6e850b2eef88" data-score="89" data-since="260612"><a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> 또는 <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a>\ 호출을 되돌립니다.</p>
+<p data-msgid="113a0b31ff0004dd54cbcd6ab1aaddfc833674c6" data-score="96" data-since="260612">이것은 성공적인 <em>Ensure</em> 호출마다 정확히 한 번 호출되어야 하며, 이때 <em>token</em> 은 해당 호출의 반환 값으로 설정해야 합니다.</p>
+<p data-msgid="5b3e3905e0593c7e9a16d19aafd96575a61e824c" data-score="94" data-since="260612">해당 <em>Ensure</em> 호출 이전에 첨부되었던 상태(있는 경우)는 <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a>\가 반환될 때 첨부됩니다.</p>
+<p data-msgid="5029ae95bce10ce0a2743286851e2f93eb26da06" data-score="92" data-since="260612">이 함수가 스레드 상태를 삭제할지 여부는 불안정하며 구현 의존적입니다.</p>
 <div class="impl-detail compound">
-<p data-msgid="be196ee94aa532f33d1dd97a3df0517433a235dc" data-score="0" data-since="260608"><strong>CPython 구현 상세:</strong> Currently, this function will decrement an internal counter on the
-attached thread state. If this counter ever reaches below zero, this
-function emits a fatal error (via <a class="reference internal" href="sys.html#c.Py_FatalError" title="Py_FatalError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FatalError()</span></code></a>).</p>
-<p data-msgid="480d3969adfb3228ed87b37c4fe6a9d5eab8822b" data-score="0" data-since="260608">If the attached thread state is owned by <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code>, then the
-attached thread state will be deallocated and deleted upon the internal counter
-reaching zero. Otherwise, nothing happens when the counter reaches zero.</p>
+<p data-msgid="be196ee94aa532f33d1dd97a3df0517433a235dc" data-score="95" data-since="260612">현재 이 함수는 첨부된 스레드 상태의 내부 카운터를 감소시킵니다. 이 카운터가 0 미만으로 내려가면, 이 함수는 치명적인 오류( <a class="reference internal" href="sys.html#c.Py_FatalError" title="Py_FatalError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FatalError()</span></code></a>\를 통해)를 발생시킵니다.</p>
+<p data-msgid="480d3969adfb3228ed87b37c4fe6a9d5eab8822b" data-score="92" data-since="260612">첨부된 스레드 상태가 <code class="docutils literal notranslate"><span class="pre">PyThreadState_Ensure</span></code>\에 의해 소유된 경우, 내부 카운터가 0에 도달하면 첨부된 스레드 상태는 할당 해제 및 삭제됩니다. 그렇지 않으면 카운터가 0에 도달해도 아무 일도 일어나지 않습니다.</p>
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
@@ -410,14 +293,13 @@ reaching zero. Otherwise, nothing happens when the counter reaches zero.</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyThreadStateToken">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadStateToken</span></span></span><a class="headerlink" href="#c.PyThreadStateToken" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> (불투명한 구조체로) 버전 3.15 이후로.</em><p data-msgid="04791df3a65a4488945a7e0e99a2c2898acacba8" data-score="0" data-since="260608">An opaque token retrieved from a <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> call
-and passed to a corresponding <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> call.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> (불투명한 구조체로) 버전 3.15 이후로.</em><p data-msgid="04791df3a65a4488945a7e0e99a2c2898acacba8" data-score="88" data-since="260612"><a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a>\ 호출에서 검색된 불투명한 토큰을 해당 <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a>\ 호출에 전달하는 것입니다.</p>
 </dd></dl>
 
 </section>
 </section>
 <section id="gil-state-apis">
-<span id="gilstate"></span><span id="legacy-api"></span><h2 data-msgid="f0ced6c151f383038a1d1a344d8196f392d38a15" data-score="0" data-since="260608">GIL-state APIs<a class="headerlink" href="#gil-state-apis" title="Link to this heading">¶</a></h2>
+<span id="gilstate"></span><span id="legacy-api"></span><h2 data-msgid="f0ced6c151f383038a1d1a344d8196f392d38a15" data-score="100" data-since="260612">GIL 상태 API<a class="headerlink" href="#gil-state-apis" title="Link to this heading">¶</a></h2>
 <p data-msgid="9c58ca268d41143e1ebf7c1f3ced7cd11ce7e689" data-score="0" data-since="260608">The following APIs are generally not compatible with subinterpreters and
 will hang the process during interpreter finalization (see
 <a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a>). As such, these APIs were
@@ -425,18 +307,17 @@ will hang the process during interpreter finalization (see
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyGILState_STATE">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_STATE</span></span></span><a class="headerlink" href="#c.PyGILState_STATE" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="f7c317b9d4307eaab4e62f29ed2d1a5aa31e0502" data-score="0" data-since="260603">The type of the value returned by <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> and passed to
-<a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a>.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="f7c317b9d4307eaab4e62f29ed2d1a5aa31e0502" data-score="95" data-since="260612"><a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>\가 반환하고 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a>\에 전달하는 값의 타입입니다.</p>
 <dl class="c enumerator">
 <dt class="sig sig-object c" id="c.PyGILState_STATE.PyGILState_LOCKED">
 <span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_LOCKED</span></span></span><a class="headerlink" href="#c.PyGILState_STATE.PyGILState_LOCKED" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="0748fe41cb9193d4fba466eab91ac70850ced7da" data-score="0" data-since="260603">The GIL was already held when <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> was called.</p>
+<dd><p data-msgid="0748fe41cb9193d4fba466eab91ac70850ced7da" data-score="73" data-since="260612"><a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>\가 호출될 때 이미 GIL이 보유되고 있었습니다.</p>
 </dd></dl>
 
 <dl class="c enumerator">
 <dt class="sig sig-object c" id="c.PyGILState_STATE.PyGILState_UNLOCKED">
 <span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_UNLOCKED</span></span></span><a class="headerlink" href="#c.PyGILState_STATE.PyGILState_UNLOCKED" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="7d3cabacf1303d63271b8921ff5c7dd68a02455a" data-score="0" data-since="260603">The GIL was not held when <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> was called.</p>
+<dd><p data-msgid="7d3cabacf1303d63271b8921ff5c7dd68a02455a" data-score="77" data-since="260612"><a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>\가 호출될 때 GIL을 보유하고 있지 않았습니다.</p>
 </dd></dl>
 
 </dd></dl>
@@ -444,103 +325,65 @@ will hang the process during interpreter finalization (see
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGILState_Ensure">
 <a class="reference internal" href="#c.PyGILState_STATE" title="PyGILState_STATE"><span class="n"><span class="pre">PyGILState_STATE</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_Ensure</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGILState_Ensure" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="db80c5733b58226bdb61fb1c409e5994e8b9d761" data-score="0" data-since="260603">Ensure that the current thread is ready to call the Python C API regardless
-of the current state of Python, or of the <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>. This may
-be called as many times as desired by a thread as long as each call is
-matched with a call to <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a>. In general, other
-thread-related APIs may be used between <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> and
-<a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> calls as long as the thread state is restored to
-its previous state before the Release().  For example, normal usage of the
-<a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a> and <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a> macros is
-acceptable.</p>
-<p data-msgid="44a26326b132ea9c3e84fa481c2382f08cb54858" data-score="0" data-since="260603">The return value is an opaque “handle” to the <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> when
-<a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> was called, and must be passed to
-<a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> to ensure Python is left in the same state. Even
-though recursive calls are allowed, these handles <em>cannot</em> be shared - each
-unique call to <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> must save the handle for its call
-to <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a>.</p>
-<p data-msgid="f87f8c14ffad9dbc7377499c3bc861784a46e852" data-score="0" data-since="260608">When the function returns, there will be an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>
-and the thread will be able to call arbitrary Python code.</p>
-<p data-msgid="b1ca1c98c0b3bb3ce96b5889cb8ac319f2984c87" data-score="0" data-since="260608">This function has no way to return an error. As such, errors are either fatal
-(that is, they send <code class="docutils literal notranslate"><span class="pre">SIGABRT</span></code> and crash the process; see
-<a class="reference internal" href="sys.html#c.Py_FatalError" title="Py_FatalError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FatalError()</span></code></a>), or the thread will be permanently blocked (such as
-during interpreter finalization).</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="db80c5733b58226bdb61fb1c409e5994e8b9d761" data-score="90" data-since="260612">현재 Python의 상태나 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>\와 관계없이 현재 스레드가 Python C API를 호출할 준비가 되었음을 보장합니다. 이 함수는 각 호출이 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a>\ 호출과 일치하는 한, 스레드에서 원하는 만큼 여러 번 호출될 수 있습니다. 일반적으로 다른 스레드 관련 API는 Release() 이전의 이전 상태로 스레드 상태를 복원하기만 한다면, <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>\와 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a>\ 호출 사이에 사용할 수 있습니다. 예를 들어, <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a>\ 및 <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code></a>\ 마크로의 정상적인 사용은 허용됩니다.</p>
+<p data-msgid="44a26326b132ea9c3e84fa481c2382f08cb54858" data-score="90" data-since="260612">반환 값은 <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> \가 호출되었을 때의 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> \에 대한 불투명한 “핸들”이며, Python이 동일한 상태로 남겨지도록 하려면 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> \에 전달해야 합니다. 재귀적 호출은 허용되지만, 이 핸들은 <em>공유</em> 될 수 없습니다. <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> \의 각 고유한 호출은 해당 호출의 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> \를 위한 핸들을 저장해야 합니다.</p>
+<p data-msgid="f87f8c14ffad9dbc7377499c3bc861784a46e852" data-since="260612">함수가 반환되면, <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>\가 존재하며 스레드는 임의의 Python 코드를 호출할 수 있게 됩니다.</p>
+<p data-msgid="b1ca1c98c0b3bb3ce96b5889cb8ac319f2984c87" data-since="260612">이 함수는 오류를 반환하는 방법이 없습니다. 따라서 오류는 치명적이거나(– 즉, <code class="docutils literal notranslate"><span class="pre">SIGABRT</span></code>\를 보내 프로세스를 충돌시키거나; <a class="reference internal" href="sys.html#c.Py_FatalError" title="Py_FatalError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FatalError()</span></code></a>\)\ 스레드가 영구적으로 차단됩니다 (인터프리터 최종화 중과 같은 경우).</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="0df9a78f58aa8f413e7b6dcbd383b6932c3a6c23" data-score="0" data-since="260608">Calling this function when the interpreter is finalizing will
-infinitely hang the thread, which may cause deadlocks.
-<a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a> for more details.</p>
-<p data-msgid="5fb3564aaecf8118e27cbe58d4f2380561ee7eca" data-score="0" data-since="260608">In addition, this function generally does not work with subinterpreters
-when used from foreign threads, because this function has no way of
-knowing which interpreter created the thread (and as such, will implicitly
-pick the main interpreter).</p>
+<p data-msgid="0df9a78f58aa8f413e7b6dcbd383b6932c3a6c23" data-since="260612">이 함수를 인터프리터가 최종화되는 동안 호출하면, 무한정 스레드를 멈추게 할 수 있으며, 이는 데드락을 유발할 수 있습니다. 더 자세한 내용은 <a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a>\을 참조하십시오.</p>
+<p data-msgid="5fb3564aaecf8118e27cbe58d4f2380561ee7eca" data-since="260612">게다가 이 함수는 외부 스레드에서 사용될 때 서브 인터프리터와 일반적으로 작동하지 않습니다. 이는 이 함수가 어떤 인터프리터가 해당 스레드를 생성했는지 알 방법이 없기 때문입니다 (따라서 암묵적으로 메인 인터프리터를 선택합니다).</p>
 </div>
-<div class="versionchanged" data-msgid="9a7b696fbb3690865568413c0d66732ce456d6f1" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.14에서 변경: </span>Hangs the current thread, rather than terminating it, if called while the
-interpreter is finalizing.</p>
+<div class="versionchanged" data-msgid="9a7b696fbb3690865568413c0d66732ce456d6f1" data-since="260612">
+<p><span class="versionmodified changed">버전 3.14에서 변경: </span>인터프리터가 파이널라이즈되는 동안 호출되면, 현재 스레드를 종료하는 대신 대기 상태로 만듭니다.</p>
 </div>
-<div class="versionchanged soft-deprecated" data-msgid="743dabf4dba65dc39c48cdf17aefdc91d0cc786c" data-score="0" data-since="260608">
-<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>Use <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> or
-<a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a> instead.</p>
+<div class="versionchanged soft-deprecated" data-msgid="743dabf4dba65dc39c48cdf17aefdc91d0cc786c" data-since="260612">
+<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>대신 <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> 또는 <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a> 를 사용하십시오.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGILState_Release">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_Release</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyGILState_STATE" title="PyGILState_STATE"><span class="n"><span class="pre">PyGILState_STATE</span></span></a><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGILState_Release" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="7aefbe817128c7cabb25bf060e82c765adeb19d2" data-score="0" data-since="260608">Release any resources previously acquired.  After this call, Python’s state will
-be the same as it was prior to the corresponding <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> call
-(but generally this state will be unknown to the caller, hence the use of the
-GIL-state API).</p>
-<p data-msgid="47f495d3314aa446611847439c56905cd00246cd" data-score="0" data-since="260603">Every call to <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> must be matched by a call to
-<a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> on the same thread.</p>
-<div class="versionchanged soft-deprecated" data-msgid="b7f807f3e839d0e5dab125e30395fd8c88936d60" data-score="0" data-since="260608">
-<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>Use <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> instead.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="7aefbe817128c7cabb25bf060e82c765adeb19d2" data-since="260612">이전에 획득 한 모든 자원을 해제합니다. 이 호출 후에, 파이썬의 상태는 해당 <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> 호출 이전과 같습니다 (그러나 일반적으로 이 상태는 호출자에게 알려지지 않아서, GIL-state API가 사용됩니다).</p>
+<p data-msgid="47f495d3314aa446611847439c56905cd00246cd" data-since="260612"><cite>:c:func:`PyGILState_Ensure</cite> 호출은 항상 동일한 스레드에서 <a class="reference internal" href="#c.PyGILState_Release" title="PyGILState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Release()</span></code></a> 호출과 짝을 이루어야 합니다.</p>
+<div class="versionchanged soft-deprecated" data-msgid="b7f807f3e839d0e5dab125e30395fd8c88936d60" data-since="260612">
+<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>대신 <a class="reference internal" href="#c.PyThreadState_Release" title="PyThreadState_Release"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Release()</span></code></a> 를 사용하십시오.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGILState_GetThisThreadState">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_GetThisThreadState</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGILState_GetThisThreadState" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="4fc1775748ca45e5a4adb9d7f546da4508f0b797" data-score="0" data-since="260608">Get the <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> that was most recently <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a> for this thread. (If the most recent thread state
-has been deleted, this returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.)</p>
-<p data-msgid="2c0782450d9b0a50ca1b223989ac49bd2ce54513" data-score="0" data-since="260608">If the caller has an attached thread state, it is returned.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="4fc1775748ca45e5a4adb9d7f546da4508f0b797" data-since="260612">이 스레드에 가장 최근에 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a> 로 <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> 데이터를 가져옵니다. (최근의 스레드 상태가 삭제된 경우, 이 값은 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환합니다.)</p>
+<p data-msgid="2c0782450d9b0a50ca1b223989ac49bd2ce54513" data-since="260612">호출자가 첨부된 스레드 상태를 가지고 있다면, 그것이 반환됩니다.</p>
 <p data-msgid="7bffafbd08ff5038f10c2a018e3a19b92541210e" data-score="0" data-since="260608">In other terms, this function returns the thread state that will be used by
 <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>. If this returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, then
 <code class="docutils literal notranslate"><span class="pre">PyGILState_Ensure</span></code> will create a new thread state.</p>
-<p data-msgid="99d1e301084bc3dc84e9911cb3028b89f3f7860a" data-score="0" data-since="260608">This function cannot fail.</p>
-<div class="versionchanged soft-deprecated" data-msgid="53937b54594d9b5ab9c3698f4b4c169547771bb5" data-score="0" data-since="260608">
-<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>Use <a class="reference internal" href="#c.PyThreadState_Get" title="PyThreadState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Get()</span></code></a> or <a class="reference internal" href="#c.PyThreadState_GetUnchecked" title="PyThreadState_GetUnchecked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span></code></a>
-instead.</p>
+<p data-msgid="99d1e301084bc3dc84e9911cb3028b89f3f7860a" data-since="260612">이 함수는 실패할 수 없습니다.</p>
+<div class="versionchanged soft-deprecated" data-msgid="53937b54594d9b5ab9c3698f4b4c169547771bb5" data-since="260612">
+<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>대신 <a class="reference internal" href="#c.PyThreadState_Get" title="PyThreadState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Get()</span></code></a> 또는 <a class="reference internal" href="#c.PyThreadState_GetUnchecked" title="PyThreadState_GetUnchecked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span></code></a> 를 사용하십시오.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyGILState_Check">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyGILState_Check</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyGILState_Check" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="c0afb9655230b519e966063645ac8923a83711ae" data-score="0" data-since="260608">Return <code class="docutils literal notranslate"><span class="pre">1</span></code> if the current thread has an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>
-that matches the thread state returned by
-<a class="reference internal" href="#c.PyGILState_GetThisThreadState" title="PyGILState_GetThisThreadState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_GetThisThreadState()</span></code></a>. If the caller has no attached thread
-state or it otherwise doesn’t match, then this returns <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
-<p data-msgid="be429f5b075bbc886e1526498c0363fd065b42a1" data-score="0" data-since="260608">If the current Python process has ever created a subinterpreter, this
-function will <em>always</em> return <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
-<p data-msgid="a9c859447776e089c9b4a0ac46c06a3db686ae67" data-score="0" data-since="260608">This is mainly a helper/diagnostic function.</p>
+<dd><p data-msgid="c0afb9655230b519e966063645ac8923a83711ae" data-since="260612">현재 스레드가 <a class="reference internal" href="#c.PyGILState_GetThisThreadState" title="PyGILState_GetThisThreadState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_GetThisThreadState()</span></code></a> 에서 반환된 스레드 상태와 일치하는 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> 를 가지고 있다면 <code class="docutils literal notranslate"><span class="pre">1</span></code> 을 반환합니다. 호출자에게 첨부된 스레드 상태가 없거나 다르게 일치하지 않으면, 이는 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환합니다.</p>
+<p data-msgid="be429f5b075bbc886e1526498c0363fd065b42a1" data-since="260612">현재 파이썬 프로세스가 서브 인터프리터를 생성한 적이 있다면, 이 함수는 <em>항상</em> <code class="docutils literal notranslate"><span class="pre">1</span></code> 을 반환할 것입니다.</p>
+<p data-msgid="a9c859447776e089c9b4a0ac46c06a3db686ae67" data-since="260612">이는 주로 헬퍼/진단용 함수입니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.4.</span></p>
 </div>
-<div class="versionchanged soft-deprecated" data-msgid="a0f3443f9034d3e2639e6071f5a5327842a8be0c" data-score="0" data-since="260608">
-<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>Use <code class="docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span> <span class="pre">!=</span> <span class="pre">NULL</span></code> instead.</p>
+<div class="versionchanged soft-deprecated" data-msgid="a0f3443f9034d3e2639e6071f5a5327842a8be0c" data-since="260612">
+<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>대신 <code class="docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span> <span class="pre">!=</span> <span class="pre">NULL</span></code> 를 사용하십시오.</p>
 </div>
 </dd></dl>
 
 </section>
 <section id="cautions-about-fork">
-<span id="fork-and-threads"></span><h2 data-msgid="eb26d202248d9b936250ac42b9d90224d93ea36c" data-score="0" data-since="260603">Cautions about fork()<a class="headerlink" href="#cautions-about-fork" title="Link to this heading">¶</a></h2>
-<p data-msgid="e79eda6671657a2c9b05c9341235ea2729deafa1" data-score="0" data-since="260603">Another important thing to note about threads is their behaviour in the face
-of the C <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> call. On most systems with <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code>, after a
-process forks only the thread that issued the fork will exist.  This has a
-concrete impact both on how locks must be handled and on all stored state
-in CPython’s runtime.</p>
+<span id="fork-and-threads"></span><h2 data-msgid="eb26d202248d9b936250ac42b9d90224d93ea36c" data-since="260612">fork()에 대한 주의 사항<a class="headerlink" href="#cautions-about-fork" title="Link to this heading">¶</a></h2>
+<p data-msgid="e79eda6671657a2c9b05c9341235ea2729deafa1" data-since="260612">스레드에 관해 알아야 할 또 다른 중요한 사실은 C <code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> 호출에 직면했을 때의 동작입니다. 대부분의 시스템에서 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>fork`가 있으면, 프로세스가 포크된 후에는 포크를 발생시킨 스레드만 존재하게 됩니다. 이는 락을 처리하는 방법과 CPython 런타임의 모든 저장된 상태 모두에 구체적인 영향을 미칩니다.</p>
 <p data-msgid="5d7a4e299e5a0c286fb98183451fe1db089cc169" data-score="0" data-since="260603">The fact that only the “current” thread remains
 means any locks held by other threads will never be released. Python solves
 this for <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> by acquiring the locks it uses internally before
@@ -555,30 +398,19 @@ into Python) may result in a deadlock by one of Python’s internal locks
 being held by a thread that is defunct after the fork.
 <a class="reference internal" href="sys.html#c.PyOS_AfterFork_Child" title="PyOS_AfterFork_Child"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyOS_AfterFork_Child()</span></code></a> tries to reset the necessary locks, but is not
 always able to.</p>
-<p data-msgid="a6631ad5aea2a2b851bf996f74b5c69528847817" data-score="0" data-since="260603">The fact that all other threads go away also means that CPython’s
-runtime state there must be cleaned up properly, which <a class="reference internal" href="../library/os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a>
-does.  This means finalizing all other <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> objects
-belonging to the current interpreter and all other
-<a class="reference internal" href="subinterpreters.html#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> objects.  Due to this and the special
-nature of the <a class="reference internal" href="subinterpreters.html#sub-interpreter-support"><span class="std std-ref">“main” interpreter</span></a>,
-<code class="xref c c-func docutils literal notranslate"><span class="pre">fork()</span></code> should only be called in that interpreter’s “main”
-thread, where the CPython global runtime was originally initialized.
-The only exception is if <code class="xref c c-func docutils literal notranslate"><span class="pre">exec()</span></code> will be called immediately
-after.</p>
+<p data-msgid="a6631ad5aea2a2b851bf996f74b5c69528847817" data-since="260612">다른 모든 스레드가 사라진다는 사실은 또한 CPython의 런타임 상태도 <code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork`가</span> <span class="pre">하는</span> <span class="pre">것처럼</span> <span class="pre">적절하게</span> <span class="pre">정리되어야</span> <span class="pre">함을</span> <span class="pre">의미합니다.</span> <span class="pre">이는</span> <span class="pre">현재</span> <span class="pre">인터프리터에</span> <span class="pre">속하는</span> <span class="pre">다른</span> <span class="pre">모든</span> <span class="pre">:c:type:`PyThreadState()</span></code> 객체와 모든 다른 <a class="reference internal" href="subinterpreters.html#c.PyInterpreterState" title="PyInterpreterState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyInterpreterState</span></code></a> 객체를 파이널라이제이션 함을 의미합니다. 이것과 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>”메인” 인터프리터 &lt;sub-interpreter-support&gt;`의 특수한 특성 때문에, :c:func:<a href="#id3"><span class="problematic" id="id4">`</span></a>fork`는 CPython 전역 런타임이 원래 초기화된 인터프리터의 “메인” 스레드에서만 호출되어야 합니다. 유일한 예외는 그 후에 :c:func:<a href="#id5"><span class="problematic" id="id6">`</span></a>exec`가 즉시 호출되는 경우입니다.</p>
 </section>
 <section id="high-level-apis">
-<h2 data-msgid="3a945e4de6304d6bdbf4f30080b6be3140c870fe" data-score="0" data-since="260603">High-level APIs<a class="headerlink" href="#high-level-apis" title="Link to this heading">¶</a></h2>
-<p data-msgid="d439139d3b0d834480aebb0d2e086345631264eb" data-score="0" data-since="260608">These are the most commonly used types and functions when writing multi-threaded
-C extensions.</p>
+<h2 data-msgid="3a945e4de6304d6bdbf4f30080b6be3140c870fe" data-since="260612">고수준 API<a class="headerlink" href="#high-level-apis" title="Link to this heading">¶</a></h2>
+<p data-msgid="d439139d3b0d834480aebb0d2e086345631264eb" data-since="260612">다음은 멀티스레드 C 확장 코드를 작성할 때 가장 일반적으로 사용되는 형식과 함수입니다.</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.PyThreadState">
 <span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState</span></span></span><a class="headerlink" href="#c.PyThreadState" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> (불투명한 구조체로).</em><p data-msgid="d8701fa2ecb0a949e346d2be1b44deab0342fb90" data-score="0" data-since="260603">This data structure represents the state of a single thread.  The only public
-data member is:</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> (불투명한 구조체로).</em><p data-msgid="d8701fa2ecb0a949e346d2be1b44deab0342fb90" data-since="260612">이 자료 구조는 단일 스레드의 상태를 나타냅니다. 공개 데이터 멤버는 다음과 같습니다:</p>
 <dl class="c member">
 <dt class="sig sig-object c" id="c.PyThreadState.interp">
 <a class="reference internal" href="subinterpreters.html#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">interp</span></span></span><a class="headerlink" href="#c.PyThreadState.interp" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="56e8ad31c5a152580432c67c3184e0babb42e6fd" data-score="0" data-since="260603">This thread’s interpreter state.</p>
+<dd><p data-msgid="56e8ad31c5a152580432c67c3184e0babb42e6fd" data-since="260612">이 스레드에 대한 인터프리터 상태입니다.</p>
 </dd></dl>
 
 </dd></dl>
@@ -586,10 +418,10 @@ data member is:</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyEval_InitThreads">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyEval_InitThreads</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_InitThreads" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="1b075fb937dda2b5806298de3f846585fd07af40" data-score="0" data-since="260603" id="index-6">Deprecated function which does nothing.</p>
-<p data-msgid="cabe6a4dcb1614b83eaa69b5c7a7b811275ac334" data-score="0" data-since="260603">In Python 3.6 and older, this function created the GIL if it didn’t exist.</p>
-<div class="versionchanged" data-msgid="4daf003f758f569ef398b1163c6fad8bc25e6eb5" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.9에서 변경: </span>The function now does nothing.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="1b075fb937dda2b5806298de3f846585fd07af40" data-since="260612" id="index-6">아무것도 하지 않는 폐지된 함수입니다.</p>
+<p data-msgid="cabe6a4dcb1614b83eaa69b5c7a7b811275ac334" data-since="260612">Python 3.6 이전 버전에서는 이 함수가 GIL이 존재하지 않으면 생성했습니다.</p>
+<div class="versionchanged" data-msgid="4daf003f758f569ef398b1163c6fad8bc25e6eb5" data-since="260612">
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>이제 이 경고 문서는 아무 작업도 수행하지 않습니다.</p>
 </div>
 <div class="versionchanged" data-msgid="653c98f1ab60d7ae7516b74ab624814410fa9af8" data-score="0" data-since="260603">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span>This function is now called by <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>, so you don’t
@@ -618,14 +450,10 @@ The passed <a class="reference internal" href="../glossary.html#term-thread-stat
 otherwise deadlock ensues. <em>tstate</em> will be attached upon returning.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="1ff12ffa2352d5eb041246d7479749a0714f878d" data-score="0" data-since="260603">Calling this function from a thread when the runtime is finalizing will
-hang the thread until the program exits, even if the thread was not
-created by Python.  Refer to
-<a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a> for more details.</p>
+<p data-msgid="1ff12ffa2352d5eb041246d7479749a0714f878d" data-since="260612">런타임이 파이널리징 될 때 스레드에서 이 함수를 호출하면, 스레드가 파이썬에 의해 생성되지 않았더라도 프로그램이 종료될 때까지 해당 스레드가 멈추게 됩니다. 자세한 내용은 <a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a> 을 참조하십시오.</p>
 </div>
-<div class="versionchanged" data-msgid="9a7b696fbb3690865568413c0d66732ce456d6f1" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.14에서 변경: </span>Hangs the current thread, rather than terminating it, if called while the
-interpreter is finalizing.</p>
+<div class="versionchanged" data-msgid="9a7b696fbb3690865568413c0d66732ce456d6f1" data-since="260612">
+<p><span class="versionmodified changed">버전 3.14에서 변경: </span>인터프리터가 파이널라이즈되는 동안 호출되면, 현재 스레드를 종료하는 대신 대기 상태로 만듭니다.</p>
 </div>
 </dd></dl>
 
@@ -636,18 +464,15 @@ interpreter is finalizing.</p>
 thread state, (such as when inside of <a class="reference internal" href="#c.Py_BEGIN_ALLOW_THREADS" title="Py_BEGIN_ALLOW_THREADS"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code></a>
 block), then this issues a fatal error (so that the caller needn’t check
 for <code class="docutils literal notranslate"><span class="pre">NULL</span></code>).</p>
-<p data-msgid="9ce3e5eaf84c82c1e49b0971863e15da00443812" data-score="0" data-since="260603">See also <a class="reference internal" href="#c.PyThreadState_GetUnchecked" title="PyThreadState_GetUnchecked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span></code></a>.</p>
+<p data-msgid="9ce3e5eaf84c82c1e49b0971863e15da00443812" data-since="260612">또한 <a class="reference internal" href="#c.PyThreadState_GetUnchecked" title="PyThreadState_GetUnchecked"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_GetUnchecked()</span></code></a> 를 참조하십시오.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_GetUnchecked">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_GetUnchecked</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_GetUnchecked" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="5395cf7e19d2e617b9b2801ce2526581b3464a83" data-score="0" data-since="260603">Similar to <a class="reference internal" href="#c.PyThreadState_Get" title="PyThreadState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Get()</span></code></a>, but don’t kill the process with a
-fatal error if it is NULL. The caller is responsible to check if the result
-is NULL.</p>
-<div class="versionadded" data-msgid="9449903fa260d85441c0a07fdfb7766fd22751e3" data-score="0" data-since="260603">
-<p><span class="versionmodified added">Added in version 3.13: </span>In Python 3.5 to 3.12, the function was private and known as
-<code class="docutils literal notranslate"><span class="pre">_PyThreadState_UncheckedGet()</span></code>.</p>
+<dd><p data-msgid="5395cf7e19d2e617b9b2801ce2526581b3464a83" data-since="260612"><a class="reference internal" href="#c.PyThreadState_Get" title="PyThreadState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Get()</span></code></a> 과 유사하지만, NULL인 경우 프로세스를 치명적 오류로 종료하지 않습니다. 결과가 NULL인지 여부는 호출자가 확인해야 합니다.</p>
+<div class="versionadded" data-msgid="9449903fa260d85441c0a07fdfb7766fd22751e3" data-since="260612">
+<p><span class="versionmodified added">Added in version 3.13: </span>Python 3.5부터 3.12까지 이 함수는 비공개였으며 <code class="docutils literal notranslate"><span class="pre">_PyThreadState_UncheckedGet()</span></code> 으로 알려져 있었습니다.</p>
 </div>
 </dd></dl>
 
@@ -660,18 +485,17 @@ is NULL.</p>
 will simply return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> indicating that there was no prior thread state.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="01d4b845fe296db244a0903cfd34423ecbe9aeb1" data-score="0" data-since="260603"><a class="reference internal" href="#c.PyEval_ReleaseThread" title="PyEval_ReleaseThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_ReleaseThread()</span></code></a></p>
+<p data-msgid="01d4b845fe296db244a0903cfd34423ecbe9aeb1" data-since="260612"><a class="reference internal" href="#c.PyEval_ReleaseThread" title="PyEval_ReleaseThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_ReleaseThread()</span></code></a></p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="82e836d9062f4dccbb74f4f69ffd4ad0e6a23eb7" data-score="0" data-since="260603">Similar to <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>, this function will hang the
-thread if the runtime is finalizing.</p>
+<p data-msgid="82e836d9062f4dccbb74f4f69ffd4ad0e6a23eb7" data-since="260612"><a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> 와 유사하게, 이 함수는 런타임이 파이널라이징 될 때 스레드를 중지(hang)성게 됩니다.</p>
 </div>
 </dd></dl>
 
 </section>
 <section id="low-level-apis">
-<h2 data-msgid="b38b638f8a783319921b9ded343024596436ca9a" data-score="0" data-since="260603">Low-level APIs<a class="headerlink" href="#low-level-apis" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="b38b638f8a783319921b9ded343024596436ca9a" data-since="260612">저수준 API<a class="headerlink" href="#low-level-apis" title="Link to this heading">¶</a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_New">
 <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_New</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="subinterpreters.html#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_New" title="Link to this definition">¶</a><br /></dt>
@@ -684,9 +508,8 @@ An <a class="reference internal" href="../glossary.html#term-attached-thread-sta
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_Clear</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_Clear" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="881794d56f357c86fe8277a0400471f7eb73edb1" data-score="0" data-since="260603">Reset all information in a <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> object.  <em>tstate</em>
 must be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a></p>
-<div class="versionchanged" data-msgid="e87daa084ee8096dc4995e2fbba75a26079284b9" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.9에서 변경: </span>This function now calls the <code class="xref c c-member docutils literal notranslate"><span class="pre">PyThreadState.on_delete</span></code> callback.
-Previously, that happened in <a class="reference internal" href="#c.PyThreadState_Delete" title="PyThreadState_Delete"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Delete()</span></code></a>.</p>
+<div class="versionchanged" data-msgid="e87daa084ee8096dc4995e2fbba75a26079284b9" data-since="260612">
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>이 함수는 이제 <code class="xref c c-member docutils literal notranslate"><span class="pre">PyThreadState.on_delete</span></code> 콜백을 호출합니다. 이전에는 그것이 <a class="reference internal" href="#c.PyThreadState_Delete" title="PyThreadState_Delete"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Delete()</span></code></a> 에서 발생했습니다.</p>
 </div>
 <div class="versionchanged" data-msgid="79b57d2180ad63a66f0cc86c1a2962c63dad692a" data-score="0" data-since="260603">
 <p><span class="versionmodified changed">버전 3.13에서 변경: </span>The <code class="xref c c-member docutils literal notranslate"><span class="pre">PyThreadState.on_delete</span></code> callback was removed.</p>
@@ -714,10 +537,9 @@ returning.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_GetFrame">
 <a class="reference internal" href="frame.html#c.PyFrameObject" title="PyFrameObject"><span class="n"><span class="pre">PyFrameObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_GetFrame</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_GetFrame" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="9e94ed9b23ee44576077149d89464b95af831e38" data-score="0" data-since="260603">Get the current frame of the Python thread state <em>tstate</em>.</p>
-<p data-msgid="e30d95c57c844f289692d7134143be9d4991e271" data-score="0" data-since="260603">Return a <a class="reference internal" href="../glossary.html#term-strong-reference"><span class="xref std std-term">strong reference</span></a>. Return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> if no frame is currently
-executing.</p>
-<p data-msgid="c8853ef3acd3dec3db0471367b384cbf73b61d69" data-score="0" data-since="260603">See also <a class="reference internal" href="reflection.html#c.PyEval_GetFrame" title="PyEval_GetFrame"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_GetFrame()</span></code></a>.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="9e94ed9b23ee44576077149d89464b95af831e38" data-since="260612">파이썬 스레드 상태 <em>tstate</em> 의 현재 프레임을 가져옵니다.</p>
+<p data-msgid="e30d95c57c844f289692d7134143be9d4991e271" data-since="260612"><a class="reference internal" href="../glossary.html#term-strong-reference"><span class="xref std std-term">strong reference</span></a> 를 반환합니다. 현재 실행 중인 프레임이 없으면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환합니다.</p>
+<p data-msgid="c8853ef3acd3dec3db0471367b384cbf73b61d69" data-since="260612">또한 <a class="reference internal" href="reflection.html#c.PyEval_GetFrame" title="PyEval_GetFrame"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_GetFrame()</span></code></a> 을 참조하십시오.</p>
 <p data-msgid="acb3d4bc41e7d24a1e363e1d9fd6f2b0fa60b15c" data-score="0" data-since="260603"><em>tstate</em> must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, and must be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
@@ -737,7 +559,7 @@ executing.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_GetInterpreter">
 <a class="reference internal" href="subinterpreters.html#c.PyInterpreterState" title="PyInterpreterState"><span class="n"><span class="pre">PyInterpreterState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_GetInterpreter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_GetInterpreter" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="00d44704c469e7a6316f1e863008f9891a11d5fe" data-score="0" data-since="260603">Get the interpreter of the Python thread state <em>tstate</em>.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.10 이후로.</em><p data-msgid="00d44704c469e7a6316f1e863008f9891a11d5fe" data-since="260612">파이썬 스레드 상태 <em>tstate</em> 의 인터프리터를 가져옵니다.</p>
 <p data-msgid="acb3d4bc41e7d24a1e363e1d9fd6f2b0fa60b15c" data-score="0" data-since="260603"><em>tstate</em> must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, and must be <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.9.</span></p>
@@ -747,8 +569,8 @@ executing.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_EnterTracing">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_EnterTracing</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_EnterTracing" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="3626b62b798cc5586b481228516a36e70756a9df" data-score="0" data-since="260603">Suspend tracing and profiling in the Python thread state <em>tstate</em>.</p>
-<p data-msgid="4c57722e243b7b61e0312f60ccd62da8256360ca" data-score="0" data-since="260603">Resume them using the <a class="reference internal" href="#c.PyThreadState_LeaveTracing" title="PyThreadState_LeaveTracing"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_LeaveTracing()</span></code></a> function.</p>
+<dd><p data-msgid="3626b62b798cc5586b481228516a36e70756a9df" data-since="260612">파이썬 스레드 상태 <em>tstate</em> 에서 추적 및 프로파일링을 일시 중지합니다.</p>
+<p data-msgid="4c57722e243b7b61e0312f60ccd62da8256360ca" data-since="260612"><a class="reference internal" href="#c.PyThreadState_LeaveTracing" title="PyThreadState_LeaveTracing"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_LeaveTracing()</span></code></a> 함수를 사용하여 재개합니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.11.</span></p>
 </div>
@@ -757,10 +579,8 @@ executing.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_LeaveTracing">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_LeaveTracing</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_LeaveTracing" title="Link to this definition">¶</a><br /></dt>
-<dd><p data-msgid="e8b66974d3d7b4d65e4d0b8a5dc114c59a5b4729" data-score="0" data-since="260603">Resume tracing and profiling in the Python thread state <em>tstate</em> suspended
-by the <a class="reference internal" href="#c.PyThreadState_EnterTracing" title="PyThreadState_EnterTracing"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnterTracing()</span></code></a> function.</p>
-<p data-msgid="fb905ac8c68ca9f8aab2b663390888939e7d95a0" data-score="0" data-since="260603">See also <a class="reference internal" href="profiling.html#c.PyEval_SetTrace" title="PyEval_SetTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetTrace()</span></code></a> and <a class="reference internal" href="profiling.html#c.PyEval_SetProfile" title="PyEval_SetProfile"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetProfile()</span></code></a>
-functions.</p>
+<dd><p data-msgid="e8b66974d3d7b4d65e4d0b8a5dc114c59a5b4729" data-since="260612"><a class="reference internal" href="#c.PyThreadState_EnterTracing" title="PyThreadState_EnterTracing"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnterTracing()</span></code></a> 함수에 의해 일시 중지된 파이썬 스레드 상태 <em>tstate</em> 에서의 추적 및 프로파일링을 재개합니다.</p>
+<p data-msgid="fb905ac8c68ca9f8aab2b663390888939e7d95a0" data-since="260612">또한 <a class="reference internal" href="profiling.html#c.PyEval_SetTrace" title="PyEval_SetTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetTrace()</span></code></a> 와 <a class="reference internal" href="profiling.html#c.PyEval_SetProfile" title="PyEval_SetProfile"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SetProfile()</span></code></a> 함수를 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.11.</span></p>
 </div>
@@ -771,23 +591,11 @@ functions.</p>
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_ThreadState_SetStackProtection</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stack_start_addr</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">stack_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_ThreadState_SetStackProtection" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="unstable-c-api warning admonition">
 <em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. 경고 없이 사소 버전에서 변경될 수 있습니다.</em></div>
-<p data-msgid="77319aa6a48abcfcf109a3f51ad65a074fa04c0f" data-score="0" data-since="260608">Set the stack protection start address and stack protection size
-of a Python thread state.</p>
-<p data-msgid="bea3e99bf14996f0cf34e00c3bfe23cf18c8b734" data-score="0" data-since="260608">On success, return <code class="docutils literal notranslate"><span class="pre">0</span></code>.
-On failure, set an exception and return <code class="docutils literal notranslate"><span class="pre">-1</span></code>.</p>
-<p data-msgid="8b35c21f860b506ebfd4aeb5464a03a46397b78a" data-score="0" data-since="260608">CPython implements <a class="reference internal" href="exceptions.html#recursion"><span class="std std-ref">recursion control</span></a> for C code by raising
-<a class="reference internal" href="../library/exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RecursionError</span></code></a> when it notices that the machine execution stack is close
-to overflow. See for example the <a class="reference internal" href="exceptions.html#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a> function.
-For this, it needs to know the location of the current thread’s stack, which it
-normally gets from the operating system.
-When the stack is changed, for example using context switching techniques like the
-Boost library’s <code class="docutils literal notranslate"><span class="pre">boost::context</span></code>, you must call
-<a class="reference internal" href="#c.PyUnstable_ThreadState_SetStackProtection" title="PyUnstable_ThreadState_SetStackProtection"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_ThreadState_SetStackProtection()</span></code></a> to inform CPython of the change.</p>
-<p data-msgid="3e9cd2bc5532ef9562ec07968856bda729238e11" data-score="0" data-since="260608">Call <a class="reference internal" href="#c.PyUnstable_ThreadState_SetStackProtection" title="PyUnstable_ThreadState_SetStackProtection"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_ThreadState_SetStackProtection()</span></code></a> either before
-or after changing the stack.
-Do not call any other Python C API between the call and the stack
-change.</p>
-<p data-msgid="421fe56702aad5ccd9a2610cf3c1bfbaff86f774" data-score="0" data-since="260608">See <a class="reference internal" href="#c.PyUnstable_ThreadState_ResetStackProtection" title="PyUnstable_ThreadState_ResetStackProtection"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_ThreadState_ResetStackProtection()</span></code></a> for undoing this operation.</p>
+<p data-msgid="77319aa6a48abcfcf109a3f51ad65a074fa04c0f" data-since="260612">파이썬 스레드 상태의 스택 보호 시작 주소와 크기를 설정합니다.</p>
+<p data-msgid="bea3e99bf14996f0cf34e00c3bfe23cf18c8b734" data-since="260612">성공하면, <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환합니다. 실패하면, 예외를 설정하고 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 을 반환합니다.</p>
+<p data-msgid="8b35c21f860b506ebfd4aeb5464a03a46397b78a" data-since="260612">CPython은 C 코드에 대해 <a class="reference internal" href="exceptions.html#recursion"><span class="std std-ref">recursion control</span></a> 을 구현하며, 기계 실행 스택이 오버플로우에 가까워진 것을 감지하면 <a class="reference internal" href="../library/exceptions.html#RecursionError" title="RecursionError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RecursionError</span></code></a> 를 발생시킵니다. 예를 들어 <a class="reference internal" href="exceptions.html#c.Py_EnterRecursiveCall" title="Py_EnterRecursiveCall"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EnterRecursiveCall()</span></code></a> 함수를 참조하십시오. 이를 위해 현재 스레드의 스택 위치를 알아야 하는데, 이는 일반적으로 운영체제로부터 얻어옵니다. 스택이 변경되는 경우 (예를 들어 Boost 라이브러리의 <code class="docutils literal notranslate"><span class="pre">boost::context</span></code> 와 같은 컨텍스트 전환 기술을 사용하는 경우), CPython에 그 변경 사항을 알리기 위해 <a class="reference internal" href="#c.PyUnstable_ThreadState_SetStackProtection" title="PyUnstable_ThreadState_SetStackProtection"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_ThreadState_SetStackProtection()</span></code></a> 을 호출해야 합니다.</p>
+<p data-msgid="3e9cd2bc5532ef9562ec07968856bda729238e11" data-since="260612">스택 변경 전 또는 후에 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyUnstable_ThreadState_SetStackProtection`을 호출해야 합니다. 이 호출과 스택 변경 사이에는 다른 Python C API를 호출하지 마십시오.</p>
+<p data-msgid="421fe56702aad5ccd9a2610cf3c1bfbaff86f774" data-since="260612">이 작업을 취소하려면 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyUnstable_ThreadState_ResetStackProtection`을 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
@@ -798,9 +606,8 @@ change.</p>
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyUnstable_ThreadState_ResetStackProtection</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyUnstable_ThreadState_ResetStackProtection" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="unstable-c-api warning admonition">
 <em>이것은 <a class="reference internal" href="stable.html#unstable-c-api"><span class="std std-ref">불안정 API</span></a>. 경고 없이 사소 버전에서 변경될 수 있습니다.</em></div>
-<p data-msgid="e8eb35d6ba436d73450bdf1171197d33d6ed9263" data-score="0" data-since="260608">Reset the stack protection start address and stack protection size
-of a Python thread state to the operating system defaults.</p>
-<p data-msgid="b4666b4105cc88ad7e85aa2b60b16963fe7e057f" data-score="0" data-since="260608">See <a class="reference internal" href="#c.PyUnstable_ThreadState_SetStackProtection" title="PyUnstable_ThreadState_SetStackProtection"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyUnstable_ThreadState_SetStackProtection()</span></code></a> for an explanation.</p>
+<p data-msgid="e8eb35d6ba436d73450bdf1171197d33d6ed9263" data-since="260612">Python 스레드 상태의 스택 보호 시작 주소와 크기를 운영 체제 기본값으로 재설정합니다.</p>
+<p data-msgid="b4666b4105cc88ad7e85aa2b60b16963fe7e057f" data-since="260612">설명은 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyUnstable_ThreadState_SetStackProtection`을 참조하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
 </div>
@@ -809,111 +616,70 @@ of a Python thread state to the operating system defaults.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThreadState_GetDict">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyThreadState_GetDict</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThreadState_GetDict" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="refcount return_borrowed_ref">반환값: 빌린 참조.</em><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="77b7cca1e6c33bf77f4e1b8fc6aacd0910d83039" data-score="0" data-since="260608">Return a dictionary in which extensions can store thread-specific state
-information.  Each extension should use a unique key to store a state in
-the dictionary.  It is okay to call this function when no <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a>
-is <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>. If this function returns
-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> and no exception has been raised, then the caller should assume no
-thread state is attached.</p>
+<dd><em class="refcount return_borrowed_ref">반환값: 빌린 참조.</em><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="77b7cca1e6c33bf77f4e1b8fc6aacd0910d83039" data-since="260612">확장 프로그램이 스레드별 상태 정보를 저장할 수 있는 사전(dictionary)을 반환합니다. 각 확장 프로그램은 딕셔너리에 state를 저장하기 위해 고유한 키를 사용해야 합니다. <a class="reference internal" href="../glossary.html#term-thread-state"><span class="xref std std-term">thread state</span></a> 가 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a> 되지 않았을 때 이 함수를 호출하는 것은 문제가 없습니다. 이 함수가 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환하고 예외가 발생하지 않은 경우, 호출자는 스레드 상태가 연결되어 있지 않다고 가정하면 됩니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyEval_AcquireThread">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyEval_AcquireThread</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_AcquireThread" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="254f0434875ebc880af4187db6870191d8b060e7" data-score="0" data-since="260603"><a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">Attach</span></a> <em>tstate</em> to the current thread,
-which must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or already <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>.</p>
-<p data-msgid="e0e7e39cf85ad3b92f5e82efe12d9d68c4d7824a" data-score="0" data-since="260603">The calling thread must not already have an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="254f0434875ebc880af4187db6870191d8b060e7" data-since="260612"><a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">Attach</span></a> <em>tstate</em> 를 현재 스레드에 연결합니다. 이 값은 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 이 아니거나 이미 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached</span></a>:<a href="#id1"><span class="problematic" id="id2">`</span></a>로 비어 있지 않아야 합니다.</p>
+<p data-msgid="e0e7e39cf85ad3b92f5e82efe12d9d68c4d7824a" data-since="260612">호출하는 스레드는 이미 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`를 가지고 있어서는 안 됩니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="1ff12ffa2352d5eb041246d7479749a0714f878d" data-score="0" data-since="260603">Calling this function from a thread when the runtime is finalizing will
-hang the thread until the program exits, even if the thread was not
-created by Python.  Refer to
-<a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a> for more details.</p>
+<p data-msgid="1ff12ffa2352d5eb041246d7479749a0714f878d" data-since="260612">런타임이 파이널리징 될 때 스레드에서 이 함수를 호출하면, 스레드가 파이썬에 의해 생성되지 않았더라도 프로그램이 종료될 때까지 해당 스레드가 멈추게 됩니다. 자세한 내용은 <a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널라이제이션 관련 주의사항</span></a> 을 참조하십시오.</p>
 </div>
-<div class="versionchanged" data-msgid="4560e53c724c8c76097b8acc322814dea14e7e97" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.8에서 변경: </span>Updated to be consistent with <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a>,
-<a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS()</span></code></a>, and <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a>,
-and terminate the current thread if called while the interpreter is finalizing.</p>
+<div class="versionchanged" data-msgid="4560e53c724c8c76097b8acc322814dea14e7e97" data-since="260612">
+<p><span class="versionmodified changed">버전 3.8에서 변경: </span><a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a>, <a class="reference internal" href="#c.Py_END_ALLOW_THREADS" title="Py_END_ALLOW_THREADS"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS()</span></code></a>, 및 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyGILState_Ensure`와 일관되도록 업데이트되었으며, 인터프리터가 파이널라이즈되는 동안 호출되면 현재 스레드를 종료합니다.</p>
 </div>
-<div class="versionchanged" data-msgid="9a7b696fbb3690865568413c0d66732ce456d6f1" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.14에서 변경: </span>Hangs the current thread, rather than terminating it, if called while the
-interpreter is finalizing.</p>
+<div class="versionchanged" data-msgid="9a7b696fbb3690865568413c0d66732ce456d6f1" data-since="260612">
+<p><span class="versionmodified changed">버전 3.14에서 변경: </span>인터프리터가 파이널라이즈되는 동안 호출되면, 현재 스레드를 종료하는 대신 대기 상태로 만듭니다.</p>
 </div>
-<p data-msgid="2b52f691b828e00fad93e0c82e9a4932e8db5b55" data-score="0" data-since="260603"><a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a> is a higher-level function which is always
-available (even when threads have not been initialized).</p>
+<p data-msgid="2b52f691b828e00fad93e0c82e9a4932e8db5b55" data-since="260612">:c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyEval_RestoreThread`는 (스레드가 초기화되지 않았을 때조차) 항상 사용할 수 있는 고수준 함수입니다.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyEval_ReleaseThread">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyEval_ReleaseThread</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><span class="n"><span class="pre">PyThreadState</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tstate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyEval_ReleaseThread" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="d053c7c6e17429aab987e3f879ed061835171f38" data-score="0" data-since="260603">Detach the <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.
-The <em>tstate</em> argument, which must not be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, is only used to check
-that it represents the <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> — if it isn’t, a fatal error is
-reported.</p>
-<p data-msgid="bd52f37955abdf121bd52102841f7456ac933a09" data-score="0" data-since="260603"><a class="reference internal" href="#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> is a higher-level function which is always
-available (even when threads have not been initialized).</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="d053c7c6e17429aab987e3f879ed061835171f38" data-since="260612"><a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> 를 분리합니다. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 이 아니어야 하는 <em>tstate</em> 인수는 이것이 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> 를 나타내하는지 확인하기 위해서만 사용됩니다—그렇지 않은 경우, 치명적인 오류가 보고됩니다.</p>
+<p data-msgid="bd52f37955abdf121bd52102841f7456ac933a09" data-since="260612">:c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyEval_SaveThread`는 (스레드가 초기화되지 않았을 때조차) 항상 사용할 수 있는 고수준 함수입니다.</p>
 </dd></dl>
 
 </section>
 </section>
 <section id="asynchronous-notifications">
-<h1 data-msgid="2df114ecbb586499e1593b3cabe22663a7f5a61a" data-score="0" data-since="260608">Asynchronous notifications<a class="headerlink" href="#asynchronous-notifications" title="Link to this heading">¶</a></h1>
-<p data-msgid="8c945758e20ce719d7c24482c2de7cab936385ff" data-score="0" data-since="260603">A mechanism is provided to make asynchronous notifications to the main
-interpreter thread.  These notifications take the form of a function
-pointer and a void pointer argument.</p>
+<h1 data-msgid="2df114ecbb586499e1593b3cabe22663a7f5a61a" data-since="260612">비동기 알림<a class="headerlink" href="#asynchronous-notifications" title="Link to this heading">¶</a></h1>
+<p data-msgid="8c945758e20ce719d7c24482c2de7cab936385ff" data-since="260612">메인 인터프리터 스레드로 비동기 알림을 할 수 있는 메커니즘이 제공됩니다. 이 알림은 함수 포인터와 void 포인터 인자 형태로 구성됩니다.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Py_AddPendingCall">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Py_AddPendingCall</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">)</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_AddPendingCall" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="a3d2fe9629f38dae55b4c5cd3588505f9adf84c2" data-score="0" data-since="260603">Schedule a function to be called from the main interpreter thread.  On
-success, <code class="docutils literal notranslate"><span class="pre">0</span></code> is returned and <em>func</em> is queued for being called in the
-main thread.  On failure, <code class="docutils literal notranslate"><span class="pre">-1</span></code> is returned without setting any exception.</p>
-<p data-msgid="b29c5381d41dc4366d0f81e438681cff6e8b7c75" data-score="0" data-since="260603">When successfully queued, <em>func</em> will be <em>eventually</em> called from the
-main interpreter thread with the argument <em>arg</em>.  It will be called
-asynchronously with respect to normally running Python code, but with
-both these conditions met:</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="a3d2fe9629f38dae55b4c5cd3588505f9adf84c2" data-since="260612">메인 인터프리터 스레드에서 호출될 함수를 예약합니다. 성공하면 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이 반환되고 <em>func</em> 는 메인 스레드에서 호출되기 위해 큐에 추가됩니다. 실패 시에는 예외를 설정하지 않고 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 가 반환됩니다.</p>
+<p data-msgid="b29c5381d41dc4366d0f81e438681cff6e8b7c75" data-since="260612">성공적으로 큐에 넣으면, <em>func*는 *arg</em> 인자와 함께 <em>결국</em> 메인 인터프리터 스레드에서 호출될 것입니다. 일반적으로 실행되는 Python 코드와 비교할 때 비동기적으로 호출되지만, 다음 두 조건이 모두 충족됩니다:</p>
 <ul class="simple">
-<li><p data-msgid="db28266e941b4fb1441486fa8764083c9f0388c0" data-score="0" data-since="260603">on a <a class="reference internal" href="../glossary.html#term-bytecode"><span class="xref std std-term">bytecode</span></a> boundary;</p></li>
-<li><p data-msgid="5a8a7597be2c223e74b9f40a767c6be976ed72bd" data-score="0" data-since="260603">with the main thread holding an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>
-(<em>func</em> can therefore use the full C API).</p></li>
+<li><p data-msgid="db28266e941b4fb1441486fa8764083c9f0388c0" data-since="260612"><a class="reference internal" href="../glossary.html#term-bytecode"><span class="xref std std-term">bytecode</span></a> 경계에서;</p></li>
+<li><p data-msgid="5a8a7597be2c223e74b9f40a767c6be976ed72bd" data-since="260612">메인 스레드가 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> 를 가지고 있는 경우에만 (<em>func</em> 는 따라서 전체 C API를 사용할 수 있습니다).</p></li>
 </ul>
-<p data-msgid="cd205b105ed804661ca762f55db76c2c51d05b5d" data-score="0" data-since="260603"><em>func</em> must return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, or <code class="docutils literal notranslate"><span class="pre">-1</span></code> on failure with an exception
-set.  <em>func</em> won’t be interrupted to perform another asynchronous
-notification recursively, but it can still be interrupted to switch
-threads if the <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">thread state</span></a> is detached.</p>
-<p data-msgid="ae51aa106fec7306a5f91feaf4d966ae203e2952" data-score="0" data-since="260603">This function doesn’t need an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>. However, to call this
-function in a subinterpreter, the caller must have an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.
-Otherwise, the function <em>func</em> can be scheduled to be called from the wrong interpreter.</p>
+<p data-msgid="cd205b105ed804661ca762f55db76c2c51d05b5d" data-since="260612"><em>func</em> 는 성공 시 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환하거나, 예외를 설정하고 실패 시 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 을 반환해야 합니다. <em>func</em> 는 다른 비동기 알림을 재귀적으로 수행하기 위해 인터럽트 되지 않지만, <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">thread state</span></a> 가 분리된 경우 스레드를 전환하기 위해 여전히 인터럽트 될 수 있습니다.</p>
+<p data-msgid="ae51aa106fec7306a5f91feaf4d966ae203e2952" data-since="260612">이 함수는 별도의 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> 를 필요로 하지 않습니다. 그러나 서브 인터프리터에서 이 함수를 호출하려면, 호출자가 <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a> 를 가지고 있어야 합니다. 그렇지 않으면 <em>func</em> 가 잘못된 인터프리터에서 호출되도록 예약될 수 있습니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="fefcdd85d36cb5994b0edb8d7870b071715fbd85" data-score="0" data-since="260608">This is a low-level function, only useful for very special cases.
-There is no guarantee that <em>func</em> will be called as quick as
-possible.  If the main thread is busy executing a system call,
-<em>func</em> won’t be called before the system call returns.  This
-function is generally <strong>not</strong> suitable for calling Python code from
-arbitrary C threads.  Instead, use <a class="reference internal" href="#c.PyThreadState_EnsureFromView" title="PyThreadState_EnsureFromView"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_EnsureFromView()</span></code></a>.</p>
+<p data-msgid="fefcdd85d36cb5994b0edb8d7870b071715fbd85" data-since="260612">이것은 매우 특별한 경우에만 유용한, 저수준 함수입니다. <em>func*가 가능한 한 빨리 호출된다는 보장은 없습니다. 메인 스레드가 시스템 호출을 실행하느라 바쁘면, 시스템 호출이 반환되기 전까지는 *func*가 호출되지 않습니다. 이 함수는 일반적으로 임의의 C 스레드에서 Python 코드를 호출하는 데 적합하지 **않습니다*</em>. 대신 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyThreadState_EnsureFromView`를 사용하십시오.</p>
 </div>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.1.</span></p>
 </div>
-<div class="versionchanged" data-msgid="674188e56475493cfc176118158f6b2e78c68afd" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.9에서 변경: </span>If this function is called in a subinterpreter, the function <em>func</em> is
-now scheduled to be called from the subinterpreter, rather than being
-called from the main interpreter. Each subinterpreter now has its own
-list of scheduled calls.</p>
+<div class="versionchanged" data-msgid="674188e56475493cfc176118158f6b2e78c68afd" data-since="260612">
+<p><span class="versionmodified changed">버전 3.9에서 변경: </span>이 함수가 서브 인터프리터에서 호출되면, <em>func</em> 는 이제 메인 인터프리터에서 호출되는 대신 서브 인터프리터에서 호출되도록 예약됩니다. 각 서브 인터프리터는 이제 자체 예약된 호출 목록을 갖습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="da633f99246140b974e80baa9b080139ca5996f2" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.12에서 변경: </span>This function now always schedules <em>func</em> to be run in the main
-interpreter.</p>
+<div class="versionchanged" data-msgid="da633f99246140b974e80baa9b080139ca5996f2" data-since="260612">
+<p><span class="versionmodified changed">버전 3.12에서 변경: </span>이 함수는 항상 <em>func</em> 를 메인 인터프리터에서 실행하도록 예약합니다.</p>
 </div>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Py_MakePendingCalls">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Py_MakePendingCalls</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_MakePendingCalls" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="263359f75192884b418022f91a8cfad4174c8647" data-score="0" data-since="260608">Execute all pending calls. This is usually executed automatically by the
-interpreter.</p>
-<p data-msgid="1a595fc7aceffb9398db3d7d8b3f858f191fd2c7" data-score="0" data-since="260608">This function returns <code class="docutils literal notranslate"><span class="pre">0</span></code> on success, and returns <code class="docutils literal notranslate"><span class="pre">-1</span></code> with an exception
-set on failure.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="263359f75192884b418022f91a8cfad4174c8647" data-since="260612">모든 계류 중인 호출을 실행합니다. 이는 보통 인터프리터에 의해 자동으로 실행됩니다.</p>
+<p data-msgid="1a595fc7aceffb9398db3d7d8b3f858f191fd2c7" data-since="260612">이 함수는 성공 시 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환하고, 실패 시 예외와 함께 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 을 반환합니다.</p>
 <p data-msgid="434b2677ae1284577bc15c7969e363d8ae7c6c85" data-score="0" data-since="260608">If this is not called in the main thread of the main
 interpreter, this function does nothing and returns <code class="docutils literal notranslate"><span class="pre">0</span></code>.
 The caller must hold an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
