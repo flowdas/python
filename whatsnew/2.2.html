@@ -79,9 +79,9 @@
 <li><a class="reference internal" href="#">Python 2.2의 새로운 기능</a><ul>
 <li><a class="reference internal" href="#introduction">소개</a></li>
 <li><a class="reference internal" href="#peps-252-and-253-type-and-class-changes">PEP 252와 253: 타입 및 클래스 변경 사항</a><ul>
-<li><a class="reference internal" href="#old-and-new-classes">Old and New Classes</a></li>
-<li><a class="reference internal" href="#descriptors">Descriptors</a></li>
-<li><a class="reference internal" href="#multiple-inheritance-the-diamond-rule">Multiple Inheritance: The Diamond Rule</a></li>
+<li><a class="reference internal" href="#old-and-new-classes">클래스 (Classes)</a></li>
+<li><a class="reference internal" href="#descriptors">디스크립터 (Descriptors)</a></li>
+<li><a class="reference internal" href="#multiple-inheritance-the-diamond-rule">다중 상속: 다이아몬드 규칙</a></li>
 <li><a class="reference internal" href="#attribute-access">Attribute Access</a></li>
 <li><a class="reference internal" href="#related-links">Related Links</a></li>
 </ul>
@@ -145,88 +145,37 @@
 </section>
 <section id="peps-252-and-253-type-and-class-changes">
 <h2 data-msgid="15f5cd5115ebc2cbd5f1e42a1a8f3999f22e9182" data-score="64" data-since="260612">PEP 252와 253: 타입 및 클래스 변경 사항<a class="headerlink" href="#peps-252-and-253-type-and-class-changes" title="Link to this heading">¶</a></h2>
-<p data-msgid="7fd3618b4655548311ce026472a1332f6b39a7a7" data-score="0" data-since="260603">The largest and most far-reaching changes in Python 2.2 are to Python’s model of
-objects and classes.  The changes should be backward compatible, so it’s likely
-that your code will continue to run unchanged, but the changes provide some
-amazing new capabilities. Before beginning this, the longest and most
-complicated section of this article, I’ll provide an overview of the changes and
-offer some comments.</p>
-<p data-msgid="4d7d51ab81f391555517c188ab2d1e24a1de12e7" data-score="0" data-since="260603">A long time ago I wrote a web page listing flaws in Python’s design.  One of the
-most significant flaws was that it’s impossible to subclass Python types
-implemented in C.  In particular, it’s not possible to subclass built-in types,
-so you can’t just subclass, say, lists in order to add a single useful method to
-them. The <code class="xref py py-mod docutils literal notranslate"><span class="pre">UserList</span></code> module provides a class that supports all of the
-methods of lists and that can be subclassed further, but there’s lots of C code
-that expects a regular Python list and won’t accept a <a class="reference internal" href="../library/collections.html#collections.UserList" title="collections.UserList"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserList</span></code></a>
-instance.</p>
-<p data-msgid="e8d967dcc130083164b780889d339cec7aebd3e4" data-score="0" data-since="260603">Python 2.2 fixes this, and in the process adds some exciting new capabilities.
-A brief summary:</p>
+<p data-msgid="7fd3618b4655548311ce026472a1332f6b39a7a7" data-score="57" data-since="260612">Python 2.2에서 가장 크고 광범위한 변경 사항은 Python의 객체 및 클래스 모델에 있습니다. 이 변화들은 하위 호환성이 이루어져야 하므로, 코드가 변하지 않고 계속 실행될 가능성이 높지만, 이러한 변화는 놀라운 새로운 기능들을 제공합니다. 이 부분을 시작하기 전에, 본 문서에서 가장 길고 복잡한 섹션인 제가 변경 사항 개요를 제공하고 몇 가지 주석을 달도록 하겠습니다.</p>
+<p data-msgid="4d7d51ab81f391555517c188ab2d1e24a1de12e7" data-score="65" data-since="260612">오래전 내가 파이썬 설계 결함을 나열한 웹 페이지를 작성했습니다. 가장 중요한 결함 중 하나는 C로 구현된 파이썬 타입의 서브클래싱이 불가능하다는 것이었습니다. 특히, 내장 타입을 서브클래싱 할 수 없으므로 리스트에 유용한 단일 메서드를 추가하기 위해 단순히 리스트를 서브클래스할 수 없습니다. <code class="xref py py-mod docutils literal notranslate"><span class="pre">UserList</span></code> 모듈은 리스트의 모든 메서드를 지원하며 추가로 서브클래싱할 수 있는 클래스를 제공하지만, 순수 파이썬 리스트를 예상하고 일반적인 Python list로 처리하는 많은 C 코드가 존재하여 <a class="reference internal" href="../library/collections.html#collections.UserList" title="collections.UserList"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserList</span></code></a> 인스턴스를 받아들이지 않습니다.</p>
+<p data-msgid="e8d967dcc130083164b780889d339cec7aebd3e4" data-score="51" data-since="260612">Python 2.2에서 이 문제가 해결되었으며, 그 과정에서 몇 가지 흥미로운 새로운 기능이 추가되었습니다. 간략한 요약:</p>
 <ul class="simple">
-<li><p data-msgid="5afb2410464bc53a91d687c7430296c3e12d0055" data-score="0" data-since="260603">You can subclass built-in types such as lists and even integers, and your
-subclasses should work in every place that requires the original type.</p></li>
-<li><p data-msgid="900bfa95eb68a977a134d1cc72aef736a32a696b" data-score="0" data-since="260603">It’s now possible to define static and class methods, in addition to the
-instance methods available in previous versions of Python.</p></li>
-<li><p data-msgid="4bf11fddf4455a23418136bbc2f0b96d9d50392f" data-score="0" data-since="260603">It’s also possible to automatically call methods on accessing or setting an
-instance attribute by using a new mechanism called <em class="dfn">properties</em>.  Many uses
-of <a class="reference internal" href="../reference/datamodel.html#object.__getattr__" title="object.__getattr__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattr__()</span></code></a> can be rewritten to use properties instead, making the
-resulting code simpler and faster.  As a small side benefit, attributes can now
-have docstrings, too.</p></li>
-<li><p data-msgid="298760b80e85e3d6e69fd5330bea338c9e8f3717" data-score="0" data-since="260603">The list of legal attributes for an instance can be limited to a particular
-set using <em class="dfn">slots</em>, making it possible to safeguard against typos and
-perhaps make more optimizations possible in future versions of Python.</p></li>
+<li><p data-msgid="5afb2410464bc53a91d687c7430296c3e12d0055" data-score="65" data-since="260612">리스트와 같은 내장 타입을 심지어 정수까지 서브클래싱 할 수 있으며, 서브클래스는 원래 타입이 요구되는 모든 곳에서 작동해야 합니다.</p></li>
+<li><p data-msgid="900bfa95eb68a977a134d1cc72aef736a32a696b" data-score="59" data-since="260612">이제 인스턴스 메서드 외에도 클래스와 스태틱 메서드를 정의하는 것이 가능합니다.</p></li>
+<li><p data-msgid="4bf11fddf4455a23418136bbc2f0b96d9d50392f" data-score="68" data-since="260612">:dfn:<a href="#id1"><span class="problematic" id="id2">`</span></a>속성(properties)`를 사용하면 인스턴스 속성에 접근하거나 설정할 때 메서드를 자동으로 호출하는 것이 가능합니다. :meth:<a href="#id3"><span class="problematic" id="id4">`</span></a>~object.__getattr__`의 많은 사용 사례는 프로퍼티를 사용하도록 다시 작성될 수 있으며, 이를 통해 결과 코드가 더 단순하고 빨라집니다. 부수적인 이점으로는, 이제 어트리뷰트에 문서 문자열(docstrings)도 가질 수 있게 되었습니다.</p></li>
+<li><p data-msgid="298760b80e85e3d6e69fd5330bea338c9e8f3717" data-score="76" data-since="260612">:dfn:<a href="#id1"><span class="problematic" id="id2">`</span></a>슬롯(slots)`을 사용하면 인스턴스의 유효 속성 목록을 특정 집합으로 제한할 수 있습니다. 이는 오타를 방지하고, 향후 파이썬 버전에서 더 많은 최적화를 가능하게 할 수 있습니다.</p></li>
 </ul>
-<p data-msgid="7254f34840e3db0c10b6b21c3ecf05d1b81000e6" data-score="0" data-since="260603">Some users have voiced concern about all these changes.  Sure, they say, the new
-features are neat and lend themselves to all sorts of tricks that weren’t
-possible in previous versions of Python, but they also make the language more
-complicated.  Some people have said that they’ve always recommended Python for
-its simplicity, and feel that its simplicity is being lost.</p>
-<p data-msgid="c5cabe5b07bc75f41ef2d2353acc36dcd87933bf" data-score="0" data-since="260603">Personally, I think there’s no need to worry.  Many of the new features are
-quite esoteric, and you can write a lot of Python code without ever needed to be
-aware of them.  Writing a simple class is no more difficult than it ever was, so
-you don’t need to bother learning or teaching them unless they’re actually
-needed.  Some very complicated tasks that were previously only possible from C
-will now be possible in pure Python, and to my mind that’s all for the better.</p>
-<p data-msgid="076ee13cc4f319a9be1bb3c7333a1c95e45c836d" data-score="0" data-since="260603">I’m not going to attempt to cover every single corner case and small change that
-were required to make the new features work.  Instead this section will paint
-only the broad strokes.  See section <a class="reference internal" href="#sect-rellinks"><span class="std std-ref">Related Links</span></a>, “Related Links”, for
-further sources of information about Python 2.2’s new object model.</p>
+<p data-msgid="7254f34840e3db0c10b6b21c3ecf05d1b81000e6" data-score="62" data-since="260612">일부 사용자들은 이러한 모든 변경 사항에 대해 우려를 제기해 왔습니다. 그들은 새 기능들이 멋지고 이전 버전의 파이썬에서는 불가능했던 모든 종류의 트릭에 사용될 수 있다면서도, 언어 자체를 더 복잡하게 만든다고 말합니다. 일부 사람들은 항상 파이썬의 단순함을 추천했다고 말하며, 그 단순함이 사라지고 있다고 느낍니다.</p>
+<p data-msgid="c5cabe5b07bc75f41ef2d2353acc36dcd87933bf" data-score="60" data-since="260612">제 개인적인 생각으로는 걱정할 필요가 없습니다. 새 기능 중 상당수는 매우 전문적이며, 이러한 기능을 인식하지 않고도 많은 파이썬 코드를 작성할 수 있습니다. 간단한 클래스를 작성하는 것은 예전보다 더 어렵지 않으므로, 실제로 필요하지 않는 한 학습하거나 가르칠 필요가 없습니다. 이전에 C 언어에서만 가능했던 매우 복잡한 작업들이 이제 순수 파이썬으로도 가능해질 것이며, 제 생각에는 이것 모두 좋은 일입니다.</p>
+<p data-msgid="076ee13cc4f319a9be1bb3c7333a1c95e45c836d" data-score="65" data-since="260612">저는 새로운 기능들을 작동시키는 데 필요한 모든 사소한 코너 케이스와 변경 사항을 다루려고 노력하지는 않을 것입니다. 대신 이 섹션에서는 큰 틀만 보여드릴 것입니다. Python 2.2의 새로운 객체 모델에 대한 더 많은 정보는 <a class="reference internal" href="#sect-rellinks"><span class="std std-ref">Related Links</span></a> “관련 링크” 섹션을 참조하십시오.</p>
 <section id="old-and-new-classes">
-<h3 data-msgid="64d7dea0d864e974dc3f24f551bbf250fe2b6632" data-score="0" data-since="260603">Old and New Classes<a class="headerlink" href="#old-and-new-classes" title="Link to this heading">¶</a></h3>
-<p data-msgid="83d3b295f185ce35447cc8de934cdddcc983b754" data-score="0" data-since="260603">First, you should know that Python 2.2 really has two kinds of classes: classic
-or old-style classes, and new-style classes.  The old-style class model is
-exactly the same as the class model in earlier versions of Python.  All the new
-features described in this section apply only to new-style classes. This
-divergence isn’t intended to last forever; eventually old-style classes will be
-dropped, possibly in Python 3.0.</p>
-<p data-msgid="eb9049cbba56a50603474c23087ae920604fb692" data-score="0" data-since="260603">So how do you define a new-style class?  You do it by subclassing an existing
-new-style class.  Most of Python’s built-in types, such as integers, lists,
-dictionaries, and even files, are new-style classes now.  A new-style class
-named <a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>, the base class for all built-in types, has also been
-added so if no built-in type is suitable, you can just subclass
-<a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>:</p>
+<h3 data-msgid="64d7dea0d864e974dc3f24f551bbf250fe2b6632" data-score="92" data-since="260612">클래스 (Classes)<a class="headerlink" href="#old-and-new-classes" title="Link to this heading">¶</a></h3>
+<p data-msgid="83d3b295f185ce35447cc8de934cdddcc983b754" data-score="83" data-since="260612">먼저 파이썬 2.2에는 실제로 두 가지 유형의 클래스가 있다는 것을 아셔야 합니다: 고전적인(classic) 또는 구형 스타일 클래스, 그리고 새로운 스타일 클래스입니다. 구형 스타일 클래스 모델은 파이썬 이전 버전의 클래스 모델과 완전히 동일합니다. 이 섹션에서 설명하는 모든 새 기능은 새로운 스타일 클래스에만 적용됩니다. 이러한 차이는 영원히 지속될 의도는 아니며, 궁극적으로는 Python 3.0에서 고형식 스타일 클래스가 제거될 가능성이 있습니다.</p>
+<p data-msgid="eb9049cbba56a50603474c23087ae920604fb692" data-score="89" data-since="260612">새 스타일 클래스를 정의하려면 어떻게 해야 할까요? 기존의 새로운 스타일 클래스를 상속받아 정의합니다. 정수(integers), 리스트, 딕셔너리, 심지어 파일과 같은 파이썬의 대부분 내장 타입들이 이제는 새로운 스타일 클래스입니다. 모든 내장 타입의 기본 클래스가 되는 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>object`라는 이름의 새로운 스타일 클래스도 추가되었으므로, 적합한 내장 타입이 없다면 단순히 :class:<a href="#id3"><span class="problematic" id="id4">`</span></a>object`를 상속받을 수 있습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="98aded496cad4507bcb09dd7186df56eb4c8a844" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">C</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="o">...</span>
     <span class="o">...</span>
 </pre></div>
 </div>
-<p data-msgid="7eb33b799064d102459e4ac48eaaf13d7d4395b0" data-score="0" data-since="260603">This means that <a class="reference internal" href="../reference/compound_stmts.html#class"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">class</span></code></a> statements that don’t have any base classes are
-always classic classes in Python 2.2.  (Actually you can also change this by
-setting a module-level variable named <code class="xref py py-attr docutils literal notranslate"><span class="pre">__metaclass__</span></code> — see <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0253/"><strong>PEP 253</strong></a>
-for the details — but it’s easier to just subclass <a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>.)</p>
-<p data-msgid="8b32f4dd826d7557aa4eaeac10986340aeff60ee" data-score="0" data-since="260603">The type objects for the built-in types are available as built-ins, named using
-a clever trick.  Python has always had built-in functions named <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a>,
-<a class="reference internal" href="../library/functions.html#float" title="float"><code class="xref py py-func docutils literal notranslate"><span class="pre">float()</span></code></a>, and <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-func docutils literal notranslate"><span class="pre">str()</span></code></a>.  In 2.2, they aren’t functions any more, but
-type objects that behave as factories when called.</p>
+<p data-msgid="7eb33b799064d102459e4ac48eaaf13d7d4395b0" data-score="80" data-since="260612">이는 베이스 클래스가 없는 <a class="reference internal" href="../reference/compound_stmts.html#class"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">class</span></code></a> 구문은 항상 Python 2.2에서 고전적인(classic) 클래스라는 것을 의미합니다. (실제로 모듈 수준 변수인 :attr:<a href="#id1"><span class="problematic" id="id2">`</span></a>!__metaclass__`를 설정하여 변경할 수도 있습니다 — 자세한 내용은 :pep:<a href="#id3"><span class="problematic" id="id4">`</span></a>253`을 참조하세요 — 하지만 단순히 :class:<a href="#id5"><span class="problematic" id="id6">`</span></a>object`를 상속받는 것이 더 쉽습니다.)</p>
+<p data-msgid="8b32f4dd826d7557aa4eaeac10986340aeff60ee" data-score="92" data-since="260612">내장 타입의 타입 객체들은 교묘한 트릭을 사용하여 내장되어 사용할 수 있습니다. 파이썬은 항상 <a class="reference internal" href="../library/functions.html#int" title="int"><code class="xref py py-func docutils literal notranslate"><span class="pre">int()</span></code></a>, <a class="reference internal" href="../library/functions.html#float" title="float"><code class="xref py py-func docutils literal notranslate"><span class="pre">float()</span></code></a>, 및 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>str`이라는 이름의 내장 함수를 가지고 있었습니다. 2.2에서 이들은 더 이상 함수가 아니라, 호출될 때 팩토리 역할을 하는 타입 객체입니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="fa52681425275aec4e94de1a8a488b143b99f9ba" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">int</span>
 <span class="go">&lt;type &#39;int&#39;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">int</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="p">)</span>
 <span class="go">123</span>
 </pre></div>
 </div>
-<p data-msgid="ed6c4c47c029c9a7e93b35434f678f445823a68b" data-score="0" data-since="260603">To make the set of types complete, new type objects such as <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">dict()</span></code></a> and
-<code class="xref py py-func docutils literal notranslate"><span class="pre">file()</span></code> have been added.  Here’s a more interesting example, adding a
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">lock()</span></code> method to file objects:</p>
+<p data-msgid="ed6c4c47c029c9a7e93b35434f678f445823a68b" data-score="88" data-since="260612">타입 세트를 완성하기 위해 <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-func docutils literal notranslate"><span class="pre">dict()</span></code></a> 및 <code class="xref py py-func docutils literal notranslate"><span class="pre">file`과</span> <span class="pre">같은</span> <span class="pre">새로운</span> <span class="pre">타입</span> <span class="pre">객체가</span> <span class="pre">추가되었습니다.</span> <span class="pre">여기</span> <span class="pre">더</span> <span class="pre">흥미로운</span> <span class="pre">예제가</span> <span class="pre">있습니다:</span> <span class="pre">파일</span> <span class="pre">객체에</span> <span class="pre">:meth:()</span></code>!lock` 메서드를 추가하는 것:</p>
 <div class="highlight-python3 notranslate" data-msgid="16f26f883aa83fcdfb47e5ae101211d2b7d3bc84" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LockableFile</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">lock</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">whence</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">fcntl</span>
@@ -234,50 +183,26 @@ type objects that behave as factories when called.</p>
                            <span class="n">length</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">whence</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="cec6a78f096d457f1ca372aee226ec6175325e56" data-score="0" data-since="260603">The now-obsolete <code class="xref py py-mod docutils literal notranslate"><span class="pre">posixfile</span></code> module contained a class that emulated all of
-a file object’s methods and also added a <code class="xref py py-meth docutils literal notranslate"><span class="pre">lock()</span></code> method, but this class
-couldn’t be passed to internal functions that expected a built-in file,
-something which is possible with our new <code class="xref py py-class docutils literal notranslate"><span class="pre">LockableFile</span></code>.</p>
+<p data-msgid="cec6a78f096d457f1ca372aee226ec6175325e56" data-score="76" data-since="260612">이제 구식이 된 <code class="xref py py-mod docutils literal notranslate"><span class="pre">posixfile</span></code> 모듈에는 모든 파일 객체의 메서드를 에뮬레이션하고 또한 <code class="xref py py-meth docutils literal notranslate"><span class="pre">lock()</span></code> 메서드도 추가한 클래스가 포함되어 있었지만, 이 클래스는 내장 파일을 예상하는 내부 함수에 전달될 수 없었습니다. 이는 새로운 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>!LockableFile`로 가능해졌습니다.</p>
 </section>
 <section id="descriptors">
-<h3 data-msgid="4b52e2ccdf7625b91f24b09ac19edd764d06a678" data-score="0" data-since="260603">Descriptors<a class="headerlink" href="#descriptors" title="Link to this heading">¶</a></h3>
-<p data-msgid="3c5cbbef7e6248beecc43817c36ceb5bd6f3690e" data-score="0" data-since="260603">In previous versions of Python, there was no consistent way to discover what
-attributes and methods were supported by an object. There were some informal
-conventions, such as defining <code class="xref py py-attr docutils literal notranslate"><span class="pre">__members__</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">__methods__</span></code>
-attributes that were lists of names, but often the author of an extension type
-or a class wouldn’t bother to define them.  You could fall back on inspecting
-the <a class="reference internal" href="../reference/datamodel.html#object.__dict__" title="object.__dict__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__</span></code></a> of an object, but when class inheritance or an arbitrary
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">__getattr__()</span></code> hook were in use this could still be inaccurate.</p>
-<p data-msgid="401e30457bcec0cace967e863f7fe1abf232e2f7" data-score="0" data-since="260603">The one big idea underlying the new class model is that an API for describing
-the attributes of an object using <em class="dfn">descriptors</em> has been formalized.
-Descriptors specify the value of an attribute, stating whether it’s a method or
-a field.  With the descriptor API, static methods and class methods become
-possible, as well as more exotic constructs.</p>
-<p data-msgid="6bc59d37e0c4ddd5b4b2b7a7cf585d040d11b7f1" data-score="0" data-since="260603">Attribute descriptors are objects that live inside class objects, and have a few
-attributes of their own:</p>
+<h3 data-msgid="4b52e2ccdf7625b91f24b09ac19edd764d06a678" data-score="100" data-since="260612">디스크립터 (Descriptors)<a class="headerlink" href="#descriptors" title="Link to this heading">¶</a></h3>
+<p data-msgid="3c5cbbef7e6248beecc43817c36ceb5bd6f3690e" data-score="83" data-since="260612">이전 버전의 파이썬에는 어떤 객체가 어떤 어트리뷰트와 메서드를 지원하는지 일관되게 알아내는 방법이 없었습니다. <code class="xref py py-attr docutils literal notranslate"><span class="pre">__members__`나</span> <span class="pre">:attr:</span></code>!__methods__`처럼 이름 리스트를 정의하는 등의 비공식적인 관례들이 있었지만, 종종 확장 타입이나 클래스의 작성자가 이를 정의하기 귀찮아했습니다. 객체의 <code class="xref py py-attr docutils literal notranslate"><span class="pre">__dict__`를</span> <span class="pre">검사하여</span> <span class="pre">대체할</span> <span class="pre">수</span> <span class="pre">있었으나,</span> <span class="pre">클래스</span> <span class="pre">상속이나</span> <span class="pre">임의의</span> <span class="pre">:meth:</span></code>!__getattr__` 훅이 사용되는 경우에도 정확하지 않을 수 있었습니다.</p>
+<p data-msgid="401e30457bcec0cace967e863f7fe1abf232e2f7" data-score="68" data-since="260612">새로운 클래스 모델의 기본 아이디어는 객체의 어트리뷰트를 설명하기 위한 API가 :dfn:<a href="#id1"><span class="problematic" id="id2">`</span></a>디스크립터(descriptors)`를 사용하여 공식화되었다는 것입니다. 디스크립터는 어트리뷰트의 값을 지정하며, 그것이 메서드인지 필드인지를 명시합니다. 디스크립터 API 덕분에 정적 메서드와 클래스 메서드가 가능해졌으며, 더 특수한 구조들도 생겨났습니다.</p>
+<p data-msgid="6bc59d37e0c4ddd5b4b2b7a7cf585d040d11b7f1" data-score="92" data-since="260612">어트리뷰트 디스크립터는 클래스 객체 내에 존재하는 객체이며 자체적으로 몇 가지 어트리뷰트를 가지고 있습니다:</p>
 <ul class="simple">
-<li><p data-msgid="b72479b45f70d5e3a4a5c1dc1120fc0403e1e19a" data-score="0" data-since="260603"><a class="reference internal" href="../library/stdtypes.html#definition.__name__" title="definition.__name__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__name__</span></code></a> is the attribute’s name.</p></li>
-<li><p data-msgid="a83d5c599ebe5b913d9a8ebca300035f636840ce" data-score="0" data-since="260603"><a class="reference internal" href="../library/stdtypes.html#definition.__doc__" title="definition.__doc__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__doc__</span></code></a> is the attribute’s docstring.</p></li>
-<li><p data-msgid="17bb41cf616bdcc9c615dbb224de32ee2bcfbcb3" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">__get__(object)</span></code> is a method that retrieves the attribute value from
-<em>object</em>.</p></li>
-<li><p data-msgid="94dafc4338053e67dd03fa9782a7337de19b4459" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">__set__(object,</span> <span class="pre">value)</span></code> sets the attribute on <em>object</em> to <em>value</em>.</p></li>
-<li><p data-msgid="d0afc4974ace01820a81f5baf014fe50e9eedfe6" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">__delete__(object,</span> <span class="pre">value)</span></code> deletes the <em>value</em>  attribute of <em>object</em>.</p></li>
+<li><p data-msgid="b72479b45f70d5e3a4a5c1dc1120fc0403e1e19a" data-score="88" data-since="260612">:attr:<a href="#id1"><span class="problematic" id="id2">`</span></a>~definition.__name__`은 어트리뷰트의 이름입니다.</p></li>
+<li><p data-msgid="a83d5c599ebe5b913d9a8ebca300035f636840ce" data-score="95" data-since="260612">:attr:<a href="#id1"><span class="problematic" id="id2">`</span></a>~definition.__doc__`는 어트리뷰트의 문서 문자열(docstring)입니다.</p></li>
+<li><p data-msgid="17bb41cf616bdcc9c615dbb224de32ee2bcfbcb3" data-score="100" data-since="260612"><code class="docutils literal notranslate"><span class="pre">__get__(object)</span></code> 은 <em>object</em> 로부터 어트리뷰트 값을 검색하는 메서드입니다.</p></li>
+<li><p data-msgid="94dafc4338053e67dd03fa9782a7337de19b4459" data-score="95" data-since="260612"><code class="docutils literal notranslate"><span class="pre">__set__(object,</span> <span class="pre">value)</span></code> 는 <em>object</em> 에 <em>value</em> 어트리뷰트를 설정합니다.</p></li>
+<li><p data-msgid="d0afc4974ace01820a81f5baf014fe50e9eedfe6" data-score="88" data-since="260612"><code class="docutils literal notranslate"><span class="pre">__delete__(object,</span> <span class="pre">value)</span></code> 는 <em>object</em> 의 <em>value</em> 어트리뷰트를 삭제합니다.</p></li>
 </ul>
-<p data-msgid="e8a4cca6093793430d1a05341c90430a3d763a4b" data-score="0" data-since="260603">For example, when you write <code class="docutils literal notranslate"><span class="pre">obj.x</span></code>, the steps that Python actually performs
-are:</p>
+<p data-msgid="e8a4cca6093793430d1a05341c90430a3d763a4b" data-score="75" data-since="260612">예를 들어, <code class="docutils literal notranslate"><span class="pre">obj.x</span></code> 를 작성할 때 파이썬이 실제로 수행하는 단계는 다음과 같습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="b814bef826908db67a88937a633ca0191b874993" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="n">descriptor</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">x</span>
 <span class="n">descriptor</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="6a4a3217289e16d5ccc9054db69c24ab20daf75b" data-score="0" data-since="260603">For methods, <a class="reference internal" href="../reference/datamodel.html#object.__get__" title="object.__get__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">descriptor.__get__</span></code></a> returns a temporary
-object that’s
-callable, and wraps up the instance and the method to be called on it. This is
-also why static methods and class methods are now possible; they have
-descriptors that wrap up just the method, or the method and the class.  As a
-brief explanation of these new kinds of methods, static methods aren’t passed
-the instance, and therefore resemble regular functions.  Class methods are
-passed the class of the object, but not the object itself.  Static and class
-methods are defined like this:</p>
+<p data-msgid="6a4a3217289e16d5ccc9054db69c24ab20daf75b" data-score="80" data-since="260612">메서드의 경우, :meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>descriptor.__get__ &lt;object.__get__&gt;`은 호출 가능한 임시 객체를 반환하며, 인스턴스와 해당 메서드를 묶어서 사용됩니다. 이것이 정적 및 클래스 메서드가 이제 가능한 이유이기도 합니다. 이 새로운 종류의 메서드에 대한 간략한 설명으로, 정적 메서드는 인스턴스를 전달받지 않으므로 일반 함수와 유사합니다. 클래스 메서드는 객체 자체가 아닌 해당 객체의 클래스를 전달받습니다. 정적 및 클래스 메서드는 다음과 같이 정의됩니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="ec6da1f6863d47f690fc64854bcf23465a811252" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">C</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
         <span class="o">...</span>
@@ -288,45 +213,29 @@ methods are defined like this:</p>
     <span class="n">g</span> <span class="o">=</span> <span class="nb">classmethod</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="bbbd16cad768a5fdcf6f7647d7d506334e49e30c" data-score="0" data-since="260603">The <a class="reference internal" href="../library/functions.html#staticmethod" title="staticmethod"><code class="xref py py-func docutils literal notranslate"><span class="pre">staticmethod()</span></code></a> function takes the function <code class="xref py py-func docutils literal notranslate"><span class="pre">f()</span></code>, and returns it
-wrapped up in a descriptor so it can be stored in the class object.  You might
-expect there to be special syntax for creating such methods (<code class="docutils literal notranslate"><span class="pre">def</span> <span class="pre">static</span> <span class="pre">f</span></code>,
-<code class="docutils literal notranslate"><span class="pre">defstatic</span> <span class="pre">f()</span></code>, or something like that) but no such syntax has been defined
-yet; that’s been left for future versions of Python.</p>
-<p data-msgid="cf52086e1cdcbb0eb9525b3bbd7ba6e99d312f6d" data-score="0" data-since="260603">More new features, such as slots and properties, are also implemented as new
-kinds of descriptors, and it’s not difficult to write a descriptor class that
-does something novel.  For example, it would be possible to write a descriptor
-class that made it possible to write Eiffel-style preconditions and
-postconditions for a method.  A class that used this feature might be defined
-like this:</p>
-<div class="highlight-python3 notranslate" data-msgid="37177ce566e8d761e5e1557a74b9a1d73ab65332" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">eiffel</span><span class="w"> </span><span class="kn">import</span> <span class="n">eiffelmethod</span>
+<p data-msgid="bbbd16cad768a5fdcf6f7647d7d506334e49e30c" data-score="83" data-since="260612"><a class="reference internal" href="../library/functions.html#staticmethod" title="staticmethod"><code class="xref py py-func docutils literal notranslate"><span class="pre">staticmethod()</span></code></a> 함수는 함수 <code class="xref py py-func docutils literal notranslate"><span class="pre">f`를</span> <span class="pre">받아서,</span> <span class="pre">이를</span> <span class="pre">디스크립터로</span> <span class="pre">래핑하여</span> <span class="pre">클래스</span> <span class="pre">객체에</span> <span class="pre">저장할</span> <span class="pre">수</span> <span class="pre">있도록</span> <span class="pre">합니다.</span> <span class="pre">이러한</span> <span class="pre">메서드를</span> <span class="pre">생성하기</span> <span class="pre">위한</span> <span class="pre">특별한</span> <span class="pre">구문(`def</span> <span class="pre">static</span> <span class="pre">f()</span></code>, <cite>defstatic f()</cite>, 또는 이와 유사한 것)이 있을 것으로 예상할 수 있지만, 아직 그러한 구문은 정의되지 않았습니다. 이는 파이썬의 미래 버전을 위해 남겨진 것입니다.</p>
+<p data-msgid="cf52086e1cdcbb0eb9525b3bbd7ba6e99d312f6d" data-score="71" data-since="260612">슬롯(slots) 및 프로퍼티와 같은 더 많은 새로운 기능들도 새로운 종류의 디스크립터로 구현되었으며, 새롭고 독창적인 기능을 수행하는 디스크립터 클래스를 작성하는 것은 어렵지 않습니다. 예를 들어, 메서드에 대해 에이펠 스타일의 전제 조건과 사후 조건을 작성할 수 있게 해주는 디스크립터 클래스를 작성하는 것이 가능할 것입니다. 이 기능을 사용하는 클래스는 다음과 같이 정의될 수 있습니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="37177ce566e8d761e5e1557a74b9a1d73ab65332" data-score="96" data-since="260612"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">eiffel</span><span class="w"> </span><span class="kn">import</span> <span class="n">eiffelmethod</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">C</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
-        <span class="c1"># The actual function</span>
+        <span class="c1"># 실제 함수</span>
         <span class="o">...</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">pre_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Check preconditions</span>
+        <span class="c1"># 전제 조건 확인</span>
         <span class="o">...</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">post_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Check postconditions</span>
+        <span class="c1"># 사후 조건 확인</span>
         <span class="o">...</span>
 
     <span class="n">f</span> <span class="o">=</span> <span class="n">eiffelmethod</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">pre_f</span><span class="p">,</span> <span class="n">post_f</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="21358b74ac4126c65b03ae10ea0d51e009777954" data-score="0" data-since="260603">Note that a person using the new <code class="xref py py-func docutils literal notranslate"><span class="pre">eiffelmethod()</span></code> doesn’t have to understand
-anything about descriptors.  This is why I think the new features don’t increase
-the basic complexity of the language. There will be a few wizards who need to
-know about it in order to write <code class="xref py py-func docutils literal notranslate"><span class="pre">eiffelmethod()</span></code> or the ZODB or whatever,
-but most users will just write code on top of the resulting libraries and ignore
-the implementation details.</p>
+<p data-msgid="21358b74ac4126c65b03ae10ea0d51e009777954" data-score="87" data-since="260612">새로운 <code class="xref py py-func docutils literal notranslate"><span class="pre">eiffelmethod`를</span> <span class="pre">사용하는</span> <span class="pre">사람이</span> <span class="pre">디스크립터에</span> <span class="pre">대한</span> <span class="pre">어떤</span> <span class="pre">지식도</span> <span class="pre">필요하지</span> <span class="pre">않다는</span> <span class="pre">점에</span> <span class="pre">주목하십시오.</span> <span class="pre">이것이</span> <span class="pre">제가</span> <span class="pre">이</span> <span class="pre">새로운</span> <span class="pre">기능들이</span> <span class="pre">언어의</span> <span class="pre">기본적인</span> <span class="pre">복잡도를</span> <span class="pre">높이지</span> <span class="pre">않는다고</span> <span class="pre">생각하는</span> <span class="pre">이유입니다.</span> <span class="pre">:func:()</span></code>!eiffelmethod`나 ZODB 또는 무엇을 작성하려면 알아야 하는 소수의 전문가가 있겠지만, 대부분의 사용자는 결과로 나오는 라이브러리 위에 코드를 작성하고 구현 세부 사항은 무시하게 될 것입니다.</p>
 </section>
 <section id="multiple-inheritance-the-diamond-rule">
-<h3 data-msgid="83b296e9477d59faaae635159e84bdb172a1730e" data-score="0" data-since="260603">Multiple Inheritance: The Diamond Rule<a class="headerlink" href="#multiple-inheritance-the-diamond-rule" title="Link to this heading">¶</a></h3>
-<p data-msgid="9630a53c353d98f7a684ae57ad1dc46af2bf62e1" data-score="0" data-since="260603">Multiple inheritance has also been made more useful through changing the rules
-under which names are resolved.  Consider this set of classes (diagram taken
-from <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0253/"><strong>PEP 253</strong></a> by Guido van Rossum):</p>
+<h3 data-msgid="83b296e9477d59faaae635159e84bdb172a1730e" data-score="100" data-since="260612">다중 상속: 다이아몬드 규칙<a class="headerlink" href="#multiple-inheritance-the-diamond-rule" title="Link to this heading">¶</a></h3>
+<p data-msgid="9630a53c353d98f7a684ae57ad1dc46af2bf62e1" data-score="75" data-since="260612">이름을 해결하는 규칙을 변경함으로써 다중 상속도 더 유용하게 되었습니다. 다음 클래스 세트를 고려해 보십시오 (다이어그램은 Guido van Rossum의 :pep:<a href="#id1"><span class="problematic" id="id2">`</span></a>253`에서 가져옴):</p>
 <div class="highlight-python3 notranslate" data-msgid="3db90a04b6bbac86146eb46e8ecb5637c040a5b8" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>      <span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="p">:</span>
         <span class="o">^</span> <span class="o">^</span>  <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
        <span class="o">/</span>   \
