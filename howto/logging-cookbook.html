@@ -81,7 +81,7 @@
 <li><a class="reference internal" href="#logging-from-multiple-threads">여러 스레드에서 로깅 하기</a></li>
 <li><a class="reference internal" href="#multiple-handlers-and-formatters">다중 처리기 및 포매터</a></li>
 <li><a class="reference internal" href="#logging-to-multiple-destinations">여러 대상으로 로깅 하기</a></li>
-<li><a class="reference internal" href="#custom-handling-of-levels">Custom handling of levels</a></li>
+<li><a class="reference internal" href="#custom-handling-of-levels">수준의 사용자 정의 처리</a></li>
 <li><a class="reference internal" href="#configuration-server-example">구성 서버 예제</a></li>
 <li><a class="reference internal" href="#dealing-with-handlers-that-block">블록 하는 처리기 다루기</a></li>
 <li><a class="reference internal" href="#sending-and-receiving-logging-events-across-a-network">네트워크에서 로깅 이벤트 보내고 받기</a><ul>
@@ -187,55 +187,55 @@
 <section id="using-logging-in-multiple-modules">
 <h2 data-msgid="ddc479ee55924cab2feefb883e3789455c9207b5" data-score="100" data-since="260603">여러 모듈에서 로깅 사용하기<a class="headerlink" href="#using-logging-in-multiple-modules" title="Link to this heading">¶</a></h2>
 <p data-msgid="53791439fe5bd481a7f8d70bf143987139d3d30a" data-score="91" data-since="260603"><code class="docutils literal notranslate"><span class="pre">logging.getLogger('someLogger')</span></code> 를 여러 번 호출하면 같은 로거 객체에 대한 참조가 반환됩니다. 같은 모듈 내에서뿐만 아니라, 같은 파이썬 인터프리터 프로세스에 있는 한, 여러 모듈에서도 마찬가지입니다. 참조가 같은 객체를 가리킨다는 것에 더해, 응용 프로그램 코드는 하나의 모듈에서 부모 로거를 정의 및 구성하고 별도의 모듈에서 자식 로거를 생성 (구성하지 않음) 할 수 있으며, 자식에 대한 모든 로거 호출은 부모로 전달됩니다. 다음은 메인 모듈입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="ee87e69c75765be1313eef1215eff5d0c963eb01" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">auxiliary_module</span>
 
-<span class="c1"># create logger with &#39;spam_application&#39;</span>
+<span class="c1"># 로거를 생성합니다.</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;spam_application&#39;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-<span class="c1"># create file handler which logs even debug messages</span>
+<span class="c1"># 디버그 메시지를 로그하는 파일 핸들러를 생성합니다.</span>
 <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;spam.log&#39;</span><span class="p">)</span>
 <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-<span class="c1"># create console handler with a higher log level</span>
+<span class="c1"># 더 높은 로그 레벨의 콘솔 핸들러를 생성합니다.</span>
 <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
 <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-<span class="c1"># create formatter and add it to the handlers</span>
+<span class="c1"># 포매터를 생성하고 핸들러에 추가합니다.</span>
 <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-<span class="c1"># add the handlers to the logger</span>
+<span class="c1"># 로거에 핸들러를 추가합니다.</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
 
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;creating an instance of auxiliary_module.Auxiliary&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;auxiliary_module.Auxiliary 인스턴스를 생성합니다.&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">auxiliary_module</span><span class="o">.</span><span class="n">Auxiliary</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;created an instance of auxiliary_module.Auxiliary&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;calling auxiliary_module.Auxiliary.do_something&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;auxiliary_module.Auxiliary 인스턴스가 생성되었습니다.&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;auxiliary_module.Auxiliary.do_something을 호출합니다.&#39;</span><span class="p">)</span>
 <span class="n">a</span><span class="o">.</span><span class="n">do_something</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;finished auxiliary_module.Auxiliary.do_something&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;calling auxiliary_module.some_function()&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;auxiliary_module.Auxiliary.do_something 완료되었습니다.&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;auxiliary_module.some_function()을 호출합니다.&#39;</span><span class="p">)</span>
 <span class="n">auxiliary_module</span><span class="o">.</span><span class="n">some_function</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;done with auxiliary_module.some_function()&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;auxiliary_module.some_function() 완료되었습니다.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p data-msgid="4216a571dd4275c5c13b9356b2ec49d97e1af3b3" data-score="64" data-since="260603">다음은 보조 모듈입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="3822fc9b10ea43e8f27b4b37ded488b0aeec069b" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="highlight-python3 notranslate" data-msgid="3822fc9b10ea43e8f27b4b37ded488b0aeec069b" data-score="99" data-since="260612"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="c1"># create logger</span>
+<span class="c1"># 로거를 생성합니다.</span>
 <span class="n">module_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;spam_application.auxiliary&#39;</span><span class="p">)</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Auxiliary</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;spam_application.auxiliary.Auxiliary&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;creating an instance of Auxiliary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Auxiliary 인스턴스를 생성합니다.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">do_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;doing something&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;작업 수행 중입니다.&#39;</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;done doing something&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;작업 수행 완료되었습니다.&#39;</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">some_function</span><span class="p">():</span>
-    <span class="n">module_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;received a call to &quot;some_function&quot;&#39;</span><span class="p">)</span>
+    <span class="n">module_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&quot;some_function&quot; 호출을 받았습니다.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p data-msgid="931ac897fa8f6aaf44b01b73d678c842b993097c" data-score="58" data-since="260603">출력은 이렇게 됩니다:</p>
@@ -317,30 +317,30 @@
 <section id="multiple-handlers-and-formatters">
 <h2 data-msgid="b3e9425af10d3000bf630146af40fc1ce6e6467e" data-score="75" data-since="260603">다중 처리기 및 포매터<a class="headerlink" href="#multiple-handlers-and-formatters" title="Link to this heading">¶</a></h2>
 <p data-msgid="20d5ee02df5fc935d49842e8a8f8c2759337fef0" data-score="88" data-since="260603">로거는 일반 파이썬 객체입니다. <a class="reference internal" href="../library/logging.html#logging.Logger.addHandler" title="logging.Logger.addHandler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addHandler()</span></code></a> 메서드에는 추가할 수 있는 처리기의 수에 대한 최소 또는 최대 할당량이 없습니다. 때로는 응용 프로그램이 모든 심각도의 모든 메시지를 텍스트 파일에 기록하는 동시에, 에러 또는 그 이상을 콘솔에 기록하는 것이 유용 할 수 있습니다. 이렇게 설정하려면, 적절한 처리기를 구성하기만 하면 됩니다. 응용 프로그램 코드의 로깅 호출은 변경되지 않습니다. 다음은 앞의 간단한 모듈 기반 구성 예제를 약간 수정 한 것입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="3d66332f53ebafaf3c77c8f973ffb45e6ca14d96" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="highlight-python3 notranslate" data-msgid="3d66332f53ebafaf3c77c8f973ffb45e6ca14d96" data-score="99" data-since="260612"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;simple_example&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-<span class="c1"># create file handler which logs even debug messages</span>
+<span class="c1"># 디렉터리 핸들러를 만들고 심지어 디버그 메시지도 기록합니다.</span>
 <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;spam.log&#39;</span><span class="p">)</span>
 <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-<span class="c1"># create console handler with a higher log level</span>
+<span class="o">//</span> <span class="n">콘솔</span> <span class="n">핸들러는</span> <span class="n">더</span> <span class="n">높은</span> <span class="n">로그</span> <span class="n">수준을</span> <span class="n">갖도록</span> <span class="n">만듭니다</span><span class="o">.</span>
 <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
 <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-<span class="c1"># create formatter and add it to the handlers</span>
+
+<span class="c1"># 포매터를 만들고 핸들러에 추가합니다.</span>
 <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-<span class="c1"># add the handlers to logger</span>
+
+<span class="c1"># 핸들러를 로거에 추가합니다.</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
 
-<span class="c1"># &#39;application&#39; code</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;debug message&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;info message&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;warn message&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;error message&#39;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;critical message&#39;</span><span class="p">)</span>
+<span class="c1"># &#39;응용 프로그램&#39; 코드</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;디버그 메시지&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;정보 메시지&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;경고 메시지&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;오류 메시지&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;심각한 메시지&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p data-msgid="01e8006915f0fda97f566dbc912c8078a362a349" data-score="84" data-since="260603">‘응용 프로그램’ 코드는 여러 처리기에 신경 쓰지 않습니다. 변경된 것은 <em>fh</em> 라는 새로운 처리기의 추가 및 구성뿐입니다.</p>
@@ -349,37 +349,36 @@
 <section id="logging-to-multiple-destinations">
 <span id="multiple-destinations"></span><h2 data-msgid="6b0b522b233b4b317de24d4f59180c883769d85e" data-score="92" data-since="260603">여러 대상으로 로깅 하기<a class="headerlink" href="#logging-to-multiple-destinations" title="Link to this heading">¶</a></h2>
 <p data-msgid="c8b69e9da6657c40c768bb1324f219d98bbf03e4" data-score="75" data-since="260603">다른 메시지 포맷으로 다른 상황에서 콘솔과 파일에 기록하려고 한다고 가정 해 봅시다. DEBUG 이상 수준의 메시지를 파일에 기록하고, 수준 INFO 이상인 메시지를 콘솔에 기록하려고 한다고 가정 해보십시오. 또한, 타임스탬프가 파일에는 포함되어야 하지만, 콘솔 메시지에는 없어야 한다고 가정합시다. 이렇게 하면 됩니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="21f5c708970062047403dd58e7d2d1a130e22515" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="highlight-python3 notranslate" data-msgid="21f5c708970062047403dd58e7d2d1a130e22515" data-score="96" data-since="260612"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="c1"># set up logging to file - see previous section for more details</span>
+<span class="c1"># 파일에 로깅을 설정합니다 - 자세한 내용은 이전 섹션을 참조하세요.</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
                     <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
                     <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">,</span>
                     <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;/tmp/myapp.log&#39;</span><span class="p">,</span>
                     <span class="n">filemode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
-<span class="c1"># define a Handler which writes INFO messages or higher to the sys.stderr</span>
+<span class="c1"># sys.stderr로 INFO 메시지 이상의 수준을 기록하는 핸들러를 정의합니다.</span>
 <span class="n">console</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
 <span class="n">console</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-<span class="c1"># set a format which is simpler for console use</span>
+<span class="c1"># 콘솔 사용에 더 간단한 형식을 설정합니다.</span>
 <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(name)-12s</span><span class="s1">: </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="c1"># tell the handler to use this format</span>
+<span class="c1"># 핸들러에게 이 형식을 사용하도록 지시합니다.</span>
 <span class="n">console</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-<span class="c1"># add the handler to the root logger</span>
+<span class="c1"># 루트 로거에 핸들러를 추가합니다.</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console</span><span class="p">)</span>
 
-<span class="c1"># Now, we can log to the root logger, or any other logger. First the root...</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Jackdaws love my big sphinx of quartz.&#39;</span><span class="p">)</span>
+<span class="c1"># 이제, 루트 로거 또는 기타 어떤 로거로도 로그를 기록할 수 있습니다. 먼저 루트...</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;잭더즈는 나의 큰 수정의 속삭임을 사랑한다.&#39;</span><span class="p">)</span>
 
-<span class="c1"># Now, define a couple of other loggers which might represent areas in your</span>
-<span class="c1"># application:</span>
+<span class="c1"># 다음으로, 애플리케이션의 영역을 나타낼 수 있는 몇 가지 다른 로거를 정의합니다:</span>
 
 <span class="n">logger1</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;myapp.area1&#39;</span><span class="p">)</span>
 <span class="n">logger2</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;myapp.area2&#39;</span><span class="p">)</span>
 
-<span class="n">logger1</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Quick zephyrs blow, vexing daft Jim.&#39;</span><span class="p">)</span>
-<span class="n">logger1</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;How quickly daft jumping zebras vex.&#39;</span><span class="p">)</span>
-<span class="n">logger2</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Jail zesty vixen who grabbed pay from quack.&#39;</span><span class="p">)</span>
-<span class="n">logger2</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The five boxing wizards jump quickly.&#39;</span><span class="p">)</span>
+<span class="n">logger1</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;빠른 제피로스가 불어와 어릿광대 짐을 괴롭힌다.&#39;</span><span class="p">)</span>
+<span class="n">logger1</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;어떻게 빠르게 어릿광대 장작에 걸린 얼룩말이 괴롭게 할까.&#39;</span><span class="p">)</span>
+<span class="n">logger2</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;감옥의 활기찬 여우가 quack에게서 돈을 빼앗았다.&#39;</span><span class="p">)</span>
+<span class="n">logger2</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;다섯 마리의 권투사 마법사가 재빨리 점프한다.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p data-msgid="71a15c9ff0fd07b9eab326a89af78c9ad1095b9a" data-score="74" data-since="260603">실행하면 콘솔에는 다음과 같이 출력됩니다.</p>
@@ -399,23 +398,17 @@ myapp.area2 : ERROR    The five boxing wizards jump quickly.
 </div>
 <p data-msgid="6fd5349ac36af974b59d74cfb1279d4a3de36452" data-score="90" data-since="260603">보시다시피 DEBUG 메시지는 파일에만 표시됩니다. 다른 메시지는 두 목적지로 전송됩니다.</p>
 <p data-msgid="64565c247f3ae7f5d0b4eaf81ad80098cbf1ebc4" data-score="73" data-since="260603">이 예제는 콘솔과 파일 처리기를 사용하지만, 여러분이 선택하는 처리기의 수나 조합에 제약이 없습니다.</p>
-<p data-msgid="781eece7b034a98b3af9d9ab11c0b3c1700fd8db" data-score="0" data-since="260603">Note that the above choice of log filename <code class="docutils literal notranslate"><span class="pre">/tmp/myapp.log</span></code> implies use of a
-standard location for temporary files on POSIX systems. On Windows, you may need to
-choose a different directory name for the log - just ensure that the directory exists
-and that you have the permissions to create and update files in it.</p>
+<p data-msgid="781eece7b034a98b3af9d9ab11c0b3c1700fd8db" data-score="72" data-since="260612">위의 로그 파일 이름 <code class="docutils literal notranslate"><span class="pre">/tmp/myapp.log</span></code> 선택은 POSIX 시스템에서 임시 파일을 위한 표준 위치를 사용함을 의미합니다. Windows에서는 로그를 위해 다른 디렉터리 이름을 선택해야 할 수도 있습니다. 단지 해당 디렉터리가 존재하며 파일 생성 및 업데이트 권한이 있는지 확인하시면 됩니다.</p>
 </section>
 <section id="custom-handling-of-levels">
-<span id="custom-level-handling"></span><h2 data-msgid="976f608079bfe5df830bf667ec0eae957b2acef3" data-score="0" data-since="260603">Custom handling of levels<a class="headerlink" href="#custom-handling-of-levels" title="Link to this heading">¶</a></h2>
-<p data-msgid="c3071677e899a821ebb57180d02b809955c02413" data-score="0" data-since="260603">Sometimes, you might want to do something slightly different from the standard
-handling of levels in handlers, where all levels above a threshold get
-processed by a handler. To do this, you need to use filters. Let’s look at a
-scenario where you want to arrange things as follows:</p>
+<span id="custom-level-handling"></span><h2 data-msgid="976f608079bfe5df830bf667ec0eae957b2acef3" data-score="69" data-since="260612">수준의 사용자 정의 처리<a class="headerlink" href="#custom-handling-of-levels" title="Link to this heading">¶</a></h2>
+<p data-msgid="c3071677e899a821ebb57180d02b809955c02413" data-score="59" data-since="260612">때로는 핸들러에서 수준에 대한 표준 처리와 약간 다른 작업을 수행하고 싶을 수 있습니다. 이 경우, 필터를 사용해야 합니다. 다음과 같은 시나리오를 살펴보겠습니다:</p>
 <ul class="simple">
-<li><p data-msgid="888c201b8cac22ad8fb6460d4a3604a6df66d60f" data-score="0" data-since="260603">Send messages of severity <code class="docutils literal notranslate"><span class="pre">INFO</span></code> and <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> to <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code></p></li>
-<li><p data-msgid="1a451d446fdcc351e498144281066aa15e4ac741" data-score="0" data-since="260603">Send messages of severity <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> and above to <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code></p></li>
-<li><p data-msgid="75fee0fafe2a18c537df91749f5912c0ece7361c" data-score="0" data-since="260603">Send messages of severity <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> and above to file <code class="docutils literal notranslate"><span class="pre">app.log</span></code></p></li>
+<li><p data-msgid="888c201b8cac22ad8fb6460d4a3604a6df66d60f" data-score="63" data-since="260612">심각도 <code class="docutils literal notranslate"><span class="pre">INFO</span></code> 및 <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> 수준의 메시지를 <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> 으로 전송합니다.</p></li>
+<li><p data-msgid="1a451d446fdcc351e498144281066aa15e4ac741" data-score="57" data-since="260612">심각도가 <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> 이상의 메시지를 <code class="docutils literal notranslate"><span class="pre">sys.stderr</span></code> 로 전송합니다.</p></li>
+<li><p data-msgid="75fee0fafe2a18c537df91749f5912c0ece7361c" data-score="53" data-since="260612">심각도 <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> 이상의 메시지를 파일 <code class="docutils literal notranslate"><span class="pre">app.log</span></code> 으로 전송합니다.</p></li>
 </ul>
-<p data-msgid="9f2a4884a441b93d7c55a8b3151cd73fffa5c484" data-score="0" data-since="260603">Suppose you configure logging with the following JSON:</p>
+<p data-msgid="9f2a4884a441b93d7c55a8b3151cd73fffa5c484" data-score="100" data-since="260612">다음 JSON과 같이 로깅을 구성한다고 가정해 봅시다:</p>
 <div class="highlight-json notranslate" data-msgid="83b0bc710f6af8c74c1bcbae0178ea73a2b5ba02" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;disable_existing_loggers&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
@@ -455,11 +448,7 @@ scenario where you want to arrange things as follows:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="3efdd929d2d4b0047de65e0f56e34bb0da563201" data-score="0" data-since="260603">This configuration does <em>almost</em> what we want, except that <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> would show messages
-of severity <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> and only events of this severity and higher will be tracked
-as well as <code class="docutils literal notranslate"><span class="pre">INFO</span></code> and <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> messages. To prevent this, we can set up a filter which
-excludes those messages and add it to the relevant handler. This can be configured by
-adding a <code class="docutils literal notranslate"><span class="pre">filters</span></code> section parallel to <code class="docutils literal notranslate"><span class="pre">formatters</span></code> and <code class="docutils literal notranslate"><span class="pre">handlers</span></code>:</p>
+<p data-msgid="3efdd929d2d4b0047de65e0f56e34bb0da563201" data-score="46" data-since="260612">이 설정은 <em>거의</em> 우리가 원하는 바를 수행하지만, <code class="docutils literal notranslate"><span class="pre">sys.stdout``에서</span> <span class="pre">심각도</span> <span class="pre">``ERROR</span></code> 메시지가 표시되고, 이 심각도와 높은 이벤트만 추적되며, 또한 <code class="docutils literal notranslate"><span class="pre">INFO</span></code> 및 <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> 메시지도 표시됩니다. 이를 방지하기 위해, 해당 메시지를 제외하는 필터를 설정하고 관련 핸들러에 추가할 수 있습니다. 이는 <code class="docutils literal notranslate"><span class="pre">formatters</span></code> 및 <code class="docutils literal notranslate"><span class="pre">handlers``와</span> <span class="pre">병렬로</span> <span class="pre">``filters</span></code> 섹션을 추가하여 구성할 수 있습니다:</p>
 <div class="highlight-json notranslate" data-msgid="ca39d8dee8126f4c37c39ab815d40febfbd8e90d" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;filters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;warnings_and_below&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -470,7 +459,7 @@ adding a <code class="docutils literal notranslate"><span class="pre">filters</s
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="f7aa485257a44071b4a86848a351a3a69a4207a4" data-score="0" data-since="260603">and changing the section on the <code class="docutils literal notranslate"><span class="pre">stdout</span></code> handler to add it:</p>
+<p data-msgid="f7aa485257a44071b4a86848a351a3a69a4207a4" data-score="63" data-since="260612">그리고 <code class="docutils literal notranslate"><span class="pre">stdout</span></code> 핸들러의 섹션을 수정하여 추가합니다:</p>
 <div class="highlight-json notranslate" data-msgid="b4777d68c2a5ce7f8ca14233b71a2c941540301e" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;stdout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;class&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;logging.StreamHandler&quot;</span><span class="p">,</span>
@@ -482,8 +471,7 @@ adding a <code class="docutils literal notranslate"><span class="pre">filters</s
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="d56015f53526ee86f0c52097dea95bd322dc8a05" data-score="0" data-since="260603">A filter is just a function, so we can define the <code class="docutils literal notranslate"><span class="pre">filter_maker</span></code> (a factory
-function) as follows:</p>
+<p data-msgid="d56015f53526ee86f0c52097dea95bd322dc8a05" data-score="50" data-since="260612">필터는 단순히 함수이므로, 다음과 같이 <code class="docutils literal notranslate"><span class="pre">filter_maker</span></code> (팩토리 함수)를 정의할 수 있습니다:</p>
 <div class="highlight-python notranslate" data-msgid="188d8e814db68c4bfd8281b14a80a9fb77d93c3e" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">filter_maker</span><span class="p">(</span><span class="n">level</span><span class="p">):</span>
     <span class="n">level</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
 
@@ -493,14 +481,8 @@ function) as follows:</p>
     <span class="k">return</span> <span class="nb">filter</span>
 </pre></div>
 </div>
-<p data-msgid="2cd3274a9721a2fcf1d6797f761a40604b02d2f0" data-score="0" data-since="260603">This converts the string argument passed in to a numeric level, and returns a
-function which only returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if the level of the passed in record is
-at or below the specified level. Note that in this example I have defined the
-<code class="docutils literal notranslate"><span class="pre">filter_maker</span></code> in a test script <code class="docutils literal notranslate"><span class="pre">main.py</span></code> that I run from the command line,
-so its module will be <code class="docutils literal notranslate"><span class="pre">__main__</span></code> - hence the <code class="docutils literal notranslate"><span class="pre">__main__.filter_maker</span></code> in the
-filter configuration. You will need to change that if you define it in a
-different module.</p>
-<p data-msgid="8a0e0d0ae60dbc6c2c5f1c0b76ef3e4f46009cad" data-score="0" data-since="260603">With the filter added, we can run <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, which in full is:</p>
+<p data-msgid="2cd3274a9721a2fcf1d6797f761a40604b02d2f0" data-score="71" data-since="260612">이것은 전달된 문자열 인수를 숫자 수준으로 변환하고, 주어진 레벨보다 같거나 낮은 레벨의 기록일 경우에만 <code class="docutils literal notranslate"><span class="pre">True</span></code> 를 반환하는 함수를 반환합니다. 이 예시에서 저는 테스트 스크립트인 <code class="docutils literal notranslate"><span class="pre">main.py</span></code> 에서 명령줄로 실행하여 <code class="docutils literal notranslate"><span class="pre">filter_maker</span></code> 를 정의했으므로 해당 모듈은 <code class="docutils literal notranslate"><span class="pre">__main__</span></code> 이 됩니다. 따라서 필터 구성에서는 <code class="docutils literal notranslate"><span class="pre">__main__.filter_maker</span></code> 입니다. 다른 모듈에 정의하면 변경해야 합니다.</p>
+<p data-msgid="8a0e0d0ae60dbc6c2c5f1c0b76ef3e4f46009cad" data-score="82" data-since="260612">필터를 추가한 후, 전체 내용이 다음과 같은 <code class="docutils literal notranslate"><span class="pre">main.py</span></code> 를 실행할 수 있습니다:</p>
 <div class="highlight-python notranslate" data-msgid="03a7e350fe2e7230f6e23a1180c9930493d8b78c" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging.config</span>
@@ -568,11 +550,11 @@ different module.</p>
 <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;A CRITICAL message&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="498d049f91c802be560dfe1613b818445aabbc60" data-score="0" data-since="260603">And after running it like this:</p>
-<div class="highlight-shell notranslate" data-msgid="6b9d6ecccfe41cc3f912d98b2d763dbbb6a2f7d4" data-score="0" data-since="260603"><div class="highlight"><pre><span></span>python<span class="w"> </span>main.py<span class="w"> </span><span class="m">2</span>&gt;stderr.log<span class="w"> </span>&gt;stdout.log
+<p data-msgid="498d049f91c802be560dfe1613b818445aabbc60" data-score="100" data-since="260612">그리고 다음과 같이 실행한 후:</p>
+<div class="highlight-shell notranslate" data-msgid="6b9d6ecccfe41cc3f912d98b2d763dbbb6a2f7d4" data-score="100" data-since="260612"><div class="highlight"><pre><span></span><span class="sb">`</span>python<span class="w"> </span>main.py<span class="w"> </span><span class="m">2</span>&gt;stderr.log<span class="w"> </span>&gt;stdout.log<span class="sb">`</span>를<span class="w"> </span>실행하여<span class="w"> </span>결과를<span class="w"> </span>확인해<span class="w"> </span>보세요.
 </pre></div>
 </div>
-<p data-msgid="1d6d29175840461f3fe5fca8d27f4034c0e86cce" data-score="0" data-since="260603">We can see the results are as expected:</p>
+<p data-msgid="1d6d29175840461f3fe5fca8d27f4034c0e86cce" data-score="71" data-since="260612">결과가 예상한 대로 나온 것을 확인할 수 있습니다:</p>
 <div class="highlight-shell notranslate" data-msgid="bad058480330d447778b40e35bcf63660be88c4e" data-score="100" data-since="260607"><div class="highlight"><pre><span></span>$<span class="w"> </span>more<span class="w"> </span>*.log
 ::::::::::::::
 app.log
@@ -598,32 +580,32 @@ WARNING<span class="w">  </span>-<span class="w"> </span>A<span class="w"> </spa
 <section id="configuration-server-example">
 <h2 data-msgid="07508ea3139dcab1613dc6aee76750259f4da6c8" data-score="100" data-since="260603">구성 서버 예제<a class="headerlink" href="#configuration-server-example" title="Link to this heading">¶</a></h2>
 <p data-msgid="dc99170ef95a8f66c1334595c457abf9efe96171" data-score="93" data-since="260603">다음은 로깅 구성 서버를 사용하는 모듈의 예입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="5abe95b5d91eaef858164d3ed6e0ca86b87ee4ec" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="highlight-python3 notranslate" data-msgid="5abe95b5d91eaef858164d3ed6e0ca86b87ee4ec" data-score="100" data-since="260612"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging.config</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="c1"># read initial config file</span>
+<span class="c1"># 초기 설정 파일을 읽습니다.</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">fileConfig</span><span class="p">(</span><span class="s1">&#39;logging.conf&#39;</span><span class="p">)</span>
 
-<span class="c1"># create and start listener on port 9999</span>
+<span class="c1"># 포트 9999에서 리스너를 생성하고 시작합니다.</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">9999</span><span class="p">)</span>
 <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;simpleExample&#39;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="c1"># loop through logging calls to see the difference</span>
-    <span class="c1"># new configurations make, until Ctrl+C is pressed</span>
+    <span class="c1"># 차이점을 확인하기 위해 로깅 호출을 반복합니다.</span>
+    <span class="c1"># Ctrl+C 를 누를 때까지 새로운 구성이 유지됩니다.</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;debug message&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;info message&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;warn message&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;error message&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;critical message&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;디버그 메시지&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;정보 메시지&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;경고 메시지&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;오류 메시지&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;심각한 메시지&#39;</span><span class="p">)</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
-    <span class="c1"># cleanup</span>
+    <span class="c1"># 정리합니다.</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">stopListening</span><span class="p">()</span>
     <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
@@ -650,15 +632,13 @@ WARNING<span class="w">  </span>-<span class="w"> </span>A<span class="w"> </spa
 </section>
 <section id="dealing-with-handlers-that-block">
 <span id="blocking-handlers"></span><h2 data-msgid="f7058f9f30d382b9a43ccf3626d57230af8eeffd" data-score="0" data-since="260603">블록 하는 처리기 다루기<a class="headerlink" href="#dealing-with-handlers-that-block" title="Link to this heading">¶</a></h2>
-<p data-msgid="bdf914b2cebf743b8cc32a82355ef8f2c83e6056" data-score="0" data-since="260603">Sometimes you have to get your logging handlers to do their work without
-blocking the thread you’re logging from. This is common in web applications,
-though of course it also occurs in other scenarios.</p>
+<p data-msgid="bdf914b2cebf743b8cc32a82355ef8f2c83e6056" data-score="58" data-since="260612">때로는 로깅하는 스레드를 차단하지 않고 로깅 처리기(handler)가 작업을 수행하도록 해야 할 때가 있습니다. 이는 웹 애플리케이션에서 흔하지만, 물론 다른 시나리오에서도 발생합니다.</p>
 <p data-msgid="744a9d5db1abd92a311d7e591e29e78fc979d258" data-score="74" data-since="260603">흔히 느린 행동을 보이는 범인은 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SMTPHandler" title="logging.handlers.SMTPHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SMTPHandler</span></code></a> 입니다: 개발자의 통제 밖에 있는 여러 가지 이유로, 전자 우편을 보내는 데 오랜 시간이 걸릴 수 있습니다 (예를 들어, 잘 동작하지 않는 메일 또는 네트워크 인프라). 그러나 거의 모든 네트워크 기반 처리기는 블록 할 수 있습니다. <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SocketHandler" title="logging.handlers.SocketHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketHandler</span></code></a> 작업도 너무 느린 DNS 질의를 이면에서 수행 할 수 있습니다 (그리고 이 질의는 여러분의 통제 밖에 있는, 파이썬 계층 아래의 소켓 라이브러리 코드 깊숙이 있을 수 있습니다).</p>
 <p data-msgid="33160a185bf2c5c61c16f6230bf34d55134e0611" data-score="75" data-since="260603">한 가지 해결책은 두 부분으로 된 접근법을 사용하는 것입니다. 첫 번째 부분에서는, 성능이 중요한 스레드에서 액세스하는 로거에 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueHandler" title="logging.handlers.QueueHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueHandler</span></code></a> 만 붙입니다. 그들은 단순히 큐에 씁니다. 충분한 용량으로 큐의 크기를 조정하거나, 크기의 상한이 없도록 초기화 할 수 있습니다. 큐에 대한 쓰기는 일반적으로 신속하게 받아들여지지만, 코드에서 예방책으로 <a class="reference internal" href="../library/queue.html#queue.Full" title="queue.Full"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.Full</span></code></a> 예외를 잡아야 할 것입니다. 코드에 성능이 중요한 스레드가 있는 라이브러리 개발자인 경우, 코드를 사용할 다른 개발자의 이익을 위해 이것을 (여러분의 로거에 <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> 만 붙이라는 제안과 함께) 문서로 만들어야 합니다.</p>
 <p data-msgid="b8122ae0ef9801cb72bbbc2e5daca7e58a0a83db" data-score="87" data-since="260603">해결책의 두 번째 부분은 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a>며, 이는 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueHandler" title="logging.handlers.QueueHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueHandler</span></code></a> 에 상응하여 설계되었습니다. <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 는 매우 간단합니다: 큐와 처리기를 넘겨주면 <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> (또는 <code class="docutils literal notranslate"><span class="pre">LogRecords</span></code> 의 다른 소스)에서 보낸 LogRecord를 큐에서 수신하는 내부 스레드를 시작합니다. <code class="docutils literal notranslate"><span class="pre">LogRecords</span></code> 는 큐에서 제거되고 처리를 위해 처리기로 전달됩니다.</p>
 <p data-msgid="7ee06272821ecb6c11bb72c81891a80a0c56f0ef" data-score="84" data-since="260603">별도의 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 클래스를 사용하면 같은 인스턴스를 사용하여 여러 개의 <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> 를 처리할 수 있다는 장점이 있습니다. 이것은 특별한 이점 없이 처리기당 하나의 스레드를 먹게 되는 기존의 처리기 클래스의 스레드 버전을 만드는 것보다 자원 친화적입니다.</p>
 <p data-msgid="ebd0324496add330975fc9b5b5c324a401553b19" data-score="100" data-since="260603">이 두 클래스를 사용하는 예제는 다음과 같습니다 (임포트 생략):</p>
-<div class="highlight-python3 notranslate" data-msgid="9d491a49692bcda7fce0d6a2ab48a85a6ec7bdea" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="n">que</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># no limit on size</span>
+<div class="highlight-python3 notranslate" data-msgid="9d491a49692bcda7fce0d6a2ab48a85a6ec7bdea" data-score="94" data-since="260612"><div class="highlight"><pre><span></span><span class="n">que</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 크기 제한 없음</span>
 <span class="n">queue_handler</span> <span class="o">=</span> <span class="n">QueueHandler</span><span class="p">(</span><span class="n">que</span><span class="p">)</span>
 <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
 <span class="n">listener</span> <span class="o">=</span> <span class="n">QueueListener</span><span class="p">(</span><span class="n">que</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
@@ -667,11 +647,9 @@ though of course it also occurs in other scenarios.</p>
 <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(threadName)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 <span class="n">listener</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-<span class="c1"># The log output will display the thread which generated</span>
-<span class="c1"># the event (the main thread) rather than the internal</span>
-<span class="c1"># thread which monitors the internal queue. This is what</span>
-<span class="c1"># you want to happen.</span>
-<span class="n">root</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Look out!&#39;</span><span class="p">)</span>
+<span class="c1"># 로그 출력은 내부 큐를 모니터링하는 내부 스레드 대신</span>
+<span class="c1"># 이벤트를 생성한 스레드(메인 스레드)를 표시합니다. 이것이 바로 원하는 동작입니다.</span>
+<span class="n">root</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;주의하세요!&#39;</span><span class="p">)</span>
 <span class="n">listener</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -681,26 +659,17 @@ though of course it also occurs in other scenarios.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="376a28dda8c9546337162a80477e0259ad958017" data-score="0" data-since="260603">Although the earlier discussion wasn’t specifically talking about
-async code, but rather about slow logging handlers, it should be noted that
-when logging from async code, network and even file handlers could lead to
-problems (blocking the event loop) because some logging is done from
-<a class="reference internal" href="../library/asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> internals. It might be best, if any async code is used in an
-application, to use the above approach for logging, so that any blocking code
-runs only in the <code class="docutils literal notranslate"><span class="pre">QueueListener</span></code> thread.</p>
+<p data-msgid="376a28dda8c9546337162a80477e0259ad958017" data-since="260612">이전 논의는 특정적으로 비동기 코드에 관한 것이 아니었고, 느린 로깅 처리기에 대한 것이었지만, 비동기 코드에서 로깅할 때는 네트워크나 심지어 파일 핸들러도 문제(이벤트 루프 차단)를 일으킬 수 있다는 점을 유념해야 합니다. 그 이유는 일부 로깅 작업이 <a class="reference internal" href="../library/asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> 내부에서 수행되기 때문입니다. 따라서 애플리케이션에 비동기 코드를 사용한다면, 모든 차단 코드가 <code class="docutils literal notranslate"><span class="pre">QueueListener</span></code> 스레드에서만 실행되도록 위의 접근 방식을 사용하여 로깅하는 것이 가장 좋습니다.</p>
 </div>
 <div class="versionchanged" data-msgid="eef76efc21ee8edd5a714ab5b9beb9f50885a000" data-score="88" data-since="260603">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span>파이썬 3.5 이전 버전에서는, <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 는 항상 큐에서 받은 모든 메시지를 초기화될 때 제공된 모든 처리기로 전달했습니다. (이것은 큐가 채워질 때 수준 필터링이 모두 반대편에서 행해졌다고 가정했기 때문입니다.) 3.5 이후부터, 이 동작은 키워드 인자 <code class="docutils literal notranslate"><span class="pre">respect_handler_level=True</span></code> 를 리스너의 생성자에 전달함으로써 변경될 수 있습니다. 이렇게 할 때, 리스너는 각 메시지의 수준을 처리기의 수준과 비교하여, 적절한 메시지만 처리기에 전달되도록 합니다.</p>
 </div>
-<div class="versionchanged" data-msgid="b40d7afb4125bb3872aa1109cddbeaea7809ac45" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.14에서 변경: </span>The <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> can be started (and stopped) via the
-<a class="reference internal" href="../reference/compound_stmts.html#with"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">with</span></code></a> statement. For example:</p>
-<div class="highlight-python notranslate" data-msgid="d0512524f9b8f63fe5c647b23b11510d172370ec" data-score="0" data-since="260603"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">QueueListener</span><span class="p">(</span><span class="n">que</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span> <span class="k">as</span> <span class="n">listener</span><span class="p">:</span>
-    <span class="c1"># The queue listener automatically starts</span>
-    <span class="c1"># when the &#39;with&#39; block is entered.</span>
+<div class="versionchanged" data-msgid="b40d7afb4125bb3872aa1109cddbeaea7809ac45" data-since="260612">
+<p><span class="versionmodified changed">버전 3.14에서 변경: </span><a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 는 <a class="reference internal" href="../reference/compound_stmts.html#with"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">with</span></code></a> 문을 통해 시작(및 중지)할 수 있습니다. 예를 들면 다음과 같습니다:</p>
+<div class="highlight-python notranslate" data-msgid="d0512524f9b8f63fe5c647b23b11510d172370ec" data-since="260612"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">QueueListener</span><span class="p">(</span><span class="n">que</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span> <span class="k">as</span> <span class="n">listener</span><span class="p">:</span>
+    <span class="c1"># &#39;with&#39; 블록에 진입하면 큐 리스너가 자동으로 시작됩니다.</span>
     <span class="k">pass</span>
-<span class="c1"># The queue listener automatically stops once</span>
-<span class="c1"># the &#39;with&#39; block is exited.</span>
+<span class="c1"># &#39;with&#39; 블록을 벗어나면 큐 리스너가 자동으로 중지됩니다.</span>
 </pre></div>
 </div>
 </div>
@@ -708,29 +677,28 @@ runs only in the <code class="docutils literal notranslate"><span class="pre">Qu
 <section id="sending-and-receiving-logging-events-across-a-network">
 <span id="network-logging"></span><h2 data-msgid="92d199d54eb6f39b24aa6122b95a1dc7ef1aaba3" data-score="100" data-since="260603">네트워크에서 로깅 이벤트 보내고 받기<a class="headerlink" href="#sending-and-receiving-logging-events-across-a-network" title="Link to this heading">¶</a></h2>
 <p data-msgid="6881aaa7126f0a871840bef4a3698f792f5ac6cc" data-score="88" data-since="260603">네트워크를 통해 로깅 이벤트를 보내고, 받는 쪽에서 처리하려고 한다고 합시다. 이렇게 하는 간단한 방법은 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SocketHandler" title="logging.handlers.SocketHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketHandler</span></code></a> 인스턴스를 보내는 쪽의 루트 로거에 연결하는 것입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="678681ed6fdd09dc785816ac77c9084c291e2f2b" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span><span class="o">,</span><span class="w"> </span><span class="nn">logging.handlers</span>
+<div class="highlight-python3 notranslate" data-msgid="678681ed6fdd09dc785816ac77c9084c291e2f2b" data-since="260612"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span><span class="o">,</span><span class="w"> </span><span class="nn">logging.handlers</span>
 
 <span class="n">rootLogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
 <span class="n">rootLogger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 <span class="n">socketHandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">SocketHandler</span><span class="p">(</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">DEFAULT_TCP_LOGGING_PORT</span><span class="p">)</span>
-<span class="c1"># don&#39;t bother with a formatter, since a socket handler sends the event as</span>
-<span class="c1"># an unformatted pickle</span>
+<span class="c1"># 포매터는 신경 쓰지 않아도 됩니다. 소켓 핸들러는 이벤트를</span>
+<span class="c1"># 서식이 적용되지 않은 피클로 전송하기 때문입니다.</span>
 <span class="n">rootLogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">socketHandler</span><span class="p">)</span>
 
-<span class="c1"># Now, we can log to the root logger, or any other logger. First the root...</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Jackdaws love my big sphinx of quartz.&#39;</span><span class="p">)</span>
+<span class="c1"># 이제 루트 로거 또는 다른 모든 로거에 로그를 작성할 수 있습니다. 먼저 루트...</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;잭도우가 수정 같은 큰 스핑크스를 사랑합니다.&#39;</span><span class="p">)</span>
 
-<span class="c1"># Now, define a couple of other loggers which might represent areas in your</span>
-<span class="c1"># application:</span>
+<span class="c1"># 다음으로, 애플리케이션의 특정 영역을 나타낼 수 있는 몇 가지 다른 로거를 정의합니다:</span>
 
 <span class="n">logger1</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;myapp.area1&#39;</span><span class="p">)</span>
 <span class="n">logger2</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;myapp.area2&#39;</span><span class="p">)</span>
 
-<span class="n">logger1</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Quick zephyrs blow, vexing daft Jim.&#39;</span><span class="p">)</span>
-<span class="n">logger1</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;How quickly daft jumping zebras vex.&#39;</span><span class="p">)</span>
-<span class="n">logger2</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Jail zesty vixen who grabbed pay from quack.&#39;</span><span class="p">)</span>
-<span class="n">logger2</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The five boxing wizards jump quickly.&#39;</span><span class="p">)</span>
+<span class="n">logger1</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;민들레가 재빨리 불어와 어수룩한 짐에게 문제를 일으킨다.&#39;</span><span class="p">)</span>
+<span class="n">logger1</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;재빠르게 날뛰는 얼룩말이 어수룩함을 문제 삼는다.&#39;</span><span class="p">)</span>
+<span class="n">logger2</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;지옥의 자신감 넘치는 여우가 장난감을 빼앗아갔다.&#39;</span><span class="p">)</span>
+<span class="n">logger2</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;다섯 마리의 복싱 마법사가 빨리 점프한다.&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p data-msgid="5fd78eb8131326882d8112ec5f461cf5421ce457" data-score="97" data-since="260603">수신 측에서는 <a class="reference internal" href="../library/socketserver.html#module-socketserver" title="socketserver: A framework for network servers."><code class="xref py py-mod docutils literal notranslate"><span class="pre">socketserver</span></code></a> 모듈을 사용하여 수신기를 구성할 수 있습니다. 기본적인 작업 예제는 다음과 같습니다:</p>
@@ -3696,6 +3664,7 @@ more fine-grained than that).</p>
     <h4>분실물 보관소</h4>
     <div class="lost-and-found-items">
         <span data-msgid="ce6bb35d12ab2f8b197bf3134cb4ac26720902f5" data-score="91" data-since="260610" class="lost-and-found-item"></span>
+        <span data-msgid="ee87e69c75765be1313eef1215eff5d0c963eb01" data-score="98" data-since="260612" class="lost-and-found-item"></span>
     </div>
 </div>
 
