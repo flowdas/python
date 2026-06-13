@@ -79,9 +79,9 @@
 <li><a class="reference internal" href="#">확장 모듈 정의</a><ul>
 <li><a class="reference internal" href="#extension-export-hook">확장 내보내기 훅</a></li>
 <li><a class="reference internal" href="#multi-phase-initialization">다단계 초기화</a></li>
-<li><a class="reference internal" href="#multiple-module-instances">여러 모듈 인스턴스</a></li>
+<li><a class="reference internal" href="#multiple-module-instances">다중 모듈 인스턴스</a></li>
 <li><a class="reference internal" href="#pyinit-function"><code class="docutils literal notranslate"><span class="pre">PyInit</span></code> 함수</a><ul>
-<li><a class="reference internal" href="#legacy-single-phase-initialization">레거시 단단계 초기화</a></li>
+<li><a class="reference internal" href="#legacy-single-phase-initialization">레거시 단일 단계 초기화</a></li>
 </ul>
 </li>
 </ul>
@@ -121,10 +121,10 @@
   <section id="defining-extension-modules">
 <span id="extension-modules"></span><h1 data-msgid="3d706d1aa200cca0ef9cbdbcfb999e2edcd635b1" data-score="100" data-since="260609">확장 모듈 정의<a class="headerlink" href="#defining-extension-modules" title="Link to this heading">¶</a></h1>
 <p data-msgid="17a552483828ff2c87b46bbf5c3883048b05f02a" data-score="86" data-since="260611">CPython용 C 확장 인터페이스는 공유 라이브러리(예를 들어, 리눅스에서는 <code class="docutils literal notranslate"><span class="pre">.so</span></code> 파일, 윈도우에서는 <code class="docutils literal notranslate"><span class="pre">.pyd</span></code> DLL)이며, 파이썬 프로세스에 로드할 수 있고(예를 들어, 호환 가능한 컴파일러 설정을 사용하여 컴파일됨), <em class="dfn">export hook</em> 함수(또는 구식 <a class="reference internal" href="#extension-pyinit"><span class="std std-ref">initialization function</span></a>)\를 내보냅니다.</p>
-<p data-msgid="f643d0151381be4fd26bd2dcac3a5b24a08578df" data-score="83" data-since="260611">기본적으로 가져와지려면(즉, <code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.machinery.ExtensionFileLoader`에</span> <span class="pre">의해),</span> <span class="pre">공유</span> <span class="pre">라이브러리는</span> <span class="pre">:py:attr:`sys.path</span></code>\에 존재해야 하며, <a class="reference internal" href="../library/importlib.html#importlib.machinery.EXTENSION_SUFFIXES" title="importlib.machinery.EXTENSION_SUFFIXES"><code class="xref py py-attr docutils literal notranslate"><span class="pre">importlib.machinery.EXTENSION_SUFFIXES</span></code></a>\에 나열된 확장자 이름과 모듈 이름을 따르도록 이름을 지정해야 합니다.</p>
+<p data-msgid="f643d0151381be4fd26bd2dcac3a5b24a08578df" data-score="95" data-since="260613">기본적으로 임포트 가능하려면(즉, <a class="reference internal" href="../library/importlib.html#importlib.machinery.ExtensionFileLoader" title="importlib.machinery.ExtensionFileLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">importlib.machinery.ExtensionFileLoader</span></code></a>에 의해), 공유 라이브러리는 <a class="reference internal" href="../library/sys.html#sys.path" title="sys.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sys.path</span></code></a> 에 있어야 하고, 모듈 이름에 <a class="reference internal" href="../library/importlib.html#importlib.machinery.EXTENSION_SUFFIXES" title="importlib.machinery.EXTENSION_SUFFIXES"><code class="xref py py-attr docutils literal notranslate"><span class="pre">importlib.machinery.EXTENSION_SUFFIXES</span></code></a> 에 나열된 확장자를 붙인 이름이어야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="523e19d429291d2c68318421095e9c2a0d3046d3" data-score="77" data-since="260611">확장 모듈을 빌드, 패키징 및 배포하는 것은 외부 도구를 사용하는 것이 가장 좋으며, 본 문서의 범위가 아닙니다. 적합한 도구 중 하나는 Setuptools이며, 관련 문서는 <a class="reference external" href="https://setuptools.pypa.io/en/latest/setuptools">https://setuptools.pypa.io/en/latest/setuptools</a>.html에서 찾을 수 있습니다.</p>
+<p data-msgid="523e19d429291d2c68318421095e9c2a0d3046d3" data-score="80" data-since="260613">확장 모듈을 빌드, 패키징 및 배포하는 작업은 제삼자 도구를 사용하는 것이 가장 좋으며, 이 문서의 범위를 벗어납니다. 적합한 도구 중 하나는 Setuptools로, 문서는 <a class="reference external" href="https://setuptools.pypa.io/en/latest/setuptools.html">https://setuptools.pypa.io/en/latest/setuptools.html</a> 에서 찾을 수 있습니다.</p>
 </div>
 <section id="extension-export-hook">
 <span id="id1"></span><h2 data-msgid="0af20a05e401c98c07523751501dabd0dee223e9" data-score="100" data-since="260611">확장 내보내기 훅<a class="headerlink" href="#extension-export-hook" title="Link to this heading">¶</a></h2>
@@ -157,12 +157,12 @@
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="0a466aa766a056586b91c4bce08b89d4a4358f8b" data-score="96" data-since="260611">확장 모듈 내보내기 훅을 선언합니다. 이 매크로는:</p>
 <ul class="simple">
 <li><p data-msgid="b3ae2dcb1feb999c2dfae4d35527689129eda6c4" data-score="100" data-since="260611"><span class="c-expr sig sig-inline c"><a class="reference internal" href="slots.html#c.PySlot" title="PySlot"><span class="n">PySlot</span></a><span class="p">*</span></span> 반환 타입을 지정하고,</p></li>
-<li><p data-msgid="e041194e906b73f6869773cb52ecda8c098ddd33" data-score="100" data-since="260611">플랫폼이 요구하는 모든 특수 링크 선언을 추가하며,</p></li>
-<li><p data-msgid="1149a131334e87580b8ffbb100ef32a824127879" data-score="100" data-since="260611">C++의 경우, 함수를 <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> 로 선언합니다.</p></li>
+<li><p data-msgid="e041194e906b73f6869773cb52ecda8c098ddd33" data-since="260613">플랫폼에 필요한 특수 링크 선언을 추가하며,</p></li>
+<li><p data-msgid="1149a131334e87580b8ffbb100ef32a824127879" data-since="260613">C++의 경우 함수를 <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> 로 선언합니다.</p></li>
 </ul>
 </dd></dl>
 
-<p data-msgid="c1d4bfc30ec21cd09c41abbee8a25cd9722b6c92" data-score="97" data-since="260611">예를 들어, <code class="docutils literal notranslate"><span class="pre">spam</span></code> 이라는 모듈은 다음과 같이 정의됩니다:</p>
+<p data-msgid="c1d4bfc30ec21cd09c41abbee8a25cd9722b6c92" data-score="100" data-since="260611">예를 들어, <code class="docutils literal notranslate"><span class="pre">spam</span></code> 이라는 모듈은 다음과 같이 정의됩니다:</p>
 <div class="highlight-c notranslate" data-msgid="8049fab2d09a3ea1014658fa11ca629fd08d239b" data-score="100" data-since="260609"><div class="highlight"><pre><span></span><span class="n">PyABIInfo_VAR</span><span class="p">(</span><span class="n">abi_info</span><span class="p">);</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">spam_slots</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
@@ -199,16 +199,16 @@
 </ul>
 <p data-msgid="7d7fb39852044a6feb20980b4c7b34fb193aa0a0" data-score="90" data-since="260611">이는 초기화 함수가 완전히 구성된 모듈을 반환하는 레거시(하지만 여전히 지원되는) <a class="reference internal" href="#single-phase-initialization"><span class="std std-ref">single-phase initialization</span></a> 와 구별하기 위해 <em>다단계 초기화</em> 라고 불립니다.</p>
 <div class="versionchanged">
-<p><span class="versionmodified changed">버전 3.5에서 변경: </span>다단계 초기화(<span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0489/"><strong>PEP 489</strong></a>)를 지원하도록 추가되었습니다.</p>
+<p><span class="versionmodified changed">버전 3.5에서 변경: </span>다단계 초기화 지원이 추가되었습니다 (<span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0489/"><strong>PEP 489</strong></a>).</p>
 </div>
 </section>
 <section id="multiple-module-instances">
-<h2 data-msgid="eccc5b9ebb78ee60c39ae186245d3adb35fff0cb" data-score="100" data-since="260611">여러 모듈 인스턴스<a class="headerlink" href="#multiple-module-instances" title="Link to this heading">¶</a></h2>
+<h2 data-msgid="eccc5b9ebb78ee60c39ae186245d3adb35fff0cb" data-score="100" data-since="260613">다중 모듈 인스턴스<a class="headerlink" href="#multiple-module-instances" title="Link to this heading">¶</a></h2>
 <p data-msgid="168c1bcfa97f3e5867e73ee7866db9faaf20683a" data-score="100" data-since="260611">기본적으로, 확장 모듈은 싱글톤이 아닙니다. 예를 들어, <a class="reference internal" href="../library/sys.html#sys.modules" title="sys.modules"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sys.modules</span></code></a> 항목이 제거되고 모듈이 다시 임포트되면, 새로운 모듈 객체가 생성되고, 일반적으로 최신 메서드 및 타입 객체로 채워집니다. 이전 모듈은 일반적인 가비지 컬렉션의 대상이 됩니다. 이는 순수 파이썬 모듈의 동작을 반영합니다.</p>
-<p data-msgid="7cf73088dbbc648645d42346edb76521d1b017d1" data-score="100" data-since="260611"><span class="xref std std-ref">서브 인터프리터 &lt;sub-interpreter-support&gt;`에서 추가 모듈 인스턴스가 생성되거나(Python 런타임 재초기화 시 :c:func:`Py_Finalize</span> 및 <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a> 호출 후), 모듈 인스턴스 간에 Python 객체를 공유하는 경우 충돌이나 정의되지 않은 동작을 일으킬 가능성이 높습니다.</p>
-<p data-msgid="cde5f6c8119699b68efc72d233c423deaf7383af" data-score="97" data-since="260611">이러한 문제를 피하기 위해, 확장 모듈의 각 인스턴스는 <em>격리</em> 되어야 합니다. 한 인스턴스에 대한 변경이 다른 인스턴스에 암묵적으로 영향을 미쳐서는 안 되며, Python 객체에 대한 참조를 포함하여 모듈이 소유하는 모든 상태는 특정 모듈 인스턴스에 국한되어야 합니다. 자세한 내용과 실질적인 가이드는 <a class="reference internal" href="../howto/isolating-extensions.html#isolating-extensions-howto"><span class="std std-ref">확장 격리 방법론</span></a> 를 참조하십시오.</p>
-<p data-msgid="80e7a695342729643bda07e32bcfd7a8b0b3ee0c" data-score="100" data-since="260611">이러한 문제를 피하는 더 간단한 방법은 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>반복 초기화 시 오류 발생 &lt;isolating-extensions-optout&gt;`을 수행하는 것입니다.</p>
-<p data-msgid="02255773dfdb31d0d2f2177f9e32b5aa35767767" data-score="93" data-since="260611">모든 모듈은 <span class="xref std std-ref">서브 인터프리터 &lt;sub-interpreter-support&gt;`를 지원해야 하거나, 그렇지 않다면 명시적으로 지원하지 않음을 알리는 것이 기대됩니다. 이는 일반적으로 격리 또는 위에서 설명한 반복 초기화 차단 방식에 의해 달성됩니다. 모듈은 또한 :c:data:`Py_mod_multiple_interpreters</span> 슬롯을 사용하여 메인 인터프리터로 제한될 수 있습니다.</p>
+<p data-msgid="7cf73088dbbc648645d42346edb76521d1b017d1" data-score="95" data-since="260613">추가 모듈 인스턴스는 <a class="reference internal" href="subinterpreters.html#sub-interpreter-support"><span class="std std-ref">서브 인터프리터</span></a> 에서 또는 파이썬 런타임 재초기화(<a class="reference internal" href="interp-lifecycle.html#c.Py_Finalize" title="Py_Finalize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Finalize()</span></code></a> 와 <a class="reference internal" href="interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>) 후에 생성될 수 있습니다. 이 경우 모듈 인스턴스 간에 파이썬 객체를 공유하면 크래시나 정의되지 않은 동작이 발생할 가능성이 있습니다.</p>
+<p data-msgid="cde5f6c8119699b68efc72d233c423deaf7383af" data-score="95" data-since="260613">이러한 문제를 피하려면 확장 모듈의 각 인스턴스가 <em>격리</em>되어야 합니다: 한 인스턴스의 변경이 다른 인스턴스에 묵시적으로 영향을 주어서는 안 되며, 파이썬 객체에 대한 참조를 포함하여 모듈이 소유한 모든 상태는 특정 모듈 인스턴스에 한정되어야 합니다. 자세한 내용과 실용적인 안내는 <a class="reference internal" href="../howto/isolating-extensions.html#isolating-extensions-howto"><span class="std std-ref">확장 모듈 격리하기</span></a>를 참조하십시오.</p>
+<p data-msgid="80e7a695342729643bda07e32bcfd7a8b0b3ee0c" data-score="91" data-since="260613">이러한 문제를 피하는 더 간단한 방법은 <a class="reference internal" href="../howto/isolating-extensions.html#isolating-extensions-optout"><span class="std std-ref">반복 초기화 시 에러 발생시키기</span></a>입니다.</p>
+<p data-msgid="02255773dfdb31d0d2f2177f9e32b5aa35767767" data-score="89" data-since="260613">모든 모듈은 <a class="reference internal" href="subinterpreters.html#sub-interpreter-support"><span class="std std-ref">서브 인터프리터</span></a>를 지원하거나, 그렇지 않으면 지원하지 않음을 명시적으로 알려야 합니다. 이는 위에서 설명한 것처럼 격리 또는 반복 초기화 차단을 통해 보통 달성됩니다. 모듈은 <a class="reference internal" href="module.html#c.Py_mod_multiple_interpreters" title="Py_mod_multiple_interpreters"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_mod_multiple_interpreters</span></code></a> 슬롯을 사용하여 메인 인터프리터로만 제한될 수도 있습니다.</p>
 </section>
 <section id="pyinit-function">
 <span id="extension-pyinit"></span><h2 data-msgid="35950c73cc72a178de414b2ad954e70816a9e2a8" data-score="100" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyInit</span></code> 함수<a class="headerlink" href="#pyinit-function" title="Link to this heading">¶</a></h2>
@@ -229,9 +229,9 @@
 <span class="sig-name descname"><span class="n"><span class="pre">PyMODINIT_FUNC</span></span></span><a class="headerlink" href="#c.PyMODINIT_FUNC" title="Link to this definition">¶</a><br /></dt>
 <dd><p data-msgid="57a19cb9fb0fe736f3cded2b9161ba6bfd253d31" data-score="100" data-since="260611">확장 모듈 초기화 함수를 선언합니다. 이 매크로는:</p>
 <ul class="simple">
-<li><p data-msgid="894cf3cdb87c92ebb72c1bda2d68789d2461d0f7" data-score="100" data-since="260611"><span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> 반환 유형을 지정하고,</p></li>
-<li><p data-msgid="e041194e906b73f6869773cb52ecda8c098ddd33" data-score="100" data-since="260611">플랫폼이 요구하는 모든 특수 링크 선언을 추가하며,</p></li>
-<li><p data-msgid="1149a131334e87580b8ffbb100ef32a824127879" data-score="100" data-since="260611">C++의 경우, 함수를 <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> 로 선언합니다.</p></li>
+<li><p data-msgid="894cf3cdb87c92ebb72c1bda2d68789d2461d0f7" data-since="260613"><span class="c-expr sig sig-inline c"><a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> 반환 형을 지정하고,</p></li>
+<li><p data-msgid="e041194e906b73f6869773cb52ecda8c098ddd33" data-since="260613">플랫폼에 필요한 특수 링크 선언을 추가하며,</p></li>
+<li><p data-msgid="1149a131334e87580b8ffbb100ef32a824127879" data-since="260613">C++의 경우 함수를 <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> 로 선언합니다.</p></li>
 </ul>
 </dd></dl>
 
@@ -240,16 +240,16 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyModuleDef_Init">
 <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><span class="n"><span class="pre">PyObject</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">PyModuleDef_Init</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="module.html#c.PyModuleDef" title="PyModuleDef"><span class="n"><span class="pre">PyModuleDef</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">def</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyModuleDef_Init" title="Link to this definition">¶</a><br /></dt>
-<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.5 이후로.</em><p data-msgid="242c06833ba18e0142a2308081ef397d13441591" data-score="98" data-since="260611">모듈 정의가 유형과 참조 횟수를 올바르게 보고하는 올바르게 초기화된 Python 객체임을 보장합니다.</p>
-<p data-msgid="cbd77f2a8609e945945db5ccf80f550d822761e1" data-score="97" data-since="260611"><em>def</em> 를 <code class="docutils literal notranslate"><span class="pre">PyObject*</span></code> 로 캐스트하거나, 에러가 발생하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환합니다.</p>
+<dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.5 이후로.</em><p data-msgid="242c06833ba18e0142a2308081ef397d13441591" data-since="260613">모듈 정의기 형과 참조 횟수를 정확하게 보고하는 제대로 초기화된 파이썬 객체임을 보장해야 합니다.</p>
+<p data-msgid="cbd77f2a8609e945945db5ccf80f550d822761e1" data-since="260613">에러가 발생하면 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을, 그렇지 않으면 <code class="docutils literal notranslate"><span class="pre">PyObject*</span></code> 로 캐스팅된 <em>def</em>를 반환합니다.</p>
 <p data-msgid="e17f6c02740e9acc9d28f51dafa3f9318fca660d" data-score="98" data-since="260611">이 함수 호출은 모듈 초기화 함수에서 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyModuleDef`를 반환하기 전에 필요합니다. 다른 상황에서는 사용해서는 안 됩니다.</p>
-<p data-msgid="5042450d6fb19be2ce51b2a8d42db36d334e0922" data-score="96" data-since="260611">Python은 <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> 구조체가 정적으로 할당된다고 가정합니다. 이 함수는 새로운 참조 또는 빌려온 참조 중 하나를 반환할 수 있으며, 이 참조는 해제해서는 안 됩니다.</p>
+<p data-msgid="5042450d6fb19be2ce51b2a8d42db36d334e0922" data-since="260613">파이썬은 <code class="docutils literal notranslate"><span class="pre">PyModuleDef</span></code> 구조체가 정적으로 할당된다고 가정합니다. 이 함수는 새 참조 또는 빌린 참조를 반환할 수 있으며, 이 참조는 해제해서는 안 됩니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.</span></p>
 </div>
 </dd></dl>
 
-<p data-msgid="c1d4bfc30ec21cd09c41abbee8a25cd9722b6c92" data-score="97" data-since="260611">예를 들어, <code class="docutils literal notranslate"><span class="pre">spam</span></code> 이라는 모듈은 다음과 같이 정의됩니다:</p>
+<p data-msgid="c1d4bfc30ec21cd09c41abbee8a25cd9722b6c92" data-score="100" data-since="260611">예를 들어, <code class="docutils literal notranslate"><span class="pre">spam</span></code> 이라는 모듈은 다음과 같이 정의됩니다:</p>
 <div class="highlight-c notranslate" data-msgid="231b547866b007cad39dc808268ed9c48927aa43" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">PyModuleDef</span><span class="w"> </span><span class="n">spam_module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">.</span><span class="n">m_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyModuleDef_HEAD_INIT</span><span class="p">,</span>
 <span class="w">    </span><span class="p">.</span><span class="n">m_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;spam&quot;</span><span class="p">,</span>
@@ -264,18 +264,17 @@
 </pre></div>
 </div>
 <section id="legacy-single-phase-initialization">
-<span id="single-phase-initialization"></span><h3 data-msgid="9db0c11ec4cd5929976916c7ac98c361131d59aa" data-score="100" data-since="260611">레거시 단단계 초기화<a class="headerlink" href="#legacy-single-phase-initialization" title="Link to this heading">¶</a></h3>
+<span id="single-phase-initialization"></span><h3 data-msgid="9db0c11ec4cd5929976916c7ac98c361131d59aa" data-since="260613">레거시 단일 단계 초기화<a class="headerlink" href="#legacy-single-phase-initialization" title="Link to this heading">¶</a></h3>
 <div class="versionchanged soft-deprecated">
-<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>단단계 초기화는 알려진 단점과 설계 결함이 있는 확장 모듈 초기화의 레거시 메커니즘입니다. 확장 모듈 작성자는 대신 다단계 초기화를 사용할 것이 권장됩니다.</p>
+<p><span class="versionmodified soft-deprecated">버전 3.15부터 <a class="reference internal" href="../glossary.html#term-soft-deprecated">약하게 폐지 &lt;Soft deprecated&gt;</a>: </span>단일 단계 초기화는 확장 모듈을 초기화하는 레거시 메커니즘으로, 알려진 단점과 설계상 결함이 있습니다. 확장 모듈 작성자는 대신 다단계 초기화를 사용하도록 권장됩니다.</p>
 <p data-msgid="d3118b73d9e00f075e61e1a1b42b43888a393005" data-score="75" data-since="260611">그러나 이를 지원하는 것을 제거할 계획은 없습니다.</p>
 </div>
 <p data-msgid="176a903ac52099334884717f03c7678258cb635d" data-score="99" data-since="260611">단단계 초기화에서는, 이전 방식의 <a class="reference internal" href="#extension-pyinit"><span class="std std-ref">초기화 함수</span></a> (<code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code>)가 모듈 객체를 생성, 채우고 반환해야 합니다. 이는 일반적으로 <a class="reference internal" href="module.html#c.PyModule_Create" title="PyModule_Create"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_Create()</span></code></a> 및 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyModule_AddObjectRef`와 같은 함수를 사용하여 수행됩니다.</p>
-<p data-msgid="99e2a752940390fc327e0301b9c8fa086827b063" data-score="0" data-since="260603">Single-phase initialization differs from the <a class="reference internal" href="#multi-phase-initialization"><span class="std std-ref">default</span></a>
-in the following ways:</p>
+<p data-msgid="99e2a752940390fc327e0301b9c8fa086827b063" data-since="260613">단일 단계 초기화는 다음과 같은 점에서 <a class="reference internal" href="#multi-phase-initialization"><span class="std std-ref">기본 단계</span></a>와 다릅니다:</p>
 <ul>
-<li><p data-msgid="3edce29d8ecbd438294455d6644287dae4c29332" data-score="95" data-since="260611">단단계 모듈은, 또는 오히려 <em>포함</em> 하고 있는, “싱글톤”입니다.</p>
-<p data-msgid="227500390c266ee99d017af59f80f404baef629e" data-score="93" data-since="260611">모듈이 처음 초기화될 때, Python은 모듈의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 내용(즉, 일반적으로 모듈의 함수와 타입)을 저장합니다.</p>
-<p data-msgid="e5c35ccdff87b0e5cdb26763f024333c552cf48b" data-score="99" data-since="260611">후속 임포트의 경우, Python은 초기화 함수를 다시 호출하지 않습니다. 대신, 새 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 를 가진 새 모듈 객체를 생성하고 저장된 내용을 복사합니다. 예를 들어, 함수 <code class="docutils literal notranslate"><span class="pre">sum</span></code> 과 예외 클래스 <code class="docutils literal notranslate"><span class="pre">error</span></code> 를 정의하는 단단계 모듈 <code class="docutils literal notranslate"><span class="pre">_testsinglephase</span></code> <a class="footnote-reference brackets" href="#testsinglephase" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> 이 있다고 가정해 보겠습니다.</p>
+<li><p data-msgid="3edce29d8ecbd438294455d6644287dae4c29332" data-since="260613">단일 단계 모듈은 “싱글톤”이거나 오히려 “싱글톤”을 <em>포함</em> 합니다.</p>
+<p data-msgid="227500390c266ee99d017af59f80f404baef629e" data-since="260613">모듈이 처음 초기화될 때, 파이썬은 모듈의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 내용(즉, 일반적으로 모듈의 함수와 형)을 저장합니다.</p>
+<p data-msgid="e5c35ccdff87b0e5cdb26763f024333c552cf48b" data-since="260613">이후 임포트에서는 파이썬이 초기화 함수를 다시 호출하지 않습니다. 대신 새 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 를 가진 새 모듈 객체를 생성하고 저장된 내용을 복사합니다. 예를 들어, 함수 <code class="docutils literal notranslate"><span class="pre">sum</span></code> 과 예외 클래스 <code class="docutils literal notranslate"><span class="pre">error</span></code> 를 정의하는 단일 단계 모듈 <code class="docutils literal notranslate"><span class="pre">_testsinglephase</span></code> <a class="footnote-reference brackets" href="#testsinglephase" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> 가 있다고 가정하면:</p>
 <div class="highlight-python notranslate" data-msgid="ffbabd245effaa2f2626228a492d83d4618668bb" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">_testsinglephase</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">one</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s1">&#39;_testsinglephase&#39;</span><span class="p">]</span>
@@ -290,19 +289,19 @@ in the following ways:</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p data-msgid="1fb2996c7671246ef2db032dd92746ba47d7c4ab" data-score="100" data-since="260611">정확한 동작은 CPython 구현 상세로 간주되어야 합니다.</p>
+<p data-msgid="1fb2996c7671246ef2db032dd92746ba47d7c4ab" data-since="260613">정확한 동작은 CPython 구현 세부 사항으로 간주해야 합니다.</p>
 </li>
-<li><p data-msgid="3f1e09d62e58c3f32a455f5f84c35b561bd241c2" data-score="89" data-since="260611"><code class="docutils literal notranslate"><span class="pre">PyInit_modulename``이</span> <span class="pre">*spec*</span> <span class="pre">인수를</span> <span class="pre">받지</span> <span class="pre">않는</span> <span class="pre">문제를</span> <span class="pre">우회하기</span> <span class="pre">위해,</span> <span class="pre">임포트</span> <span class="pre">메커니즘의</span> <span class="pre">일부</span> <span class="pre">상태가</span> <span class="pre">저장되어</span> <span class="pre">``PyInit_modulename</span></code> 호출 중에 생성되는 첫 번째 적절한 모듈에 적용됩니다. 구체적으로, 서브 모듈이 임포트될 때 이 메커니즘은 부모 패키지 이름이 모듈 이름 앞에 붙여집니다.</p>
-<p data-msgid="ad1ae5bfdb1b6bcf8492747ea93af18ef8d51b3a" data-score="56" data-since="260611">단일 단계인 <code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code> 함수는 가능한 한 빨리 “자신이”의 모듈 객체를, 다른 모듈 객체가 생성되기 전에 생성해야 합니다.</p>
+<li><p data-msgid="3f1e09d62e58c3f32a455f5f84c35b561bd241c2" data-since="260613"><code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code>이 <em>spec</em> 인자를 받지 않는다는 사실을 우회하기 위해, 임포트 장치의 일부 상태가 저장되어 <code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code> 호출 중에 생성되는 첫 번째 적합한 모듈에 적용됩니다. 구체적으로, 서브 모듈이 임포트될 때 이 메커니즘은 부모 패키지 이름을 모듈 이름 앞에 붙입니다.</p>
+<p data-msgid="ad1ae5bfdb1b6bcf8492747ea93af18ef8d51b3a" data-since="260613">단일 단계 <code class="docutils literal notranslate"><span class="pre">PyInit_modulename</span></code> 함수는 다른 모듈 객체가 생성되기 전에 가능한 한 빨리 “자신의” 모듈 객체를 생성해야 합니다.</p>
 </li>
-<li><p data-msgid="b95061bc2d4376d9a7fe32b552c8a4fa6c14899a" data-score="100" data-since="260611">비 ASCII 모듈 이름 (<code class="docutils literal notranslate"><span class="pre">PyInitU_modulename</span></code>) 은 지원되지 않습니다.</p></li>
-<li><p data-msgid="28d0b777d9824a8273f233a26632d38bab1f9a8f" data-score="100" data-since="260611">단일 단계 모듈은 :c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyState_FindModule`와 같은 모듈 검색 함수를 지원합니다.</p></li>
+<li><p data-msgid="b95061bc2d4376d9a7fe32b552c8a4fa6c14899a" data-since="260613">ASCII가 아닌 모듈 이름(<code class="docutils literal notranslate"><span class="pre">PyInitU_modulename</span></code>)은 지원되지 않습니다.</p></li>
+<li><p data-msgid="28d0b777d9824a8273f233a26632d38bab1f9a8f" data-since="260613">단일 단계 모듈은 <a class="reference internal" href="module.html#c.PyState_FindModule" title="PyState_FindModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyState_FindModule()</span></code></a> 같은 모듈 조회 함수를 지원합니다.</p></li>
 <li><p data-msgid="8f2c2bf91377205cc96552f80a5c3798adbf8e64" data-score="100" data-since="260611">모듈의 :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyModuleDef.m_slots`는 NULL이어야 합니다.</p></li>
 </ul>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="testsinglephase" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1</a><span class="fn-bracket">]</span></span>
-<p data-msgid="a020c4bb1198a6d42d517d220325d044a5f9c487" data-score="90" data-since="260611"><code class="docutils literal notranslate"><span class="pre">_testsinglephase</span></code> 은 CPython의 자체 테스트 스위트에서 사용되는 내부 모듈이며, 사용자 설치에 포함되어 있을 수도 있고 아닐 수도 있습니다.</p>
+<p data-msgid="a020c4bb1198a6d42d517d220325d044a5f9c487" data-since="260613"><code class="docutils literal notranslate"><span class="pre">_testsinglephase</span></code> 는 CPython의 자체 테스트 스위트에서 사용되는 내부 모듈로, 설치 환경에 따라 포함될 수도 있고 포함되지 않을 수도 있습니다.</p>
 </aside>
 </aside>
 </section>
@@ -312,9 +311,9 @@ in the following ways:</p>
     <h4>분실물 보관소</h4>
     <div class="lost-and-found-items">
         <span data-msgid="1088136cff724c3977b6ea8efaf2a3b3dbb2b493" data-score="100" data-since="260611" class="lost-and-found-item"></span>
-        <span data-msgid="8420b43bb03b8c5c51d18bada7bda5c3cc606ec6" data-score="100" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="8420b43bb03b8c5c51d18bada7bda5c3cc606ec6" data-score="100" data-since="260613" class="lost-and-found-item"></span>
         <span data-msgid="b38415704d8001f3d43b056110c5110a00d53101" data-score="93" data-since="260611" class="lost-and-found-item"></span>
-        <span data-msgid="d7ab402e205669fd74a1a10452d7320673a96f2a" data-score="98" data-since="260611" class="lost-and-found-item"></span>
+        <span data-msgid="d7ab402e205669fd74a1a10452d7320673a96f2a" data-since="260613" class="lost-and-found-item"></span>
     </div>
 </div>
 
