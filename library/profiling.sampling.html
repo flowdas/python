@@ -80,17 +80,17 @@
                 <ul>
 <li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.sampling</span></code> — 통계 프로파일러</a><ul>
 <li><a class="reference internal" href="#what-is-statistical-profiling">통계적 프로파일링이란 무엇인가요?</a><ul>
-<li><a class="reference internal" href="#how-time-is-estimated">How time is estimated</a></li>
-<li><a class="reference internal" href="#when-to-use-a-different-approach">When to use a different approach</a></li>
+<li><a class="reference internal" href="#how-time-is-estimated">시간 추정 방법</a></li>
+<li><a class="reference internal" href="#when-to-use-a-different-approach">다른 접근 방식을 사용해야 하는 경우</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#quick-examples">Quick examples</a></li>
-<li><a class="reference internal" href="#commands">Commands</a><ul>
-<li><a class="reference internal" href="#the-run-command">The <code class="docutils literal notranslate"><span class="pre">run</span></code> command</a></li>
-<li><a class="reference internal" href="#the-attach-command">The <code class="docutils literal notranslate"><span class="pre">attach</span></code> command</a></li>
-<li><a class="reference internal" href="#the-dump-command">The <code class="docutils literal notranslate"><span class="pre">dump</span></code> command</a></li>
-<li><a class="reference internal" href="#the-replay-command">The <code class="docutils literal notranslate"><span class="pre">replay</span></code> command</a></li>
-<li><a class="reference internal" href="#profiling-in-production">Profiling in production</a></li>
+<li><a class="reference internal" href="#quick-examples">간단한 예제</a></li>
+<li><a class="reference internal" href="#commands">명령어들</a><ul>
+<li><a class="reference internal" href="#the-run-command"><code class="docutils literal notranslate"><span class="pre">run</span></code> 명령어</a></li>
+<li><a class="reference internal" href="#the-attach-command"><code class="docutils literal notranslate"><span class="pre">attach</span></code> 명령어</a></li>
+<li><a class="reference internal" href="#the-dump-command"><code class="docutils literal notranslate"><span class="pre">dump</span></code> 명령어</a></li>
+<li><a class="reference internal" href="#the-replay-command"><code class="docutils literal notranslate"><span class="pre">replay</span></code> 명령어</a></li>
+<li><a class="reference internal" href="#profiling-in-production">프로덕션 환경에서의 프로파일링</a></li>
 <li><a class="reference internal" href="#platform-requirements">Platform requirements</a></li>
 <li><a class="reference internal" href="#version-compatibility">Version compatibility</a></li>
 </ul>
@@ -198,166 +198,104 @@
 <section id="what-is-statistical-profiling">
 <h2 data-msgid="2fe7373258ef2c1fb314d1dc2d124fea5c0af886" data-score="100" data-since="260614">통계적 프로파일링이란 무엇인가요?<a class="headerlink" href="#what-is-statistical-profiling" title="Link to this heading">¶</a></h2>
 <p data-msgid="765ea88eb453499972c0d405ea2c9de7389077d3" data-score="100" data-since="260614">통계적 프로파일링은 호출 스택의 스냅샷을 주기적으로 캡처하여 프로그램 동작의 그림을 그립니다. 결정론적 프로파일러가 모든 함수 호출 및 반환에 트레이싱하는 대신, Tachyon은 규칙적인 간격으로 호출 스택을 읽어 현재 실행 중인 코드를 기록합니다.</p>
-<p data-msgid="d667f6cca88b04b544ffcf0e61f1a21541415bfb" data-score="0" data-since="260608">This approach rests on a simple principle: functions that consume significant
-CPU time will appear frequently in the collected samples. By gathering thousands
-of samples over a profiling session, Tachyon constructs an accurate statistical
-estimate of where time is spent. The more samples collected, the
-more precise this estimate becomes.</p>
-<p data-msgid="e322b77800f53f70d7c635ce8e45c16e55c4d246" data-score="0" data-since="260608">The following interactive visualization demonstrates how sampling profiling
-works. Press <strong>Play</strong> to watch a Python program execute, and observe how the
-profiler periodically captures snapshots of the call stack. Adjust the
-<strong>sample interval</strong> to see how sampling frequency affects the results.</p>
+<p data-msgid="d667f6cca88b04b544ffcf0e61f1a21541415bfb" data-score="88" data-since="260614">이 접근 방식은 간단한 원칙에 기반합니다. 상당한 CPU 시간을 소비하는 함수는 수집된 샘플에서 자주 나타날 것입니다. 프로파일링 세션 동안 수천 개의 샘플을 모으면서, Tachyon은 시간이 어디에 사용되는지에 대한 정확한 통계적 추정치를 구성합니다. 수집된 샘플이 많을수록 이 추정치는 더 정밀해집니다.</p>
+<p data-msgid="e322b77800f53f70d7c635ce8e45c16e55c4d246" data-score="91" data-since="260614">다음 대화형 시각화는 스탬플링 프로파일링이 어떻게 작동하는지 보여줍니다. <strong>재생</strong> 버튼을 눌러 Python 프로그램 실행을 관찰하고, 프로파일러가 콜 스택의 스냅샷을 주기적으로 캡처하는 방식을 살펴보십시오. <strong>샘플 간격(sample interval)</strong> 을 조정하여 샘플링 빈도가 결과에 어떻게 영향을 미치는지 확인하십시오.</p>
 <div id="sampling-profiler-viz" class="sampling-profiler-viz"></div>
 <section id="how-time-is-estimated">
-<h3 data-msgid="975361abb8b78ade0d6cf961a864a2f0f57f0094" data-score="0" data-since="260608">How time is estimated<a class="headerlink" href="#how-time-is-estimated" title="Link to this heading">¶</a></h3>
-<p data-msgid="dc83520de6b82031a92bc958f1aa0490fe3117b0" data-score="0" data-since="260608">The time values shown in Tachyon’s output are <strong>estimates derived from sample
-counts</strong>, not direct measurements. Tachyon counts how many times each function
-appears in the collected samples, then multiplies by the sampling interval to
-estimate time.</p>
-<p data-msgid="807a9b8e3f9cadb1a681c77d0ed6e345106bb750" data-score="0" data-since="260608">For example, with a 10 kHz sampling rate over a 10-second profile,
-Tachyon collects approximately 100,000 samples. If a function appears in 5,000
-samples (5% of total), Tachyon estimates it consumed 5% of the 10-second
-duration, or about 500 milliseconds. This is a statistical estimate, not a
-precise measurement.</p>
-<p data-msgid="0ce227a98e3553642b61df5bd8bdf0fb5fd36605" data-score="0" data-since="260608">The accuracy of these estimates depends on sample count. With 100,000 samples,
-a function showing 5% has a margin of error of roughly ±0.5%. With only 1,000
-samples, the same 5% measurement could actually represent anywhere from 3% to
-7% of real time.</p>
-<p data-msgid="e420abf52293bfae58edf5eae90116446a22125d" data-score="0" data-since="260608">This is why longer profiling durations and shorter sampling intervals produce
-more reliable results—they collect more samples. For most performance
-analysis, the default settings provide sufficient accuracy to identify
-bottlenecks and guide optimization efforts.</p>
-<p data-msgid="12e1cd9be205a71485ccd8c05dc1ec46bf641311" data-score="0" data-since="260608">Because sampling is statistical, results will vary slightly between runs. A
-function showing 12% in one run might show 11% or 13% in the next. This is
-normal and expected. Focus on the overall pattern rather than exact percentages,
-and don’t worry about small variations between runs.</p>
+<h3 data-msgid="975361abb8b78ade0d6cf961a864a2f0f57f0094" data-score="88" data-since="260614">시간 추정 방법<a class="headerlink" href="#how-time-is-estimated" title="Link to this heading">¶</a></h3>
+<p data-msgid="dc83520de6b82031a92bc958f1aa0490fe3117b0" data-score="86" data-since="260614">Tachyon 출력에 표시되는 시간 값은 직접적인 측정이 아닌 <strong>샘플 카운트에서 파생된 추정치</strong> 입니다. Tachyon은 수집된 샘플에서 각 함수가 몇 번 나타나는지 계산한 다음, 이를 샘플링 간격으로 곱하여 시간을 추정합니다.</p>
+<p data-msgid="807a9b8e3f9cadb1a681c77d0ed6e345106bb750" data-score="89" data-since="260614">예를 들어, 10kHz 샘플링 속도로 10초 동안 프로파일링을 수행하면 Tachyon은 약 100,000개의 샘플을 수집합니다. 만약 함수가 5,000개의 샘플(전체의 5%)에 나타난다면, Tachyon은 해당 함수가 10초 중 5%의 시간을 소비했다고 추정하며, 이는 약 500밀리초입니다. 이것은 정밀한 측정이 아닌 통계적 추정치입니다.</p>
+<p data-msgid="0ce227a98e3553642b61df5bd8bdf0fb5fd36605" data-score="87" data-since="260614">이러한 추정치의 정확도는 샘플 수에 따라 달라집니다. 100,000개의 샘플을 사용하면 5%를 보이는 함수는 대략 ±0.5%의 오차 범위를 가집니다. 단지 1,000개의 샘플만으로는 같은 5% 측정값이 실제 시간의 3%에서 7%에 해당할 수 있습니다.</p>
+<p data-msgid="e420abf52293bfae58edf5eae90116446a22125d" data-score="92" data-since="260614">이것이 더 긴 프로파일링 지속 시간과 더 짧은 샘플링 간격이 더 신뢰할 수 있는 결과를 제공하는 이유입니다—더 많은 샘플을 수집하기 때문입니다. 대부분의 성능 분석에 대해, 기본 설정값은 병목 현상을 식별하고 최적화 노력을 안내하는 데 충분한 정확도를 제공합니다.</p>
+<p data-msgid="12e1cd9be205a71485ccd8c05dc1ec46bf641311" data-score="85" data-since="260614">샘플링은 통계적 특성을 가지므로 실행할 때마다 결과에 약간의 차이가 발생합니다. 한 번 실행에서 12%를 보여주는 함수가 다음에는 11%나 13%를 보여줄 수 있습니다. 이는 정상적인 현상이니 걱정하지 않아도 됩니다. 정확한 비율보다는 전체적인 패턴에 초점을 맞추고, 실행 간의 작은 변화는 신경 쓰지 않으셔도 됩니다.</p>
 </section>
 <section id="when-to-use-a-different-approach">
-<h3 data-msgid="bdecd26cc084a4c19d884d4a69488f8c37fad4b7" data-score="0" data-since="260608">When to use a different approach<a class="headerlink" href="#when-to-use-a-different-approach" title="Link to this heading">¶</a></h3>
-<p data-msgid="ca62415a00d13aebcb6e92a53403cd32b8f42d36" data-score="0" data-since="260608">Statistical sampling is not ideal for every situation.</p>
-<p data-msgid="f23ddeefba80a4d38e33ea52b0bda1ab206b9a77" data-score="0" data-since="260608">For very short scripts that complete in under one second, the profiler may not
-collect enough samples for reliable results. Use <a class="reference internal" href="profiling.tracing.html#module-profiling.tracing" title="profiling.tracing: Deterministic tracing profiler for Python programs."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code></a>
-instead, or run the script in a loop to extend profiling time.</p>
-<p data-msgid="8d7d927a20bcc066c7c8944767a25ed7b3afee2d" data-score="0" data-since="260608">When you need exact call counts, sampling cannot provide them. Sampling
-estimates frequency from snapshots, so if you need to know precisely how many
-times a function was called, use <a class="reference internal" href="profiling.tracing.html#module-profiling.tracing" title="profiling.tracing: Deterministic tracing profiler for Python programs."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code></a>.</p>
-<p data-msgid="9e6113b9f27d934b65c929a3bc2dc5bb156de8d6" data-score="0" data-since="260608">When comparing two implementations where the difference might be only 1-2%,
-sampling noise can obscure real differences. Use <a class="reference internal" href="timeit.html#module-timeit" title="timeit: Measure the execution time of small code snippets."><code class="xref py py-mod docutils literal notranslate"><span class="pre">timeit</span></code></a> for
-micro-benchmarks or <a class="reference internal" href="profiling.tracing.html#module-profiling.tracing" title="profiling.tracing: Deterministic tracing profiler for Python programs."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code></a> for precise measurements.</p>
-<p data-msgid="de7b1f28f154cecae03718af6e0b516102f22c3c" data-score="0" data-since="260608">The key difference from <a class="reference internal" href="profiling.tracing.html#module-profiling.tracing" title="profiling.tracing: Deterministic tracing profiler for Python programs."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code></a> is how measurement happens.
-A tracing profiler instruments your code, recording every function call and
-return. This provides exact call counts and precise timing but adds overhead
-to every function call. A sampling profiler, by contrast, observes the program
-from outside at fixed intervals without modifying its execution. Think of the
-difference like this: tracing is like having someone follow you and write down
-every step you take, while sampling is like taking photographs every second
-and inferring your path from those snapshots.</p>
-<p data-msgid="20d793d54d69fe9bc53df9c4774ceb5ca632e19c" data-score="0" data-since="260608">This external observation model is what makes sampling profiling practical for
-production use. The profiled program runs at full speed because there is no
-instrumentation code running inside it, and the target process is never stopped
-or paused during sampling—Tachyon reads the call stack directly from the
-process’s memory while it continues to run. You can attach to a live server,
-collect data, and detach without the application ever knowing it was observed.
-The trade-off is that very short-lived functions may be missed if they happen
-to complete between samples.</p>
-<p data-msgid="1071cc164eb910440a3f3de2ef4f57f83293b2cd" data-score="0" data-since="260608">Statistical profiling excels at answering the question, “Where is my program
-spending time?” It reveals hotspots and bottlenecks in production code where
-deterministic profiling overhead would be unacceptable. For exact call counts
-and complete call graphs, use <a class="reference internal" href="profiling.tracing.html#module-profiling.tracing" title="profiling.tracing: Deterministic tracing profiler for Python programs."><code class="xref py py-mod docutils literal notranslate"><span class="pre">profiling.tracing</span></code></a> instead.</p>
+<h3 data-msgid="bdecd26cc084a4c19d884d4a69488f8c37fad4b7" data-score="60" data-since="260614">다른 접근 방식을 사용해야 하는 경우<a class="headerlink" href="#when-to-use-a-different-approach" title="Link to this heading">¶</a></h3>
+<p data-msgid="ca62415a00d13aebcb6e92a53403cd32b8f42d36" data-score="73" data-since="260614">통계적 샘플링은 모든 상황에 적합하지 않습니다.</p>
+<p data-msgid="f23ddeefba80a4d38e33ea52b0bda1ab206b9a77" data-score="96" data-since="260614">한 번에 1초 미만으로 완료되는 매우 짧은 스크립트의 경우, 프로파일러가 신뢰할 수 있는 결과를 얻기 위한 충분한 샘플을 수집하지 못할 수 있습니다. 대신 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>profiling.tracing`을 사용하거나 루프 내에서 스크립트를 실행하여 프로파일링 시간을 늘려주세요.</p>
+<p data-msgid="8d7d927a20bcc066c7c8944767a25ed7b3afee2d" data-score="84" data-since="260614">정확한 호출 횟수가 필요하다면, 샘플링으로는 제공할 수 없습니다. 샘플링은 스냅샷으로부터 빈도를 추정하므로, 함수가 정확히 몇 번 호출되었는지 알고 싶다면 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>profiling.tracing`을 사용해야 합니다.</p>
+<p data-msgid="9e6113b9f27d934b65c929a3bc2dc5bb156de8d6" data-score="93" data-since="260614">차이가 단지 1~2%에 불과할 수 있는 두 구현을 비교하는 경우, 샘플링 노이즈가 실제 차이를 가릴 수 있습니다. 마이크로 벤치마크에는 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>timeit`을 사용하거나 정확한 측정에는 :mod:<a href="#id3"><span class="problematic" id="id4">`</span></a>profiling.tracing`을 사용하세요.</p>
+<p data-msgid="de7b1f28f154cecae03718af6e0b516102f22c3c" data-score="90" data-since="260614">:mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>profiling.tracing`과 핵심적인 차이점은 측정 방식에 있습니다. 트레이싱 프로파일러는 코드를 계측하여 모든 함수 호출 및 반환을 기록합니다. 이는 정확한 호출 횟수와 정밀한 타이밍을 제공하지만, 모든 함수 호출에 오버헤드를 추가합니다. 반면에 샘플링 프로파일러는 실행을 수정하지 않고 고정된 간격으로 외부에서 프로그램을 관찰하는 방식입니다. 이 차이점은 다음과 같이 비유할 수 있습니다: 트레이싱은 사용자의 뒤를 졸졸 따라다니며 걷는 모든 발걸음을 적어주는 것과 같고, 샘플링은 매 초 사진을 찍어 그 스냅샷들로부터 경로를 추론하는 것과 같습니다.</p>
+<p data-msgid="20d793d54d69fe9bc53df9c4774ceb5ca632e19c" data-since="260614">이러한 외부 관찰 모델 덕분에 샘플링 프로파일링은 운영 환경에서 실용성을 가질 수 있습니다. 프로파일되는 프로그램은 내부에서 계측 코드가 실행되지 않아 최대 속도로 작동하며, 대상 프로세스는 샘플링 중 절대 중지되거나 일시 정지되지 않습니다—Tachyon는 프로세스의 메모리에서 호출 스택을 직접 읽어옵니다. 애플리케이션이 관찰되고 있다는 사실을 전혀 알지 못하는 상태로 라이브 서버에 연결하고 데이터를 수집한 뒤 분리할 수 있습니다. 다만, 샘플링 간격 사이에 완료되는 매우 짧게 살아있는 함수는 놓칠 수 있다는 단점이 있습니다.</p>
+<p data-msgid="1071cc164eb910440a3f3de2ef4f57f83293b2cd" data-since="260614">통계적 프로파일링은 “프로그램 시간이 어디에 쓰이고 있나요?”라는 질문에 답하는 데 탁월합니다. 결정론적 프로파일링 오버헤드가 용납할 수 없는 운영 코드의 핫스팟과 병목 지점을 드러내줍니다. 정확한 호출 횟수와 완전한 호출 그래프가 필요하다면, 대신 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>profiling.tracing`을 사용하세요.</p>
 </section>
 </section>
 <section id="quick-examples">
-<h2 data-msgid="9d9127223df61846008529bb6bc5b645d506bb7c" data-score="0" data-since="260608">Quick examples<a class="headerlink" href="#quick-examples" title="Link to this heading">¶</a></h2>
-<p data-msgid="5ca3a84e72da6b2a49266c2a13cc100caf6424de" data-score="0" data-since="260608">Profile a script and see the results immediately:</p>
-<div class="highlight-sh notranslate" data-msgid="88fa1afc33ce53d63a358ebffcc2d73d13822759" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>script.py
+<h2 data-msgid="9d9127223df61846008529bb6bc5b645d506bb7c" data-since="260614">간단한 예제<a class="headerlink" href="#quick-examples" title="Link to this heading">¶</a></h2>
+<p data-msgid="5ca3a84e72da6b2a49266c2a13cc100caf6424de" data-since="260614">스크립트를 프로파일링하고 즉시 결과를 확인하는 방법:</p>
+<div class="highlight-sh notranslate" data-msgid="88fa1afc33ce53d63a358ebffcc2d73d13822759" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>script.py
 </pre></div>
 </div>
-<p data-msgid="bbaefa56d6c6a1eac17a1b97bdd751f50411b5a4" data-score="0" data-since="260608">Profile a module with arguments:</p>
-<div class="highlight-sh notranslate" data-msgid="759b189995a49dbe287aa5c7b18665577382b42e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>mypackage.module<span class="w"> </span>arg1<span class="w"> </span>arg2
+<p data-msgid="bbaefa56d6c6a1eac17a1b97bdd751f50411b5a4" data-since="260614">인자로 모듈 프로파일링하기:</p>
+<div class="highlight-sh notranslate" data-msgid="759b189995a49dbe287aa5c7b18665577382b42e" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>mypackage.module<span class="w"> </span>arg1<span class="w"> </span>arg2
 </pre></div>
 </div>
-<p data-msgid="6f05a4ec0c5b91451cf87dbcfbdd705147ecff7e" data-score="0" data-since="260608">Generate an interactive flame graph:</p>
-<div class="highlight-sh notranslate" data-msgid="76a40e157efe61d0606bc2e81508a680ad9e6b8f" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--flamegraph<span class="w"> </span>-o<span class="w"> </span>profile.html<span class="w"> </span>script.py
+<p data-msgid="6f05a4ec0c5b91451cf87dbcfbdd705147ecff7e" data-since="260614">인터랙티브 플레임 그래프 생성:</p>
+<div class="highlight-sh notranslate" data-msgid="76a40e157efe61d0606bc2e81508a680ad9e6b8f" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--flamegraph<span class="w"> </span>-o<span class="w"> </span>profile.html<span class="w"> </span>script.py
 </pre></div>
 </div>
-<p data-msgid="a5d9986c58fb24149518b364a6e102274eb93421" data-score="0" data-since="260608">Attach to a running process by PID:</p>
-<div class="highlight-sh notranslate" data-msgid="ebdfc1ab546bb05a4ceb70a0af7a0ad7ca331a78" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>attach<span class="w"> </span><span class="m">12345</span>
+<p data-msgid="a5d9986c58fb24149518b364a6e102274eb93421" data-since="260614">PID로 실행 중인 프로세스에 연결하기:</p>
+<div class="highlight-sh notranslate" data-msgid="ebdfc1ab546bb05a4ceb70a0af7a0ad7ca331a78" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>attach<span class="w"> </span><span class="m">12345</span>
 </pre></div>
 </div>
-<p data-msgid="436074246658b04b042d7b205526fa9b18d6952c" data-score="0" data-since="260608">Print a single snapshot of a running process’s stack:</p>
-<div class="highlight-sh notranslate" data-msgid="56a4cb1a372d022b5f93e5f3ab16abb48b92f3c3" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>dump<span class="w"> </span><span class="m">12345</span>
+<p data-msgid="436074246658b04b042d7b205526fa9b18d6952c" data-since="260614">실행 중인 프로세스 스택의 단일 스냅샷 인쇄:</p>
+<div class="highlight-sh notranslate" data-msgid="56a4cb1a372d022b5f93e5f3ab16abb48b92f3c3" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>dump<span class="w"> </span><span class="m">12345</span>
 </pre></div>
 </div>
-<p data-msgid="f2fbdc6deac15152babb7e15aa750707a9998b36" data-score="0" data-since="260608">Use live mode for real-time monitoring (press <code class="docutils literal notranslate"><span class="pre">q</span></code> to quit):</p>
-<div class="highlight-sh notranslate" data-msgid="bb2118a28d3b9bdb35b341f91ab3202bf763641e" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--live<span class="w"> </span>script.py
+<p data-msgid="f2fbdc6deac15152babb7e15aa750707a9998b36" data-since="260614">실시간 모드를 사용하여 모니터링(종료하려면 <code class="docutils literal notranslate"><span class="pre">q</span></code> 를 누르세요):</p>
+<div class="highlight-sh notranslate" data-msgid="bb2118a28d3b9bdb35b341f91ab3202bf763641e" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--live<span class="w"> </span>script.py
 </pre></div>
 </div>
-<p data-msgid="d557cf803608635cb24c8d9c2c4d3296aa4a0e5f" data-score="0" data-since="260608">Profile for 60 seconds with a faster sampling rate:</p>
-<div class="highlight-sh notranslate" data-msgid="5a9576cd335365995c86b8a1ad2ad4e37df01103" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="m">60</span><span class="w"> </span>-r<span class="w"> </span>20khz<span class="w"> </span>script.py
+<p data-msgid="d557cf803608635cb24c8d9c2c4d3296aa4a0e5f" data-since="260614">더 빠른 샘플링 속도로 60초 동안 프로파일링하기:</p>
+<div class="highlight-sh notranslate" data-msgid="5a9576cd335365995c86b8a1ad2ad4e37df01103" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="m">60</span><span class="w"> </span>-r<span class="w"> </span>20khz<span class="w"> </span>script.py
 </pre></div>
 </div>
-<p data-msgid="bb8bde3a0b2f295bd4666b4e0b5b5b8f58a778ad" data-score="0" data-since="260608">Generate a line-by-line heatmap:</p>
-<div class="highlight-sh notranslate" data-msgid="22cc40774a038a45d24fe371667b3832cff3d801" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--heatmap<span class="w"> </span>script.py
+<p data-msgid="bb8bde3a0b2f295bd4666b4e0b5b5b8f58a778ad" data-since="260614">줄별 히트맵 생성:</p>
+<div class="highlight-sh notranslate" data-msgid="22cc40774a038a45d24fe371667b3832cff3d801" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--heatmap<span class="w"> </span>script.py
 </pre></div>
 </div>
-<p data-msgid="61143a7eeab4767b7d7874554992413973d7f268" data-score="0" data-since="260608">Enable opcode-level profiling to see which bytecode instructions are executing:</p>
-<div class="highlight-sh notranslate" data-msgid="adf9e889ef8fd4c9dd9853e92c78418f3c302857" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--opcodes<span class="w"> </span>--flamegraph<span class="w"> </span>script.py
+<p data-msgid="61143a7eeab4767b7d7874554992413973d7f268" data-since="260614">바이트코드 명령을 실행하는지 확인하려면 opcode 레벨 프로파일링을 활성화하세요:</p>
+<div class="highlight-sh notranslate" data-msgid="adf9e889ef8fd4c9dd9853e92c78418f3c302857" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--opcodes<span class="w"> </span>--flamegraph<span class="w"> </span>script.py
 </pre></div>
 </div>
 </section>
 <section id="commands">
-<h2 data-msgid="45e5f3f72e961cb70134ba35f7a27a9620e515f7" data-score="0" data-since="260608">Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
-<p data-msgid="cfe913376212150a4dac823daabba1263b19c7c6" data-score="0" data-since="260608">Tachyon operates through several subcommands. <code class="docutils literal notranslate"><span class="pre">run</span></code> and <code class="docutils literal notranslate"><span class="pre">attach</span></code> collect
-samples over time; <code class="docutils literal notranslate"><span class="pre">dump</span></code> captures a single snapshot; <code class="docutils literal notranslate"><span class="pre">replay</span></code> converts
-binary profiles to other formats.</p>
+<h2 data-msgid="45e5f3f72e961cb70134ba35f7a27a9620e515f7" data-since="260614">명령어들<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<p data-msgid="cfe913376212150a4dac823daabba1263b19c7c6" data-since="260614">Tachyon은 여러 하위 명령어를 통해 작동합니다. <code class="docutils literal notranslate"><span class="pre">run</span></code> 과 <code class="docutils literal notranslate"><span class="pre">attach</span></code> 는 시간 경과에 따라 샘플을 수집하고, <code class="docutils literal notranslate"><span class="pre">dump</span></code> 는 단일 스냅샷을 캡처하며, <code class="docutils literal notranslate"><span class="pre">replay</span></code> 는 이진 프로파일을 다른 형식으로 변환합니다.</p>
 <section id="the-run-command">
-<h3 data-msgid="fba8fa35afd0bb0aff58b4e78261cf98dbdde5ed" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">run</span></code> command<a class="headerlink" href="#the-run-command" title="Link to this heading">¶</a></h3>
-<p data-msgid="78fb6b7e57cd473a1d5e19392a8dbf4349f81b14" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">run</span></code> command launches a Python script or module and profiles it from
-startup:</p>
+<h3 data-msgid="fba8fa35afd0bb0aff58b4e78261cf98dbdde5ed" data-since="260614"><code class="docutils literal notranslate"><span class="pre">run</span></code> 명령어<a class="headerlink" href="#the-run-command" title="Link to this heading">¶</a></h3>
+<p data-msgid="78fb6b7e57cd473a1d5e19392a8dbf4349f81b14" data-since="260614"><code class="docutils literal notranslate"><span class="pre">run</span></code> 명령어는 Python 스크립트나 모듈을 실행하고 시작 시점부터 프로파일링합니다:</p>
 <div class="highlight-sh notranslate" data-msgid="eeae83fd43ee5214d3223653c6ba15e2772fa21a" data-score="100" data-since="260609"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>script.py
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>mypackage.module
 </pre></div>
 </div>
-<p data-msgid="b6d8d614d09257cc458d97da2e619f621722047b" data-score="0" data-since="260608">When profiling a script, the profiler starts the target in a subprocess, waits
-for it to initialize, then begins collecting samples. The <code class="docutils literal notranslate"><span class="pre">-m</span></code> flag
-indicates that the target should be run as a module (equivalent to
-<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span></code>). Arguments after the target are passed through to the
-profiled program:</p>
-<div class="highlight-sh notranslate" data-msgid="49d861752e9676385e7b2ea4fbc0168b1d69c92b" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>script.py<span class="w"> </span>--config<span class="w"> </span>settings.yaml
+<p data-msgid="b6d8d614d09257cc458d97da2e619f621722047b" data-since="260614">스크립트를 프로파일링할 때, 프로파일러는 대상(target)을 서브프로세스에서 시작하고 초기화될 때까지 기다린 후 샘플 수집을 시작합니다. <code class="docutils literal notranslate"><span class="pre">-m</span></code> 플래그는 대상이 모듈로 실행되어야 함을 의미합니다 (이는 <a href="#id1"><span class="problematic" id="id2">`</span></a>python -m`과 같습니다). 대상 다음에 오는 인자들은 프로파일링되는 프로그램으로 전달됩니다:</p>
+<div class="highlight-sh notranslate" data-msgid="49d861752e9676385e7b2ea4fbc0168b1d69c92b" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>script.py<span class="w"> </span>--config<span class="w"> </span>settings.yaml
 </pre></div>
 </div>
 </section>
 <section id="the-attach-command">
-<h3 data-msgid="0113d08b6c29d36e0aacb95e9f0213c8018a42ea" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">attach</span></code> command<a class="headerlink" href="#the-attach-command" title="Link to this heading">¶</a></h3>
+<h3 data-msgid="0113d08b6c29d36e0aacb95e9f0213c8018a42ea" data-since="260614"><code class="docutils literal notranslate"><span class="pre">attach</span></code> 명령어<a class="headerlink" href="#the-attach-command" title="Link to this heading">¶</a></h3>
 <p data-msgid="c3f10cf82488b91cff6566912507e1575338d98f" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">attach</span></code> command connects to an already-running Python process by its
 process ID:</p>
-<div class="highlight-sh notranslate" data-msgid="ebdfc1ab546bb05a4ceb70a0af7a0ad7ca331a78" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>attach<span class="w"> </span><span class="m">12345</span>
+<div class="highlight-sh notranslate" data-msgid="ebdfc1ab546bb05a4ceb70a0af7a0ad7ca331a78" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>attach<span class="w"> </span><span class="m">12345</span>
 </pre></div>
 </div>
-<p data-msgid="46cf82dad25d1c4b7497bd7d0c865f6db1ded692" data-score="0" data-since="260608">This command is particularly valuable for investigating performance issues in
-production systems. The target process requires no modification and need not
-be restarted. The profiler attaches, collects samples for the specified
-duration, then detaches and produces output.</p>
+<p data-msgid="46cf82dad25d1c4b7497bd7d0c865f6db1ded692" data-since="260614">이 명령어는 프로덕션 시스템의 성능 문제를 조사하는 데 특히 유용합니다. 대상 프로세스는 수정할 필요가 없으며 재시작할 필요도 없습니다. 프로파일러가 첨부되어 지정된 시간 동안 샘플을 수집한 다음, 분리되고 출력을 생성합니다.</p>
 <div class="highlight-sh notranslate" data-msgid="9c54855d51dd258ee315e04df11dae0e893e111e" data-score="100" data-since="260609"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>attach<span class="w"> </span>--live<span class="w"> </span><span class="m">12345</span>
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>attach<span class="w"> </span>--flamegraph<span class="w"> </span>-d<span class="w"> </span><span class="m">30</span><span class="w"> </span>-o<span class="w"> </span>profile.html<span class="w"> </span><span class="m">12345</span>
 </pre></div>
 </div>
-<p data-msgid="f662a0d4c2f0d382d6b2c1fc5f26d2701a600c38" data-score="0" data-since="260608">On most systems, attaching to another process requires appropriate permissions.
-See <a class="reference internal" href="#profiling-permissions"><span class="std std-ref">Platform requirements</span></a> for platform-specific requirements.</p>
+<p data-msgid="f662a0d4c2f0d382d6b2c1fc5f26d2701a600c38" data-since="260614">대부분의 시스템에서 다른 프로세스에 연결하려면 적절한 권한이 필요합니다. 플랫폼별 요구 사항은 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>프로파일링-권한 &lt;profiling-permissions&gt;`를 참조하십시오.</p>
 </section>
 <section id="the-dump-command">
-<span id="dump-command"></span><h3 data-msgid="4390bedd262873380563ea5dbb4b5bed3ec01ab4" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">dump</span></code> command<a class="headerlink" href="#the-dump-command" title="Link to this heading">¶</a></h3>
-<p data-msgid="9d7ab98bd4bdc63a60d1ad4431f425e998ad23ab" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">dump</span></code> command prints a single snapshot of a running process’s Python
-stack and exits, similar to a traceback:</p>
-<div class="highlight-sh notranslate" data-msgid="56a4cb1a372d022b5f93e5f3ab16abb48b92f3c3" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>dump<span class="w"> </span><span class="m">12345</span>
+<span id="dump-command"></span><h3 data-msgid="4390bedd262873380563ea5dbb4b5bed3ec01ab4" data-since="260614"><code class="docutils literal notranslate"><span class="pre">dump</span></code> 명령어<a class="headerlink" href="#the-dump-command" title="Link to this heading">¶</a></h3>
+<p data-msgid="9d7ab98bd4bdc63a60d1ad4431f425e998ad23ab" data-since="260614"><code class="docutils literal notranslate"><span class="pre">dump</span></code> 명령어는 실행 중인 프로세스의 Python 스택의 단일 스냅샷을 출력한 후 종료하며, 이는 트레이스백과 유사합니다::`</p>
+<div class="highlight-sh notranslate" data-msgid="56a4cb1a372d022b5f93e5f3ab16abb48b92f3c3" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>dump<span class="w"> </span><span class="m">12345</span>
 </pre></div>
 </div>
-<p data-msgid="e8c2cd5a3e4f1f6e4d3662039a8addd6e97f7711" data-score="0" data-since="260608">Unlike <code class="docutils literal notranslate"><span class="pre">attach</span></code>, <code class="docutils literal notranslate"><span class="pre">dump</span></code> does not run a sampling loop: it reads the
-stack once. This is useful for investigating hung or unresponsive
-processes, or for answering “what is this process doing right now?”.</p>
-<p data-msgid="7c873fba909fee046d44f6a8769850e97bbc28c6" data-score="0" data-since="260608">The output mirrors a traceback (most recent call last) and annotates each
-thread with its current state (main thread, has GIL, on CPU, waiting for
-GIL, has exception, or idle):</p>
+<p data-msgid="e8c2cd5a3e4f1f6e4d3662039a8addd6e97f7711" data-since="260614"><code class="docutils literal notranslate"><span class="pre">attach</span></code> 와 달리, <code class="docutils literal notranslate"><span class="pre">dump</span></code> 는 샘플링 루프를 실행하지 않습니다. 스택을 한 번 읽습니다. 이것은 일시 정지되었거나 응답하지 않는 프로세스를 조사하거나 “현재 이 프로세스는 무엇을 하고 있는가?”에 답하는 데 유용합니다.</p>
+<p data-msgid="7c873fba909fee046d44f6a8769850e97bbc28c6" data-since="260614">출력은 트레이스백을 반영하며(가장 최근 호출이 마지막), 각 스레드의 현재 상태(메인 스레드, GIL 보유 여부, CPU에서 실행 중인지, GIL을 기다리는지, 예외가 있는지, 또는 유휴 상태)를 주석으로 달아 표시합니다:</p>
 <div class="highlight-text notranslate" data-msgid="2876b640a52fa46057510677fdaef4ecbecae39f" data-score="100" data-since="260609"><div class="highlight"><pre><span></span>Stack dump for PID 12345, thread 140735 (main thread, has GIL, on CPU; most recent call last):
   File &quot;server.py&quot;, line 28, in serve
     await handle_request(req)
@@ -365,79 +303,53 @@ GIL, has exception, or idle):</p>
     result = expensive_call(req)
 </pre></div>
 </div>
-<p data-msgid="a50804800c4d76dfba8399f20dc92ffdb96b4d6d" data-score="0" data-since="260608">When the target’s source files are readable, <code class="docutils literal notranslate"><span class="pre">dump</span></code> prints the source
-line for each frame and highlights the executing expression.</p>
-<p data-msgid="a06a142c3fb1ddf615b5e3f952d13fc230d5e1d5" data-score="0" data-since="260608">Like <code class="docutils literal notranslate"><span class="pre">attach</span></code>, <code class="docutils literal notranslate"><span class="pre">dump</span></code> requires permission to read the target process’s
-memory. See <a class="reference internal" href="#profiling-permissions"><span class="std std-ref">Platform requirements</span></a>.</p>
-<p data-msgid="c033ae8262e5b58ae516f7701777e55c8d6c4306" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">dump</span></code> command supports the following options:</p>
+<p data-msgid="a50804800c4d76dfba8399f20dc92ffdb96b4d6d" data-since="260614">대상 소스 파일이 읽을 수 있는 경우, <code class="docutils literal notranslate"><span class="pre">dump</span></code> 는 각 프레임의 소스 라인을 출력하고 실행 중인 표현식을 강조 표시합니다.</p>
+<p data-msgid="a06a142c3fb1ddf615b5e3f952d13fc230d5e1d5" data-since="260614"><code class="docutils literal notranslate"><span class="pre">attach</span></code> 와 마찬가지로, <code class="docutils literal notranslate"><span class="pre">dump</span></code> 는 대상 프로세스의 메모리를 읽을 권한이 필요합니다. <a class="reference internal" href="#profiling-permissions"><span class="std std-ref">프로파일링-권한</span></a> 를 참조하십시오.</p>
+<p data-msgid="c033ae8262e5b58ae516f7701777e55c8d6c4306" data-since="260614"><code class="docutils literal notranslate"><span class="pre">dump</span></code> 명령어는 다음 옵션을 지원합니다:</p>
 <dl class="simple">
-<dt data-msgid="504451e59f01410075d68ff046f8a476d26243d2" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">-a</span></code>, <code class="docutils literal notranslate"><span class="pre">--all-threads</span></code></dt><dd><p data-msgid="9f276c9f314d6f6e08ff7f6d5fd662fe2661f1b9" data-score="0" data-since="260608">Dump every thread in the target process. Without this flag only the main
-thread is shown.</p>
+<dt data-msgid="504451e59f01410075d68ff046f8a476d26243d2" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">-a</span></code>, <code class="docutils literal notranslate"><span class="pre">--all-threads</span></code></dt><dd><p data-msgid="9f276c9f314d6f6e08ff7f6d5fd662fe2661f1b9" data-since="260614">대상 프로세스의 모든 스레드를 덤프합니다. 이 플래그가 없으면 메인 스레드만 표시됩니다.</p>
 </dd>
-<dt data-msgid="690ac154ef95c07ff7746205eeee8007da096c0b" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--native</span></code></dt><dd><p data-msgid="6a54cb45408ccff58acb373228a1e4efc7299d45" data-score="0" data-since="260608">Include synthetic <code class="docutils literal notranslate"><span class="pre">&lt;native&gt;</span></code> frames marking transitions into C
-extensions or other non-Python code.</p>
+<dt data-msgid="690ac154ef95c07ff7746205eeee8007da096c0b" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--native</span></code></dt><dd><p data-msgid="6a54cb45408ccff58acb373228a1e4efc7299d45" data-since="260614">C 확장이나 기타 비-Python 코드 진입을 표시하는 합성 <code class="docutils literal notranslate"><span class="pre">&lt;native&gt;</span></code> 프레임을 포함합니다.</p>
 </dd>
-<dt data-msgid="74b663f6d0482f8523386514c2768e89dcd4fcac" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--no-gc</span></code></dt><dd><p data-msgid="56bdd66843866c5bc4bbfe4de4f3a4a076ac040c" data-score="0" data-since="260608">Hide the synthetic <code class="docutils literal notranslate"><span class="pre">&lt;GC&gt;</span></code> frames that mark active garbage collection.</p>
+<dt data-msgid="74b663f6d0482f8523386514c2768e89dcd4fcac" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--no-gc</span></code></dt><dd><p data-msgid="56bdd66843866c5bc4bbfe4de4f3a4a076ac040c" data-since="260614">활성 가비지 컬렉션을 표시하는 합성 <code class="docutils literal notranslate"><span class="pre">&lt;GC&gt;</span></code> 프레임을 숨깁니다.</p>
 </dd>
-<dt data-msgid="f85b14d01c0bfb50f25b70e52a29c409e3a9f0be" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--opcodes</span></code></dt><dd><p data-msgid="342daddbb139b49671a594ab5773c16a23a47c8c" data-score="0" data-since="260608">Annotate each frame with the bytecode opcode the thread is currently
-executing (for example, <code class="docutils literal notranslate"><span class="pre">opcode=CALL_KW</span></code>). Useful for
-instruction-level investigation, including identifying specializations
-chosen by the adaptive interpreter.</p>
+<dt data-msgid="f85b14d01c0bfb50f25b70e52a29c409e3a9f0be" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--opcodes</span></code></dt><dd><p data-msgid="342daddbb139b49671a594ab5773c16a23a47c8c" data-since="260614">각 프레임에 스레드가 현재 실행 중인 바이트코드 Opcode를 주석으로 추가합니다(예: <code class="docutils literal notranslate"><span class="pre">opcode=CALL_KW</span></code>). 적응형 인터프리터가 선택한 최적화까지 식별하는 등 명령 수준 조사를 위해 유용합니다.</p>
 </dd>
-<dt data-msgid="0dc08c7f4aab1e7b08770477b8cf3fb842e2deb7" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--async-aware</span></code></dt><dd><p data-msgid="32f0a6898fd1ed9ba30d4949e0b72f6a982149df" data-score="0" data-since="260608">Reconstruct stacks across <code class="docutils literal notranslate"><span class="pre">await</span></code> boundaries. <code class="docutils literal notranslate"><span class="pre">dump</span></code> walks the task
-graph and emits one section per task, with <code class="docutils literal notranslate"><span class="pre">&lt;task&gt;</span></code> markers separating
-coroutines awaiting each other.</p>
+<dt data-msgid="0dc08c7f4aab1e7b08770477b8cf3fb842e2deb7" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--async-aware</span></code></dt><dd><p data-msgid="32f0a6898fd1ed9ba30d4949e0b72f6a982149df" data-since="260614"><code class="docutils literal notranslate"><span class="pre">await</span></code> 경계를 넘어 스택을 재구성합니다. <code class="docutils literal notranslate"><span class="pre">dump``는</span> <span class="pre">작업</span> <span class="pre">그래프를</span> <span class="pre">탐색하고</span> <span class="pre">각</span> <span class="pre">작업에</span> <span class="pre">대해</span> <span class="pre">한</span> <span class="pre">섹션을</span> <span class="pre">전송하며,</span> <span class="pre">코루틴이</span> <span class="pre">서로</span> <span class="pre">기다리고</span> <span class="pre">있음을</span> <span class="pre">표시하는</span> <span class="pre">``&lt;task&gt;</span></code> 마커로 구분합니다.</p>
 </dd>
-<dt data-msgid="0b15d7d336b3a2efcaf71f7b180e35a457f9e9d3" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--async-mode</span> <span class="pre">{running,all}</span></code></dt><dd><p data-msgid="ea96aebfc6eaefc1aec4ea9fa7b5ffe4ed70f114" data-score="0" data-since="260608">Controls which tasks are included when <code class="docutils literal notranslate"><span class="pre">--async-aware</span></code> is enabled.
-<code class="docutils literal notranslate"><span class="pre">running</span></code> shows only the task currently executing on each thread;
-<code class="docutils literal notranslate"><span class="pre">all</span></code> (the default for <code class="docutils literal notranslate"><span class="pre">dump</span></code>) also includes tasks suspended on a
-wait. <code class="docutils literal notranslate"><span class="pre">attach</span></code>’s default for this flag is <code class="docutils literal notranslate"><span class="pre">running</span></code>; <code class="docutils literal notranslate"><span class="pre">dump</span></code>
-defaults to <code class="docutils literal notranslate"><span class="pre">all</span></code> because a single snapshot is most useful when it
-shows the full task graph.</p>
+<dt data-msgid="0b15d7d336b3a2efcaf71f7b180e35a457f9e9d3" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--async-mode</span> <span class="pre">{running,all}</span></code></dt><dd><p data-msgid="ea96aebfc6eaefc1aec4ea9fa7b5ffe4ed70f114" data-since="260614"><code class="docutils literal notranslate"><span class="pre">--async-aware</span></code> 가 활성화될 때 포함되는 작업을 제어합니다. <code class="docutils literal notranslate"><span class="pre">running</span></code> 은 각 스레드에서 현재 실행 중인 작업만 보여줍니다. <code class="docutils literal notranslate"><span class="pre">all</span></code> (<code class="docutils literal notranslate"><span class="pre">dump</span></code> 의 기본값)은 대기 중인 작업도 포함합니다. 이 플래그에 대한 <code class="docutils literal notranslate"><span class="pre">attach</span></code> 의 기본값은 <code class="docutils literal notranslate"><span class="pre">running</span></code> 이고, <code class="docutils literal notranslate"><span class="pre">dump</span></code> 는 단일 스냅샷이 전체 작업 그래프를 보여줄 때 가장 유용하기 때문에 <code class="docutils literal notranslate"><span class="pre">all</span></code> 의 기본값을 사용합니다.</p>
 </dd>
-<dt data-msgid="24c1475b637f0074ca3c1b1067518bcf436e4e73" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--blocking</span></code></dt><dd><p data-msgid="48a4b48edc3870c4f26b3734de0209dfdcec77b7" data-score="0" data-since="260608">Pause every thread in the target while reading its stack and resume
-them after. Guarantees a fully consistent snapshot at the cost of
-briefly stopping the target. Without it, <code class="docutils literal notranslate"><span class="pre">dump</span></code> reads memory while
-the target keeps running, which is faster but can occasionally produce
-a torn stack.</p>
+<dt data-msgid="24c1475b637f0074ca3c1b1067518bcf436e4e73" data-score="100" data-since="260609"><code class="docutils literal notranslate"><span class="pre">--blocking</span></code></dt><dd><p data-msgid="48a4b48edc3870c4f26b3734de0209dfdcec77b7" data-since="260614">대상 프로세스의 스택을 읽는 동안 모든 스레드를 일시 중지하고 나중에 재개합니다. 이는 대상이 순간적으로 멈추는 비용으로 완전히 일관된 스냅샷을 보장합니다. 이것 없이도 <code class="docutils literal notranslate"><span class="pre">dump</span></code> 는 대상이 계속 실행되는 동안 메모리를 읽기 때문에 빠르지만, 간혹 찢어진(torn) 스택을 생성할 수 있습니다.</p>
 </dd>
 </dl>
 </section>
 <section id="the-replay-command">
-<span id="replay-command"></span><h3 data-msgid="a9c0919883a1aef294ae20fcd9197675d366490c" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">replay</span></code> command<a class="headerlink" href="#the-replay-command" title="Link to this heading">¶</a></h3>
-<p data-msgid="04d5fce401bd026a891387a7b868941ee1c9ec06" data-score="0" data-since="260608">The <code class="docutils literal notranslate"><span class="pre">replay</span></code> command converts binary profile files to other output formats:</p>
+<span id="replay-command"></span><h3 data-msgid="a9c0919883a1aef294ae20fcd9197675d366490c" data-since="260614"><code class="docutils literal notranslate"><span class="pre">replay</span></code> 명령어<a class="headerlink" href="#the-replay-command" title="Link to this heading">¶</a></h3>
+<p data-msgid="04d5fce401bd026a891387a7b868941ee1c9ec06" data-since="260614"><code class="docutils literal notranslate"><span class="pre">replay</span></code> 명령어는 바이너리 프로파일 파일을 다른 출력 형식으로 변환합니다::`</p>
 <div class="highlight-sh notranslate" data-msgid="36d123ca414bddd391b211fabc865e3896400ab2" data-score="100" data-since="260609"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>replay<span class="w"> </span>profile.bin
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>replay<span class="w"> </span>--flamegraph<span class="w"> </span>-o<span class="w"> </span>profile.html<span class="w"> </span>profile.bin
 </pre></div>
 </div>
-<p data-msgid="1ba61e77bdc1ce5f9aebfb27ef6e9fadbe29c513" data-score="0" data-since="260608">This command is useful when you have captured profiling data in binary format
-and want to analyze it later or convert it to a visualization format. Binary
-profiles can be replayed multiple times to different formats without
-re-profiling.</p>
-<div class="highlight-sh notranslate" data-msgid="ef7a9c812fd96a335068b5b924d16ba147f45a47" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="c1"># Convert binary to pstats (default, prints to stdout)</span>
+<p data-msgid="1ba61e77bdc1ce5f9aebfb27ef6e9fadbe29c513" data-since="260614">이 명령어는 바이너리 형식으로 프로파일링 데이터를 캡처했고 나중에 분석하거나 시각화 형식으로 변환하려는 경우에 유용합니다. 바이너리 프로파일은 재프로파일링 없이 여러 다른 형식으로 다시 재생될 수 있습니다.</p>
+<div class="highlight-sh notranslate" data-msgid="ef7a9c812fd96a335068b5b924d16ba147f45a47" data-since="260614"><div class="highlight"><pre><span></span><span class="c1"># 바이너리를 pstats로 변환 (기본값, stdout에 출력)</span>
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>replay<span class="w"> </span>profile.bin
 
-<span class="c1"># Convert binary to flame graph</span>
+<span class="c1"># 바이너리 파일을 플레임그래프로 변환</span>
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>replay<span class="w"> </span>--flamegraph<span class="w"> </span>-o<span class="w"> </span>output.html<span class="w"> </span>profile.bin
 
-<span class="c1"># Convert binary to gecko format for Firefox Profiler</span>
+<span class="c1"># Firefox Profiler용 바이너리를 gecko 형식으로 변환</span>
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>replay<span class="w"> </span>--gecko<span class="w"> </span>-o<span class="w"> </span>profile.json<span class="w"> </span>profile.bin
 
-<span class="c1"># Convert binary to heatmap</span>
+<span class="c1"># 바이너리를 히트맵으로 변환</span>
 python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>replay<span class="w"> </span>--heatmap<span class="w"> </span>-o<span class="w"> </span>my_heatmap<span class="w"> </span>profile.bin
 </pre></div>
 </div>
 </section>
 <section id="profiling-in-production">
-<h3 data-msgid="732990c8bc920d847743362615c58b236d789a1d" data-score="0" data-since="260608">Profiling in production<a class="headerlink" href="#profiling-in-production" title="Link to this heading">¶</a></h3>
-<p data-msgid="db1a3dafa5d635070069f8844b6023f625b7ebe7" data-score="0" data-since="260608">The sampling profiler is designed for production use. It imposes no measurable
-overhead on the target process because it reads memory externally rather than
-instrumenting code. The target application continues running at full speed and
-is unaware it is being profiled.</p>
-<p data-msgid="daee1a9a507b83033789531bc866a398f4538b5d" data-score="0" data-since="260608">When profiling production systems, keep these guidelines in mind:</p>
-<p data-msgid="cab049c9294971c2aabdf90cd9521963f17aa0a2" data-score="0" data-since="260608">Start with shorter durations (10-30 seconds) to get quick results, then extend
-if you need more statistical accuracy. By default, profiling runs until the
-target process completes, which is usually sufficient to identify major hotspots.</p>
+<h3 data-msgid="732990c8bc920d847743362615c58b236d789a1d" data-since="260614">프로덕션 환경에서의 프로파일링<a class="headerlink" href="#profiling-in-production" title="Link to this heading">¶</a></h3>
+<p data-msgid="db1a3dafa5d635070069f8844b6023f625b7ebe7" data-since="260614">샘플링 프로파일러는 프로덕션 사용을 위해 설계되었습니다. 코드를 계측하는 대신 메모리를 외부에서 읽기 때문에 대상 프로세스에 측정 가능한 오버헤드를 주지 않습니다. 대상 애플리케이션은 계속 최대 속도로 실행되며 프로파일링되고 있다는 사실을 알지 못합니다.</p>
+<p data-msgid="daee1a9a507b83033789531bc866a398f4538b5d" data-since="260614">프로덕션 시스템을 프로파일링할 때는 다음 지침을 염두에 두십시오:</p>
+<p data-msgid="cab049c9294971c2aabdf90cd9521963f17aa0a2" data-since="260614">빠른 결과를 얻으려면 짧은 지속 시간(10-30초)으로 시작한 다음, 더 많은 통계적 정확도가 필요하면 확장하십시오. 기본적으로 프로파일링은 대상 프로세스가 완료될 때까지 실행되는데, 이는 일반적으로 주요 핫스팟을 식별하기에 충분합니다.</p>
 <p data-msgid="c1a32b9aa4e0005375c19649e62fc31fa9ccccb9" data-score="0" data-since="260608">If possible, profile during representative load rather than peak traffic.
 Profiles collected during normal operation are easier to interpret than those
 collected during unusual spikes.</p>
@@ -643,7 +555,7 @@ allocation rates or using object pooling.</p>
 <h3 data-msgid="b5838b9916d167d5594f5d37c93273430cd233d8" data-score="0" data-since="260608">Opcode-aware profiling<a class="headerlink" href="#opcode-aware-profiling" title="Link to this heading">¶</a></h3>
 <p data-msgid="178de2264d24ebff435eb5c2262791b3ab7da87d" data-score="0" data-since="260608">The <a class="reference internal" href="#cmdoption-profiling.sampling-opcodes"><code class="xref std std-option docutils literal notranslate"><span class="pre">--opcodes</span></code></a> option enables instruction-level profiling that captures
 which Python bytecode instructions are executing at each sample:</p>
-<div class="highlight-sh notranslate" data-msgid="adf9e889ef8fd4c9dd9853e92c78418f3c302857" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--opcodes<span class="w"> </span>--flamegraph<span class="w"> </span>script.py
+<div class="highlight-sh notranslate" data-msgid="adf9e889ef8fd4c9dd9853e92c78418f3c302857" data-since="260614"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--opcodes<span class="w"> </span>--flamegraph<span class="w"> </span>script.py
 </pre></div>
 </div>
 <p data-msgid="1ecefad3b452656565eae2d5a6b32edcce8c2074" data-score="0" data-since="260608">This feature provides visibility into Python’s bytecode execution, including
@@ -1260,7 +1172,7 @@ compression</p></li>
 <div class="highlight-sh notranslate" data-msgid="3f06270582e9dfe87d421ab116fb2de1cb504418" data-score="0" data-since="260608"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>profiling.sampling<span class="w"> </span>run<span class="w"> </span>--binary<span class="w"> </span>--compression<span class="o">=</span>zstd<span class="w"> </span>-o<span class="w"> </span>profile.bin<span class="w"> </span>script.py
 </pre></div>
 </div>
-<p data-msgid="a587b6bbbc1c3015c4d87bf8253384960f7a5607" data-score="0" data-since="260608">To analyze binary profiles, use the <a class="reference internal" href="#replay-command"><span class="std std-ref">The replay command</span></a> to convert them to
+<p data-msgid="a587b6bbbc1c3015c4d87bf8253384960f7a5607" data-score="0" data-since="260608">To analyze binary profiles, use the <a class="reference internal" href="#replay-command"><span class="std std-ref">replay 명령어</span></a> to convert them to
 other formats like flame graphs or pstats output.</p>
 </section>
 </section>
@@ -1753,7 +1665,7 @@ opens the browser; subprocess outputs are never auto-opened.</p>
         <span data-msgid="260df62fd1cf5842b8a6a290325dfcddb8f15a06" data-score="100" data-since="260611" class="lost-and-found-item"></span>
         <span data-msgid="3539ebfbf789ad4b79d817c8ee9957541d0145bb" data-score="0" data-since="260608" class="lost-and-found-item"></span>
         <span data-msgid="419b9244d8ba0734900cacd06aa877cd3b0496f9" data-score="0" data-since="260608" class="lost-and-found-item"></span>
-        <span data-msgid="9ba150a63370b4305a81515420f8b4ce05aa7863" data-score="0" data-since="260608" class="lost-and-found-item"></span>
+        <span data-msgid="9ba150a63370b4305a81515420f8b4ce05aa7863" data-score="88" data-since="260614" class="lost-and-found-item"></span>
         <span data-msgid="a1b7da4cfe226827efb000864ff43bca3bd579e2" data-score="0" data-since="260608" class="lost-and-found-item"></span>
         <span data-msgid="ba05735f16cc75dc041ab6e073284f3f5cbd349b" data-score="0" data-since="260608" class="lost-and-found-item"></span>
         <span data-msgid="d74bde2ff27330a877538f88332077424a531663" data-score="0" data-since="260608" class="lost-and-found-item"></span>
