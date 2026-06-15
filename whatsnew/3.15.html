@@ -287,19 +287,16 @@
 <p data-msgid="29d9691a651be3ce2061f66fa353dbc52938bc6c" data-score="82" data-since="260615">개발자들은 임포트를 함수 내부로 이동시키거나, 필요할 때 모듈을 로드하기 위해 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>importlib`를 사용하거나, 불필요한 종속성을 피하기 위해 코드를 재구성하여 이 문제를 해결해 왔습니다. 이러한 접근 방식은 작동하지만 코드의 가독성과 유지관리를 어렵게 하고, 전체 코드베이스에 임포트 문을 흩뿌리며, 일관되게 적용하는 데 규율이 필요합니다.</p>
 <p data-msgid="9f595396749e7b712c7da3218ee3490528d31a04" data-score="79" data-since="260615">Python은 이제 새로운 <code class="docutils literal notranslate"><span class="pre">lazy</span></code> 소프트 키워드를 사용한 명시적인 <a class="reference internal" href="../reference/simple_stmts.html#lazy"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">lazy</span></code></a> 가져오기를 통해 더 깔끔한 솔루션을 제공합니다. 임포트를 lazy로 표시하면, Python은 가져온 이름이 처음 사용될 때까지 실제 모듈 로딩을 연기합니다. 이를 통해 파일 맨 위에 모든 임포트를 선언하는 조직적 이점은 누리면서 실제로 사용하는 모듈에 대한 로딩 비용만 지불할 수 있습니다.</p>
 <p data-msgid="0d8ecd700da42deff7e9ba741bfcdaa768424148" data-score="85" data-since="260615"><code class="docutils literal notranslate"><span class="pre">lazy</span></code> 키워드는 <code class="docutils literal notranslate"><span class="pre">import</span></code> 및 <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">...</span> <span class="pre">import</span></code> 문을 모두 사용합니다. <code class="docutils literal notranslate"><span class="pre">lazy</span> <span class="pre">import</span> <span class="pre">heavy_module</span></code> 을 작성할 때, 파이썬은 모듈을 즉시 로드하지 않습니다. 대신 가벼운 프록시 객체를 생성합니다. 실제 모듈 로딩은 해당 이름을 처음 접근할 때 투명하게 발생합니다:</p>
-<div class="highlight-python notranslate" data-msgid="a2c6119f4829cc07df4cda63ec976d5554334f32" data-score="0" data-since="260608"><div class="highlight"><pre><span></span><span class="n">lazy</span> <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<div class="highlight-python notranslate" data-msgid="a2c6119f4829cc07df4cda63ec976d5554334f32" data-score="80" data-since="260615"><div class="highlight"><pre><span></span><span class="n">lazy</span> <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="n">lazy</span> <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting up...&quot;</span><span class="p">)</span>  <span class="c1"># json and pathlib not loaded yet</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting up...&quot;</span><span class="p">)</span> <span class="c1"># yet:json and pathlib not loaded yet</span>
 
 <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s1">&#39;{&quot;key&quot;: &quot;value&quot;}&#39;</span><span class="p">)</span>  <span class="c1"># json loads here</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>  <span class="c1"># pathlib loads here</span>
 </pre></div>
 </div>
-<p data-msgid="a7ecb9deb0a6c42580ad0b98fbec200bf1aaf306" data-score="0" data-since="260608">This mechanism is particularly useful for applications that import many
-modules at the top level but may only use a subset of them in any given run.
-The deferred loading reduces startup latency without requiring code
-restructuring or conditional imports scattered throughout the codebase.</p>
+<p data-msgid="a7ecb9deb0a6c42580ad0b98fbec200bf1aaf306" data-score="54" data-since="260615">이 메커니즘은 상위 레벨에서 많은 모듈을 가져오지만 실제 실행 시에는 그 일부만 사용할 수 있는 애플리케이션에 특히 유용합니다. 지연 로딩은 코드 재구조화나 코드베이스 전반에 걸친 조건부 임포트 없이 시작 지연 시간을 줄입니다.</p>
 <p data-msgid="df036981f0e0a36c5b8035bab78bdda1935821b8" data-score="0" data-since="260608">In the case where loading a lazily imported module fails (for example, if
 the module does not exist), Python raises the exception at the point of
 first use rather than at import time. The associated traceback includes both
