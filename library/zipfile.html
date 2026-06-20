@@ -529,6 +529,92 @@ a <a class="reference internal" href="#zipfile.ZipInfo" title="zipfile.ZipInfo">
 </div>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="zipfile.ZipFile.remove">
+<span class="sig-prename descclassname"><span class="pre">ZipFile.</span></span><span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zinfo_or_arcname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zipfile.ZipFile.remove" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="135331d15c8d18e6bf7b4cc9e34b58b18852cba7" data-score="0" data-since="260620">Removes a member entry from the archive’s central directory.
+<em>zinfo_or_arcname</em> may be the full path of the member or a <a class="reference internal" href="#zipfile.ZipInfo" title="zipfile.ZipInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipInfo</span></code></a>
+instance.  If multiple members share the same full path and the path is
+given as a string, only one of them is removed and which one is unspecified;
+it should not be relied upon.  Pass the specific <a class="reference internal" href="#zipfile.ZipInfo" title="zipfile.ZipInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipInfo</span></code></a> instance to
+remove a particular member.</p>
+<p data-msgid="a1f38794c38ea49c2825f6d17ef4ceb1a008b03c" data-score="100" data-since="260610">아카이브는 <code class="docutils literal notranslate"><span class="pre">'w'</span></code>, <code class="docutils literal notranslate"><span class="pre">'x'</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">'a'</span></code> 모드로 열려야 합니다.</p>
+<p data-msgid="c8eb176533da20c375fdb4c7f82ecc03b82c36f4" data-score="0" data-since="260620">Returns the removed <a class="reference internal" href="#zipfile.ZipInfo" title="zipfile.ZipInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipInfo</span></code></a> instance.</p>
+<p data-msgid="0fd95b97148bebf53aa67079b7d0b5a12cff0311" data-score="0" data-since="260620">Calling <a class="reference internal" href="#zipfile.ZipFile.remove" title="zipfile.ZipFile.remove"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove()</span></code></a> on a closed ZipFile will raise a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="921953db0e2fb97f5c0e2ad8238ae8360485615a" data-score="0" data-since="260620">This method only removes the member’s entry from the central directory,
+making it inaccessible to most tools.  The member’s local file entry,
+including content and metadata, remains in the archive and is still
+recoverable using forensic tools.  Call <a class="reference internal" href="#zipfile.ZipFile.repack" title="zipfile.ZipFile.repack"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repack()</span></code></a> afterwards to
+remove the local file entry and reclaim space; pass the returned
+<a class="reference internal" href="#zipfile.ZipInfo" title="zipfile.ZipInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipInfo</span></code></a> to <a class="reference internal" href="#zipfile.ZipFile.repack" title="zipfile.ZipFile.repack"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repack()</span></code></a> to ensure the data is removed
+regardless of how the entry was written.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.16.0a0 (unreleased).</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zipfile.ZipFile.repack">
+<span class="sig-prename descclassname"><span class="pre">ZipFile.</span></span><span class="sig-name descname"><span class="pre">repack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">removed=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_descriptor=True</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#zipfile.ZipFile.repack" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="5df2389738e259f9af226b23b0bf48b8c8f528b4" data-score="0" data-since="260620">Rewrites the archive to remove unreferenced local file entries, shrinking
+its file size.  The archive must be opened with mode <code class="docutils literal notranslate"><span class="pre">'a'</span></code>.</p>
+<p data-msgid="e5e1691dac212f7ef04dcb817231cf56474f49a2" data-score="0" data-since="260620">If <em>removed</em> is provided, it must be a sequence of <a class="reference internal" href="#zipfile.ZipInfo" title="zipfile.ZipInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipInfo</span></code></a> objects
+representing the recently removed members, and only their corresponding
+local file entries will be removed.  Otherwise, the archive is scanned to
+locate and remove local file entries that are no longer referenced in the
+central directory.</p>
+<p data-msgid="f1c3f9ec9b0cf286100f6f8c1279641a1f5cfb18" data-score="0" data-since="260620">Passing <em>removed</em> is the most reliable way to reclaim space: the
+corresponding local file entries are located directly from the central
+directory and removed regardless of how they were written, whereas the scan
+used when <em>removed</em> is omitted may leave some entries in place (see
+<em>strict_descriptor</em> below).  To remove members and reclaim their space in a
+single step:</p>
+<div class="highlight-python3 notranslate" data-msgid="7330559975ee31cfa58ab21bc8647869dabcbabe" data-score="0" data-since="260620"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="s1">&#39;spam.zip&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">myzip</span><span class="p">:</span>
+    <span class="n">removed</span> <span class="o">=</span> <span class="p">[</span><span class="n">myzip</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ham.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;eggs.txt&#39;</span><span class="p">)]</span>
+    <span class="n">myzip</span><span class="o">.</span><span class="n">repack</span><span class="p">(</span><span class="n">removed</span><span class="p">)</span>
+</pre></div>
+</div>
+<p data-msgid="2b8d97df8bccca6806be8236ab19595ebb55f891" data-score="0" data-since="260620">When scanning, <em>strict_descriptor</em> controls how entries written with an
+unsigned <em>data descriptor</em> are handled.  A data descriptor is an optional
+record holding an entry’s CRC and sizes, stored just after the entry’s data;
+it is used when the archive is written to a non-seekable stream, and is
+<em>signed</em> when it begins with a marker signature or <em>unsigned</em> otherwise.
+Unsigned descriptors have been deprecated by the <a class="reference external" href="https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT">PKZIP Application Note</a>
+since version 6.3.0 (released in 2006) and are written only by some legacy
+tools; signed descriptors—written by Python and other modern tools—are always
+detected.  When <em>strict_descriptor</em> is true (the default), only signed data
+descriptors are detected, so an unreferenced entry written with an unsigned
+descriptor is not located and its space is not reclaimed by the scan.
+Setting <code class="docutils literal notranslate"><span class="pre">strict_descriptor=False</span></code> additionally detects unsigned
+descriptors, at the cost of a significantly slower scan—around 100 to 1000
+times in the worst case—which may be exploitable as a denial-of-service
+vector on untrusted input.  This does not affect entries without a data
+descriptor, and is not needed when <em>removed</em> is provided.</p>
+<p data-msgid="256e9734b2f360e92c8b8d96733b5b50e989fb26" data-score="0" data-since="260620"><em>chunk_size</em> may be specified to control the buffer size when moving
+entry data (default is 1 MiB).</p>
+<p data-msgid="c1d820017f0162e1f6e1c7583a6fc5a207d114ea" data-score="0" data-since="260620">Calling <a class="reference internal" href="#zipfile.ZipFile.repack" title="zipfile.ZipFile.repack"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repack()</span></code></a> on a closed ZipFile will raise a <a class="reference internal" href="exceptions.html#ValueError" title="ValueError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p data-msgid="770d7a30cf24c6fb3f988934ac6cd75519362edf" data-score="0" data-since="260620">The scanning algorithm is heuristic-based and assumes that the ZIP file
+is normally structured—for example, with local file entries stored
+consecutively, without overlap or interleaved binary data.  Prepended
+binary data, such as a self-extractor stub, is recognized and preserved
+unless it happens to contain bytes that coincidentally resemble a valid
+local file entry in multiple respects—an extremely rare case. Embedded
+ZIP payloads are also handled correctly, as long as they follow normal
+structure.  However, the algorithm does not guarantee correctness or
+safety on untrusted or intentionally crafted input.  It is generally
+recommended to provide the <em>removed</em> argument for better reliability and
+performance.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.16.0a0 (unreleased).</span></p>
+</div>
+</dd></dl>
+
 <p data-msgid="590a13c463d04c026d81a3b0c4e4d9904786e9ba" data-score="55" data-since="260603">다음과 같은 데이터 어트리뷰트도 사용할 수 있습니다:</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="zipfile.ZipFile.filename">
