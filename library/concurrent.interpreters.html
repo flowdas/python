@@ -138,7 +138,10 @@
 <hr class="docutils" />
 <p data-msgid="e90ea6f23171190c3d5853fc078d82c005183bf6" data-score="95" data-since="260610"><code class="xref py py-mod docutils literal notranslate"><span class="pre">concurrent.interpreters</span></code>\ 모듈은 하위 수준 <code class="xref py py-mod docutils literal notranslate"><span class="pre">_interpreters</span></code>\ 모듈 위에 더 높은 수준의 인터페이스를 구성합니다.</p>
 <p data-msgid="baed0df1f37ccc873e150068b8fc53ad43a0d904" data-score="92" data-since="260611">이 모듈은 주로 인터프리터를 관리하고 그 안에서 작업을 수행하기 위한 기본적인 API를 제공하는 데 목적이 있습니다(별칭으로 “서브인터프리터”). 작업은 주로 인터프리터(현재 스레드에서)로 전환하여 해당 실행 컨텍스트에서 함수를 호출하는 것을 포함합니다.</p>
-<p data-msgid="2c3f744865fc74b67bdd910b0f302624952fa7ac" data-score="81" data-since="260611">동시성을 위해서는 인터프리터 자체(그리고 이 모듈)가 제공하는 것은 격리화 외에는 거의 없습니다. 격리화 자체는 유용하지 않습니다. 실제 동시성은 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>threads &lt;threading&gt;`를 통해 별도로 사용할 수 있습니다. <a href="#id3"><span class="problematic" id="id4">`</span></a>아래의 &lt;<a class="reference internal" href="#interp-concurrency">interp-concurrency</a>&gt;`를 참조하세요.</p>
+<p data-msgid="2c3f744865fc74b67bdd910b0f302624952fa7ac" data-score="0" data-since="260603">For concurrency, interpreters themselves (and this module) don’t
+provide much more than isolation, which on its own isn’t useful.
+Actual concurrency is available separately through
+<a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threads</span></code></a>  See <a class="reference internal" href="#interp-concurrency">below</a></p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <dl class="simple">
@@ -169,7 +172,10 @@
 <section id="introduction">
 <span id="interpreters-intro"></span><h2 data-msgid="2473e96bc614a911821242119918a241a41836d6" data-score="100" data-since="260611">소개<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
 <p data-msgid="71621a7ca0ca822217980bf99dd69e849eff9c56" data-score="92" data-since="260611">“인터프리터”는 사실상 Python 런타임의 실행 컨텍스트입니다. 프로그램 실행에 필요한 모든 상태를 포함합니다. 여기에는 임포트 상태 및 내장 함수와 같은 것이 포함됩니다. (메인 스레드만 있는 경우에도, 각 스레드는 현재 인터프리터 외에 현재 예외 및 바이트코드 평가 루프와 관련된 추가적인 런타임 상태를 가지고 있습니다.)</p>
-<p data-msgid="acd51d9f41c4b2045013703e9b81be2ac8b3d60c" data-score="80" data-since="260611">인터프리터의 개념과 기능은 Python 버전 2.2부터 일부였지만, 이 기능은 C-API를 통해서만 사용 가능했고 잘 알려져 있지 않았으며, <a href="#id1"><span class="problematic" id="id2">`</span></a>isolation &lt;<a class="reference internal" href="#interp-isolation">interp-isolation</a>&gt;`은 버전 3.12까지 상대적으로 불완전했습니다.</p>
+<p data-msgid="acd51d9f41c4b2045013703e9b81be2ac8b3d60c" data-score="0" data-since="260603">The concept and functionality of the interpreter have been a part of
+Python since version 2.2, but the feature was only available through
+the C-API and not well known, and the <a class="reference internal" href="#interp-isolation">isolation</a>
+was relatively incomplete until version 3.12.</p>
 <section id="multiple-interpreters-and-isolation">
 <span id="interp-isolation"></span><h3 data-msgid="f87a1400b10060da4face7938a00c63208ea71f7" data-score="93" data-since="260611">다수 인터프리터 및 격리화<a class="headerlink" href="#multiple-interpreters-and-isolation" title="Link to this heading">¶</a></h3>
 <p data-msgid="7a373ad74aff87d13f41f972e6315dee942f6808" data-score="62" data-since="260611">Python 구현체는 동일한 프로세스 내에서 여러 인터프리터 사용을 지원할 수 있습니다. CPython은 이 지원을 합니다. 각 인터프리터는 효과적으로 다른 인터프리터와 격리되어 있습니다(제한된 수의 주의 깊게 관리된 프로세스 전역 예외 항목을 제외하고).</p>
@@ -182,7 +188,10 @@
 <section id="running-in-an-interpreter">
 <h3 data-msgid="531a40194977844aa98ac21cb4a772a6bc646c56" data-score="93" data-since="260611">인터프리터 내에서 실행하기<a class="headerlink" href="#running-in-an-interpreter" title="Link to this heading">¶</a></h3>
 <p data-msgid="376557a843bcef5831ef2ba4582cbc778aa8da5d" data-score="96" data-since="260611">다른 인터프리터에서 실행하려면, 현재 스레드에서 해당 인터프리터로 전환한 다음 함수를 호출해야 합니다. 런타임은 현재 인터프리터의 상태를 사용하여 해당 함수를 실행합니다. <code class="xref py py-mod docutils literal notranslate"><span class="pre">concurrent.interpreters</span></code> 모듈은 인터프리터를 생성하고 관리하며, 전환 및 호출 작업을 위한 기본적인 API를 제공합니다.</p>
-<p data-msgid="f451cc0c639077428a9ed39a34683b830417b165" data-score="80" data-since="260611">이 작업에 대해 다른 스레드 자동 시작은 없습니다. 하지만, 이를 위한 <em>a helper</em> &lt;<a class="reference internal" href="#interp-call-in-thread">interp-call-in-thread</a>&gt;가 있습니다. 또한, 내장 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>exec`를 인터프리터에서 호출하는 전용 헬퍼도 있습니다.</p>
+<p data-msgid="f451cc0c639077428a9ed39a34683b830417b165" data-score="0" data-since="260603">No other threads are automatically started for the operation.
+There is <a class="reference internal" href="#interp-call-in-thread">a helper</a> for that though.
+There is another dedicated helper for calling the builtin
+<a class="reference internal" href="functions.html#exec" title="exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec()</span></code></a> in an interpreter.</p>
 <p data-msgid="7672ade05d4a0ec7744675e61eeab05190fbbdd4" data-score="83" data-since="260611"><a class="reference internal" href="functions.html#exec" title="exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec()</span></code></a> (또는 <a class="reference internal" href="functions.html#eval" title="eval"><code class="xref py py-func docutils literal notranslate"><span class="pre">eval()</span></code></a>)가 인터프리터에서 호출되면, 인터프리터의 <code class="xref py py-mod docutils literal notranslate"><span class="pre">__main__</span></code> 모듈을 “globals” 네임스페이스로 사용하여 실행됩니다. 모듈과 관련되지 않은 함수도 마찬가지입니다. 이는 명령줄에서 호출된 스크립트가 <code class="xref py py-mod docutils literal notranslate"><span class="pre">__main__</span></code> 모듈에서 실행되는 방식과 같습니다.</p>
 </section>
 <section id="concurrency-and-parallelism">
@@ -192,20 +201,32 @@
 <p data-msgid="bf057dc9cd9c6799a676698db9858f84b1d409f9" data-score="87" data-since="260611">이러한 동시성 모델은 단일 스레드에서 인터프리터 간에 왔다 갔다 하며 활용할 수 있습니다. 스택리스(Stackless) 방식으로 말입니다. 그러나 이 모델은 인터프리터를 여러 스레드와 결합할 때 더 유용합니다. 이는 주로 새로운 스레드를 시작하고, 다른 인터프리터로 전환하여 원하는 작업을 수행하는 것을 포함합니다.</p>
 <p data-msgid="58fc0a5a6231f3b71ed305994df20bb72a749e4a" data-score="86" data-since="260611">Python의 각 실제 스레드는, 심지어 메인 스레드에서만 실행되더라도, 자체의 <em>현재</em> 실행 컨텍스트를 가지고 있습니다. 여러 스레드는 동일한 인터프리터나 서로 다른 인터프리터를 사용할 수 있습니다.</p>
 <p data-msgid="d0af2a87b9a708ee42eb187ffdd1e0d2e98e0a12" data-score="59" data-since="260611">높은 수준에서 볼 때, 스레드와 인터프리터의 조합은 선택적 공유가 가능한 스레드와 같습니다.</p>
-<p data-msgid="2d203ae7392b2d5ccbfe195fc0a9f1ddd7ad0880" data-score="78" data-since="260611">주요 장점으로는, 인터프리터가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>GIL`를 공유하지 않도록 충분히 격리되어 있어, 스레드를 여러 인터프리터와 결합하면 완전한 다중 코어 병렬성을 구현할 수 있다는 점이 있습니다. (이는 Python 3.12부터 가능했습니다.)</p>
+<p data-msgid="2d203ae7392b2d5ccbfe195fc0a9f1ddd7ad0880" data-score="0" data-since="260603">As a significant bonus, interpreters are sufficiently isolated that
+they do not share the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>, which means combining threads with
+multiple interpreters enables full multi-core parallelism.
+(This has been the case since Python 3.12.)</p>
 </section>
 <section id="communication-between-interpreters">
 <h3 data-msgid="02d52566f9f195d78425cbf6b3e004d5d44cf5bd" data-score="100" data-since="260611">인터프리터 간 통신<a class="headerlink" href="#communication-between-interpreters" title="Link to this heading">¶</a></h3>
 <p data-msgid="2cbf87a19573351d9be12d0a8fb3bfd789b8c652" data-score="77" data-since="260611">실제적으로, 여러 인터프리터는 그들 사이에 통신할 방법이 있을 때만 유용합니다. 이는 일반적으로 어떤 형태의 메시지 전달을 포함하지만, 신중하게 관리된 방식으로 데이터를 공유하는 것을 의미할 수도 있습니다.</p>
-<p data-msgid="f9a8121933ca46e01568cdfe2d767cd383a5355a" data-score="89" data-since="260611">이를 염두에 두고, <code class="xref py py-mod docutils literal notranslate"><span class="pre">concurrent.interpreters</span></code> 모듈은 <code class="xref py py-func docutils literal notranslate"><span class="pre">create_queue`를</span> <span class="pre">통해</span> <span class="pre">이용</span> <span class="pre">가능한</span> <span class="pre">:class:`queue.Queue()</span></code> 구현을 제공합니다.</p>
+<p data-msgid="f9a8121933ca46e01568cdfe2d767cd383a5355a" data-score="0" data-since="260603">With this in mind, the <code class="xref py py-mod docutils literal notranslate"><span class="pre">concurrent.interpreters</span></code> module provides
+a <a class="reference internal" href="queue.html#queue.Queue" title="queue.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">queue.Queue</span></code></a> implementation, available through
+<a class="reference internal" href="#concurrent.interpreters.create_queue" title="concurrent.interpreters.create_queue"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_queue()</span></code></a>.</p>
 </section>
 <section id="sharing-objects">
 <span id="interp-object-sharing"></span><h3 data-msgid="d485ecad49da12ab918fb41a56aae670224560af" data-score="100" data-since="260611">“공유” 객체<a class="headerlink" href="#sharing-objects" title="Link to this heading">¶</a></h3>
-<p data-msgid="b0730ff94584845efccb3a500bb04be269ddbcb9" data-score="79" data-since="260611">인터프리터 간에 실제로 공유되는 모든 데이터는 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>GIL`이 제공하는 스레드 안전성을 잃게 됩니다. 확장 모듈에서 이를 처리하기 위한 다양한 옵션이 있습니다. 하지만, Python 코드 관점에서 보면 스레드 안전성의 부족은 몇 가지 예외를 제외하고는 객체가 실제로 공유될 수 없다는 것을 의미합니다. 대신, 복사본이 생성되어야 하며, 이는 가변 객체가 동기화 상태를 유지하지 못한다는 것을 의미합니다.</p>
-<p data-msgid="1839f952a63dfc9b61a9d08e2fdf41959bd5b1e0" data-score="96" data-since="260611">기본적으로, 대부분의 객체는 다른 인터프리터로 전달될 때 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>pickle`로 복사됩니다. 거의 모든 불변 내장 객체는 직접 공유되거나 효율적으로 복사됩니다. 예를 들어:</p>
+<p data-msgid="b0730ff94584845efccb3a500bb04be269ddbcb9" data-score="0" data-since="260603">Any data actually shared between interpreters loses the thread-safety
+provided by the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>.  There are various options for dealing with
+this in extension modules.  However, from Python code the lack of
+thread-safety means objects can’t actually be shared, with a few
+exceptions.  Instead, a copy must be created, which means mutable
+objects won’t stay in sync.</p>
+<p data-msgid="1839f952a63dfc9b61a9d08e2fdf41959bd5b1e0" data-score="0" data-since="260603">By default, most objects are copied with <a class="reference internal" href="pickle.html#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> when they are
+passed to another interpreter.  Nearly all of the immutable builtin
+objects are either directly shared or copied efficiently.  For example:</p>
 <ul class="simple">
 <li><p data-msgid="530c6c0e5aa4a4f706ddec3d6c9658d49eaaed60" data-score="100" data-since="260611"><a class="reference internal" href="constants.html#None" title="None"><code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code></a></p></li>
-<li><p data-msgid="318b728b03d9d7272de3a85527486fc01a50d84c" data-score="100" data-since="260611"><a class="reference internal" href="functions.html#bool" title="bool"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> (<code class="xref py py-const docutils literal notranslate"><span class="pre">True`와</span> <span class="pre">:const:`False</span></code>)</p></li>
+<li><p data-msgid="318b728b03d9d7272de3a85527486fc01a50d84c" data-score="0" data-since="260603"><a class="reference internal" href="functions.html#bool" title="bool"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> (<a class="reference internal" href="constants.html#True" title="True"><code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code></a> and <a class="reference internal" href="constants.html#False" title="False"><code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code></a>)</p></li>
 <li><p data-msgid="94f2dd7768aa6dd4a796c86c44265ab7505b493c" data-score="100" data-since="260611"><a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></p></li>
 <li><p data-msgid="0a4ca00b6a778282cc261dda493d3dcb24992331" data-score="100" data-since="260611"><a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p></li>
 <li><p data-msgid="45c231519ab9bef9277a2bd625d0d69f4df2d886" data-score="100" data-since="260611"><a class="reference internal" href="functions.html#int" title="int"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p></li>
@@ -259,7 +280,8 @@ one for each existing interpreter.</p>
 <dt class="sig sig-object py" id="concurrent.interpreters.Interpreter">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">Interpreter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.interpreters.Interpreter" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="e5dfa70ddd7509bb03416d1d83be0b43439ae9e6" data-score="100" data-since="260611">현재 프로세스 내의 단일 인터프리터입니다.</p>
-<p data-msgid="f43b930e4641b32425075d66029b2d7ee0d7629f" data-score="93" data-since="260611">일반적으로 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>Interpreter`는 직접 호출해서는 안 됩니다. 대신 :func:<a href="#id3"><span class="problematic" id="id4">`</span></a>create`를 사용하거나 다른 모듈 함수를 사용하십시오.</p>
+<p data-msgid="f43b930e4641b32425075d66029b2d7ee0d7629f" data-score="0" data-since="260603">Generally, <a class="reference internal" href="#concurrent.interpreters.Interpreter" title="concurrent.interpreters.Interpreter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Interpreter</span></code></a> shouldn’t be called directly.
+Instead, use <a class="reference internal" href="#concurrent.interpreters.create" title="concurrent.interpreters.create"><code class="xref py py-func docutils literal notranslate"><span class="pre">create()</span></code></a> or one of the other module functions.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="concurrent.interpreters.Interpreter.id">
 <span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#concurrent.interpreters.Interpreter.id" title="Link to this definition">¶</a></dt>
@@ -290,7 +312,8 @@ one for each existing interpreter.</p>
 <dt class="sig sig-object py" id="concurrent.interpreters.Interpreter.prepare_main">
 <span class="sig-name descname"><span class="pre">prepare_main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.interpreters.Interpreter.prepare_main" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="4760d818a1fbe2a379f2a6fb4c8f158824762047" data-score="100" data-since="260611">인터프리터의 <code class="xref py py-mod docutils literal notranslate"><span class="pre">__main__</span></code> 모듈에 객체를 바인딩합니다.</p>
-<p data-msgid="8677432d5d8b9d13a502f884af4e4a778711889e" data-score="89" data-since="260611">일부 객체는 실제로 공유되며 일부는 효율적으로 복사되지만, 대부분은 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>pickle`을 통해 복사됩니다. :ref:<a href="#id3"><span class="problematic" id="id4">`</span></a>interp-object-sharing`을 참조하십시오.</p>
+<p data-msgid="8677432d5d8b9d13a502f884af4e4a778711889e" data-score="0" data-since="260603">Some objects are actually shared and some are copied efficiently,
+but most are copied via <a class="reference internal" href="pickle.html#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a>.  See <a class="reference internal" href="#interp-object-sharing"><span class="std std-ref">“공유” 객체</span></a>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -319,19 +342,22 @@ one for each existing interpreter.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="concurrent.interpreters.InterpreterError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">InterpreterError</span></span><a class="headerlink" href="#concurrent.interpreters.InterpreterError" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="0bb80bc260dcf1ebacc6c8b0ae5d8fbb52384259" data-score="93" data-since="260611">:exc:<a href="#id1"><span class="problematic" id="id2">`</span></a>Exception`의 서브 클래스인 이 예외는 인터프리터 관련 오류가 발생했을 때 발생합니다.</p>
+<dd><p data-msgid="0bb80bc260dcf1ebacc6c8b0ae5d8fbb52384259" data-score="0" data-since="260603">This exception, a subclass of <a class="reference internal" href="exceptions.html#Exception" title="Exception"><code class="xref py py-exc docutils literal notranslate"><span class="pre">Exception</span></code></a>, is raised when
+an interpreter-related error happens.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="concurrent.interpreters.InterpreterNotFoundError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">InterpreterNotFoundError</span></span><a class="headerlink" href="#concurrent.interpreters.InterpreterNotFoundError" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="fe680a0773b57cef314923ece33ac5a90a2d4d74" data-score="94" data-since="260611">:exc:<a href="#id1"><span class="problematic" id="id2">`</span></a>InterpreterError`의 서브 클래스인 이 예외는 대상 인터프리터가 더 이상 존재하지 않을 때 발생합니다.</p>
+<dd><p data-msgid="fe680a0773b57cef314923ece33ac5a90a2d4d74" data-score="0" data-since="260603">This exception, a subclass of <a class="reference internal" href="#concurrent.interpreters.InterpreterError" title="concurrent.interpreters.InterpreterError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterpreterError</span></code></a>, is raised when
+the targeted interpreter no longer exists.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="concurrent.interpreters.ExecutionFailed">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">ExecutionFailed</span></span><a class="headerlink" href="#concurrent.interpreters.ExecutionFailed" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2ddc228c53b81d69efd51d67c9c29182ac084ce0" data-score="99" data-since="260611">:exc:<a href="#id1"><span class="problematic" id="id2">`</span></a>InterpreterError`의 서브 클래스인 이 예외는 실행 코드가 포착되지 않은 예외를 발생시켰을 때 발생합니다.</p>
+<dd><p data-msgid="2ddc228c53b81d69efd51d67c9c29182ac084ce0" data-score="0" data-since="260603">This exception, a subclass of <a class="reference internal" href="#concurrent.interpreters.InterpreterError" title="concurrent.interpreters.InterpreterError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterpreterError</span></code></a>, is raised when
+the running code raised an uncaught exception.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="concurrent.interpreters.ExecutionFailed.excinfo">
 <span class="sig-name descname"><span class="pre">excinfo</span></span><a class="headerlink" href="#concurrent.interpreters.ExecutionFailed.excinfo" title="Link to this definition">¶</a></dt>
@@ -343,7 +369,8 @@ one for each existing interpreter.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="concurrent.interpreters.NotShareableError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">NotShareableError</span></span><a class="headerlink" href="#concurrent.interpreters.NotShareableError" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6bac4bd54b39c95999bda3755292f7dc042830fb" data-score="94" data-since="260611">객체가 다른 인터프리터로 전송될 수 없을 때 발생하는 :exc:<a href="#id1"><span class="problematic" id="id2">`</span></a>TypeError`의 서브 클래스인 이 예외입니다.</p>
+<dd><p data-msgid="6bac4bd54b39c95999bda3755292f7dc042830fb" data-score="0" data-since="260603">This exception, a subclass of <a class="reference internal" href="exceptions.html#TypeError" title="TypeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a>, is raised when
+an object cannot be sent to another interpreter.</p>
 </dd></dl>
 
 </section>
@@ -352,8 +379,11 @@ one for each existing interpreter.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="concurrent.interpreters.Queue">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">Queue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#concurrent.interpreters.Queue" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ca76169941d0e62a1746a4fab09c2d291ab73458" data-score="86" data-since="260611"><a class="reference internal" href="queue.html#queue.Queue" title="queue.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">queue.Queue</span></code></a> 인터페이스를 구현하는 저수준의 크로스-인터프리터 큐를 감쌉니다. 내부 큐는 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>create_queue`를 통해서만 생성할 수 있습니다.</p>
-<p data-msgid="8677432d5d8b9d13a502f884af4e4a778711889e" data-score="89" data-since="260611">일부 객체는 실제로 공유되며 일부는 효율적으로 복사되지만, 대부분은 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>pickle`을 통해 복사됩니다. :ref:<a href="#id3"><span class="problematic" id="id4">`</span></a>interp-object-sharing`을 참조하십시오.</p>
+<dd><p data-msgid="ca76169941d0e62a1746a4fab09c2d291ab73458" data-score="0" data-since="260603">A wrapper around a low-level, cross-interpreter queue, which
+implements the <a class="reference internal" href="queue.html#queue.Queue" title="queue.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">queue.Queue</span></code></a> interface.  The underlying queue
+can only be created through <a class="reference internal" href="#concurrent.interpreters.create_queue" title="concurrent.interpreters.create_queue"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_queue()</span></code></a>.</p>
+<p data-msgid="8677432d5d8b9d13a502f884af4e4a778711889e" data-score="0" data-since="260603">Some objects are actually shared and some are copied efficiently,
+but most are copied via <a class="reference internal" href="pickle.html#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a>.  See <a class="reference internal" href="#interp-object-sharing"><span class="std std-ref">“공유” 객체</span></a>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="concurrent.interpreters.Queue.id">
 <span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#concurrent.interpreters.Queue.id" title="Link to this definition">¶</a></dt>
@@ -366,13 +396,17 @@ one for each existing interpreter.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="concurrent.interpreters.QueueEmptyError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">QueueEmptyError</span></span><a class="headerlink" href="#concurrent.interpreters.QueueEmptyError" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="8ef0aaabadce98a93b6239e86d1ec2032f0b002a" data-score="97" data-since="260611">큐가 비어 있을 때 <code class="xref py py-meth docutils literal notranslate"><span class="pre">Queue.get()</span></code> 및 :meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>!Queue.get_nowait`에서 발생하는 :exc:<a href="#id3"><span class="problematic" id="id4">`</span></a>queue.Empty`의 서브 클래스인 이 예외입니다.</p>
+<dd><p data-msgid="8ef0aaabadce98a93b6239e86d1ec2032f0b002a" data-score="0" data-since="260603">This exception, a subclass of <a class="reference internal" href="queue.html#queue.Empty" title="queue.Empty"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.Empty</span></code></a>, is raised from
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Queue.get()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Queue.get_nowait()</span></code> when the queue
+is empty.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="concurrent.interpreters.QueueFullError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">concurrent.interpreters.</span></span><span class="sig-name descname"><span class="pre">QueueFullError</span></span><a class="headerlink" href="#concurrent.interpreters.QueueFullError" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="e3d46533c697c4693bbfc800037dd7f5686327ad" data-score="98" data-since="260611">큐가 가득 찼을 때 <code class="xref py py-meth docutils literal notranslate"><span class="pre">Queue.put()</span></code> 및 :meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>!Queue.put_nowait`에서 발생하는 :exc:<a href="#id3"><span class="problematic" id="id4">`</span></a>queue.Full`의 서브 클래스인 이 예외입니다.</p>
+<dd><p data-msgid="e3d46533c697c4693bbfc800037dd7f5686327ad" data-score="0" data-since="260603">This exception, a subclass of <a class="reference internal" href="queue.html#queue.Full" title="queue.Full"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.Full</span></code></a>, is raised from
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Queue.put()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Queue.put_nowait()</span></code> when the queue
+is full.</p>
 </dd></dl>
 
 </section>
