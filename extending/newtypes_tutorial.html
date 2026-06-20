@@ -121,9 +121,18 @@
 <p data-msgid="63674bbaa3044ff5c17565fb54257b06c314604b" data-score="71" data-since="260603">파이썬은 C 확장 모듈 작성자가 내장 <a class="reference internal" href="../library/stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>과 <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> 형과 마찬가지로 파이썬 코드에서 조작할 수 있는 새로운 형을 정의할 수 있도록 합니다. 모든 확장형의 코드는 패턴을 따르지만, 시작하기 전에 이해해야 할 세부 사항이 있습니다. 이 설명서는 주제에 대한 간단한 소개입니다.</p>
 <section id="the-basics">
 <span id="dnt-basics"></span><h2 data-msgid="a093f7952b1838c4dd6aeda28ea5e1fc38030960" data-score="100" data-since="260603">기초<a class="headerlink" href="#the-basics" title="Link to this heading">¶</a></h2>
-<p data-msgid="c0c78010cfd9236ca019ea03e961771f9e8a73cd" data-score="77" data-since="260610"><a class="reference internal" href="../glossary.html#term-CPython"><span class="xref std std-term">CPython</span></a> 런타임은 모든 파이썬 객체를 <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> 타입의 변수로 간주하며, 이는 모든 파이썬 객체의 “기본 타입” 역할을 합니다. <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> 구조 자체는 객체의 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>참조 횟수`와 객체의 “타입 객체”를 가리키는 포인터만을 포함합니다. 실제 동작이 일어나는 곳입니다. 타입 객체는 예를 들어, 속성이 객체에서 조회되거나, 메서드가 호출되거나, 다른 객체와 곱해질 때 인터프리터에 의해 어떤 (C) 함수가 호출될지 결정합니다. 이러한 C 함수들을 “타입 메서드”라고 합니다.</p>
+<p data-msgid="c0c78010cfd9236ca019ea03e961771f9e8a73cd" data-score="0" data-since="260603">The <a class="reference internal" href="../glossary.html#term-CPython"><span class="xref std std-term">CPython</span></a> runtime sees all Python objects as variables of type
+<span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span>, which serves as a “base type” for all Python objects.
+The <a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> structure itself only contains the object’s
+<a class="reference internal" href="../glossary.html#term-reference-count"><span class="xref std std-term">reference count</span></a> and a pointer to the object’s “type object”.
+This is where the action is; the type object determines which (C) functions
+get called by the interpreter when, for instance, an attribute gets looked up
+on an object, a method called, or it is multiplied by another object.  These
+C functions are called “type methods”.</p>
 <p data-msgid="2ada0e522d2a385060f7c255762ed070dce2aaa9" data-score="64" data-since="260603">따라서, 새 확장형을 정의하려면, 새 형 객체를 만들어야 합니다.</p>
-<p data-msgid="8b019c6b525ca7bfa16c9643772dc284b30a8b26" data-score="97" data-since="260610">이러한 종류의 내용은 예시로만 설명할 수 있으므로, 여기는 C 확장 모듈 <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom</span></code> 내에 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>!Custom`이라는 새로운 타입을 정의하는 최소하지만 완전한 모듈입니다:</p>
+<p data-msgid="8b019c6b525ca7bfa16c9643772dc284b30a8b26" data-score="0" data-since="260603">This sort of thing can only be explained by example, so here’s a minimal, but
+complete, module that defines a new type named <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> inside a C
+extension module <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom</span></code>:</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="15d938d78c5a7eb19c1563955cefaaeea5be304b" data-score="76" data-since="260603">여기에 표시하는 것은 <em>정적인(static)</em> 확장형을 정의하는 전통적인 방법입니다. 대부분의 용도에 적합해야 합니다. C API는 또한 <a class="reference internal" href="../c-api/type.html#c.PyType_FromSpec" title="PyType_FromSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpec()</span></code></a> 함수를 사용하여 힙 할당 확장형을 정의 할 수 있습니다만, 이 자습서에서는 다루지 않습니다.</p>
@@ -243,17 +252,23 @@ abstract away the layout and to enable additional fields in <a class="reference 
 <span class="gr">TypeError</span>: <span class="n">can only concatenate str (not &quot;custom.Custom&quot;) to str</span>
 </pre></div>
 </div>
-<p data-msgid="c807d458c8451818512386fe0e80681873b17d82" data-score="87" data-since="260610">참고: name은 모듈명과 모듈 내 타입명을 모두 포함하는 점 표기법 이름입니다. 이 경우 모듈은 <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom`이고</span> <span class="pre">타입은</span> <span class="pre">:class:</span></code>!Custom`이므로, 타입명은 <code class="xref py py-class docutils literal notranslate"><span class="pre">custom.Custom`으로</span> <span class="pre">설정합니다.</span> <span class="pre">실제</span> <span class="pre">점</span> <span class="pre">표기법</span> <span class="pre">import</span> <span class="pre">경로를</span> <span class="pre">사용하는</span> <span class="pre">것이</span> <span class="pre">:mod:`pydoc</span></code> 및 <a class="reference internal" href="../library/pickle.html#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> 모듈과의 타입 호환성에 중요합니다.</p>
+<p data-msgid="c807d458c8451818512386fe0e80681873b17d82" data-score="0" data-since="260603">Note that the name is a dotted name that includes both the module name and the
+name of the type within the module. The module in this case is <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom</span></code> and
+the type is <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code>, so we set the type name to <code class="xref py py-class docutils literal notranslate"><span class="pre">custom.Custom</span></code>.
+Using the real dotted import path is important to make your type compatible
+with the <a class="reference internal" href="../library/pydoc.html#module-pydoc" title="pydoc: Documentation generator and online help system."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydoc</span></code></a> and <a class="reference internal" href="../library/pickle.html#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> modules.</p>
 <div class="highlight-c notranslate" data-msgid="2d56eae0444b0d310879f5601eb3f4d296cb4f63" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_basicsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">CustomObject</span><span class="p">),</span>
 <span class="p">.</span><span class="n">tp_itemsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 </pre></div>
 </div>
-<p data-msgid="2220f2b4714ce6f3374947bbef3d25b02b61a58f" data-score="83" data-since="260610">이것은 Python이 새로운 <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 인스턴스를 생성할 때 할당해야 할 메모리 양을 알 수 있도록 하기 위함입니다. :c:member:<a href="#id1"><span class="problematic" id="id2">`</span></a>~PyTypeObject.tp_itemsize`는 가변 크기 객체에만 사용되며, 그 외 경우에는 0이어야 합니다.</p>
+<p data-msgid="2220f2b4714ce6f3374947bbef3d25b02b61a58f" data-score="0" data-since="260603">This is so that Python knows how much memory to allocate when creating
+new <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> instances.  <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_itemsize" title="PyTypeObject.tp_itemsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_itemsize</span></code></a> is
+only used for variable-sized objects and should otherwise be zero.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="30c8ffa30466c8c30d506e8c5cd1a82d3c771cb4" data-score="69" data-since="260610">만약 타입이 Python에서 하위 클래스화되기를 원하고, 타입이 기반 타입과 동일한 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_basicsize" title="PyTypeObject.tp_basicsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_basicsize</span></code></a> 를 가지고 있다면, 다중 상속 문제에 직면할 수 있습니다. 귀하의 타입의 Python 하위 클래스는 해당 타입의 <a class="reference internal" href="../reference/datamodel.html#type.__bases__" title="type.__bases__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__bases__</span></code></a> 에 가장 먼저 나열해야 하며, 그렇지 않으면 오류를 발생시키지 않고 타입의 <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__new__()</span></code></a> 메서드를 호출할 수 없습니다. 귀하의 타입이 기반 타입보다 더 큰 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_basicsize" title="PyTypeObject.tp_basicsize"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_basicsize</span></code></a> 값을 갖도록 보장함으로써 이 문제를 피할 수 있습니다. 대부분의 경우, 기본 타입이 <a class="reference internal" href="../library/functions.html#object" title="object"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a> 이거나 기본 타입에 데이터 멤버를 추가하여 크기를 증가시키기 때문에, 이 조건은 기본적으로 충족됩니다.</p>
 </div>
-<p data-msgid="0551471496ace09d90c56cecb10f4e3dfab98f04" data-score="100" data-since="260610">클래스 플래그를 :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_TPFLAGS_DEFAULT`로 설정합니다.</p>
+<p data-msgid="0551471496ace09d90c56cecb10f4e3dfab98f04" data-score="0" data-since="260603">We set the class flags to <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_DEFAULT" title="Py_TPFLAGS_DEFAULT"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_DEFAULT</span></code></a>.</p>
 <div class="highlight-c notranslate" data-msgid="98e4d2debb4c47fdfbbcbdd60c94f725c76a0f06" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Py_TPFLAGS_DEFAULT</span><span class="p">,</span>
 </pre></div>
 </div>
@@ -262,7 +277,10 @@ abstract away the layout and to enable additional fields in <a class="reference 
 <div class="highlight-c notranslate" data-msgid="d5d4038b9941cb319c49b6405b06b3b80d750f90" data-score="82" data-since="260610"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_doc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyDoc_STR</span><span class="p">(</span><span class="s">&quot;Custom 객체&quot;</span><span class="p">),</span>
 </pre></div>
 </div>
-<p data-msgid="85405e814485550bfe3e361a6bd996766708686e" data-score="98" data-since="260610">객체 생성을 활성화하려면 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> 핸들러를 제공해야 합니다. 이것은 Python 메서드 :meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>~object.__new__`와 동일하지만, 명시적으로 지정해야 합니다. 이 경우, API 함수 :c:func:<a href="#id3"><span class="problematic" id="id4">`</span></a>PyType_GenericNew`가 제공하는 기본 구현을 사용할 수 있습니다.</p>
+<p data-msgid="85405e814485550bfe3e361a6bd996766708686e" data-score="0" data-since="260603">To enable object creation, we have to provide a <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a>
+handler.  This is the equivalent of the Python method <a class="reference internal" href="../reference/datamodel.html#object.__new__" title="object.__new__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__new__()</span></code></a>, but
+has to be specified explicitly.  In this case, we can just use the default
+implementation provided by the API function <a class="reference internal" href="../c-api/type.html#c.PyType_GenericNew" title="PyType_GenericNew"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GenericNew()</span></code></a>.</p>
 <div class="highlight-c notranslate" data-msgid="7b4c857a355f8c09c54be1ab7301596d1b38c202" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_new</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GenericNew</span><span class="p">,</span>
 </pre></div>
 </div>
@@ -283,7 +301,8 @@ abstract away the layout and to enable additional fields in <a class="reference 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mycustom</span> <span class="o">=</span> <span class="n">custom</span><span class="o">.</span><span class="n">Custom</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="cea657d9c3894b58d5afa332ff3e15eac630424a" data-score="88" data-since="260610">끝입니다! 남은 것은 빌드하는 것뿐입니다. 위 코드를 :file:<a href="#id1"><span class="problematic" id="id2">`</span></a>custom.c`라는 파일에 넣고,</p>
+<p data-msgid="cea657d9c3894b58d5afa332ff3e15eac630424a" data-score="0" data-since="260603">That’s it!  All that remains is to build it; put the above code in a file called
+<code class="file docutils literal notranslate"><span class="pre">custom.c</span></code>,</p>
 <div class="highlight-c notranslate" data-msgid="09d80a87b13f99db1100f1e1b43cf9bfc86048ef" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">build</span><span class="o">-</span><span class="n">system</span><span class="p">]</span>
 <span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;setuptools&quot;</span><span class="p">]</span>
 <span class="n">build</span><span class="o">-</span><span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;setuptools.build_meta&quot;</span>
@@ -293,7 +312,7 @@ abstract away the layout and to enable additional fields in <a class="reference 
 <span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
 </pre></div>
 </div>
-<p data-msgid="a7b5cc19805da3eda506919d155260e082912f19" data-score="91" data-since="260610">그리고 :file:<a href="#id1"><span class="problematic" id="id2">`</span></a>pyproject.toml`에 넣은 다음,</p>
+<p data-msgid="a7b5cc19805da3eda506919d155260e082912f19" data-score="0" data-since="260603">in a file called <code class="file docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, and</p>
 <div class="highlight-python notranslate" data-msgid="5940a56dafc1cae0417d277a5ece2b2463e5a38a" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">setuptools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Extension</span><span class="p">,</span> <span class="n">setup</span>
 <span class="n">setup</span><span class="p">(</span><span class="n">ext_modules</span><span class="o">=</span><span class="p">[</span><span class="n">Extension</span><span class="p">(</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;custom.c&quot;</span><span class="p">])])</span>
 </pre></div>
@@ -308,7 +327,9 @@ abstract away the layout and to enable additional fields in <a class="reference 
 </section>
 <section id="adding-data-and-methods-to-the-basic-example">
 <h2 data-msgid="9c6515083d6a718e8fac8685697124778f8fa326" data-score="90" data-since="260603">기초 예제에 데이터와 메서드 추가하기<a class="headerlink" href="#adding-data-and-methods-to-the-basic-example" title="Link to this heading">¶</a></h2>
-<p data-msgid="7e13792700db992961e9931a328dff69de0f30c1" data-score="88" data-since="260610">기본 예제를 확장하여 일부 데이터와 메서드를 추가해 봅시다. 또한 타입을 기본 클래스로 사용할 수 있도록 만들어 봅시다. 이러한 기능을 추가하는 새로운 모듈, :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!custom2`를 생성할 것입니다:</p>
+<p data-msgid="7e13792700db992961e9931a328dff69de0f30c1" data-score="0" data-since="260603">Let’s extend the basic example to add some data and methods.  Let’s also make
+the type usable as a base class. We’ll create a new module, <code class="xref py py-mod docutils literal notranslate"><span class="pre">custom2</span></code> that
+adds these capabilities:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;Python.h&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stddef.h&gt;</span><span class="c1"> /* offsetof()를 위해 */</span>
@@ -575,7 +596,13 @@ abstract away the layout and to enable additional fields in <a class="reference 
 </pre></div>
 </div>
 <p data-msgid="c49d2a61016a8014fbecf061eb6dbb10674fe0b9" data-score="98" data-since="260610"><a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_init" title="PyTypeObject.tp_init"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_init</span></code></a> 슬롯은 Python에서는 <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> 메서드로 노출됩니다. 이는 객체가 생성된 후 초기화하는 데 사용됩니다. 초기화기는 항상 위치 및 키워드 인수를 받으며, 성공 시 <code class="docutils literal notranslate"><span class="pre">0</span></code> 또는 실패 시 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 을 반환해야 합니다.</p>
-<p data-msgid="b4cc0468caa59ad11fa5f7a4bc51fcd5749d1f6e" data-score="93" data-since="260610"><code class="docutils literal notranslate"><span class="pre">tp_new</span></code> 핸들러와 달리, <code class="docutils literal notranslate"><span class="pre">tp_init``이</span> <span class="pre">호출될</span> <span class="pre">것이라는</span> <span class="pre">보장은</span> <span class="pre">없습니다</span> <span class="pre">(예를</span> <span class="pre">들어,</span> <span class="pre">:mod:`pickle`</span> <span class="pre">모듈은</span> <span class="pre">기본적으로</span> <span class="pre">언픽클된</span> <span class="pre">인스턴스에</span> <span class="pre">대해</span> <span class="pre">:meth:`~object.__init__`을</span> <span class="pre">호출하지</span> <span class="pre">않습니다).</span> <span class="pre">또한</span> <span class="pre">여러</span> <span class="pre">번</span> <span class="pre">호출될</span> <span class="pre">수도</span> <span class="pre">있습니다.</span> <span class="pre">누구나</span> <span class="pre">우리의</span> <span class="pre">객체에</span> <span class="pre">:meth:`!__init__`</span> <span class="pre">메서드를</span> <span class="pre">호출할</span> <span class="pre">수</span> <span class="pre">있습니다.</span> <span class="pre">이러한</span> <span class="pre">이유로</span> <span class="pre">새</span> <span class="pre">속성</span> <span class="pre">값을</span> <span class="pre">할당할</span> <span class="pre">때</span> <span class="pre">매우</span> <span class="pre">조심해야</span> <span class="pre">합니다.</span> <span class="pre">예를</span> <span class="pre">들어,</span> <span class="pre">다음과</span> <span class="pre">같이</span> <span class="pre">``first</span></code> 멤버를 할당하고 싶은 유혹에 빠질 수 있습니다:</p>
+<p data-msgid="b4cc0468caa59ad11fa5f7a4bc51fcd5749d1f6e" data-score="0" data-since="260603">Unlike the <code class="docutils literal notranslate"><span class="pre">tp_new</span></code> handler, there is no guarantee that <code class="docutils literal notranslate"><span class="pre">tp_init</span></code>
+is called at all (for example, the <a class="reference internal" href="../library/pickle.html#module-pickle" title="pickle: Convert Python objects to streams of bytes and back."><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> module by default
+doesn’t call <a class="reference internal" href="../reference/datamodel.html#object.__init__" title="object.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> on unpickled instances).  It can also be
+called multiple times.  Anyone can call the <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method on
+our objects.  For this reason, we have to be extra careful when assigning
+the new attribute values.  We might be tempted, for example to assign the
+<code class="docutils literal notranslate"><span class="pre">first</span></code> member like this:</p>
 <div class="highlight-c notranslate" data-msgid="8da802c672160fe29ecdddf2796b3c50dba79079" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">first</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">first</span><span class="p">);</span>
 <span class="w">    </span><span class="n">Py_INCREF</span><span class="p">(</span><span class="n">first</span><span class="p">);</span>
@@ -583,7 +610,12 @@ abstract away the layout and to enable additional fields in <a class="reference 
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="1871209633ce2021fe255bef095b2b3703857b52" data-score="85" data-since="260610">하지만 이것은 위험합니다. 우리의 타입은 <code class="docutils literal notranslate"><span class="pre">first</span></code> 멤버의 타입을 제한하지 않으므로, 어떤 종류의 객체일 수도 있습니다. <code class="docutils literal notranslate"><span class="pre">first</span></code> 멤버에 접근하려고 시도하는 코드를 실행하는 소멸자를 가질 수 있습니다. 또는 해당 소멸자가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>thread state &lt;attached thread state&gt;`를 분리하고 다른 스레드에서 접근하고 수정하는 임의의 코드를 실행하도록 할 수도 있습니다.</p>
+<p data-msgid="1871209633ce2021fe255bef095b2b3703857b52" data-score="0" data-since="260603">But this would be risky.  Our type doesn’t restrict the type of the
+<code class="docutils literal notranslate"><span class="pre">first</span></code> member, so it could be any kind of object.  It could have a
+destructor that causes code to be executed that tries to access the
+<code class="docutils literal notranslate"><span class="pre">first</span></code> member; or that destructor could detach the
+<a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">thread state</span></a> and let arbitrary code run in other
+threads that accesses and modifies our object.</p>
 <p data-msgid="c2dc49e7dbabdaec66f71ce1b9c6add39be72379" data-score="37" data-since="260603">편집증적이 되고 이 가능성으로부터 우리 자신을 보호하기 위해, 우리는 거의 항상 참조 횟수를 줄이기 전에 멤버를 다시 대입합니다. 언제 이렇게 하지 않아도 될까요?</p>
 <ul class="simple">
 <li><p data-msgid="9667fa2c45188685189309524258a7cf562bb935" data-score="77" data-since="260603">참조 횟수가 1보다 크다는 것을 확실히 알고 있을 때;</p></li>
@@ -609,7 +641,8 @@ the <a class="reference internal" href="../glossary.html#term-attached-thread-st
 </div>
 <p data-msgid="8e8e302f4764bca18a98f6d5a6eb3660d530829b" data-score="86" data-since="260603">각 멤버 정의에는 멤버 이름, 형, 오프셋, 액세스 플래그 및 독스트링이 있습니다. 자세한 내용은 아래 <a class="reference internal" href="newtypes.html#generic-attribute-management"><span class="std std-ref">범용 어트리뷰트 관리</span></a> 섹션을 참조하십시오.</p>
 <p data-msgid="2b43b43a3a440c51873a109935f12419d879c98f" data-score="79" data-since="260603">이 접근법의 단점은 파이썬 어트리뷰트에 대입할 수 있는 객체의 형을 제한할 방법을 제공하지 않는다는 것입니다. 이름과 성은 문자열일 것으로 기대하지만, 모든 파이썬 객체를 할당할 수 있습니다. 또한 어트리뷰트를 삭제할 수 있습니다, C 포인터를 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>로 설정합니다. <code class="docutils literal notranslate"><span class="pre">NULL</span></code>이 아닌 값으로 멤버를 초기화 할 수 있지만, 어트리뷰트를 삭제하면 멤버를 <code class="docutils literal notranslate"><span class="pre">NULL</span></code>로 설정할 수 있습니다.</p>
-<p data-msgid="40c18aa93e7540a41d1aeda82fa0b266606f473c" data-score="90" data-since="260610">하나의 메서드, :meth:<a href="#id1"><span class="problematic" id="id2">`</span></a>!Custom.name`을 정의하며, 이 메서드는 객체의 이름을 이름의 첫 번째와 마지막 이름을 연결하여 출력합니다.</p>
+<p data-msgid="40c18aa93e7540a41d1aeda82fa0b266606f473c" data-score="0" data-since="260603">We define a single method, <code class="xref py py-meth docutils literal notranslate"><span class="pre">Custom.name()</span></code>, that outputs the objects name as the
+concatenation of the first and last names.</p>
 <div class="highlight-c notranslate" data-msgid="73f58727dff14cccc750556df11513e972de95c2" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span>
 <span class="nf">Custom_name</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">Py_UNUSED</span><span class="p">(</span><span class="n">dummy</span><span class="p">))</span>
 <span class="p">{</span>
@@ -646,7 +679,10 @@ the <a class="reference internal" href="../glossary.html#term-attached-thread-st
 <div class="highlight-c notranslate" data-msgid="753b22a8e7928c99db1701b7f9cfc7a65b7634a2" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_methods</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Custom_methods</span><span class="p">,</span>
 </pre></div>
 </div>
-<p data-msgid="a706b1cc1a9af024f638a47e6b659fa9f174cc20" data-score="93" data-since="260610">마지막으로, 우리의 타입을 하위 클래스화에 사용 가능한 기본 클래스로 만들 것입니다. 지금까지 작성한 메서드는 생성되거나 사용되는 객체의 유형에 대해 어떠한 가정도 하지 않도록 주의 깊게 작성되었으므로, 우리가 해야 할 일은 클래스 플래그 정의에 :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_TPFLAGS_BASETYPE`를 추가하는 것입니다:</p>
+<p data-msgid="a706b1cc1a9af024f638a47e6b659fa9f174cc20" data-score="0" data-since="260603">Finally, we’ll make our type usable as a base class for subclassing.  We’ve
+written our methods carefully so far so that they don’t make any assumptions
+about the type of the object being created or used, so all we need to do is
+to add the <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_BASETYPE" title="Py_TPFLAGS_BASETYPE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_BASETYPE</span></code></a> to our class flag definition:</p>
 <div class="highlight-c notranslate" data-msgid="b530540dccc74d38af9ba66b5aa73b0dddb33baa" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">tp_flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Py_TPFLAGS_DEFAULT</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Py_TPFLAGS_BASETYPE</span><span class="p">,</span>
 </pre></div>
 </div>
@@ -666,7 +702,11 @@ the <a class="reference internal" href="../glossary.html#term-attached-thread-st
 </section>
 <section id="providing-finer-control-over-data-attributes">
 <h2 data-msgid="26e5336e4c65fb062d3fe76bf1882c3aee470ff0" data-score="68" data-since="260603">데이터 어트리뷰트를 더 세밀하게 제어하기<a class="headerlink" href="#providing-finer-control-over-data-attributes" title="Link to this heading">¶</a></h2>
-<p data-msgid="937e806f73bb899c87fd696ee2fc1f1ced683097" data-score="94" data-since="260610">이 섹션에서는 <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> 예제에서 <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> 및 <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> 속성이 설정되는 방식에 대해 더 세밀하게 제어할 수 있습니다. 모듈의 이전 버전에서는 인스턴스 변수 <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> 및 :attr:<a href="#id1"><span class="problematic" id="id2">`</span></a>!last`가 문자열이 아닌 값으로 설정되거나 심지어 삭제될 수도 있었습니다. 이 속성에는 항상 문자열이 포함되도록 하고 싶습니다.</p>
+<p data-msgid="937e806f73bb899c87fd696ee2fc1f1ced683097" data-score="0" data-since="260603">In this section, we’ll provide finer control over how the <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> and
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code> attributes are set in the <code class="xref py py-class docutils literal notranslate"><span class="pre">Custom</span></code> example. In the previous
+version of our module, the instance variables <code class="xref py py-attr docutils literal notranslate"><span class="pre">first</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">last</span></code>
+could be set to non-string values or even deleted. We want to make sure that
+these attributes always contain strings.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PY_SSIZE_T_CLEAN</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;Python.h&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stddef.h&gt;</span><span class="c1"> /* offsetof()를 위해 */</span>
