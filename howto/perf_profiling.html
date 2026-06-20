@@ -117,9 +117,17 @@
                 
   <section id="python-support-for-the-perf-map-compatible-profilers">
 <span id="perf-profiling"></span><h1 data-msgid="99e5c8c2866509e9e7bce5e693386610eeeff5af" data-score="88" data-since="260610">Python의 <code class="docutils literal notranslate"><span class="pre">perf</span> <span class="pre">map</span></code> 호환 프로파일러 지원<a class="headerlink" href="#python-support-for-the-perf-map-compatible-profilers" title="Link to this heading">¶</a></h1>
-<p data-msgid="579b9e85c01b3b08633c8e30773d90b5b55c95ec" data-score="92" data-since="260610"><a href="#id1"><span class="problematic" id="id2">`</span></a>The Linux perf profiler &lt;<a class="reference external" href="https://perf.wiki.kernel.org">https://perf.wiki.kernel.org</a>&gt;`_와 <a href="#id3"><span class="problematic" id="id4">`</span></a>samply &lt;<a class="reference external" href="https://github.com/mstange/samply">https://github.com/mstange/samply</a>&gt;`_는 애플리케이션의 성능을 프로파일링하고 관련된 정보를 얻을 수 있는 강력한 도구입니다. 두 도구 모두 생성하는 데이터를 분석하는 데 도움을 주는 활발한 생태계를 가지고 있습니다.</p>
+<p data-msgid="579b9e85c01b3b08633c8e30773d90b5b55c95ec" data-score="0" data-since="260608"><a class="reference external" href="https://perf.wiki.kernel.org">The Linux perf profiler</a> and
+<a class="reference external" href="https://github.com/mstange/samply">samply</a> are powerful tools that allow you to
+profile and obtain information about the performance of your application.
+Both tools have vibrant ecosystems that aid with the analysis of the data they produce.</p>
 <p data-msgid="eaab3fea638d231a78c0c788255f8ba72cb72365" data-score="80" data-since="260610">이러한 프로파일러를 Python 애플리케이션에 사용하는 주요 문제점은 네이티브 심볼, 즉 C로 작성된 함수와 절차의 이름에 대한 정보만 얻는다는 것입니다. 이는 코드의 Python 함수 이름과 파일명이 프로파일러 출력에 표시되지 않음을 의미합니다.</p>
-<p data-msgid="c32de506a804b332d78c375b3d075d7976921ba2" data-score="88" data-since="260610">Python 3.12부터 인터프리터는 Python 함수가 호환 가능한 프로파일러의 출력에 나타날 수 있도록 특별한 모드로 실행될 수 있습니다. 이 모드가 활성화되면, 모든 Python 함수 실행 전에 인터프리터가 작은 코드를 즉석에서 컴파일하여 삽입하고, :doc:<a href="#id1"><span class="problematic" id="id2">`</span></a>perf map files &lt;../c-api/perfmaps&gt;`를 사용하여 이 코드 조각과 관련된 Python 함수 간의 관계를 프로파일러에 알려줄 것입니다.</p>
+<p data-msgid="c32de506a804b332d78c375b3d075d7976921ba2" data-score="0" data-since="260608">Since Python 3.12, the interpreter can run in a special mode that allows Python
+functions to appear in the output of compatible profilers. When this mode is
+enabled, the interpreter will interpose a small piece of code compiled on the
+fly before the execution of every Python function and it will teach the profiler the
+relationship between this piece of code and the associated Python function using
+<a class="reference internal" href="../c-api/perfmaps.html"><span class="doc">perf map files</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="0369dc8059e00bac07b06b78ce349d8fac431384" data-score="89" data-since="260610">프로파일링 지원은 Linux 및 macOS의 특정 아키텍처에서 사용할 수 있습니다. Perf는 Linux에서 사용 가능하며, samply는 Linux와 macOS 모두에서 사용할 수 있습니다. samply의 macOS 지원은 Python 3.15부터 사용할 수 있습니다. 시스템이 지원되는지 확인하려면 <code class="docutils literal notranslate"><span class="pre">configure</span></code> 빌드 단계의 출력이나 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">sysconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">HAVE_PERF_TRAMPOLINE</span></code> 의 출력을 확인하십시오.</p>
@@ -141,7 +149,7 @@
     <span class="n">baz</span><span class="p">(</span><span class="mi">1000000</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="83d66b64ed70c92098d5a96b6393be02a15c2b64" data-score="98" data-since="260610"><a href="#id1"><span class="problematic" id="id2">`</span></a>perf`를 사용하여 9999 헤르츠에서 CPU 스택 트레이스를 샘플링할 수 있습니다:</p>
+<p data-msgid="83d66b64ed70c92098d5a96b6393be02a15c2b64" data-score="0" data-since="260603">We can run <code class="docutils literal notranslate"><span class="pre">perf</span></code> to sample CPU stack traces at 9999 hertz:</p>
 <div class="highlight-shell-session notranslate" data-msgid="d07e07227db6589cf9064dfc29e9bcbaf7e57e04" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="gp">$ </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
 </pre></div>
 </div>
@@ -235,11 +243,20 @@
 </pre></div>
 </div>
 <p data-msgid="72b3c30908508afbe4fcdc324e36618d43bb3867" data-score="96" data-since="260610">이것은 프로파일링 데이터를 대화형으로 분석할 수 있는 웹 인터페이스를 열어줍니다. samply의 장점은 프로파일링 데이터를 분석하기 위한 현대적인 웹 기반 인터페이스를 제공하며 리눅스와 macOS 모두에서 작동한다는 것입니다.</p>
-<p data-msgid="66785883d7ea52ebdcd90fbc0d3c06461b1f5a2e" data-score="77" data-since="260610">macOS에서는 samply 지원을 위해 Python 3.15 이상이 필요합니다. 또한 macOS에서 samply는 macOS의 제한 사항으로 인해 서명된 Python 실행 파일의 프로파일링을 할 수 없습니다. 직접 컴파일했거나 서명되지 않았거나 로컬로 서명된(예: Homebrew로 설치된 모든 것) Python 바이너리로 프로파일링을 할 수 있습니다. macOS에서 실행 중인 프로세스에 연결하려면, samply 바이너리를 자체 서명하기 위해 <a href="#id1"><span class="problematic" id="id2">`</span></a>samply setup`을 한 번 실행하십시오 (그리고 samply가 업데이트될 때마다 실행해야 합니다).</p>
+<p data-msgid="66785883d7ea52ebdcd90fbc0d3c06461b1f5a2e" data-score="0" data-since="260608">On macOS, samply support requires Python 3.15 or later. Also on macOS, samply
+can’t profile signed Python executables due to restrictions by macOS. You can
+profile with Python binaries that you’ve compiled yourself, or which are
+unsigned or locally-signed (such as anything installed by Homebrew). In
+order to attach to running processes on macOS, run <code class="docutils literal notranslate"><span class="pre">samply</span> <span class="pre">setup</span></code> once (and
+every time samply is updated) to self-sign the samply binary.</p>
 </section>
 <section id="how-to-enable-perf-profiling-support">
 <h2 data-msgid="336d30c87e6ea4fd5e3fe1cae8b824c2212dfb8c" data-score="100" data-since="260610"><cite>perf</cite> 프로파일링 지원 활성화 방법<a class="headerlink" href="#how-to-enable-perf-profiling-support" title="Link to this heading">¶</a></h2>
-<p data-msgid="038fc250887cf02d971b2d27ce4642f918232893" data-score="91" data-since="260610"><cite>perf</cite> 프로파일링 지원은 환경 변수 <span class="target" id="index-4"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPERFSUPPORT`를</span> <span class="pre">사용하거나</span> <span class="pre">:option:</span></code>-X perf &lt;-X&gt;` 옵션을 사용하여 처음부터 활성화하거나, 또는 <a class="reference internal" href="../library/sys.html#sys.activate_stack_trampoline" title="sys.activate_stack_trampoline"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.activate_stack_trampoline()</span></code></a> 및 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>sys.deactivate_stack_trampoline`을 사용하여 동적으로 활성화할 수 있습니다.</p>
+<p data-msgid="038fc250887cf02d971b2d27ce4642f918232893" data-score="0" data-since="260603"><code class="docutils literal notranslate"><span class="pre">perf</span></code> profiling support can be enabled either from the start using
+the environment variable <span class="target" id="index-0"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHONPERFSUPPORT"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPERFSUPPORT</span></code></a> or the
+<a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">perf</span></code></a> option,
+or dynamically using <a class="reference internal" href="../library/sys.html#sys.activate_stack_trampoline" title="sys.activate_stack_trampoline"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.activate_stack_trampoline()</span></code></a> and
+<a class="reference internal" href="../library/sys.html#sys.deactivate_stack_trampoline" title="sys.deactivate_stack_trampoline"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.deactivate_stack_trampoline()</span></code></a>.</p>
 <p data-msgid="61188ad1436ae2ab7949d0bb8945c57e187828a8" data-score="100" data-since="260610"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code> 함수는 <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> 옵션보다 우선하며, <code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code> 옵션은 환경 변수보다 우선합니다.</p>
 <p data-msgid="b620cdb87a15c6c16913e269f6922b75c547d907" data-score="100" data-since="260610">예시: 환경 변수 사용:</p>
 <div class="highlight-shell-session notranslate" data-msgid="2091057fcd31e62e793d95c983727ed9caf33dfb" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nv">PYTHONPERFSUPPORT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>perf<span class="w"> </span>record<span class="w"> </span>-F<span class="w"> </span><span class="m">9999</span><span class="w"> </span>-g<span class="w"> </span>-o<span class="w"> </span>perf.data<span class="w"> </span>python<span class="w"> </span>my_script.py
@@ -251,7 +268,7 @@
 <span class="gp">$ </span>perf<span class="w"> </span>report<span class="w"> </span>-g<span class="w"> </span>-i<span class="w"> </span>perf.data
 </pre></div>
 </div>
-<p data-msgid="85fb819481895d2a54749ff63f0b7afb9dbce4c7" data-score="100" data-since="260610">예시: 파일 <code class="file docutils literal notranslate"><span class="pre">example.py`에서</span> <span class="pre">:mod:`sys</span></code> API 사용:</p>
+<p data-msgid="85fb819481895d2a54749ff63f0b7afb9dbce4c7" data-score="0" data-since="260603">Example, using the <a class="reference internal" href="../library/sys.html#module-sys" title="sys: Access system-specific parameters and functions."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sys</span></code></a> APIs in file <code class="file docutils literal notranslate"><span class="pre">example.py</span></code>:</p>
 <div class="highlight-python notranslate" data-msgid="d128c3d8159c075dbba09bab0a45c164356d88b2" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="n">sys</span><span class="o">.</span><span class="n">activate_stack_trampoline</span><span class="p">(</span><span class="s2">&quot;perf&quot;</span><span class="p">)</span>
@@ -269,7 +286,13 @@
 </section>
 <section id="how-to-obtain-the-best-results">
 <h2 data-msgid="cb1ddd7e2f5abd9a36f20a402280544a0d450e16" data-score="69" data-since="260610">최상의 결과를 얻는 방법<a class="headerlink" href="#how-to-obtain-the-best-results" title="Link to this heading">¶</a></h2>
-<p data-msgid="31506519aceceb9f917182a15ec33424adc57dca" data-score="93" data-since="260610">최상의 결과를 얻으려면 프레임 포인터를 활성화 상태로 유지하십시오. 지원되는 GCC-호환 툴체인은 CPython을 <code class="docutils literal notranslate"><span class="pre">-fno-omit-frame-pointer</span></code> 및 유사한 플래그로 빌드합니다 (자세한 내용은 <code class="xref std std-option docutils literal notranslate"><span class="pre">--without-frame-pointers`를</span> <span class="pre">참조하십시오).</span> <span class="pre">이</span> <span class="pre">플래그들은</span> <span class="pre">프로파일러가</span> <span class="pre">DWARF</span> <span class="pre">디버그</span> <span class="pre">정보가</span> <span class="pre">아닌</span> <span class="pre">프레임</span> <span class="pre">포인터만</span> <span class="pre">사용하여</span> <span class="pre">언와인딩할</span> <span class="pre">수</span> <span class="pre">있도록</span> <span class="pre">허용합니다.</span> <span class="pre">이는</span> <span class="pre">``perf`</span></code> 지원을 위해 삽입된 코드가 동적으로 생성되므로 DWARF 디버깅 정보가 없기 때문입니다.</p>
+<p data-msgid="31506519aceceb9f917182a15ec33424adc57dca" data-score="0" data-since="260608">For best results, keep frame pointers enabled. On supported GCC-compatible
+toolchains, CPython builds itself with <code class="docutils literal notranslate"><span class="pre">-fno-omit-frame-pointer</span></code> and similar
+flags (see <a class="reference internal" href="../using/configure.html#cmdoption-without-frame-pointers"><code class="xref std std-option docutils literal notranslate"><span class="pre">--without-frame-pointers</span></code></a> for details). These flags allow
+profilers to unwind using only the frame pointer and not on DWARF debug
+information. This is because as the code that is interposed to allow <code class="docutils literal notranslate"><span class="pre">perf</span></code>
+support is dynamically generated it doesn’t have any DWARF debugging information
+available.</p>
 <p data-msgid="6e43daca3078799c24cc5d07374e75883ded9ecf" data-score="87" data-since="260610">시스템이 이 플래그로 컴파일되었는지 확인하려면 다음을 실행하십시오:</p>
 <div class="highlight-shell-session notranslate" data-msgid="e63e1046d9111b28c894604689c926c4ea9672ac" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>sysconfig<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;no-omit-frame-pointer&#39;</span>
 </pre></div>
@@ -279,7 +302,9 @@
 <section id="how-to-work-without-frame-pointers">
 <h2 data-msgid="1d0965793f39d459e706627a0c8789ec32802190" data-score="100" data-since="260610">프레임 포인터 없이 작업하는 방법<a class="headerlink" href="#how-to-work-without-frame-pointers" title="Link to this heading">¶</a></h2>
 <p data-msgid="4471799ca0d5139babede08605b046e7793314e9" data-score="76" data-since="260610">프레임 포인터 없이 컴파일된 Python 인터프리터로 작업하는 경우에도 계속 <code class="docutils literal notranslate"><span class="pre">perf</span></code> 프로파일러를 사용할 수 있지만, Python이 매번 Python 함수 호출에 대해 언와인딩 정보를 실시간으로 생성해야 하므로 오버헤드가 약간 높을 것입니다. 또한, <code class="docutils literal notranslate"><span class="pre">perf</span></code> 는 스택을 언와인딩하기 위해 DWARF 디버그 정보를 사용해야 하므로 더 많은 시간이 걸립니다.</p>
-<p data-msgid="36386088b3431bdc80b122055edb92448d093818" data-score="93" data-since="260610">이 모드를 활성화하려면 환경 변수 <span class="target" id="index-5"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_PERF_JIT_SUPPORT`를</span> <span class="pre">사용하거나</span> <span class="pre">:option:</span></code>-X perf_jit &lt;-X&gt;` 옵션을 사용할 수 있으며, 이는 <code class="docutils literal notranslate"><span class="pre">perf</span></code> 프로파일러의 JIT 모드를 활성화합니다.</p>
+<p data-msgid="36386088b3431bdc80b122055edb92448d093818" data-score="0" data-since="260603">To enable this mode, you can use the environment variable
+<span class="target" id="index-1"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_PERF_JIT_SUPPORT"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_PERF_JIT_SUPPORT</span></code></a> or the <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">perf_jit</span></code></a> option,
+which will enable the JIT mode for the <code class="docutils literal notranslate"><span class="pre">perf</span></code> profiler.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="71955a330ba81ce8a3a956450a6921b0cf515352" data-score="95" data-since="260610"><code class="docutils literal notranslate"><span class="pre">perf</span></code> 도구의 버그 때문에, JIT 모드는 v6.8보다 높은 버전의 <code class="docutils literal notranslate"><span class="pre">perf</span></code> 에서만 작동합니다. 이 수정 사항은 도구의 v6.7.2 버전으로도 백포트되었습니다.</p>

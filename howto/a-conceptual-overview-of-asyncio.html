@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>:mod:`!asyncio`에 대한 개념적 개요 &#8212; Python 3.16.0a0 문서</title>
+    <title>A conceptual overview of asyncio &#8212; Python 3.16.0a0 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
     <script src="../_static/documentation_options.js?v=0f372962"></script>
@@ -76,7 +76,7 @@
             </div>
             <nav class="toc">
                 <ul>
-<li><a class="reference internal" href="#">:mod:`!asyncio`에 대한 개념적 개요</a><ul>
+<li><a class="reference internal" href="#">A conceptual overview of <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a><ul>
 <li><a class="reference internal" href="#a-conceptual-overview-part-1-the-high-level">개념적 개요 1부: 고수준</a><ul>
 <li><a class="reference internal" href="#event-loop">이벤트 루프</a></li>
 <li><a class="reference internal" href="#asynchronous-functions-and-coroutines">비동기 함수와 코루틴</a></li>
@@ -122,26 +122,32 @@
                     
                         <li><a href="index.html">파이썬 HOWTO</a></li>
                     
-                    <li class="current">:mod:`!asyncio`에 대한 개념적 개요</li>
+                    <li class="current">A conceptual overview of <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></li>
                 </ol>
             </nav>
 
             <article class="document">
                 
   <section id="a-conceptual-overview-of-asyncio">
-<span id="id1"></span><h1 data-msgid="285f79416479b10b581fbc8194439d3bcb65c96c" data-score="100" data-since="260610">:mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!asyncio`에 대한 개념적 개요<a class="headerlink" href="#a-conceptual-overview-of-asyncio" title="Link to this heading">¶</a></h1>
-<p data-msgid="c398b5983cd7033e3ca40babb9bf0e5f0713616b" data-score="89" data-since="260611">이 <a class="reference internal" href="index.html#how-tos"><span class="std std-ref">HOWTO</span></a> 문서는 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio`가 근본적으로 어떻게 작동하는지에 대한 견고한 개념 모델을 구축하는 데 도움을 주어, 권장되는 패턴 뒤에 숨겨진 방법과 이유를 이해하는 데 도움을 주기 위해 작성되었습니다.</p>
-<p data-msgid="918e8eb9c2d991e89df0d366267a08e117073bbd" data-score="100" data-since="260611">직접 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!asyncio`의 일부 핵심 개념이 궁금할 수 있습니다. 이 기사가 끝날 때쯤이면 다음 질문들에 자신 있게 답할 수 있게 될 것입니다:</p>
+<span id="id1"></span><h1 data-msgid="285f79416479b10b581fbc8194439d3bcb65c96c" data-score="0" data-since="260608">A conceptual overview of <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code><a class="headerlink" href="#a-conceptual-overview-of-asyncio" title="Link to this heading">¶</a></h1>
+<p data-msgid="c398b5983cd7033e3ca40babb9bf0e5f0713616b" data-score="0" data-since="260603">This <a class="reference internal" href="index.html#how-tos"><span class="std std-ref">HOWTO</span></a> article seeks to help you build a sturdy mental
+model of how <a class="reference internal" href="../library/asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> fundamentally works, helping you understand the
+how and why behind the recommended patterns.</p>
+<p data-msgid="918e8eb9c2d991e89df0d366267a08e117073bbd" data-score="0" data-since="260608">You might be curious about some key <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> concepts.
+By the end of this article, you’ll be able to comfortably answer these questions:</p>
 <ul class="simple">
 <li><p data-msgid="530bac1bd7ed6a9012f8ec19dc92aa2d7e8cd351" data-score="100" data-since="260611">객체가 await되는 동안 내부적으로 어떤 일이 발생하나요?</p></li>
-<li><p data-msgid="e48bc4c87952e7d1197b26d61a4d82564e37eedd" data-score="76" data-since="260611">:mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!asyncio`는 CPU 시간이 필요하지 않은 작업(네트워크 요청 또는 파일 읽기와 같은)과 필요한 작업(n-팩토리얼 계산과 같은)을 어떻게 구별하나요?</p></li>
+<li><p data-msgid="e48bc4c87952e7d1197b26d61a4d82564e37eedd" data-score="0" data-since="260608">How does <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> differentiate between a task which doesn’t need
+CPU time (such as a network request or file read) as opposed to a task that
+does (such as computing n-factorial)?</p></li>
 <li><p data-msgid="54416c8e871c2b91458da586f1eb1547b671bd17" data-score="87" data-since="260611">비동기 슬립이나 데이터베이스 요청과 같은 연산의 비동기 버전을 작성하는 방법입니다.</p></li>
 </ul>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <ul class="simple">
-<li><p data-msgid="e95e1ac50a97c1502919c7e31125a1329cd4ba44" data-score="80" data-since="260611">Alexander Nordin이 작성한 이 HOWTO 기호에 영감을 준 <a href="#id1"><span class="problematic" id="id2">`</span></a>guide &lt;<a class="reference external" href="https://github.com/anordin95/a-conceptual-overview-of-asyncio/">https://github.com/anordin95/a-conceptual-overview-of-asyncio/</a> tree/main&gt;`_입니다.</p></li>
-<li><p data-msgid="24fa7a99fb08f2c8a9f7c988d21c4f48ef17f1a1" data-score="53" data-since="260611">이심도 있는 <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> 관련 <a href="#id1"><span class="problematic" id="id2">`</span></a>YouTube 튜토리얼 시리즈 &lt;<a class="reference external" href="https://www.youtube.com/">https://www.youtube.com/</a> watch?v=Xbl7XjFYsN4&amp;list=PLhNSoGM2ik6SIkVGXWBwerucXjgP1rHmB&gt;`은 Python 핵심 팀원 Łukasz Langa가 제작했습니다.</p></li>
+<li><p data-msgid="e95e1ac50a97c1502919c7e31125a1329cd4ba44" data-score="0" data-since="260603">The <a class="reference external" href="https://github.com/anordin95/a-conceptual-overview-of-asyncio/tree/main">guide</a> that inspired this HOWTO article, by Alexander Nordin.</p></li>
+<li><p data-msgid="24fa7a99fb08f2c8a9f7c988d21c4f48ef17f1a1" data-score="0" data-since="260603">This in-depth <a class="reference external" href="https://www.youtube.com/watch?v=Xbl7XjFYsN4&amp;list=PLhNSoGM2ik6SIkVGXWBwerucXjgP1rHmB">YouTube tutorial series</a> on
+<code class="docutils literal notranslate"><span class="pre">asyncio</span></code> created by Python core team member, Łukasz Langa.</p></li>
 <li><p data-msgid="a5343dcaa6d09ca07bb2736d90ba82b07028fe76" data-score="100" data-since="260611"><a class="reference external" href="https://aosabook.org/en/500L/a-web-crawler-with-asyncio-coroutines.html">500 Lines or Less: A Web Crawler With asyncio Coroutines</a> (저자: A. Jesse Jiryu Davis 및 Guido van Rossum).</p></li>
 </ul>
 </div>
@@ -150,8 +156,25 @@
 <p data-msgid="2404186f476b79c82b3d2264c23cfc70c7d1cff7" data-score="91" data-since="260611">1부에서는 <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> 의 주요 고수준 구성 요소인 이벤트 루프, 코루틴 함수, 코루틴 객체, 태스크, 그리고 <code class="docutils literal notranslate"><span class="pre">await</span></code> 에 대해 다룰 것입니다.</p>
 <section id="event-loop">
 <h3 data-msgid="c5beec4cb59717ee4a3011425b3ab1af3f12e909" data-score="100" data-since="260611">이벤트 루프<a class="headerlink" href="#event-loop" title="Link to this heading">¶</a></h3>
-<p data-msgid="05ccfdefe642edf6320ecb1ec7b8abed8b118b83" data-score="61" data-since="260611">:mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!asyncio`의 모든 것은 이벤트 루프와 관련하여 발생합니다. 이는 가장 중요한 부분이지만, 그보다는 백그라운드에서 리소스를 관리하고 조정하는 것을 선호합니다. 오케스트라 지휘자와 같습니다. 명시적으로 일부 권한이 부여되지만, 실제로 무언가를 수행할 수 있는 많은 능력은 밴드 멤버들의 존중과 협력에서 비롯됩니다.</p>
-<p data-msgid="ca02eb0d6fc5fac5fd206274ce49187602b26f34" data-score="69" data-since="260611">더 기술적인 용어로, 이벤트 루프는 실행해야 할 작업들의 모음을 담고 있습니다. 일부 작업은 사용자 본인이 직접 추가하고, 일부는 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!asyncio`에 의해 간접적으로 추가됩니다. 이벤트 루프는 백로그 작업에서 작업을 가져와 함수를 호출하는 것과 유사하게 작업을 실행하거나(또는 “제어권을 주고”), 그런 다음 해당 작업이 실행됩니다. 일시 중지되거나 완료되면 이벤트 루프로 제어권을 반환합니다. 그러면 이벤트 루프는 풀에서 다른 작업을 선택하여 이를 호출합니다. 작업들의 모음을 대략적인 큐로 생각할 수 있습니다. 작업들은 추가된 후 일반적으로(하지만 항상은 아닐지라도) 한 번에 하나씩 처리됩니다. 이 과정은 이벤트 루프가 끊임없이 순환하면서 무기한 반복됩니다. 더 이상 실행 대기 중인 작업이 없으면, 이벤트 루프는 쉬는 것이 충분히 똑똑하며 불필요하게 CPU 사이클을 낭비하는 것을 방지하고, I/O 작업이 완료되거나 타이머가 만료되는 경우와 같이 할 일이 더 있을 때 돌아옵니다.</p>
+<p data-msgid="05ccfdefe642edf6320ecb1ec7b8abed8b118b83" data-score="0" data-since="260608">Everything in <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> happens relative to the event loop.
+It’s the star of the show, but prefers to work behind the scenes, managing
+and coordinating resources.
+It’s like an orchestra conductor.
+Some power is explicitly granted to it, but a lot of its ability to get things
+done comes from the respect and cooperation of its band members.</p>
+<p data-msgid="ca02eb0d6fc5fac5fd206274ce49187602b26f34" data-score="0" data-since="260608">In more technical terms, the event loop contains a collection of jobs to be run.
+Some jobs are added directly by you, and some indirectly by <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code>.
+The event loop takes a job from its backlog of work and invokes it (or “gives
+it control”), similar to calling a function, and then that job runs.
+Once it pauses or completes, it returns control to the event loop.
+The event loop will then select another job from its pool and invoke it.
+You can <em>roughly</em> think of the collection of jobs as a queue: jobs are added and
+then processed one at a time, generally (but not always) in order.
+This process repeats indefinitely, with the event loop cycling endlessly
+onwards.
+If there are no more jobs pending execution, the event loop is smart enough to
+rest and avoid needlessly wasting CPU cycles, and will come back when there’s
+more work to be done, such as when I/O operations complete or timers expire.</p>
 <p data-msgid="86f254a89170cac732811d0574482e708fe2bf76" data-score="54" data-since="260611">효율적인 실행은 작업들이 잘 공유하고 협력하는 것에 달려 있습니다. 게으른 작업은 제어권을 독점하여 다른 작업들이 기아 상태에 놓이게 만들 수 있으며, 전반적인 이벤트 루프 접근법을 거의 무용지물로 만듭니다.</p>
 <div class="highlight-python3 notranslate" data-msgid="a32d63027e5a985c96c0d4abe840d6ab10abc056" data-score="95" data-since="260611"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
@@ -179,7 +202,9 @@
 <span class="go">fresh paper and my dearly beloved octopus partner in crime.</span>
 </pre></div>
 </div>
-<p data-msgid="aceab19a1b29c8033248e3fda53fd404b22ee542" data-score="91" data-since="260611"><span class="xref std std-ref">async def</span> 객체가 생성되고 반환됩니다.</p>
+<p data-msgid="aceab19a1b29c8033248e3fda53fd404b22ee542" data-score="0" data-since="260603">The <a class="reference internal" href="../reference/compound_stmts.html#async-def"><span class="std std-ref">async def</span></a>, as opposed to just a plain <code class="docutils literal notranslate"><span class="pre">def</span></code>, makes
+this an asynchronous function (or “coroutine function”).
+Calling it creates and returns a <a class="reference internal" href="../library/asyncio-task.html#coroutine"><span class="std std-ref">coroutine</span></a> object.</p>
 <div class="highlight-python3 notranslate" data-msgid="3e2c7f96d9ab1a46f5c3f3c56eba137cdbc8d5a9" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">loudmouth_penguin</span><span class="p">(</span><span class="n">magic_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span>
      <span class="s2">&quot;I am a super special talking penguin. Far cooler than that printer. &quot;</span>
@@ -192,7 +217,14 @@
 <span class="go">&lt;coroutine object loudmouth_penguin at 0x104ed2740&gt;</span>
 </pre></div>
 </div>
-<p data-msgid="46c88be0ef084c2b6bf319ff4092c604941ae18a" data-score="81" data-since="260611">“코루틴 함수”와 “코루틴 객체”라는 용어는 종종 (코루틴으로) 혼동됩니다. 이것은 혼란스러울 수 있습니다! 이 문건에서 코루틴은 특히 코루틴 객체, 또는 더 정확하게는 <a class="reference internal" href="../library/types.html#types.CoroutineType" title="types.CoroutineType"><code class="xref py py-class docutils literal notranslate"><span class="pre">types.CoroutineType</span></code></a> (네이티브 코루틴)의 인스턴스를 의미합니다. 코루틴은 또한 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>collections.abc.Coroutine`의 인스턴스로 존재할 수 있다는 점에 유의하십시오. (이는 타입 검사에서 중요합니다.)</p>
+<p data-msgid="46c88be0ef084c2b6bf319ff4092c604941ae18a" data-score="0" data-since="260608">The terms “coroutine function” and “coroutine object” are often conflated
+as coroutine.
+That can be confusing!
+In this article, coroutine specifically refers to a coroutine object, or more
+precisely, an instance of <a class="reference internal" href="../library/types.html#types.CoroutineType" title="types.CoroutineType"><code class="xref py py-class docutils literal notranslate"><span class="pre">types.CoroutineType</span></code></a> (native coroutine).
+Note that coroutines can also exist as instances of
+<a class="reference internal" href="../library/collections.abc.html#collections.abc.Coroutine" title="collections.abc.Coroutine"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Coroutine</span></code></a> – a distinction that matters for type
+checking.</p>
 <p data-msgid="1c52c7a11328e0a43890e0c1936f8367d5fb935f" data-score="81" data-since="260611">코루틴은 함수의 본문 또는 로직을 나타냅니다. 코루틴은 명시적으로 시작되어야 합니다. 다시 말해, 코루틴을 단순히 생성하는 것만으로는 시작되지 않습니다. 주목할 점은 이 코루틴이 함수의 본문 내의 여러 지점에서 일시 중지되고 재개될 수 있다는 것입니다. 바로 이 일시 중지 및 재개 능력이 비동기 동작을 가능하게 합니다!</p>
 <p data-msgid="101130766d52ccfeeaf7c3480024b215ee5bdbd4" data-score="0" data-since="260603">Coroutines and coroutine functions were built by leveraging the functionality
 of <a class="reference internal" href="../glossary.html#term-generator-iterator"><span class="xref std std-term">generators</span></a> and
@@ -229,14 +261,20 @@ one:</p>
 <section id="tasks">
 <h3 data-msgid="090ec5f560fc50377fcd95e5cda128e91b276e98" data-score="100" data-since="260611">태스크<a class="headerlink" href="#tasks" title="Link to this heading">¶</a></h3>
 <p data-msgid="99d41bfc6d4208e90a736c6d8ab4f829bf58e895" data-score="90" data-since="260611">대략적으로, <span class="xref std std-ref">&lt;asyncio-task-obj&gt;</span> 태스크`는 이벤트 루프에 연결된 코루틴(코루틴 함수는 아님)입니다. 태스크는 또한 콜백 함수 목록을 유지하며, 이는 <a class="reference internal" href="../reference/expressions.html#await"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">await</span></code></a> 를 논의할 때 그 중요성이 명확해집니다.</p>
-<p data-msgid="5919c3a3a9161eecb4605ff198e7c3de078cca2b" data-score="83" data-since="260611">태스크를 생성하면 자동으로 실행이 예약됩니다 (이벤트 루프의 할 일 목록에 콜백을 추가함으로써, 즉 작업들의 모음). 태스크를 생성하는 권장 방법은 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio.create_task`를 사용하는 것입니다.</p>
+<p data-msgid="5919c3a3a9161eecb4605ff198e7c3de078cca2b" data-score="0" data-since="260608">Creating a task automatically schedules it for execution (by adding a
+callback to run it in the event loop’s to-do list, that is, collection of jobs).
+The recommended way to create tasks is via <a class="reference internal" href="../library/asyncio-task.html#asyncio.create_task" title="asyncio.create_task"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_task()</span></code></a>.</p>
 <p data-msgid="8e442d89152ded65c28e560ed58a1095304b2138" data-score="80" data-since="260611"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio`는</span> <span class="pre">태스크를</span> <span class="pre">이벤트</span> <span class="pre">루프와</span> <span class="pre">자동으로</span> <span class="pre">연결합니다.</span> <span class="pre">이러한</span> <span class="pre">자동</span> <span class="pre">연결은</span> <span class="pre">단순성을</span> <span class="pre">위해</span> <span class="pre">:mod:</span></code>!asyncio`에 의도적으로 설계되었습니다. 이것이 없으면, 작업을 생성하려는 모든 코루틴 함수에 이벤트 루프 객체를 추적하고 전달해야 하므로 코드에 불필요한 복잡성을 더해야 합니다.</p>
 <div class="highlight-python3 notranslate" data-msgid="88afc28ca2aab9a6504c0e9d1e046ca454112b5c" data-score="97" data-since="260611"><div class="highlight"><pre><span></span><span class="n">coroutine</span> <span class="o">=</span> <span class="n">loudmouth_penguin</span><span class="p">(</span><span class="n">magic_number</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="c1"># 이것은 Task 객체를 생성하고 이벤트 루프를 통해 실행을 예약합니다.</span>
 <span class="n">task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">coroutine</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="1e76bbf0e713e20f12ace44eeac0228057734b1d" data-score="79" data-since="260611">이전에는 이벤트 루프를 수동으로 생성하여 무한히 실행되도록 설정했습니다. 실제로는 이벤트 루프 관리를 담당하고 제공된 코루틴이 완료된 후 진행하도록 보장하는 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio.run`을 사용하는 것이 권장되며 흔히 볼 수 있습니다. 예를 들어, 많은 비동기 프로그램은 다음과 같은 설정을 따릅니다:</p>
+<p data-msgid="1e76bbf0e713e20f12ace44eeac0228057734b1d" data-score="0" data-since="260603">Earlier, we manually created the event loop and set it to run forever.
+In practice, it’s recommended to use (and common to see) <a class="reference internal" href="../library/asyncio-runner.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a>,
+which takes care of managing the event loop and ensuring the provided
+coroutine finishes before advancing.
+For example, many async programs follow this setup:</p>
 <div class="highlight-python3 notranslate" data-msgid="19485d41a037813e191e50263bb49689314cf712" data-score="79" data-since="260611"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
@@ -265,7 +303,8 @@ one:</p>
 </section>
 <section id="await">
 <h3 data-msgid="30118aa1aa8a06fa5365743b3a5db69fc62b9760" data-score="100" data-since="260611">await<a class="headerlink" href="#await" title="Link to this heading">¶</a></h3>
-<p data-msgid="b0fc039cbeb2858be1a64b9b6efc6cd83534401a" data-score="52" data-since="260611">:keyword:<a href="#id1"><span class="problematic" id="id2">`</span></a>await`는 두 가지 방식으로 흔히 사용되는 파이썬 키워드입니다:</p>
+<p data-msgid="b0fc039cbeb2858be1a64b9b6efc6cd83534401a" data-score="0" data-since="260603"><a class="reference internal" href="../reference/expressions.html#await"><code class="xref std std-keyword docutils literal notranslate"><span class="pre">await</span></code></a> is a Python keyword that’s commonly used in one of two
+different ways:</p>
 <div class="highlight-python3 notranslate" data-msgid="cf760d013ba3161b59c7f89b2937af57a7405313" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="k">await</span> <span class="n">task</span>
 <span class="k">await</span> <span class="n">coroutine</span>
 </pre></div>
@@ -321,7 +360,15 @@ I am coro_a(). Hi!
 I am coro_a(). Hi!
 </pre></div>
 </div>
-<p data-msgid="c82471d3e4170fb46d1544b48b3c0793dbc89c41" data-score="90" data-since="260611"><code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">coroutine``의</span> <span class="pre">이러한</span> <span class="pre">동작은</span> <span class="pre">많은</span> <span class="pre">사람들을</span> <span class="pre">혼란스럽게</span> <span class="pre">할</span> <span class="pre">수</span> <span class="pre">있습니다!</span> <span class="pre">이</span> <span class="pre">예제는</span> <span class="pre">``await</span> <span class="pre">coroutine``만</span> <span class="pre">사용하면</span> <span class="pre">다른</span> <span class="pre">태스크로부터</span> <span class="pre">제어권을</span> <span class="pre">의도치</span> <span class="pre">않게</span> <span class="pre">독점하여</span> <span class="pre">이벤트</span> <span class="pre">루프를</span> <span class="pre">효과적으로</span> <span class="pre">멈출</span> <span class="pre">수</span> <span class="pre">있음을</span> <span class="pre">강조합니다.</span> <span class="pre">:func:`asyncio.run`은</span> <span class="pre">``debug=True</span></code> 플래그를 통해 이러한 발생을 감지하는 데 도움이 될 수 있으며, 이는 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>디버그 모드 &lt;asyncio-debug-mode&gt;`를 활성화합니다. 다른 것들 중에서도 100ms 이상 실행을 독점하는 모든 코루틴을 로그합니다.</p>
+<p data-msgid="c82471d3e4170fb46d1544b48b3c0793dbc89c41" data-score="0" data-since="260608">This behavior of <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">coroutine</span></code> can trip a lot of people up!
+That example highlights how using only <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">coroutine</span></code> could
+unintentionally hog control from other tasks and effectively stall the event
+loop.
+<a class="reference internal" href="../library/asyncio-runner.html#asyncio.run" title="asyncio.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.run()</span></code></a> can help you detect such occurrences via the
+<code class="docutils literal notranslate"><span class="pre">debug=True</span></code> flag, which enables
+<a class="reference internal" href="../library/asyncio-dev.html#asyncio-debug-mode"><span class="std std-ref">debug mode</span></a>.
+Among other things, it will log any coroutines that monopolize execution for
+100ms or longer.</p>
 <p data-msgid="18324f12f7554a2083218fa6e16dfeebc2fd6c1b" data-score="90" data-since="260611">디자인은 <code class="docutils literal notranslate"><span class="pre">await</span></code> 사용과 관련된 개념적 명료함 중 일부를 성능 향상을 위해 의도적으로 포기했습니다. 태스크가 어웨이트될 때마다, 제어는 콜 스택의 맨 위까지 이벤트 루프로 전달되어야 합니다. 그런 다음, 이벤트 루프는 자신의 내부 상태를 관리하고 다음 작업을 재개하기 위해 처리 로직을 순회해야 합니다. 사소하게 들릴 수 있지만, 많은 <code class="docutils literal notranslate"><span class="pre">await</span></code> 가 있는 대규모 프로그램에서는 그 오버헤드가 무시할 수 없는 성능 저하를 초래할 수 있습니다.</p>
 </section>
 </section>
@@ -331,7 +378,8 @@ I am coro_a(). Hi!
 <p data-msgid="4f3d1d552a6401965abc1be6f68a17461cb9e83c" data-score="72" data-since="260611">파트 2에서는 <code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> 가 제어 흐름을 관리하는 메커니즘에 대해 자세히 설명합니다. 바로 마법이 일어나는 부분입니다. 이 섹션을 마치면 <code class="docutils literal notranslate"><span class="pre">await</span></code> 가 내부적으로 무엇을 하는지, 그리고 자신만의 비동기 연산자를 어떻게 만드는지 알게 될 것입니다.</p>
 <section id="the-inner-workings-of-coroutines">
 <h3 data-msgid="ef1e516cc1c32879547d0e4c45eb29300548e353" data-score="100" data-since="260611">코루틴의 내부 작동 원리<a class="headerlink" href="#the-inner-workings-of-coroutines" title="Link to this heading">¶</a></h3>
-<p data-msgid="b2314fcc1a329ed07c62bfd95e2ed75c5c9b171b" data-score="100" data-since="260611">:mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>!asyncio`는 파이썬의 네 가지 구성 요소를 활용하여 제어 흐름을 전달합니다.</p>
+<p data-msgid="b2314fcc1a329ed07c62bfd95e2ed75c5c9b171b" data-score="0" data-since="260608"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code> leverages four components of Python to pass
+around control.</p>
 <p data-msgid="fec4c7167d234616af453255f1716f169c3d64e9" data-score="91" data-since="260611"><a class="reference internal" href="../reference/expressions.html#generator.send" title="generator.send"><code class="xref py py-meth docutils literal notranslate"><span class="pre">coroutine.send(arg)</span></code></a> 는 코루틴을 시작하거나 재개하는 데 사용되는 메서드입니다. 코루틴이 일시 중지되었다가 이제 재개되는 경우, 인자 <code class="docutils literal notranslate"><span class="pre">arg</span></code> 는 원래 일시 중지시켰던 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 문의 반환 값으로 전송될 것입니다. 코루틴이 처음 사용되는 경우(재개되는 경우와 달리), <code class="docutils literal notranslate"><span class="pre">arg</span></code> 는 <code class="docutils literal notranslate"><span class="pre">None</span></code> 이어야 합니다.</p>
 <div class="highlight-python3 notranslate" data-msgid="b5c7ffc8a9b7ce9f23eafa2da27dc0260612a2ff" data-score="100" data-since="260607"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">Rock</span><span class="p">:</span>
 <span class="linenos"> 2</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__await__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -390,14 +438,19 @@ async generators.</p>
 </section>
 <section id="futures">
 <h3 data-msgid="965db80f650641f51dead99c13720e4035c9ef70" data-score="100" data-since="260611">Future<a class="headerlink" href="#futures" title="Link to this heading">¶</a></h3>
-<p data-msgid="cb90bf1c9cd3b5dceb59ce39cf10168efb6f3f8e" data-score="72" data-since="260611">:ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>future &lt;asyncio-future-obj&gt;`는 계산의 상태와 결과를 나타내기 위해 사용되는 객체입니다. 이 용어는 아직 오지 않았거나 아직 발생하지 않은 무언가라는 아이디어에서 비롯되었으며, 이 객체는 그 무언가를 주시하는 방법입니다.</p>
+<p data-msgid="cb90bf1c9cd3b5dceb59ce39cf10168efb6f3f8e" data-score="0" data-since="260603">A <a class="reference internal" href="../library/asyncio-future.html#asyncio-future-obj"><span class="std std-ref">future</span></a> is an object meant to represent a
+computation’s status and result.
+The term is a nod to the idea of something still to come or not yet happened,
+and the object is a way to keep an eye on that something.</p>
 <p data-msgid="74ac46ccc22f828cc493c4376d26a8cc7ac42118" data-score="81" data-since="260611">Future는 몇 가지 중요한 속성을 가지고 있습니다. 하나는 상태(state)로, “pending”, “cancelled”, 또는 “done” 중 하나일 수 있습니다. 다른 하나는 결과(result)로, 상태가 done으로 전환될 때 설정됩니다. 코루틴과 달리, Future는 수행해야 할 실제 계산을 나타내지 않습니다. 대신, 마치 상태 표시등(빨간색, 노란색 또는 녹색)이나 지표처럼, 해당 계산의 상태와 결과를 나타냅니다.</p>
 <p data-msgid="de521e5f48f566c6476e330a23b6a30ce79281dd" data-score="87" data-since="260611"><a class="reference internal" href="../library/asyncio-task.html#asyncio.Task" title="asyncio.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Task</span></code></a> 는 이러한 다양한 기능을 얻기 위해 <a class="reference internal" href="../library/asyncio-future.html#asyncio.Future" title="asyncio.Future"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> 를 상속합니다. 이전 섹션에서는 태스크가 콜백 목록을 저장한다고 했지만, 이는 완전히 정확하지 않았습니다. 실제로 이 로직을 구현하는 것은 <code class="docutils literal notranslate"><span class="pre">Future</span></code> 클래스이며, <code class="docutils literal notranslate"><span class="pre">Task</span></code> 가 이를 상속받습니다.</p>
 <p data-msgid="686c458f2b0be922fed8f432eb7bc49108bbef62" data-score="84" data-since="260611">Futures는 태스크를 거치지 않고 직접 사용될 수도 있습니다. 태스크는 코루틴이 완료되면 완료된 것으로 표시합니다. Future는 훨씬 더 다재다능하며, 필요할 때 완료된 것으로 표시됩니다. 이런 방식으로, 미래(Future)는 대기 및 재개에 대한 자체 조건을 만들 수 있는 유연한 인터페이스입니다.</p>
 </section>
 <section id="a-homemade-asyncio-sleep">
 <h3 data-msgid="e52cec309727a5b3ff6cd121c60e92f64f5aebaf" data-score="74" data-since="260611">직접 만든 asyncio.sleep<a class="headerlink" href="#a-homemade-asyncio-sleep" title="Link to this heading">¶</a></h3>
-<p data-msgid="11e39f6fb927dfc2f582cd9ce5aa8f726a1bd445" data-score="95" data-since="260611">여기에서는 future를 활용하여 비동기 슬립(<code class="docutils literal notranslate"><span class="pre">async_sleep</span></code>)의 변형을 만드는 방법을 예로 살펴보겠습니다. 이는 :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>asyncio.sleep`를 모방합니다.</p>
+<p data-msgid="11e39f6fb927dfc2f582cd9ce5aa8f726a1bd445" data-score="0" data-since="260603">We’ll go through an example of how you could leverage a future to create your
+own variant of asynchronous sleep (<code class="docutils literal notranslate"><span class="pre">async_sleep</span></code>) which mimics
+<a class="reference internal" href="../library/asyncio-task.html#asyncio.sleep" title="asyncio.sleep"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.sleep()</span></code></a>.</p>
 <p data-msgid="d9956462a3099656b8489d5da0cdf5d0d17df0f6" data-score="80" data-since="260611">이 스니펫은 이벤트 루프에 몇 가지 태스크를 등록한 다음, <code class="docutils literal notranslate"><span class="pre">asyncio.create_task``로</span> <span class="pre">생성된</span> <span class="pre">태스크를</span> <span class="pre">기다립니다.</span> <span class="pre">이</span> <span class="pre">태스크는</span> <span class="pre">``async_sleep(3)</span></code> 코루틴을 래핑합니다. 우리는 이 태스크가 3초가 경과한 후에만 완료되도록 하되, 다른 태스크가 실행되는 것을 막지는 않기를 원합니다.</p>
 <div class="highlight-python3 notranslate" data-msgid="47dc0d89d9e9fbbe6d9d685d5a329d40f9970e45" data-score="96" data-since="260611"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">other_work</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;나는 일이 좋아요. 일하는 일.&quot;</span><span class="p">)</span>
@@ -467,7 +520,9 @@ Done asynchronous sleep at time: 14:52:25.
             <span class="k">await</span> <span class="n">YieldToEventLoop</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="820b7150a5503f8584c2014c6ff6dce35b5addcc" data-score="86" data-since="260611">하지만 지금은 여기까지입니다. 이제 비동기 프로그래밍에 더 자신 있게 뛰어들거나 :mod:<a href="#id1"><span class="problematic" id="id2">`</span></a>문서의 나머지 부분 &lt;asyncio&gt;`의 고급 주제들을 살펴볼 준비가 되셨기를 바랍니다.</p>
+<p data-msgid="820b7150a5503f8584c2014c6ff6dce35b5addcc" data-score="0" data-since="260608">But that’s all for now. Hopefully you’re ready to more confidently dive into
+some async programming or check out advanced topics in the
+<a class="reference internal" href="../library/asyncio.html#module-asyncio" title="asyncio: Asynchronous I/O."><code class="xref py py-mod docutils literal notranslate"><span class="pre">rest</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">documentation</span></code></a>.</p>
 </section>
 </section>
 </section>
