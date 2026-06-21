@@ -27,6 +27,11 @@
                 const avatar = urlParams.get('editorial_avatar');
                 const sessionToken = urlParams.get('editorial_session');
                 
+                // Track GitHub login success
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track('GitHub Login Success', { username: username || '' });
+                }
+                
                 const setCookie = (name, value) => {
                     const days = 30;
                     const date = new Date();
@@ -68,6 +73,8 @@
             this.activeNoteEdits = {}; // To store original HTML for cancellations
             this.highlighterEnabled = localStorage.getItem('editorial-highlighter-enabled') === 'true';
             this.highlighterThreshold = parseInt(localStorage.getItem('editorial-highlighter-threshold') || '70', 10);
+            this.thresholdTrackTimeout = null;
+            this.activeEditHash = null;
             this.init();
         }
 
@@ -507,9 +514,30 @@
                     this.renderDashboard(dashboardRoot);
                 }
             }
+
+            // Track virtual pageview in Umami
+            if (window.umami && typeof window.umami.track === 'function') {
+                let trackUrl = '/_editorial_/' + tabId;
+                if (tabId === 'edit' && this.activeEditHash && this.catalogPath) {
+                    trackUrl += '?catalog=' + encodeURIComponent(this.catalogPath);
+                }
+                try {
+                    window.umami.track((props) => ({
+                        ...props,
+                        url: trackUrl,
+                        title: document.title + ' - Tab: ' + tabId
+                    }));
+                } catch (e) {
+                    window.umami.track({
+                        url: trackUrl,
+                        title: document.title + ' - Tab: ' + tabId
+                    });
+                }
+            }
         }
 
         openSidebarPanel(hash, number) {
+            this.activeEditHash = hash;
             this.renderSidebarPanel(); // Ensure panel is created
             
             const overlay = document.getElementById('editorial-sidebar-overlay');
@@ -766,6 +794,10 @@
                     statusHtml = '<span class="status-badge pending">Pending</span>';
                 }
 
+                const qualityScoreHtml = (item.quality_score !== null && item.quality_score !== undefined) 
+                    ? `<span class="status-badge quality-score" style="background-color: #5c6bc0; border-color: #5c6bc0; color: #ffffff; margin-left: 0.35rem;">품질 점수: ${item.quality_score}</span>` 
+                    : '';
+
                 const publishedHtml = item.published ? '<span class="status-badge success font-weight-bold" style="background-color: #2e7d32; border-color: #2e7d32; color: #ffffff; font-weight: 600; margin-left: 0.35rem;">✓ 현재 출판됨</span>' : '';
 
                 const aiBadge = item.is_machine ? '<span class="ai-badge">AI</span>' : '';
@@ -831,56 +863,6 @@
                     ? `<img src="${item.author_avatar}" class="author-avatar" alt="${item.author_name}">`
                     : `<div class="author-avatar placeholder">${item.author_name[0].toUpperCase()}</div>`;
  
-                let reviewHtml = '';
-                if (item.review) {
-                    const safeReview = this.escapeHtml(item.review);
-                    const scoreLabel = (item.review_score !== null && item.review_score !== undefined) ? ` (품질 점수: ${Math.round(item.review_score * 100)})` : '';
-                    
-                    let reviewStatusHtml = '';
-                    if (item.review_buildable === true || item.review_buildable === 1) {
-                        reviewStatusHtml = '<span class="status-badge success">Success</span>';
-                    } else if (item.review_buildable === false || item.review_buildable === 0 || item.review_buildable === -1) {
-                        reviewStatusHtml = '<span class="status-badge error">Error</span>';
-                    } else {
-                        reviewStatusHtml = '<span class="status-badge pending">Pending</span>';
-                    }
- 
-                    let reviewErrorHtml = '';
-                    if (item.review_error_log) {
-                        // strip ANSI escape sequences
-                        let cleanError = item.review_error_log.replace(/\x1b\[[0-9;]*m/g, '');
-                        // strip filename:line_number:
-                        cleanError = cleanError.replace(/[^:\n\s]+?:\d+:\s*/g, '');
-                        
-                        reviewErrorHtml = `
-                            <div class="error-log-container" style="margin-top: 0.5rem;">
-                                <details class="error-details">
-                                    <summary class="error-summary">⚠️ AI 교정 빌드 에러 원인 보기</summary>
-                                    <pre class="error-pre">${this.escapeHtml(cleanError)}</pre>
-                                </details>
-                            </div>
-                        `;
-                    }
- 
-                    const reviewCopyBtnHtml = isAuth 
-                        ? `<button class="review-copy-btn" onclick="window.editorial.copyReviewToEditor('${hash}', '${item.msgstr_hash}')">📋 이 리뷰 적용</button>`
-                        : '';
-
-                    reviewHtml = `
-                        <div class="review-comment-container">
-                            <div class="review-header">
-                                <div class="review-title-group">
-                                    <span class="review-label">✨ AI 교정 의견${scoreLabel}</span>
-                                    ${reviewStatusHtml}
-                                </div>
-                                ${reviewCopyBtnHtml}
-                            </div>
-                            <div class="review-text"><pre class="code-block language-rest"><code class="language-rest">${safeReview}</code></pre></div>
-                            ${reviewErrorHtml}
-                        </div>
-                    `;
-                }
- 
                 const copyBtnHtml = isAuth 
                     ? `<button class="action-icon-btn" title="에디터로 복사" onclick="window.editorial.copyToEditorByHash('${hash}', '${item.msgstr_hash}')">📋 복사</button>`
                     : '';
@@ -893,7 +875,7 @@
                                 <div class="meta-info">
                                     <div class="meta-top">
                                         <span class="author-name">${this.escapeHtml(item.author_name)} ${aiBadge}</span>
-                                        ${statusHtml}${publishedHtml}
+                                        ${statusHtml}${qualityScoreHtml}${publishedHtml}
                                     </div>
                                     <span class="meta-details">${item.time.toLocaleString()}</span>
                                 </div>
@@ -908,7 +890,6 @@
                             ${contentHtml}
                             ${noteHtml}
                             ${errorHtml}
-                            ${reviewHtml}
                         </div>
                     </div>
                 `;
@@ -943,6 +924,12 @@
                     body: JSON.stringify({ msgstr, note: note })
                 });
                 if (!response.ok) { alert('등록 실패: 권한이 없습니다.'); return; }
+                
+                // Track successful new translation suggestion
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track('Submit Suggestion', { catalog_id: this.catalogId, msgid_hash: hash });
+                }
+
                 // Success: Clear inputs only now
                 msgstrEl.value = ''; 
                 noteEl.value = '';
@@ -966,7 +953,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ catalog_id: this.catalogId, msgid_hash, msgstr_hash })
                 });
-                if (response.ok) this.loadInteractionData(msgid_hash);
+                if (response.ok) {
+                    if (window.umami && typeof window.umami.track === 'function') {
+                        window.umami.track('Vote Suggestion', { catalog_id: this.catalogId, msgid_hash, msgstr_hash });
+                    }
+                    this.loadInteractionData(msgid_hash);
+                }
             } catch (err) { console.error('Error voting:', err); }
         }
 
@@ -1024,6 +1016,11 @@
                 });
                 if (!response.ok) { alert('수정에 실패했습니다. 권한이 없거나 오류가 발생했습니다.'); return; }
                 
+                // Track save note success
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track('Update Note', { catalog_id: this.catalogId, msgid_hash, msgstr_hash });
+                }
+
                 // Remove backup
                 delete this.activeNoteEdits[msgstr_hash];
                 
@@ -1057,6 +1054,11 @@
                 });
                 if (!response.ok) { alert('삭제에 실패했습니다. 권한이 없거나 오류가 발생했습니다.'); return; }
                 
+                // Track delete note success
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track('Delete Note', { catalog_id: this.catalogId, msgid_hash, msgstr_hash });
+                }
+
                 // Success: re-load interaction data to update UI
                 this.loadInteractionData(msgid_hash);
             } catch (err) {
@@ -1073,6 +1075,10 @@
                     method: 'DELETE'
                 });
                 if (response.ok) {
+                    // Track delete suggestion success
+                    if (window.umami && typeof window.umami.track === 'function') {
+                        window.umami.track('Delete Suggestion', { catalog_id: this.catalogId, msgid_hash, msgstr_hash });
+                    }
                     this.loadInteractionData(msgid_hash);
                 } else {
                     const data = await response.json().catch(() => ({}));
@@ -1085,6 +1091,12 @@
 
         setSortMode(hash, mode) {
             this.sortModes[hash] = mode;
+
+            // Track sort mode change
+            if (window.umami && typeof window.umami.track === 'function') {
+                window.umami.track('Change Sort Mode', { catalog_id: this.catalogId, msgid_hash: hash, mode: mode });
+            }
+
             this.renderInteractionContent(hash);
         }
 
@@ -1104,6 +1116,10 @@
             const data = this.interactionData[hash];
             if (data && data.msgid) {
                 this.copyToEditor(hash, data.msgid);
+                // Track copy original to editor
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track('Copy Original to Editor', { catalog_id: this.catalogId, msgid_hash: hash });
+                }
             }
         }
 
@@ -1113,17 +1129,14 @@
             const suggestion = data.suggestions.find(s => s.msgstr_hash === msgstr_hash);
             if (suggestion) {
                 this.copyToEditor(hash, suggestion.msgstr);
+                // Track copy suggestion to editor
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track('Copy Suggestion to Editor', { catalog_id: this.catalogId, msgid_hash: hash, msgstr_hash });
+                }
             }
         }
 
-        copyReviewToEditor(hash, msgstr_hash) {
-            const data = this.interactionData[hash];
-            if (!data) return;
-            const suggestion = data.suggestions.find(s => s.msgstr_hash === msgstr_hash);
-            if (suggestion && suggestion.review) {
-                this.copyToEditor(hash, suggestion.review);
-            }
-        }
+
 
         renderMarkdown(text) {
             if (!text) return '';
@@ -1320,7 +1333,7 @@
                     <!-- Burn-up Chart Card -->
                     <div class="dashboard-card">
                         <div class="card-header">
-                            <span class="card-title">📈 번역 진척도 추이 (Burn-up)</span>
+                            <span class="card-title">번역 진척도 추이 (Burn-up)</span>
                         </div>
                         <p class="card-description">전체 텍스트 대비 품질 지수로 보정된 번역 진척도를 보여줍니다.</p>
                         <div class="chart-container" style="padding: 1rem 0; height: 220px; position: relative;">
@@ -1331,7 +1344,7 @@
                     <!-- Highlighter Control Card -->
                     <div class="dashboard-card">
                         <div class="card-header">
-                            <span class="card-title">🔍 번역 품질 하이라이터</span>
+                            <span class="card-title">번역 품질 하이라이터</span>
                             <label class="switch">
                                 <input type="checkbox" id="highlighter-toggle" ${this.highlighterEnabled ? 'checked' : ''} onchange="window.editorial.toggleHighlighter(this.checked)">
                                 <span class="switch-slider round"></span>
@@ -1363,7 +1376,7 @@
                     <!-- Quality Report Chart Card -->
                     <div class="dashboard-card quality-report-card">
                         <div class="card-header">
-                            <span class="card-title">📊 번역 품질 보고서</span>
+                            <span class="card-title">번역 품질 보고서</span>
                         </div>
                         <p class="card-description">AI 품질 평가가 낮은 메시지들이 많은 페이지를 보여줍니다. 하이라이터 임계값에 따라 바뀝니다. 막대나 라벨을 클릭하면 해당 문서 페이지로 이동합니다.</p>
                         
@@ -1375,7 +1388,7 @@
                     <!-- Translation Activity Report Chart Card -->
                     <div class="dashboard-card activity-report-card">
                         <div class="card-header">
-                            <span class="card-title">📈 번역 활동 보고서</span>
+                            <span class="card-title">번역 활동 보고서</span>
                         </div>
                         <p class="card-description">최근 4주 동안 많이 바뀐 페이지를 보여줍니다. 막대나 라벨을 클릭하면 해당 문서 페이지로 이동합니다.</p>
                         
@@ -1760,6 +1773,11 @@
             this.highlighterEnabled = enabled;
             localStorage.setItem('editorial-highlighter-enabled', enabled ? 'true' : 'false');
             
+            // Track toggle
+            if (window.umami && typeof window.umami.track === 'function') {
+                window.umami.track('Highlighter Toggle', { enabled: enabled ? 'on' : 'off' });
+            }
+
             this.applyHighlighter();
         }
 
@@ -1776,6 +1794,16 @@
             
             this.applyHighlighter();
             this.refreshQualityChart();
+
+            // Debounced tracking for threshold slider changes
+            if (window.umami && typeof window.umami.track === 'function') {
+                if (this.thresholdTrackTimeout) {
+                    clearTimeout(this.thresholdTrackTimeout);
+                }
+                this.thresholdTrackTimeout = setTimeout(() => {
+                    window.umami.track('Highlighter Threshold Change', { threshold: threshold });
+                }, 500);
+            }
         }
 
         escapeHtml(str) {
