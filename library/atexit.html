@@ -119,7 +119,7 @@
 <hr class="docutils" />
 <p data-msgid="161dc71551322fccf508d8d31d7acf7c1792fe41" data-score="40" data-since="260609"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code> 모듈은 정리 함수를 등록하고 해제하는 함수를 정의합니다. 이렇게 등록된 함수는 정상적인 인터프리터 종료 시 자동으로 실행됩니다. <code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit`는</span> <span class="pre">이</span> <span class="pre">함수들을</span> <span class="pre">등록된</span> <span class="pre">*역순*</span> <span class="pre">으로</span> <span class="pre">실행합니다.</span> <span class="pre">만약</span> <span class="pre">``A`</span></code>, <code class="docutils literal notranslate"><span class="pre">B</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span></code> 를 등록한다면, 인터프리터 종료 시에는 <code class="docutils literal notranslate"><span class="pre">C</span></code>, <code class="docutils literal notranslate"><span class="pre">B</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code> 순서로 실행됩니다.</p>
 <p data-msgid="60dd642b24a75afe80e930850a63cf1d73e00cf5" data-score="60" data-since="260603"><strong>참고:</strong> 이 모듈을 통해 등록된 함수는 다음과 같은 경우 호출되지 않습니다. 프로그램이 파이썬이 처리하지 않는 시그널에 의해 종료될 때. 파이썬의 치명적인 내부 에러가 감지되었을 때. <a class="reference internal" href="os.html#os._exit" title="os._exit"><code class="xref py py-func docutils literal notranslate"><span class="pre">os._exit()</span></code></a> 가 호출될 때.</p>
-<p data-msgid="8d83ea856f98face634e44fcad809fc50863ce87" data-score="40" data-since="260609"><strong>참고:</strong> 정리 함수 내에서 함수를 등록하거나 등록을 해제하는 효과는 정의되지 않습니다.</p>
+<p data-msgid="8d83ea856f98face634e44fcad809fc50863ce87" data-score="40" data-since="260621"><strong>참고:</strong> 정리 함수 내부에서 함수를 등록하거나 해제하는 동작은 정의되지 않습니다.</p>
 <div class="versionchanged" data-msgid="8f40a41aacd0288018e2b688540598ca91acc4ec" data-score="60" data-since="260603">
 <p><span class="versionmodified changed">버전 3.7에서 변경: </span>C-API 서브 인터프리터와 함께 사용될 때, 등록된 함수는 등록된 인터프리터에 국지적입니다.</p>
 </div>
@@ -132,29 +132,23 @@
 <p data-msgid="21c1778b86018d0ce6af495354284b85bc6bc2c5" data-score="60" data-since="260603">이 함수는 <em>func</em> 을 반환하므로 데코레이터로 사용할 수 있습니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="7e314b69de258cc7219855694f425cb1baae4bff" data-score="0" data-since="260603">Starting new threads or calling <a class="reference internal" href="os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> from a registered
-function can lead to race condition between the main Python
-runtime thread freeing thread states while internal <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a>
-routines or the new process try to use that state. This can lead to
-crashes rather than clean shutdown.</p>
+<p data-msgid="7e314b69de258cc7219855694f425cb1baae4bff" data-score="40" data-since="260621">등록된 함수에서 새 스레드를 시작하거나 <a class="reference internal" href="os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> 를 호출하면, 내부 <a class="reference internal" href="threading.html#module-threading" title="threading: Thread-based parallelism."><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> 루틴이나 새로운 프로세스가 해당 상태를 사용하려고 시도하는 동안 메인 파이썬 런타임 스레드가 스레드 상태를 해제하면서 발생하는 경쟁 상황(race condition)이 발생할 수 있습니다. 이는 원활한 종료 대신 크래시를 유발할 수 있습니다.</p>
 </div>
-<div class="versionchanged" data-msgid="1064548920e106b2aebed5e16ced605783129b9b" data-score="0" data-since="260603">
-<p><span class="versionmodified changed">버전 3.12에서 변경: </span>Attempts to start a new thread or <a class="reference internal" href="os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> a new process
-in a registered function now leads to <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>.</p>
+<div class="versionchanged" data-msgid="1064548920e106b2aebed5e16ced605783129b9b" data-score="40" data-since="260621">
+<p><span class="versionmodified changed">버전 3.12에서 변경: </span>이제 등록된 함수에서 새 스레드를 시작하거나 <a class="reference internal" href="os.html#os.fork" title="os.fork"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.fork()</span></code></a> 를 사용하여 새로운 프로세스를 생성하려는 시도는 <a class="reference internal" href="exceptions.html#RuntimeError" title="RuntimeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> 를 발생시킵니다.</p>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="atexit.unregister">
 <span class="sig-prename descclassname"><span class="pre">atexit.</span></span><span class="sig-name descname"><span class="pre">unregister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#atexit.unregister" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5afe24f06925355ca60cbe3d5bf3460a8d5a4e5f" data-score="40" data-since="260609"><em>func</em> 를 인터프리터 종료 시 실행할 함수 목록에서 제거합니다. <a class="reference internal" href="#atexit.unregister" title="atexit.unregister"><code class="xref py py-func docutils literal notranslate"><span class="pre">unregister()</span></code></a> 는 <em>func</em> 가 이전에 등록되지 않은 경우 조용히 아무것도 하지 않습니다. <em>func</em> 가 두 번 이상 등록된 경우, <code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code> 호출 스택의 해당 함수의 모든 발생 건이 제거됩니다. 등록을 해제하는 동안 내부적으로 동등 비교(<code class="docutils literal notranslate"><span class="pre">==</span></code>)가 사용되므로, 함수 참조는 일치하는 아이덴티티를 가질 필요가 없습니다.</p>
+<dd><p data-msgid="5afe24f06925355ca60cbe3d5bf3460a8d5a4e5f" data-score="40" data-since="260621">인터프리터 종료 시 실행할 함수 목록에서 <em>func</em> 을(를) 제거합니다. <a class="reference internal" href="#atexit.unregister" title="atexit.unregister"><code class="xref py py-func docutils literal notranslate"><span class="pre">unregister()</span></code></a> 는 <em>func</em> 이 이전에 등록되지 않은 경우 아무런 동작도 하지 않습니다. <em>func</em> 이 여러 번 등록된 경우, <code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code> 호출 스택에 있는 해당 함수의 모든 인스턴스가 제거됩니다. 등록 해제 시 내부적으로 동등 비교(<code class="docutils literal notranslate"><span class="pre">==</span></code>)를 사용하므로, 함수 참조가 서로 동일한 아이덴티티를 가질 필요는 없습니다.</p>
 </dd></dl>
 
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
 <dl class="simple">
-<dt data-msgid="d76329b85c7ca7271efbed0f7a5ee41e380b7d62" data-score="60" data-since="260603">모듈 <a class="reference internal" href="readline.html#module-readline" title="readline: GNU readline support for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">readline</span></code></a></dt><dd><p data-msgid="6182938603b0afb215e266fccb7b48569a93b76a" data-score="0" data-since="260608">Useful example of <code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code> to read and write <a class="reference internal" href="readline.html#module-readline" title="readline: GNU readline support for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">readline</span></code></a> history
-files.</p>
+<dt data-msgid="d76329b85c7ca7271efbed0f7a5ee41e380b7d62" data-score="60" data-since="260603">모듈 <a class="reference internal" href="readline.html#module-readline" title="readline: GNU readline support for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">readline</span></code></a></dt><dd><p data-msgid="6182938603b0afb215e266fccb7b48569a93b76a" data-score="40" data-since="260621"><a class="reference internal" href="readline.html#module-readline" title="readline: GNU readline support for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">readline</span></code></a> 히스토리 파일을 읽고 쓰는 데 사용되는 <code class="xref py py-mod docutils literal notranslate"><span class="pre">atexit</span></code> 의 유용한 예제입니다.</p>
 </dd>
 </dl>
 </div>
