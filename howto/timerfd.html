@@ -251,30 +251,30 @@
 </pre></div>
 </div>
 <p data-msgid="102f4c4563546995457c25c22422409186864e10" data-score="40" data-since="260621">이 예제는 파일 기술자가 읽기 준비가 될 때까지 대기하기 위해 <a class="reference internal" href="../library/select.html#select.select" title="select.select"><code class="xref py py-func docutils literal notranslate"><span class="pre">select()</span></code></a> 를 타이머 파일 기술자와 함께 사용하는 방법을 보여줍니다.</p>
-<div class="highlight-python notranslate" data-msgid="61291696effe9cf15f71b747fcef806a9c6a2a0a" data-score="40" data-since="260609"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span><span class="o">,</span><span class="w"> </span><span class="nn">select</span><span class="o">,</span><span class="w"> </span><span class="nn">socket</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+<div class="highlight-python notranslate" data-msgid="61291696effe9cf15f71b747fcef806a9c6a2a0a" data-score="40" data-since="260621"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span><span class="o">,</span><span class="w"> </span><span class="nn">select</span><span class="o">,</span><span class="w"> </span><span class="nn">socket</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="c1"># 이 예시에서는 루프백 주소를 사용하여 서버에 &quot;stop&quot; 명령을 전송합니다.</span>
+<span class="c1"># 이 예제에서는 루프백 주소를 사용하여 서버에 &quot;stop&quot; 명령을 보냅니다.</span>
 <span class="c1">#</span>
-<span class="c1"># $ telnet 127.0.0.1 1234</span>
-<span class="c1"># 127.0.0.1 연결 시도 중...</span>
-<span class="c1"># 127.0.0.1에 연결되었습니다.</span>
-<span class="c1"># 탈출 문자는 &#39;^]&#39;입니다.</span>
+<span class="c1"># $ telnet 127.0.0.1 1340</span>
+<span class="c1"># Trying 127.0.0.1...</span>
+<span class="c1"># Connected to 127.0.0.1.</span>
+<span class="c1"># Escape character is &#39;^]&#39;.</span>
 <span class="c1"># stop</span>
-<span class="c1"># 원격 호스트에 의해 연결이 종료되었습니다.</span>
+<span class="c1"># Connection closed by foreign host.</span>
 <span class="c1">#</span>
 <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
-<span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">1234</span><span class="p">))</span>
+<span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">1340</span><span class="p">))</span>
 <span class="n">sock</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">sock</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-<span class="c1"># 타이머 파일 디스크립터를 논블로킹 모드로 생성합니다.</span>
+<span class="c1"># 비차단(non-blocking) 모드에서 타이머 파일 디스크립터를 생성합니다.</span>
 <span class="n">num</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">fds</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">timerfd_create</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">CLOCK_REALTIME</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">TFD_NONBLOCK</span><span class="p">)</span>
        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
 <span class="n">select_fds</span> <span class="o">=</span> <span class="n">fds</span> <span class="o">+</span> <span class="p">[</span><span class="n">sock</span><span class="p">]</span>
 
-<span class="c1"># os.timerfd_settime()을 사용하여 타이머를 초 단위로 시작합니다.</span>
-<span class="c1"># 타이머 1은 0.25초마다, 타이머 2는 0.5초마다 만료됩니다.</span>
+<span class="c1"># os.timerfd_settime()를 사용하여 초 단위로 타이머를 시작합니다.</span>
+<span class="c1"># 타이머 1은 0.25초마다, 타이머 2는 0.5초마다 발생하며, 이후 동일하게 작동합니다.</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fd</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fds</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
    <span class="n">os</span><span class="o">.</span><span class="n">timerfd_settime</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="n">i</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">i</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
 
@@ -283,41 +283,41 @@
     <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">while</span> <span class="n">is_active</span><span class="p">:</span>
-       <span class="c1"># 3초 동안 타이머가 만료되기를 기다립니다.</span>
-       <span class="c1"># select.select()는 파일 디스크립터 또는 객체 목록을 반환합니다.</span>
+       <span class="c1"># 3초 동안 타이머가 만료될 때까지 대기합니다.</span>
+       <span class="c1"># select.select()는 파일 디스크립터 또는 객체의 리스트를 반환합니다.</span>
        <span class="n">rfd</span><span class="p">,</span> <span class="n">wfd</span><span class="p">,</span> <span class="n">xfd</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">select_fds</span><span class="p">,</span> <span class="n">select_fds</span><span class="p">,</span> <span class="n">select_fds</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
        <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">rfd</span><span class="p">:</span>
            <span class="k">if</span> <span class="n">fd</span> <span class="o">==</span> <span class="n">sock</span><span class="p">:</span>
                <span class="c1"># 연결 요청이 있는지 확인합니다.</span>
-               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;</span><span class="n">Accepting</span> <span class="n">connection</span> <span class="p">{</span><span class="n">fd</span><span class="p">}</span><span class="s2">&quot;&quot;&quot;)</span>
-<span class="s2">               conn, addr = sock.accept()</span>
-<span class="s2">               conn.setblocking(False)</span>
-<span class="s2">               print(f&quot;&quot;Accepted connection </span><span class="si">{conn}</span><span class="s2"> from </span><span class="si">{addr}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accepting connection </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+               <span class="n">conn</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accepted connection </span><span class="si">{</span><span class="n">conn</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">addr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                <span class="n">select_fds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
            <span class="k">elif</span> <span class="n">conn</span> <span class="ow">and</span> <span class="n">fd</span> <span class="o">==</span> <span class="n">conn</span><span class="p">:</span>
                <span class="c1"># 읽을 데이터가 있는지 확인합니다.</span>
-               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;</span><span class="n">Reading</span> <span class="n">data</span> <span class="p">{</span><span class="n">fd</span><span class="p">}</span><span class="s2">&quot;&quot;&quot;)</span>
-<span class="s2">               data = conn.recv(1024)</span>
-<span class="s2">               if data:</span>
-<span class="s2">                   # 안전을 위해 UnicodeDecodeError 예외를 처리해야 합니다.</span>
-<span class="s2">                   cmd = data.decode()</span>
-<span class="s2">                   if cmd.startswith(&quot;stop&quot;):</span>
-<span class="s2">                       print(f&quot;&quot;Stopping server&quot;&quot;)</span>
-<span class="s2">                       is_active = False</span>
-<span class="s2">                   else:</span>
-<span class="s2">                       print(f&quot;&quot;Unknown command: </span><span class="si">{cmd}</span><span class="s2">&quot;&quot;)</span>
-<span class="s2">               else:</span>
-<span class="s2">                   # 더 이상 데이터가 없으므로 연결을 닫습니다.</span>
-<span class="s2">                   print(f&quot;&quot;Closing connection </span><span class="si">{fd}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading data </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">data</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+               <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                   <span class="c1"># 안전을 위해 UnicodeDecodeError 예외를 처리해야 합니다.</span>
+                   <span class="n">cmd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                   <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;stop&quot;</span><span class="p">):</span>
+                       <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping server&quot;</span><span class="p">)</span>
+                       <span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
+                   <span class="k">else</span><span class="p">:</span>
+                       <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown command: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="k">else</span><span class="p">:</span>
+                   <span class="c1"># 더 이상 데이터가 없으므로 연결을 종료합니다.</span>
+                   <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Closing connection </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                    <span class="n">select_fds</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
                    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                    <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
            <span class="k">elif</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">fds</span><span class="p">:</span>
-               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;</span><span class="n">Reading</span> <span class="n">timer</span> <span class="p">{</span><span class="n">fd</span><span class="p">}</span><span class="s2">&quot;&quot;&quot;)</span>
-<span class="s2">               count = int.from_bytes(os.read(fd, 8), byteorder=sys.byteorder)</span>
-<span class="s2">               print(f&quot;&quot;Timer {fds.index(fd) + 1} expired </span><span class="si">{count}</span><span class="s2"> times&quot;&quot;)</span>
-<span class="s2">           else:</span>
-<span class="s2">               print(f&quot;&quot;Unknown file descriptor </span><span class="si">{fd}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading timer </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+               <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">byteorder</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">byteorder</span><span class="p">)</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timer </span><span class="si">{</span><span class="n">fds</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> expired </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> times&quot;</span><span class="p">)</span>
+           <span class="k">else</span><span class="p">:</span>
+               <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown file descriptor </span><span class="si">{</span><span class="n">fd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">finally</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">fds</span><span class="p">:</span>
        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
