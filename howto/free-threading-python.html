@@ -138,12 +138,21 @@
                 
   <section id="python-support-for-free-threading">
 <span id="freethreading-python-howto"></span><h1 data-msgid="2bc85e4f4d05a5e5e4d6b6b8815fa52bb6715fbc" data-score="29" data-since="260609">자유 스레딩에 대한 파이썬 지원<a class="headerlink" href="#python-support-for-free-threading" title="Link to this heading">¶</a></h1>
-<p data-msgid="9bcede8b080110203081860dd0a183514a03bb72" data-score="96" data-since="260611">3.13 버전부터 CPython은 <span class="xref std std-term">무료 스레딩</span> (GIL)을 가진 Python 빌드를 지원합니다. 자유 스레딩 실행은 사용 가능한 CPU 코어에서 스레드를 병렬로 실행하여 가용 처리 능력을 온전히 활용할 수 있게 합니다. 모든 소프트웨어가 자동으로 이점을 갖는 것은 아니지만, 스레딩을 염두에 두고 설계된 프로그램은 다중 코어 하드웨어에서 더 빠르게 실행됩니다.</p>
-<p data-msgid="2e83559bd9421236309b2010bedaf58ac02f16df" data-score="100" data-since="260611">일부 서드파티 패키지, 특히 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>확장 모듈 &lt;extension module&gt;`을 가진 패키지는 자유 스레딩 빌드에서 사용하기 위해 준비되지 않았을 수 있으며, :term:<a href="#id3"><span class="problematic" id="id4">`</span></a>GIL`을 다시 활성화할 수 있습니다.</p>
-<p data-msgid="50e837b16c6376445462061d6178eb3038335b4e" data-score="100" data-since="260611">이 문서는 Python 코드에서 자유 스레딩이 갖는 영향을 설명합니다. 자유 스레딩 빌드를 지원하는 C 확장을 작성하는 방법에 대한 내용은 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>freethreading-extensions-howto`를 참조하십시오.</p>
+<p data-msgid="9bcede8b080110203081860dd0a183514a03bb72" data-score="0" data-since="260603">Starting with the 3.13 release, CPython has support for a build of
+Python called <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free threading</span></a> where the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global interpreter lock</span></a>
+(GIL) is disabled.  Free-threaded execution allows for full utilization of the
+available processing power by running threads in parallel on available CPU cores.
+While not all software will benefit from this automatically, programs
+designed with threading in mind will run faster on multi-core hardware.</p>
+<p data-msgid="2e83559bd9421236309b2010bedaf58ac02f16df" data-score="0" data-since="260608">Some third-party packages, in particular ones
+with an <a class="reference internal" href="../glossary.html#term-extension-module"><span class="xref std std-term">extension module</span></a>, may not be ready for use in a
+free-threaded build, and will re-enable the <a class="reference internal" href="../glossary.html#term-GIL"><span class="xref std std-term">GIL</span></a>.</p>
+<p data-msgid="50e837b16c6376445462061d6178eb3038335b4e" data-score="0" data-since="260603">This document describes the implications of free threading
+for Python code.  See <a class="reference internal" href="free-threading-extensions.html#freethreading-extensions-howto"><span class="std std-ref">Free 스레딩을 위한 C API 확장 지원</span></a> for information on
+how to write C extensions that support the free-threaded build.</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="52849eadd91849fbaba5b4e83b37b8192e585deb" data-score="97" data-since="260611"><span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0703/"><strong>PEP 703</strong></a> – CPython에서 글로벌 인터프리터 록을 선택 사항으로 만드는 방법에 대한 자유 스레딩 Python 전반의 설명.</p>
+<p data-msgid="52849eadd91849fbaba5b4e83b37b8192e585deb" data-score="97" data-since="260611"><span class="target" id="index-4"></span><a class="pep reference external" href="https://peps.python.org/pep-0703/"><strong>PEP 703</strong></a> – CPython에서 글로벌 인터프리터 록을 선택 사항으로 만드는 방법에 대한 자유 스레딩 Python 전반의 설명.</p>
 </div>
 <section id="installation">
 <h2 data-msgid="c81b79df3c6448eae7c4f80428b54cd5692a17d7" data-score="100" data-since="260613">설치 방법<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
@@ -153,7 +162,10 @@
 </section>
 <section id="identifying-free-threaded-python">
 <h2 data-msgid="026ea01cc33d20c674ba9223e44554ba29f713c2" data-score="100" data-since="260611">자유 스레딩 Python 식별하기<a class="headerlink" href="#identifying-free-threaded-python" title="Link to this heading">¶</a></h2>
-<p data-msgid="43de5435e33570926babb1aae8e677707315ce28" data-score="100" data-since="260611">현재 인터프리터가 자유 스레딩을 지원하는지 확인하려면 <a class="reference internal" href="../using/cmdline.html#cmdoption-V"><code class="xref std std-option docutils literal notranslate"><span class="pre">python</span> <span class="pre">-VV</span></code></a> 및 <code class="xref py py-data docutils literal notranslate"><span class="pre">sys.version`에</span> <span class="pre">&quot;free-threading</span> <span class="pre">build&quot;가</span> <span class="pre">포함되어</span> <span class="pre">있는지</span> <span class="pre">확인하십시오.</span> <span class="pre">새</span> <span class="pre">:func:`sys._is_gil_enabled</span></code> 함수를 사용하면 실행 중인 프로세스에서 GIL이 실제로 비활성화되었는지 확인할 수 있습니다.</p>
+<p data-msgid="43de5435e33570926babb1aae8e677707315ce28" data-score="0" data-since="260603">To check if the current interpreter supports free-threading, <a class="reference internal" href="../using/cmdline.html#cmdoption-V"><code class="xref std std-option docutils literal notranslate"><span class="pre">python</span> <span class="pre">-VV</span></code></a>
+and <a class="reference internal" href="../library/sys.html#sys.version" title="sys.version"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.version</span></code></a> contain “free-threading build”.
+The new <a class="reference internal" href="../library/sys.html#sys._is_gil_enabled" title="sys._is_gil_enabled"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys._is_gil_enabled()</span></code></a> function can be used to check whether
+the GIL is actually disabled in the running process.</p>
 <p data-msgid="8c7a6de41c96c81298335a108419c62f67af1472" data-score="0" data-since="260603">The <code class="docutils literal notranslate"><span class="pre">sysconfig.get_config_var(&quot;Py_GIL_DISABLED&quot;)</span></code> configuration variable can
 be used to determine whether the build supports free threading.  If the variable
 is set to <code class="docutils literal notranslate"><span class="pre">1</span></code>, then the build supports free threading.  This is the recommended
@@ -161,7 +173,9 @@ mechanism for decisions related to the build configuration.</p>
 </section>
 <section id="the-global-interpreter-lock-in-free-threaded-python">
 <h2 data-msgid="98b99588bd758c1ccbbacd9c368d0a9e14884247" data-score="100" data-since="260611">자유 스레딩 Python의 글로벌 인터프리터 록<a class="headerlink" href="#the-global-interpreter-lock-in-free-threaded-python" title="Link to this heading">¶</a></h2>
-<p data-msgid="eda80dad16ea6ba1a045b823036d3644eeafe514" data-score="100" data-since="260611">CPython의 자유 스레딩 빌드는 환경 변수 <span class="target" id="index-6"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_GIL"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_GIL</span></code></a> 또는 명령줄 옵션 :option:<a href="#id1"><span class="problematic" id="id2">`</span></a>-X gil`을 사용하여 런타임에 GIL 활성화를 선택적으로 지원합니다.</p>
+<p data-msgid="eda80dad16ea6ba1a045b823036d3644eeafe514" data-score="0" data-since="260603">Free-threaded builds of CPython support optionally running with the GIL enabled
+at runtime using the environment variable <span class="target" id="index-1"></span><a class="reference internal" href="../using/cmdline.html#envvar-PYTHON_GIL"><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHON_GIL</span></code></a> or
+the command-line option <a class="reference internal" href="../using/cmdline.html#cmdoption-X"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span> <span class="pre">gil</span></code></a>.</p>
 <p data-msgid="ae4fd2d9c7c7fd32624e4ed5a4fd2f0392c19a71" data-score="100" data-since="260611">또한, 명시적으로 자유 스레딩을 지원한다고 표시되지 않은 C-API 확장 모듈을 임포트할 때 GIL이 자동으로 활성화될 수도 있습니다. 이 경우 경고가 출력됩니다.</p>
 <p data-msgid="2f8df5bd7e5d1d68e82615655fc071fc7b9fead5" data-score="100" data-since="260611">개별 패키지 문서 외에도, 다음 웹사이트들이 인기 패키지가 자유 스레딩을 지원하는 상태를 추적합니다:</p>
 <ul class="simple">
@@ -171,7 +185,14 @@ mechanism for decisions related to the build configuration.</p>
 </section>
 <section id="thread-safety">
 <h2 data-msgid="d0cef5deb223649da3c92e68bafacf5c8ccd785e" data-score="100" data-since="260611">스레드 안전성<a class="headerlink" href="#thread-safety" title="Link to this heading">¶</a></h2>
-<p data-msgid="7c8ba7f272814e916847fe790c69c6c341cd71bb" data-score="92" data-since="260611">CPython의 자유 스레딩 빌드는 기본 GIL 활성화 빌드와 유사한 스레드 안전성을 Python 수준에서 제공하는 것을 목표로 합니다. <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>, :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>set`과 같은 내장형 데이터 타입은 내부 잠금(internal locks)을 사용하여 동시 수정에 대한 보호를 수행하며, 이는 GIL과 유사하게 동작합니다. 그러나 Python은 역사적으로 이러한 내장형 타입의 동시 수정에 대한 특정 동작을 보장하지 않았으므로, 이는 현재 또는 미래의 동작을 보장하는 것이 아니라 현재 구현에 대한 설명으로 간주해야 합니다.</p>
+<p data-msgid="7c8ba7f272814e916847fe790c69c6c341cd71bb" data-score="0" data-since="260603">The free-threaded build of CPython aims to provide similar thread-safety
+behavior at the Python level to the default GIL-enabled build.  Built-in
+types like <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>, and <a class="reference internal" href="../library/stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> use internal locks
+to protect against concurrent modifications in ways that behave similarly to
+the GIL.  However, Python has not historically guaranteed specific behavior for
+concurrent modifications to these built-in types, so this should be treated
+as a description of the current implementation, not a guarantee of current or
+future behavior.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="36d6ade589bde86cb45ad92b249d6fb72949f2e3" data-score="100" data-since="260611">가능하다면, 기본형 타입의 내부 락에 의존하기보다는 <a class="reference internal" href="../library/threading.html#threading.Lock" title="threading.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Lock</span></code></a> 또는 다른 동기화 프리미티브를 사용하는 것이 좋습니다.</p>
@@ -182,16 +203,21 @@ mechanism for decisions related to the build configuration.</p>
 <p data-msgid="ef96a9976cd46c4fba9b388f25f59b2b7d39d4da" data-score="95" data-since="260611">이 섹션에서는 자유 스레딩 CPython 빌드의 알려진 제한 사항을 설명합니다.</p>
 <section id="immortalization">
 <h3 data-msgid="ce7da7ae84c7c22ea9a147544c19abd5e814ffff" data-score="0" data-since="260611">불멸화<a class="headerlink" href="#immortalization" title="Link to this heading">¶</a></h3>
-<p data-msgid="b8375ae5df468627d258f7ab645e62aff61b35c5" data-score="71" data-since="260611">자유 스레딩 빌드에서는 일부 객체가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>immortal &lt;immortal&gt;``입니다. 불멸 객체는 해제되지 않으며 참조 횟수가 변경되지 않는 참조 횟수를 갖습니다. 이는 효율적인 멀티스레딩 확장을 막을 수 있는 참조 횟수 경합을 피하기 위해 수행됩니다.</p>
+<p data-msgid="b8375ae5df468627d258f7ab645e62aff61b35c5" data-score="0" data-since="260608">In the free-threaded build, some objects are <a class="reference internal" href="../glossary.html#term-immortal"><span class="xref std std-term">immortal</span></a>.
+Immortal objects are not deallocated and have reference counts that are
+never modified.  This is done to avoid reference count contention that would
+prevent efficient multi-threaded scaling.</p>
 <p data-msgid="90b83e24ce2975f383ae658deefeb866a7c98062" data-score="86" data-since="260611">3.14 릴리스 기준, 불멸화는 다음으로 제한됩니다:</p>
 <ul class="simple">
 <li><p data-msgid="38102398594a7c32a4e381654ea84fe7d35ada9e" data-score="93" data-since="260611">코드 상수: 숫자 리터럴, 문자열 리터럴 및 다른 상수들로 구성된 튜플 리터럴.</p></li>
-<li><p data-msgid="b53d83400f55bf2aa2a8519c4c2c417141057f1b" data-score="94" data-since="260611">:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>sys.intern`에 의해 인턴화된 문자열.</p></li>
+<li><p data-msgid="b53d83400f55bf2aa2a8519c4c2c417141057f1b" data-score="0" data-since="260608">Strings interned by <a class="reference internal" href="../library/sys.html#sys.intern" title="sys.intern"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.intern()</span></code></a>.</p></li>
 </ul>
 </section>
 <section id="frame-objects">
 <h3 data-msgid="79d2949feb338bce6dc1efcc270c92dab0e3c760" data-score="100" data-since="260611">프레임 객체<a class="headerlink" href="#frame-objects" title="Link to this heading">¶</a></h3>
-<p data-msgid="9d9ac4c2da86cc37fb0069af49cd920409c87442" data-score="90" data-since="260611">프레임이 다른 스레드에서 실행 중인 경우, <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">frame</span></a> 객체에서 :attr:<a href="#id1"><span class="problematic" id="id2">`</span></a>frame.f_locals`에 접근하는 것은 안전하지 않으며, 그렇게 하면 인터프리터를 충돌시킬 수 있습니다.</p>
+<p data-msgid="9d9ac4c2da86cc37fb0069af49cd920409c87442" data-score="0" data-since="260608">It is not safe to access <a class="reference internal" href="../reference/datamodel.html#frame.f_locals" title="frame.f_locals"><code class="xref py py-attr docutils literal notranslate"><span class="pre">frame.f_locals</span></code></a> from a <a class="reference internal" href="../reference/datamodel.html#frame-objects"><span class="std std-ref">frame</span></a>
+object if that frame is currently executing in another thread, and doing so may
+crash the interpreter.</p>
 </section>
 <section id="iterators">
 <h3 data-msgid="909a5f0dfd8c3a4ef79cd1458e2b5fb136ad7fae" data-score="100" data-since="260611">이터레이터<a class="headerlink" href="#iterators" title="Link to this heading">¶</a></h3>
@@ -207,18 +233,33 @@ mechanism for decisions related to the build configuration.</p>
 <p data-msgid="46e81d89ee8f5f6b1ff819fac7685e0ef2e427c1" data-score="96" data-since="260611">이 섹션에서는 자유 스레딩 빌드와 관련된 CPython 동작 변경 사항을 설명합니다.</p>
 <section id="context-variables">
 <h3 data-msgid="a81ca58a2d33854d7dad7ec7988eec151557124f" data-score="0" data-since="260611">컨텍스트 변수<a class="headerlink" href="#context-variables" title="Link to this heading">¶</a></h3>
-<p data-msgid="3a06c7e4bd1fc3483459c1e874f22ffa2568b4c9" data-score="96" data-since="260611">자유 스레딩 빌드에서는 플래그 <code class="xref py py-data docutils literal notranslate"><span class="pre">Context()</span></code> 사본으로 시작되게 합니다. 기본 GIL 활성화 빌드에서는 이 플래그가 기본적으로 false이므로 스레드는 빈 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>~contextvars.Context()`로 시작합니다.</p>
+<p data-msgid="3a06c7e4bd1fc3483459c1e874f22ffa2568b4c9" data-score="0" data-since="260603">In the free-threaded build, the flag <a class="reference internal" href="../library/sys.html#sys.flags.thread_inherit_context" title="sys.flags.thread_inherit_context"><code class="xref py py-data docutils literal notranslate"><span class="pre">thread_inherit_context</span></code></a>
+is set to true by default which causes threads created with
+<a class="reference internal" href="../library/threading.html#threading.Thread" title="threading.Thread"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></a> to start with a copy of the
+<a class="reference internal" href="../library/contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context()</span></code></a> of the caller of
+<a class="reference internal" href="../library/threading.html#threading.Thread.start" title="threading.Thread.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start()</span></code></a>.  In the default GIL-enabled build, the flag
+defaults to false so threads start with an
+empty <a class="reference internal" href="../library/contextvars.html#contextvars.Context" title="contextvars.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context()</span></code></a>.</p>
 </section>
 <section id="warning-filters">
 <h3 data-msgid="a7c654b5fb44a26a2dbf3060973361164dc0626e" data-score="100" data-since="260611">경고 필터<a class="headerlink" href="#warning-filters" title="Link to this heading">¶</a></h3>
-<p data-msgid="25dd53261721a513e73bd8c84acb0b4626f5b641" data-score="95" data-since="260611">자유 스레딩 빌드에서는 플래그 <code class="xref py py-data docutils literal notranslate"><span class="pre">catch_warnings</span></code> 컨텍스트 관리자는 경고 필터에 컨텍스트 변수를 사용합니다. 플래그가 false이면 <code class="xref py py-class docutils literal notranslate"> <span class="pre">자세한</span> <span class="pre">내용은</span> <span class="pre">:mod:`warnings</span></code> 모듈을 참조하세요.</p>
+<p data-msgid="25dd53261721a513e73bd8c84acb0b4626f5b641" data-score="0" data-since="260603">In the free-threaded build, the flag <a class="reference internal" href="../library/sys.html#sys.flags.context_aware_warnings" title="sys.flags.context_aware_warnings"><code class="xref py py-data docutils literal notranslate"><span class="pre">context_aware_warnings</span></code></a>
+is set to true by default.  In the default GIL-enabled build, the flag defaults
+to false.  If the flag is true then the <a class="reference internal" href="../library/warnings.html#warnings.catch_warnings" title="warnings.catch_warnings"><code class="xref py py-class docutils literal notranslate"><span class="pre">warnings.catch_warnings</span></code></a>
+context manager uses a context variable for warning filters.  If the flag is
+false then <a class="reference internal" href="../library/warnings.html#warnings.catch_warnings" title="warnings.catch_warnings"><code class="xref py py-class docutils literal notranslate"><span class="pre">catch_warnings</span></code></a> modifies the global filters list,
+which is not thread-safe.  See the <a class="reference internal" href="../library/warnings.html#module-warnings" title="warnings: Issue warning messages and control their disposition."><code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code></a> module for more details.</p>
 </section>
 <section id="increased-memory-usage">
 <h3 data-msgid="86d6d093a7165309b6880a0408c0c2a81c19f47e" data-score="100" data-since="260611">메모리 사용량 증가<a class="headerlink" href="#increased-memory-usage" title="Link to this heading">¶</a></h3>
 <p data-msgid="176e485eee40424a9a8dafc4a4159fa1880807d8" data-score="61" data-since="260611">자유 스레딩 빌드는 일반적으로 기본 빌드보다 더 많은 메모리를 사용할 것입니다. 여기에는 여러 가지 이유가 있으며, 주로 설계 결정에서 비롯된 것입니다.</p>
 <section id="all-interned-strings-are-immortal">
 <h4 data-msgid="a2ea0308405c7d6d1363e56d5525046b8d534cc7" data-score="56" data-since="260611">모든 인턴화된 문자열은 불멸합니다<a class="headerlink" href="#all-interned-strings-are-immortal" title="Link to this heading">¶</a></h4>
-<p data-msgid="9b6b6bd9767495be997dbb83d8fb44a34315c875" data-score="79" data-since="260611">최신 파이썬 버전(버전 2.3 이후)에서 문자열을 인턴화(예: :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>sys.intern`를 사용)하는 것이 그것을 불멸로 만들지는 않습니다. 대신, 해당 문자열에 대한 마지막 참조가 사라지면, 그것은 인턴화된 문자열 테이블에서 제거됩니다. 이는 자유 스레딩 빌드와 달리, 모든 인턴화된 문자열은 인터프리터 종료 시까지 남아 불멸화됩니다.</p>
+<p data-msgid="9b6b6bd9767495be997dbb83d8fb44a34315c875" data-score="0" data-since="260608">For modern Python versions (since version 2.3), interning a string (e.g. with
+<a class="reference internal" href="../library/sys.html#sys.intern" title="sys.intern"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.intern()</span></code></a>) does not cause it to become immortal.  Instead, if the last
+reference to that string disappears, it will be removed from the interned
+string table.  This is not the case for the free-threaded build and any interned
+string will become immortal, surviving until interpreter shutdown.</p>
 </section>
 <section id="non-gc-objects-have-a-larger-object-header">
 <h4 data-msgid="0aa96858ded717bdecc71fc79c786126eca5880d" data-score="88" data-since="260611">비 GC 객체는 더 큰 객체 헤더를 가집니다<a class="headerlink" href="#non-gc-objects-have-a-larger-object-header" title="Link to this heading">¶</a></h4>
@@ -236,14 +277,20 @@ mechanism for decisions related to the build configuration.</p>
 </section>
 <section id="free-threaded-reference-counting-can-cause-objects-to-live-longer">
 <h4 data-msgid="155323f69bb7c2fc01852781226143271e5832d0" data-score="93" data-since="260611">free-threaded 참조 횟수는 객체가 더 오래 생존하게 할 수 있습니다<a class="headerlink" href="#free-threaded-reference-counting-can-cause-objects-to-live-longer" title="Link to this heading">¶</a></h4>
-<p data-msgid="92d563cb3e26d3bbefe00ab13902dd44918a4f38" data-score="98" data-since="260611">기본 빌드에서는 객체의 참조 횟수가 0에 도달하면 일반적으로 할당이 해제됩니다. free-threaded 빌드는 현재 스레드가 “소유”하는 객체를 위한 빠른 경로와 다른 객체들을 위한 느린 경로를 갖는 “편향 참조 횟수(biased reference counting)”를 사용합니다. 자세한 내용은 :pep:<a href="#id1"><span class="problematic" id="id2">`</span></a>703`을 참조하십시오. 객체의 참조 횟수가 “큐에 대기(queued)” 상태에 놓이는 순간마다 할당 해제가 지연될 수 있습니다. 큐에 대기 상태는 바이트코드 평가기(bytecode evaluator)의 “평가 중단기(eval breaker)” 섹션에서 초기화됩니다.</p>
+<p data-msgid="92d563cb3e26d3bbefe00ab13902dd44918a4f38" data-score="0" data-since="260608">In the default build, when an object’s reference count reaches zero, it is
+normally deallocated.  The free-threaded build uses “biased reference
+counting”, with a fast-path for objects “owned” by the current thread and a
+slow path for other objects.  See <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0703/"><strong>PEP 703</strong></a> for additional details.  Any time
+an object’s reference count ends up in a “queued” state, deallocation can be
+deferred.  The queued state is cleared from the “eval breaker” section of the
+bytecode evaluator.</p>
 <p data-msgid="28a0200bd262bb17ae2c91fd36d2bcae2d2db258" data-score="89" data-since="260611">free-threaded 빌드는 또한 “지연 참조 횟수(deferred reference counting)”라는 다른 방식의 참조 횟수 계산을 허용합니다. 이 모드는 객체별로 플래그를 설정하여 활성화할 수 있습니다. 지연 참조 횟수는 다음 유형에 대해 활성화됩니다:</p>
 <ul class="simple">
 <li><p data-msgid="1af461ea3d8b09e48dcf557040157ed56dd06eac" data-score="100" data-since="260611">모듈 객체</p></li>
 <li><p data-msgid="ee8713074ee0d9b454c68e9459a6659e3287eeb0" data-score="100" data-since="260611">모듈 최상위 함수</p></li>
 <li><p data-msgid="40ff55603a217b2eaa5737dcc24ebe58d0cb6524" data-score="100" data-since="260611">클래스 범위에 정의된 클래스 메서드</p></li>
 <li><p data-msgid="3a55ebe3751c085205afbb7c8699e6017645cd8b" data-score="100" data-since="260611">디스크립터 객체</p></li>
-<li><p data-msgid="78f4814c86108ed64f1a4458f66102cdbf2afe0c" data-score="100" data-since="260611">:class:<a href="#id1"><span class="problematic" id="id2">`</span></a>threading.local`에 의해 생성된 스레드별 객체</p></li>
+<li><p data-msgid="78f4814c86108ed64f1a4458f66102cdbf2afe0c" data-score="0" data-since="260608">thread-local objects, created by <a class="reference internal" href="../library/threading.html#threading.local" title="threading.local"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.local</span></code></a></p></li>
 </ul>
 <p data-msgid="3cd8018d5e73b7a449e8cd9d8a2c8e134e3226b4" data-score="90" data-since="260611">지연 참조 횟수가 활성화되면, Python 함수 스택의 참조는 참조 횟수에 추가되지 않습니다. 이 방식은 특히 여러 스레드에서 사용되는 객체의 참조 횟수 오버헤드를 줄여줍니다. 스택 참조가 계산되지 않기 때문에, 지연 참조 횟수를 가진 객체들은 내부 참조 횟수가 0이 되더라도 즉시 해제되지 않습니다. 대신, 다음 GC 주기에서 검사되며, 해당 객체에 스택 참조가 없으면 해제됩니다. 이는 일반적인 경우와 달리, 이 객체들이 참조 횟수가 0이 될 때가 아니라 GC에 의해 해제됨을 의미합니다.</p>
 </section>
@@ -255,7 +302,13 @@ mechanism for decisions related to the build configuration.</p>
 <li><p data-msgid="1f744cb0d4dcd1d1833152df3ca1384ba70aebfd" data-score="0" data-since="260611">코드 객체</p></li>
 <li><p data-msgid="0bb4d09bff77db4dc7894be3669218a04c631aa5" data-score="100" data-since="260611">모듈 객체의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code></p></li>
 </ul>
-<p data-msgid="9b42c388c13edfc495a8825359fa968b87cecec4" data-score="78" data-since="260611">스레드별 카운트를 객체로 병합해야만 해제할 수 있으므로, 스레드별 참조 카운팅을 사용하는 객체는 일반적으로 기본 빌드보다 더 늦게 해제됩니다. 특히, 그러한 객체는 참조한 스레드가 안전 지점에 도달하거나 종료될 때까지 일반적으로 해제되지 않습니다. :func:<a href="#id1"><span class="problematic" id="id2">`</span></a>gc.collect`를 실행하면 스레드별 카운트가 병합되어 이러한 객체를 해제할 수 있게 됩니다.</p>
+<p data-msgid="9b42c388c13edfc495a8825359fa968b87cecec4" data-score="0" data-since="260608">Because the per-thread counts must be merged back to the object before it
+can be deallocated, objects using per-thread reference counting are
+typically freed later than they would be in the default build.  In
+particular, such an object is usually not freed until the thread that
+referenced it reaches a safe point (for example, in the “eval breaker”
+section of the bytecode evaluator) or exits.  Running <a class="reference internal" href="../library/gc.html#gc.collect" title="gc.collect"><code class="xref py py-func docutils literal notranslate"><span class="pre">gc.collect()</span></code></a>
+will merge the per-thread counts and allow these objects to be freed.</p>
 </section>
 </section>
 </section>

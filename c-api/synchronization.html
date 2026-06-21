@@ -129,7 +129,9 @@
 <p data-msgid="adfbf92ea1744d0c4fbe3c22c4683696b870deb7" data-score="96" data-since="260610"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex`의</span> <span class="pre">인스턴스는</span> <span class="pre">복사하거나</span> <span class="pre">이동해서는</span> <span class="pre">안</span> <span class="pre">됩니다.</span> <span class="pre">:c:type:</span></code>!PyMutex`의 내용과 주소 모두 의미가 있으며, 메모리 내에 고정되고 쓰기 가능한 위치에 유지되어야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="3902f869d58d141f5f06243e62890690f76b2d8b" data-score="97" data-since="260610">:c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>!PyMutex`는 현재 1바이트를 차지하지만, 크기는 불안정하다고 간주되어야 합니다. 이 크기는 향후 파이썬 릴리스에서 비지원 기간 없이 변경될 수 있습니다.</p>
+<p data-msgid="3902f869d58d141f5f06243e62890690f76b2d8b" data-score="0" data-since="260603">A <code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code> currently occupies one byte, but the size should be
+considered unstable.  The size may change in future Python releases
+without a deprecation period.</p>
 </div>
 <div class="versionadded" data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff">
 <p data-msgid="4fc15ff696f1b48fa61f3a60c2ccbf5417b255ff"><span class="versionmodified added">Added in version 3.13.</span></p>
@@ -169,13 +171,35 @@
 
 <section id="python-critical-section-api">
 <span id="id1"></span><h2 data-msgid="a2118264201f45f59a947ddf26631a4dbf8400fe" data-score="100" data-since="260610">Python 임계 영역 API<a class="headerlink" href="#python-critical-section-api" title="Link to this heading">¶</a></h2>
-<p data-msgid="20768f3366c1902b451fb7f5963f32b596fd12b6" data-score="91" data-since="260610">임계 영역 API는 <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free-threaded</span></a> CPython용 객체별 록 위에 데드락 방지 계층을 제공합니다. 이는 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>global interpreter lock`에 의존하는 것을 대체하는 것이 목적이며, 전역 인터프리터 록이 있는 버전에서는 no-op입니다.</p>
-<p data-msgid="1926b083c8bc37cae2162bdb1880d254af2eb7ab" data-score="84" data-since="260610">임계 영역은 C-API 확장으로 구현된 사용자 정의 유형에 사용되도록 의도되었습니다. 이들은 일반적으로 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>list`와 :class:<a href="#id3"><span class="problematic" id="id4">`</span></a>dict`와 같은 내장 유형과 함께 사용해서는 안 됩니다. 왜냐하면 이들의 공개 C-API가 이미 내부적으로 임계 영역을 사용하기 때문이며, 주목할 만한 예외는 외부에서 임계 영역을 획득해야 하는 :c:func:<a href="#id5"><span class="problematic" id="id6">`</span></a>PyDict_Next`입니다.</p>
-<p data-msgid="7050d71c210853adb6ef07c7c4b3c739ccd1c898" data-score="92" data-since="260610">임계 영역은 활성 임계 영역을 암묵적으로 중지시킴으로써 데드락을 방지하므로, :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyMutex`와 같은 전통적인 록이 제공하는 독점 액세스를 제공하지 않습니다. 임계 영역이 시작되면 해당 객체의 개별 객체 록이 획득됩니다. 만약 임계 영역 내부에서 실행된 코드가 C-API 함수를 호출하면 임계 영역을 중지시켜 개별 객체 록을 해제하고 다른 스레드가 같은 객체에 대해 개별 객체 록을 획득할 수 있게 합니다.</p>
-<p data-msgid="568e45eda10f8c35d561b3f63aaf8ce768749f0f" data-score="88" data-since="260610">Python 객체 대신 <a class="reference internal" href="#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> 포인터를 받아들이는 변형도 사용할 수 있습니다. 이러한 변형을 사용하여 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyObject`가 없는 상황에서 임계 영역을 시작합니다. 예를 들어, :c:type:<a href="#id3"><span class="problematic" id="id4">`</span></a>PyObject`를 확장하거나 래핑하지 않지만 데드락을 유발할 수 있는 방식으로 C API를 호출해야 하는 C 유형을 다룰 때와 같습니다.</p>
+<p data-msgid="20768f3366c1902b451fb7f5963f32b596fd12b6" data-score="0" data-since="260603">The critical section API provides a deadlock avoidance layer on top of
+per-object locks for <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free-threaded</span></a> CPython.  They are
+intended to replace reliance on the <a class="reference internal" href="../glossary.html#term-global-interpreter-lock"><span class="xref std std-term">global interpreter lock</span></a>, and are
+no-ops in versions of Python with the global interpreter lock.</p>
+<p data-msgid="1926b083c8bc37cae2162bdb1880d254af2eb7ab" data-score="0" data-since="260603">Critical sections are intended to be used for custom types implemented
+in C-API extensions. They should generally not be used with built-in types like
+<a class="reference internal" href="../library/stdtypes.html#list" title="list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> and <a class="reference internal" href="../library/stdtypes.html#dict" title="dict"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> because their public C-APIs
+already use critical sections internally, with the notable
+exception of <a class="reference internal" href="dict.html#c.PyDict_Next" title="PyDict_Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyDict_Next()</span></code></a>, which requires critical section
+to be acquired externally.</p>
+<p data-msgid="7050d71c210853adb6ef07c7c4b3c739ccd1c898" data-score="0" data-since="260603">Critical sections avoid deadlocks by implicitly suspending active critical
+sections, hence, they do not provide exclusive access such as provided by
+traditional locks like <a class="reference internal" href="#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a>.  When a critical section is started,
+the per-object lock for the object is acquired. If the code executed inside the
+critical section calls C-API functions then it can suspend the critical section thereby
+releasing the per-object lock, so other threads can acquire the per-object lock
+for the same object.</p>
+<p data-msgid="568e45eda10f8c35d561b3f63aaf8ce768749f0f" data-score="0" data-since="260603">Variants that accept <a class="reference internal" href="#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a> pointers rather than Python objects are also
+available. Use these variants to start a critical section in a situation where
+there is no <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> – for example, when working with a C type that
+does not extend or wrap <a class="reference internal" href="structures.html#c.PyObject" title="PyObject"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code></a> but still needs to call into the C
+API in a manner that might lead to deadlocks.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="8798e19ed4593ddc13cd0365b19212fbdabfa947" data-score="87" data-since="260610">두 객체를 동시에 잠가야 하는 작업은 :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_BEGIN_CRITICAL_SECTION2`를 사용해야 합니다.  중첩된 임계 영역을 사용하여 한 번에 두 개 이상의 객체를 잠글 수 없습니다.  직사각형의 임계 영역은 외부 임계 영역을 중지시킬 수 있기 때문입니다.  이 API는 한 번에 두 개 이상의 객체를 잠글 수 있는 방법을 제공하지 않습니다.</p>
+<p data-msgid="8798e19ed4593ddc13cd0365b19212fbdabfa947" data-score="0" data-since="260603">Operations that need to lock two objects at once must use
+<a class="reference internal" href="#c.Py_BEGIN_CRITICAL_SECTION2" title="Py_BEGIN_CRITICAL_SECTION2"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_BEGIN_CRITICAL_SECTION2</span></code></a>.  You <em>cannot</em> use nested critical
+sections to lock more than one object at once, because the inner critical
+section may suspend the outer critical sections.  This API does not provide
+a way to lock more than two objects at once.</p>
 </div>
 <p data-msgid="83658c4292c5d15925d6f9480cc26609ae81da3d" data-score="83" data-since="260610">사용 예:</p>
 <div class="highlight-c notranslate" data-msgid="08f9686d9e15d6e376d3afed635935593587ec70" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span>
@@ -188,12 +212,17 @@
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="824f0733c10649013228b0d8d1bc3f1153ad3847" data-score="91" data-since="260610">위 예제에서, :c:macro:<a href="#id1"><span class="problematic" id="id2">`</span></a>Py_SETREF`는 :c:macro:<a href="#id3"><span class="problematic" id="id4">`</span></a>Py_DECREF`를 호출하며, 이는 객체의 할당 해제 함수를 통해 임의의 코드를 호출할 수 있습니다.  임계 영역 API는 재진입 및 록 순서에 따른 잠재적 데드락을 방지하기 위해, finalizer가 중단되고 :c:func:<a href="#id5"><span class="problematic" id="id6">`</span></a>PyEval_SaveThread`를 호출하는 경우 런타임이 임계 영역을 일시 중지할 수 있도록 허용합니다.</p>
+<p data-msgid="824f0733c10649013228b0d8d1bc3f1153ad3847" data-score="0" data-since="260603">In the above example, <a class="reference internal" href="refcounting.html#c.Py_SETREF" title="Py_SETREF"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_SETREF</span></code></a> calls <a class="reference internal" href="refcounting.html#c.Py_DECREF" title="Py_DECREF"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_DECREF</span></code></a>, which
+can call arbitrary code through an object’s deallocation function.  The critical
+section API avoids potential deadlocks due to reentrancy and lock ordering
+by allowing the runtime to temporarily suspend the critical section if the
+code triggered by the finalizer blocks and calls <a class="reference internal" href="threads.html#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a>.</p>
 <dl class="c macro" id="critical-section-macros">
 <dt class="sig sig-object c" id="c.Py_BEGIN_CRITICAL_SECTION">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_BEGIN_CRITICAL_SECTION</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">op</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_BEGIN_CRITICAL_SECTION" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="b89310ee52369d3894f89c774843bb5e4b2cedca" data-score="87" data-since="260610">객체 <em>op</em> 에 대한 개체별 록을 획득하고 임계 영역을 시작합니다.</p>
-<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="94" data-since="260610">free-threaded 빌드와 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>Stable ABI &lt;stable-abi&gt;`를 위해 빌드할 때, 이 매크로는 다음과 같이 확장됩니다:</p>
+<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="0" data-since="260608">In the free-threaded build, and when building for the
+<a class="reference internal" href="stable.html#stable-abi"><span class="std std-ref">Stable ABI</span></a>, this macro expands to:</p>
 <div class="highlight-c notranslate" data-msgid="ed41f69e38d3e429400d303c14f4b3f2f9e854d4" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="n">PyCriticalSection</span><span class="w"> </span><span class="n">_py_cs</span><span class="p">;</span>
 <span class="w">    </span><span class="n">PyCriticalSection_Begin</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_py_cs</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">PyObject</span><span class="o">*</span><span class="p">)(</span><span class="n">op</span><span class="p">))</span>
@@ -226,7 +255,8 @@
 <dt class="sig sig-object c" id="c.Py_END_CRITICAL_SECTION">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_END_CRITICAL_SECTION</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_END_CRITICAL_SECTION" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="37bb55919a062f193d99c0c026b048fe439907a3" data-score="96" data-since="260610">임계 영역을 종료하고 개체별 록을 해제합니다.</p>
-<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="94" data-since="260610">free-threaded 빌드와 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>Stable ABI &lt;stable-abi&gt;`를 위해 빌드할 때, 이 매크로는 다음과 같이 확장됩니다:</p>
+<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="0" data-since="260608">In the free-threaded build, and when building for the
+<a class="reference internal" href="stable.html#stable-abi"><span class="std std-ref">Stable ABI</span></a>, this macro expands to:</p>
 <div class="highlight-c notranslate" data-msgid="eaad8e78c9443f40bd38147772dfe9b9b8a69edc" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="n">PyCriticalSection_End</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_py_cs</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
@@ -257,7 +287,8 @@
 <dt class="sig sig-object c" id="c.Py_BEGIN_CRITICAL_SECTION2_MUTEX">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_BEGIN_CRITICAL_SECTION2_MUTEX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">m1</span></span>, <span class="n"><span class="pre">m2</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_BEGIN_CRITICAL_SECTION2_MUTEX" title="Link to this definition">¶</a><br /></dt>
 <dd><p data-msgid="aaee5b43919a555a7deb4831f775b1dbafb3e272" data-score="100" data-since="260610">뮤텍스 <em>m1</em> 와 <em>m2</em> 를 잠그고 임계 영역을 시작합니다.</p>
-<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="94" data-since="260610">free-threaded 빌드와 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>Stable ABI &lt;stable-abi&gt;`를 위해 빌드할 때, 이 매크로는 다음과 같이 확장됩니다:</p>
+<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="0" data-since="260608">In the free-threaded build, and when building for the
+<a class="reference internal" href="stable.html#stable-abi"><span class="std std-ref">Stable ABI</span></a>, this macro expands to:</p>
 <div class="highlight-c notranslate" data-msgid="6fbc66e63e5d17b8ca1781e160c2926384af11d6" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">     </span><span class="n">PyCriticalSection2</span><span class="w"> </span><span class="n">_py_cs2</span><span class="p">;</span>
 <span class="w">     </span><span class="n">PyCriticalSection2_BeginMutex</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_py_cs2</span><span class="p">,</span><span class="w"> </span><span class="n">m1</span><span class="p">,</span><span class="w"> </span><span class="n">m2</span><span class="p">)</span>
@@ -274,7 +305,8 @@
 <dt class="sig sig-object c" id="c.Py_END_CRITICAL_SECTION2">
 <span class="sig-name descname"><span class="n"><span class="pre">Py_END_CRITICAL_SECTION2</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.Py_END_CRITICAL_SECTION2" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a> 버전 3.15 이후로.</em><p data-msgid="ce59c4d22a0c0d286100a45cf7d1dd7a6e7c717a" data-score="96" data-since="260610">임계 영역을 종료하고 개체별 록을 해제합니다.</p>
-<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="94" data-since="260610">free-threaded 빌드와 :ref:<a href="#id1"><span class="problematic" id="id2">`</span></a>Stable ABI &lt;stable-abi&gt;`를 위해 빌드할 때, 이 매크로는 다음과 같이 확장됩니다:</p>
+<p data-msgid="61dfdd1abf07386211caf545e0ab55b1993aea65" data-score="0" data-since="260608">In the free-threaded build, and when building for the
+<a class="reference internal" href="stable.html#stable-abi"><span class="std std-ref">Stable ABI</span></a>, this macro expands to:</p>
 <div class="highlight-c notranslate" data-msgid="fa8fe25e7dbb10b4716d4db5276b6c503832146c" data-score="100" data-since="260610"><div class="highlight"><pre><span></span><span class="n">PyCriticalSection2_End</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_py_cs2</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
@@ -375,9 +407,10 @@ listed <a class="reference internal" href="#critical-section-macros"><span class
 <a class="reference internal" href="#c.PyThread_type_lock" title="PyThread_type_lock"><span class="n"><span class="pre">PyThread_type_lock</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_allocate_lock</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_allocate_lock" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="1e149a94e49c631bf7168dced0a49273df81e29f" data-score="100" data-since="260610">새로운 록을 할당합니다.</p>
 <p data-msgid="b084e8bebbd4cca61f3bfd2f069c457dc3527f55" data-score="98" data-since="260610">성공 시 이 함수는 록을 반환하고, 실패 시 예외 없이 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환합니다.</p>
-<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="98" data-since="260612">호출자가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`를 보유할 필요가 없습니다.</p>
-<div class="versionchanged" data-msgid="a4e72a61329ad41f473b83f05c4cb72712d1f72c" data-score="96" data-since="260610">
-<p><span class="versionmodified changed">버전 3.15에서 변경: </span>이 함수는 이제 항상 :c:type:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyMutex`를 사용합니다. 이전 버전에서는 이 운영 체제에서 제공하는 록을 사용했습니다.</p>
+<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="0" data-since="260608">The caller does not need to hold an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
+<div class="versionchanged" data-msgid="a4e72a61329ad41f473b83f05c4cb72712d1f72c" data-score="0" data-since="260608">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span>This function now always uses <a class="reference internal" href="#c.PyMutex" title="PyMutex"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyMutex</span></code></a>. In prior versions, this
+would use a lock provided by the operating system.</p>
 </div>
 </dd></dl>
 
@@ -385,7 +418,7 @@ listed <a class="reference internal" href="#critical-section-macros"><span class
 <dt class="sig sig-object c" id="c.PyThread_free_lock">
 <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_free_lock</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThread_type_lock" title="PyThread_type_lock"><span class="n"><span class="pre">PyThread_type_lock</span></span></a><span class="w"> </span><span class="n"><span class="pre">lock</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_free_lock" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="26bdd89b4770083afab89b63357fa26ec2f2ecbe" data-score="100" data-since="260610"><em>lock</em> 을 파괴합니다. 이 함수를 호출할 때 록은 어떤 스레드에 의해서도 보유되어서는 안 됩니다.</p>
-<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="98" data-since="260612">호출자가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`를 보유할 필요가 없습니다.</p>
+<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="0" data-since="260608">The caller does not need to hold an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
 </dd></dl>
 
 <dl class="c function">
@@ -394,8 +427,9 @@ listed <a class="reference internal" href="#critical-section-macros"><span class
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="c52532d30ef710204b84d8f68ebaf5e5721b94e3" data-score="100" data-since="260610">시간 초과를 사용하여 <em>lock</em> 을 획득합니다.</p>
 <p data-msgid="3a6e3c70029a9e415673bafcb00098bc39298dad" data-score="100" data-since="260610">이것은 <em>microseconds</em> 마이크로초 동안 록을 획득하기 위해 대기합니다. 시간 초과가 지나면, 이 함수는 <a class="reference internal" href="#c.PY_LOCK_FAILURE" title="PY_LOCK_FAILURE"><code class="xref c c-enumerator docutils literal notranslate"><span class="pre">PY_LOCK_FAILURE</span></code></a> 를 반환합니다. <em>microseconds</em> 가 <code class="docutils literal notranslate"><span class="pre">-1</span></code> 이면, 록이 해제될 때까지 무기한 대기합니다.</p>
 <p data-msgid="178422e219cbe332c50d62f962feb381934ec21e" data-score="100" data-since="260610"><em>intr_flag</em> 가 <code class="docutils literal notranslate"><span class="pre">1</span></code> 이면 록을 획득하는 과정이 신호에 의해 중단될 수 있으며, 이 경우 이 함수는 <a class="reference internal" href="#c.PY_LOCK_INTR" title="PY_LOCK_INTR"><code class="xref c c-enumerator docutils literal notranslate"><span class="pre">PY_LOCK_INTR</span></code></a> 을 반환합니다. 중단된 경우, 일반적으로 호출자는 예외를 Python 코드로 전파하기 위해 <a class="reference internal" href="threads.html#c.Py_MakePendingCalls" title="Py_MakePendingCalls"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_MakePendingCalls()</span></code></a> 를 호출하는 것이 예상됩니다.</p>
-<p data-msgid="5e82545cdced83d43231cd737f82b26e1117dbc2" data-score="100" data-since="260610">록을 성공적으로 획득한 경우, 이 함수는 :c:enumerator:<a href="#id1"><span class="problematic" id="id2">`</span></a>PY_LOCK_ACQUIRED`를 반환합니다.</p>
-<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="98" data-since="260612">호출자가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`를 보유할 필요가 없습니다.</p>
+<p data-msgid="5e82545cdced83d43231cd737f82b26e1117dbc2" data-score="0" data-since="260608">If the lock is successfully acquired, this function returns
+<a class="reference internal" href="#c.PY_LOCK_ACQUIRED" title="PY_LOCK_ACQUIRED"><code class="xref c c-enumerator docutils literal notranslate"><span class="pre">PY_LOCK_ACQUIRED</span></code></a>.</p>
+<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="0" data-since="260608">The caller does not need to hold an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
 </dd></dl>
 
 <dl class="c function">
@@ -404,15 +438,16 @@ listed <a class="reference internal" href="#critical-section-macros"><span class
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="7578efc059264087f5c25ccfe0405b5ff7fd2778" data-score="100" data-since="260610"><em>lock</em> 획득.</p>
 <p data-msgid="8f11e210c2a33735eb33783bf6da7d3de5b545de" data-score="100" data-since="260610"><em>waitflag</em> 가 <code class="docutils literal notranslate"><span class="pre">1</span></code> 이고 다른 스레드가 현재 록을 보유하고 있는 경우, 이 함수는 록을 획득할 수 있을 때까지 대기하며 항상 <code class="docutils literal notranslate"><span class="pre">1</span></code> 을 반환합니다.</p>
 <p data-msgid="fc76746c0b5b765ba14eaab4eeb0435075ae0e56" data-score="100" data-since="260610"><em>waitflag</em> 가 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이고 다른 스레드가 록을 보유하고 있는 경우, 이 함수는 대기하지 않고 대신 <code class="docutils literal notranslate"><span class="pre">0</span></code> 을 반환합니다. 록을 다른 스레드가 보유하고 있지 않은 경우, 이 함수는 록을 획득하고 <code class="docutils literal notranslate"><span class="pre">1</span></code> 을 반환합니다.</p>
-<p data-msgid="2dd932db52bce66a01780f90d3167a66dd2c79fd" data-score="99" data-since="260610">:c:func:<a href="#id1"><span class="problematic" id="id2">`</span></a>PyThread_acquire_lock_timed`과는 달리, 록을 획득하는 과정은 신호에 의해 중단될 수 없습니다.</p>
-<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="98" data-since="260612">호출자가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`를 보유할 필요가 없습니다.</p>
+<p data-msgid="2dd932db52bce66a01780f90d3167a66dd2c79fd" data-score="0" data-since="260608">Unlike <a class="reference internal" href="#c.PyThread_acquire_lock_timed" title="PyThread_acquire_lock_timed"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThread_acquire_lock_timed()</span></code></a>, acquiring the lock cannot be
+interrupted by a signal.</p>
+<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="0" data-since="260608">The caller does not need to hold an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.PyThread_release_lock">
 <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PyThread_release_lock</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.PyThread_type_lock" title="PyThread_type_lock"><span class="n"><span class="pre">PyThread_type_lock</span></span></a><span class="w"> </span><span class="n"><span class="pre">lock</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PyThread_release_lock" title="Link to this definition">¶</a><br /></dt>
 <dd><em class="stableabi"> 상의 <a class="reference internal" href="stable.html#stable"><span class="std std-ref">안정 ABI</span></a>.</em><p data-msgid="ae78d3e537942f47ebb7473f9d1a1a07b1388441" data-score="100" data-since="260610"><em>lock</em> 해제. <em>lock</em> 이 보유되지 않은 경우, 이 함수는 치명적인 오류를 발생시킵니다.</p>
-<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="98" data-since="260612">호출자가 :term:<a href="#id1"><span class="problematic" id="id2">`</span></a>attached thread state`를 보유할 필요가 없습니다.</p>
+<p data-msgid="a91ecb2982734da7afee862694d647ac01067c02" data-score="0" data-since="260608">The caller does not need to hold an <a class="reference internal" href="../glossary.html#term-attached-thread-state"><span class="xref std std-term">attached thread state</span></a>.</p>
 </dd></dl>
 
 </section>
