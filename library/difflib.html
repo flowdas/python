@@ -649,65 +649,14 @@
 <section id="a-command-line-interface-to-difflib">
 <span id="difflib-interface"></span><h2 data-msgid="88f8a5ed71e20bf98933ac839aba7f4bbf24f658" data-score="60" data-since="260603">difflib의 명령 줄 인터페이스<a class="headerlink" href="#a-command-line-interface-to-difflib" title="Link to this heading">¶</a></h2>
 <p data-msgid="db7519cda0a7f06bd7bc793f26c0ce99b751dc1a" data-score="60" data-since="260603">이 예제는 difflib를 사용하여 <code class="docutils literal notranslate"><span class="pre">diff</span></code>와 유사한 유틸리티를 만드는 방법을 보여줍니다.</p>
-<div class="highlight-python3 notranslate" data-msgid="fa6cb74278a136db01e61d90b673a3c23bd9f5df" data-score="40" data-since="260609"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot; difflib.py에서 네 가지 형식의 diff를 제공하는 명령줄 인터페이스입니다:</span>
+<div class="highlight-python3 notranslate" data-msgid="fa6cb74278a136db01e61d90b673a3c23bd9f5df" data-score="40" data-since="260622"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot; difflib.py에 대한 명령줄 인터페이스로 네 가지 형식의 diff를 제공합니다:</span>
 
-<span class="sd">* ndiff:    모든 줄을 나열하고 줄 간 변경 사항을 하이라이트합니다.</span>
-<span class="sd">* context:  변경 사항의 묶음을 before/after 형식으로 하이라이트합니다.</span>
-<span class="sd">* unified:  변경 사항의 묶음을 인라인 형식으로 하이라이트합니다.</span>
-<span class="sd">* html:     변경 사항 하이라이트와 함께 좌우 비교를 생성합니다.</span>
+<span class="sd">* ndiff:    모든 줄을 나열하고 줄 간 변경 사항을 강조 표시합니다.</span>
+<span class="sd">* context:  변경 사항의 뭉치를 이전/이후 형식으로 강조 표시합니다.</span>
+<span class="sd">* unified:  변경 사항의 뭉치를 인라인 형식으로 강조 표시합니다.</span>
+<span class="sd">* html:     변화 내용 강조와 함께 나란히 비교하는 화면을 생성합니다.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">difflib</span><span class="o">,</span><span class="w"> </span><span class="nn">argparse</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">file_mtime</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span>
-                                  <span class="n">dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">astimezone</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Context 형식의 diff를 생성합니다 (기본값)&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;통합(unified) 형식의 diff를 생성합니다&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;HTML 좌우 비교 diff를 생성합니다 &#39;</span>
-                             <span class="s1">&#39;(–c 및 –l을 함께 사용할 수 있습니다)&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;ndiff 형식의 diff를 생성합니다&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-l&#39;</span><span class="p">,</span> <span class="s1">&#39;--lines&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;context 라인 수를 설정합니다 (기본값 3)&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;fromfile&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;tofile&#39;</span><span class="p">)</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-
-    <span class="n">n</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">lines</span>
-    <span class="n">fromfile</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">fromfile</span>
-    <span class="n">tofile</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">tofile</span>
-
-    <span class="n">fromdate</span> <span class="o">=</span> <span class="n">file_mtime</span><span class="p">(</span><span class="n">fromfile</span><span class="p">)</span>
-    <span class="n">todate</span> <span class="o">=</span> <span class="n">file_mtime</span><span class="p">(</span><span class="n">tofile</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fromfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">ff</span><span class="p">:</span>
-        <span class="n">fromlines</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tofile</span><span class="p">)</span> <span class="k">as</span> <span class="n">tf</span><span class="p">:</span>
-        <span class="n">tolines</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">u</span><span class="p">:</span>
-        <span class="n">diff</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">unified_diff</span><span class="p">(</span><span class="n">fromlines</span><span class="p">,</span> <span class="n">tolines</span><span class="p">,</span> <span class="n">fromfile</span><span class="p">,</span> <span class="n">tofile</span><span class="p">,</span> <span class="n">fromdate</span><span class="p">,</span> <span class="n">todate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">n</span><span class="p">:</span>
-        <span class="n">diff</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">ndiff</span><span class="p">(</span><span class="n">fromlines</span><span class="p">,</span> <span class="n">tolines</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
-        <span class="n">diff</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">HtmlDiff</span><span class="p">()</span><span class="o">.</span><span class="n">make_file</span><span class="p">(</span><span class="n">fromlines</span><span class="p">,</span><span class="n">tolines</span><span class="p">,</span><span class="n">fromfile</span><span class="p">,</span><span class="n">tofile</span><span class="p">,</span><span class="n">context</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">c</span><span class="p">,</span><span class="n">numlines</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">diff</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">context_diff</span><span class="p">(</span><span class="n">fromlines</span><span class="p">,</span> <span class="n">tolines</span><span class="p">,</span> <span class="n">fromfile</span><span class="p">,</span> <span class="n">tofile</span><span class="p">,</span> <span class="n">fromdate</span><span class="p">,</span> <span class="n">todate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-
-    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
