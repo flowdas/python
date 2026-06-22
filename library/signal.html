@@ -131,16 +131,14 @@
 <h2 data-msgid="bf6bda4587aff077462187186bdf6576ccc550c7" data-score="60" data-since="260603">일반 규칙<a class="headerlink" href="#general-rules" title="Link to this heading">¶</a></h2>
 <p data-msgid="9b839ae04c87cf91f4e8f5e0128cd6f0bc48d04e" data-score="60" data-since="260603"><a class="reference internal" href="#signal.signal" title="signal.signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">signal.signal()</span></code></a> 함수는 시그널이 수신될 때 실행될 사용자 정의 처리기를 정의하도록 합니다. 소수의 기본 처리기가 설치됩니다: <a class="reference internal" href="#signal.SIGPIPE" title="signal.SIGPIPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPIPE</span></code></a>는 무시되고 (그래서 파이프와 소켓에 대한 쓰기 에러는 일반 파이썬 예외로 보고될 수 있습니다) <a class="reference internal" href="#signal.SIGINT" title="signal.SIGINT"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code></a>는 부모 프로세스가 변경하지 않았다면 <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> 예외로 번역됩니다.</p>
 <p data-msgid="bdc21efe81e22056a8ac48e7ddf83c52344d1564" data-score="60" data-since="260603">일단 설정되면, 특정 시그널에 대한 처리기는 명시적으로 재설정 될 때까지 (파이썬은 하부 구현과 관계없이 BSD 스타일 인터페이스를 흉내 냅니다) 설치된 상태로 유지됩니다. <a class="reference internal" href="#signal.SIGCHLD" title="signal.SIGCHLD"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGCHLD</span></code></a>에 대한 처리기는 예외인데, 하부 구현을 따릅니다.</p>
-<p data-msgid="4d9aede871af045ac2077ff96e02bca8040b615d" data-score="40" data-since="260609">WebAssembly 플랫폼에서는 시그널이 에뮬레이션되므로 다르게 작동합니다. 여기에서 여러 함수와 시그널은 사용 불가능합니다.</p>
+<p data-msgid="4d9aede871af045ac2077ff96e02bca8040b615d" data-score="40" data-since="260622">WebAssembly 플랫폼에서는 시그널이 에뮬레이션되므로 다르게 동작합니다. 여러 기능과 시그널을 이러한 플랫폼에서 사용할 수 없습니다.</p>
 <section id="execution-of-python-signal-handlers">
 <h3 data-msgid="b44827a87c41a75678cdd5f76bd61447a3fc10f5" data-score="60" data-since="260603">파이썬 시그널 처리기의 실행<a class="headerlink" href="#execution-of-python-signal-handlers" title="Link to this heading">¶</a></h3>
 <p data-msgid="17995ecf85217c6026bf4c89c274b0639fac56a8" data-score="40" data-since="260609">파이썬 시그널 처리기는 저수준 (C) 시그널 처리기 내에서 실행되지 않습니다. 대신, 저수준 시그널 처리기는 <a class="reference internal" href="../glossary.html#term-virtual-machine"><span class="xref std std-term">가상 기계</span></a>\에게 나중에 (예를 들어, 다음 <a class="reference internal" href="../glossary.html#term-bytecode"><span class="xref std std-term">바이트 코드</span></a> 명령에서) 해당 파이썬 시그널 처리기를 실행하도록 지시하는 플래그를 설정합니다. 결과는 다음과 같습니다:</p>
 <ul class="simple">
 <li><p data-msgid="4305e4b66012674fe78cce5fbbfdd08902ac0fde" data-score="60" data-since="260603">C 코드에서의 유효하지 않은 연산으로 인해 발생하는 <a class="reference internal" href="#signal.SIGFPE" title="signal.SIGFPE"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGFPE</span></code></a>나 <a class="reference internal" href="#signal.SIGSEGV" title="signal.SIGSEGV"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGSEGV</span></code></a>와 같은 동기 에러를 잡는 것은 그리 의미가 없습니다. 파이썬은 시그널 처리기에서 C 코드로 돌아오는데, 같은 시그널을 다시 발생시켜서, 파이썬이 멈출 것입니다. 파이썬 3.3부터는, <a class="reference internal" href="faulthandler.html#module-faulthandler" title="faulthandler: Dump the Python traceback."><code class="xref py py-mod docutils literal notranslate"><span class="pre">faulthandler</span></code></a> 모듈을 사용하여 동기 에러를 보고할 수 있습니다.</p></li>
 <li><p data-msgid="796767a26a6640016d3bd1e3ce51ebd6fa60db23" data-score="60" data-since="260603">C로만 구현된 오래 실행되는 계산(가령 커다란 텍스트 본문에 대한 정규식 일치)은 수신된 시그널에 상관없이 임의의 시간 동안 중단없이 실행될 수 있습니다. 계산이 끝나면 파이썬 시그널 처리기가 호출됩니다.</p></li>
-<li><p data-msgid="0d28231892b4dc28274bd0d3252ec8e6fec3d28c" data-score="0" data-since="260603">If the handler raises an exception, it will be raised “out of thin air” in
-the main thread. See the <a class="reference internal" href="#handlers-and-exceptions"><span class="std std-ref">note below</span></a> for a
-discussion.</p></li>
+<li><p data-msgid="0d28231892b4dc28274bd0d3252ec8e6fec3d28c" data-score="40" data-since="260622">핸들러가 예외를 발생시키면, 이 예외는 메인 스레드에서 갑자기(out of thin air) 발생하게 됩니다. 자세한 내용은 <a class="reference internal" href="#handlers-and-exceptions"><span class="std std-ref">아래 노트</span></a> 를 참조하십시오.</p></li>
 </ul>
 </section>
 <section id="signals-and-threads">
@@ -149,8 +147,7 @@ discussion.</p></li>
 <p data-msgid="49aeffbbcfcc4f4ba7dd665a66bd39194335e4c7" data-score="60" data-since="260603">게다가, 메인 인터프리터의 메인 스레드만 새로운 시그널 처리기를 설정할 수 있습니다.</p>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p data-msgid="8dc8533a72f2d0a7ed99e63bd7892a052119a178" data-score="0" data-since="260608">Synchronization primitives such as <a class="reference internal" href="threading.html#threading.Lock" title="threading.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Lock</span></code></a> should not be used
-within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
+<p data-msgid="8dc8533a72f2d0a7ed99e63bd7892a052119a178" data-score="40" data-since="260622"><a class="reference internal" href="threading.html#threading.Lock" title="threading.Lock"><code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Lock</span></code></a> 과 같은 동기화 프리미티브는 시그널 핸들러 내에서 사용해서는 안 됩니다. 이를 수행하면 예기치 않은 데드락이 발생할 수 있습니다.</p>
 </div>
 </section>
 </section>
@@ -163,7 +160,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="signal.Signals">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">Signals</span></span><a class="headerlink" href="#signal.Signals" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="3ddd13ef359616a2196f20320e9418967a42c2f4" data-score="40" data-since="260609">SIG* 상수와 CTRL_* 상수에 대한 <a class="reference internal" href="enum.html#enum.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></a> 컬렉션입니다.</p>
+<dd><p data-msgid="3ddd13ef359616a2196f20320e9418967a42c2f4" data-score="40" data-since="260622">SIG* 상수와 CTRL_* 상수의 <a class="reference internal" href="enum.html#enum.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></a> 컬렉션.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.</span></p>
 </div>
@@ -172,7 +169,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="signal.Handlers">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">Handlers</span></span><a class="headerlink" href="#signal.Handlers" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="71857e3b41e57f65c753bb5a2ea16a147efb51c9" data-score="40" data-since="260609"><a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_DFL</span></code></a> 및 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_IGN</span></code></a> 상수에 대한 <a class="reference internal" href="enum.html#enum.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></a> 컬렉션입니다.</p>
+<dd><p data-msgid="71857e3b41e57f65c753bb5a2ea16a147efb51c9" data-score="40" data-since="260622"><a class="reference internal" href="#signal.SIG_DFL" title="signal.SIG_DFL"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_DFL</span></code></a> 및 <a class="reference internal" href="#signal.SIG_IGN" title="signal.SIG_IGN"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_IGN</span></code></a> 상수의 <a class="reference internal" href="enum.html#enum.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></a> 컬렉션.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.5.</span></p>
 </div>
@@ -181,7 +178,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="signal.Sigmasks">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">Sigmasks</span></span><a class="headerlink" href="#signal.Sigmasks" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="59c428ed49e0a0ab77ac31cf762a9fd302228ef9" data-score="40" data-since="260609"><a class="reference internal" href="#signal.SIG_BLOCK" title="signal.SIG_BLOCK"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_BLOCK</span></code></a>, <a class="reference internal" href="#signal.SIG_UNBLOCK" title="signal.SIG_UNBLOCK"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_UNBLOCK</span></code></a>, 및 <a class="reference internal" href="#signal.SIG_SETMASK" title="signal.SIG_SETMASK"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_SETMASK</span></code></a> 상수에 대한 <a class="reference internal" href="enum.html#enum.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></a> 컬렉션입니다.</p>
+<dd><p data-msgid="59c428ed49e0a0ab77ac31cf762a9fd302228ef9" data-score="40" data-since="260622"><a class="reference internal" href="#signal.SIG_BLOCK" title="signal.SIG_BLOCK"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_BLOCK</span></code></a>, <a class="reference internal" href="#signal.SIG_UNBLOCK" title="signal.SIG_UNBLOCK"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_UNBLOCK</span></code></a>, 및 <a class="reference internal" href="#signal.SIG_SETMASK" title="signal.SIG_SETMASK"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIG_SETMASK</span></code></a> 상수의 <a class="reference internal" href="enum.html#enum.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></a> 컬렉션.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 <p data-msgid="6fbc766fba6a21e4d7d7f076d669f01080a59775" data-score="60" data-since="260603">자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigprocmask(2)">sigprocmask(2)</a></em>과 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/pthread_sigmask(3)">pthread_sigmask(3)</a></em>을 참조하십시오.</p>
@@ -191,7 +188,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 </div>
 </dd></dl>
 
-<p data-msgid="5d3c98509402c988e4a9f47b2d04919dc573f7dd" data-score="40" data-since="260609"><code class="xref py py-mod docutils literal notranslate"><span class="pre">signal</span></code> 모듈에 정의된 변수는 다음과 같습니다:</p>
+<p data-msgid="5d3c98509402c988e4a9f47b2d04919dc573f7dd" data-score="40" data-since="260622"><code class="xref py py-mod docutils literal notranslate"><span class="pre">signal</span></code> 모듈에 정의된 변수는 다음과 같습니다.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="signal.SIG_DFL">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">SIG_DFL</span></span><a class="headerlink" href="#signal.SIG_DFL" title="Link to this definition">¶</a></dt>
@@ -319,7 +316,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="signal.SIGPROF">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">SIGPROF</span></span><a class="headerlink" href="#signal.SIGPROF" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="a0effd6ee5698b2aef9bebbec98a36156b51dd3b" data-score="40" data-since="260609">프로파일링 타이머 만료.</p>
+<dd><p data-msgid="a0effd6ee5698b2aef9bebbec98a36156b51dd3b" data-score="40" data-since="260622">프로파일링 타이머가 만료되었습니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 </div>
@@ -343,7 +340,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="signal.SIGSTOP">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">SIGSTOP</span></span><a class="headerlink" href="#signal.SIGSTOP" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="ee84cdf96992f6c4369bce93beac7ba7c001305d" data-score="40" data-since="260609">실행을 중지합니다 (가로채기하거나 무시할 수 없음).</p>
+<dd><p data-msgid="ee84cdf96992f6c4369bce93beac7ba7c001305d" data-score="40" data-since="260622">실행 중지(포착하거나 무시할 수 없음).</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 </div>
@@ -352,7 +349,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="signal.SIGSTKFLT">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">SIGSTKFLT</span></span><a class="headerlink" href="#signal.SIGSTKFLT" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="07df4e86a378160dbd560921b6cf2104b383d74f" data-score="40" data-since="260609">코프로세서에서 스택 오류 발생. 리눅스 커널은 이 시그널을 발생시키지 않습니다: 사용자 공간에서만 발생시킬 수 있습니다.</p>
+<dd><p data-msgid="07df4e86a378160dbd560921b6cf2104b383d74f" data-score="40" data-since="260622">코프로세서의 스택 결함입니다. 리눅스 커널은 이 시그널을 발생시키지 않습니다. 이 시그널은 사용자 공간에서만 발생할 수 있습니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Linux.</p>
 <p data-msgid="b8fa753481ee302af280593d99a8ddc7c5bfb88e" data-score="60" data-since="260603">시그널을 사용할 수 있는 아키텍처에서. 자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(7)">signal(7)</a></em>를 참조하십시오.</p>
@@ -389,7 +386,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="signal.SIGVTALRM">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">SIGVTALRM</span></span><a class="headerlink" href="#signal.SIGVTALRM" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="7b50dcec10208eb3815a51278d1fb72920833d30" data-score="40" data-since="260609">가상 타이머 만료.</p>
+<dd><p data-msgid="7b50dcec10208eb3815a51278d1fb72920833d30" data-score="40" data-since="260622">가상 타이머가 만료되었습니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 </div>
@@ -407,7 +404,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="signal.SIGXCPU">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">SIGXCPU</span></span><a class="headerlink" href="#signal.SIGXCPU" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="cb993d315b7c036ebcd400e4f9f0f008a8019a64" data-score="40" data-since="260609">CPU 시간 제한 초과.</p>
+<dd><p data-msgid="cb993d315b7c036ebcd400e4f9f0f008a8019a64" data-score="40" data-since="260622">CPU 시간 제한을 초과했습니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 </div>
@@ -416,7 +413,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py data">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">SIG*</span></span></dt>
-<dd><p data-msgid="d62adea51a794b44b6f00d197ffa816c2a7dbef9" data-score="40" data-since="260609">모든 시그널 번호는 기호적으로 정의됩니다. 예를 들어, 행업(hangup) 시그널은 <a class="reference internal" href="#signal.SIGHUP" title="signal.SIGHUP"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIGHUP</span></code></a>\로 정의됩니다; 변수 이름은 <code class="docutils literal notranslate"><span class="pre">&lt;signal.h&gt;</span></code>\에 있는 C 프로그램에서 사용되는 이름과 동일합니다. ‘<code class="docutils literal notranslate"><span class="pre">signal</span></code>’에 대한 유닉스 매뉴얼 페이지는 존재하는 시그널을 나열합니다 (일부 시스템에서는 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(2)">signal(2)</a></em>\이고, 다른 시스템에서는 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(7)">signal(7)</a></em>\입니다). 모든 시스템이 같은 시그널 이름 집합을 정의하는 것은 아님에 유의하십시오; 시스템에서 정의한 이름만 이 모듈에서 정의합니다.</p>
+<dd><p data-msgid="d62adea51a794b44b6f00d197ffa816c2a7dbef9" data-score="40" data-since="260622">모든 시그널 번호는 기호적으로 정의됩니다. 예를 들어, 행업(hangup) 시그널은 <a class="reference internal" href="#signal.SIGHUP" title="signal.SIGHUP"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.SIGHUP</span></code></a> 으로 정의됩니다. 변수 이름은 <code class="docutils literal notranslate"><span class="pre">&lt;signal.h&gt;</span></code> 에서 볼 수 있는 C 프로그램의 이름과 동일합니다. ‘<code class="docutils literal notranslate"><span class="pre">signal</span></code> ‘에 대한 유닉스 매뉴얼 페이지는 존재하는 시그널을 나열합니다(일부 시스템에서는 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(2)">signal(2)</a></em> 이며, 다른 시스템에서는 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/signal(7)">signal(7)</a></em> 에 목록이 있습니다). 모든 시스템이 동일한 세트의 시그널 이름을 정의하는 것은 아님에 유의하십시오. 이 모듈은 시스템에서 정의된 이름만 포함합니다.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -615,15 +612,15 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="signal.setitimer">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">setitimer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#signal.setitimer" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1bd3333e7b52fc86ac2130ff7e8951752a37c50f" data-score="40" data-since="260609"><em>seconds</em>\(<a class="reference internal" href="#signal.alarm" title="signal.alarm"><code class="xref py py-func docutils literal notranslate"><span class="pre">alarm()</span></code></a>\과 달리 float가 허용됩니다) 이후에 그리고 (<em>interval</em>\이 0이 아니면) 그 후로 <em>interval</em> 초마다 발사(fire)하도록 <em>which</em>\로 지정된 간격 타이머(<a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a>, <a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a> 또는 <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a> 중 하나)를 설정합니다. <em>which</em>\로 지정된 간격 타이머는 <em>seconds</em>\를 0으로 설정하여 지울 수 있습니다.</p>
+<dd><p data-msgid="1bd3333e7b52fc86ac2130ff7e8951752a37c50f" data-score="40" data-since="260622"><em>which</em> 로 지정된 간격 타이머(<a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a>, <a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a> 또는 <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a> 중 하나)를 설정하여, <em>seconds</em> 가 지난 후(마이크로초 단위로 올림 처리됨, <a class="reference internal" href="#signal.alarm" title="signal.alarm"><code class="xref py py-func docutils literal notranslate"><span class="pre">alarm()</span></code></a> 과는 다름) 그리고 그 후 <em>interval</em> 이 0이 아닌 경우 <em>interval</em> 초마다 발생하도록 합니다. <em>which</em> 로 지정된 간격 타이머는 <em>seconds</em> 를 0으로 설정하여 해제할 수 있습니다.</p>
 <p data-msgid="13c22c1bac3d85d254352710cdc5d146b0cc55a0" data-score="60" data-since="260603">간격 타이머가 발사(fire)하면, 시그널이 프로세스로 전송됩니다. 전송된 시그널은 사용 중인 타이머에 따라 다릅니다; <a class="reference internal" href="#signal.ITIMER_REAL" title="signal.ITIMER_REAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_REAL</span></code></a>은 <a class="reference internal" href="#signal.SIGALRM" title="signal.SIGALRM"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGALRM</span></code></a>을, <a class="reference internal" href="#signal.ITIMER_VIRTUAL" title="signal.ITIMER_VIRTUAL"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_VIRTUAL</span></code></a>은 <a class="reference internal" href="#signal.SIGVTALRM" title="signal.SIGVTALRM"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGVTALRM</span></code></a>을, <a class="reference internal" href="#signal.ITIMER_PROF" title="signal.ITIMER_PROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">signal.ITIMER_PROF</span></code></a>는 <a class="reference internal" href="#signal.SIGPROF" title="signal.SIGPROF"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGPROF</span></code></a>를 전달합니다.</p>
-<p data-msgid="6b103347d045aabc00fa1830434a79464e595fd7" data-score="40" data-since="260609">이전 값은 두 개의 float 튜플로 반환됩니다: (<code class="docutils literal notranslate"><span class="pre">delay</span></code>, <code class="docutils literal notranslate"><span class="pre">interval</span></code>).</p>
+<p data-msgid="6b103347d045aabc00fa1830434a79464e595fd7" data-score="40" data-since="260622">이전 값은 두 개의 부동 소수점 숫자로 구성된 튜플로 반환됩니다: (<code class="docutils literal notranslate"><span class="pre">delay</span></code>, <code class="docutils literal notranslate"><span class="pre">interval</span></code>).</p>
 <p data-msgid="c33cf711dfa666faa37012875a5a1a951f2f5134" data-score="60" data-since="260603">유효하지 않은 간격 타이머를 전달하려고 하면 <a class="reference internal" href="#signal.ItimerError" title="signal.ItimerError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ItimerError</span></code></a>가 발생합니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 </div>
-<div class="versionchanged" data-msgid="634f38858f2269b5c543744e361b15aabfffcda1" data-score="40" data-since="260609">
-<p><span class="versionmodified changed">버전 3.15에서 변경: </span>정수 또는 float뿐만 아니라 모든 실수를 <em>seconds</em> 및 <em>interval</em> 로 받습니다.</p>
+<div class="versionchanged" data-msgid="634f38858f2269b5c543744e361b15aabfffcda1" data-score="40" data-since="260622">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span><em>seconds</em> 와 <em>interval</em> 로 정수나 부동 소수점뿐만 아니라 모든 실수 값을 허용합니다.</p>
 </div>
 </dd></dl>
 
@@ -705,7 +702,7 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <dt class="sig sig-object py" id="signal.sigwaitinfo">
 <span class="sig-prename descclassname"><span class="pre">signal.</span></span><span class="sig-name descname"><span class="pre">sigwaitinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#signal.sigwaitinfo" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="4344764bdf2c335e349f9f18a1a0ebfdb0ebb9ca" data-score="60" data-since="260603">시그널 집합 <em>sigset</em>에 지정된 시그널 중 하나가 전달될 때까지 호출하는 스레드의 실행을 일시 중단합니다. 이 함수는 시그널을 받아들이고 계류 중인 시그널 목록에서 제거합니다. <em>sigset</em>의 시그널 중 하나가 이미 호출하는 스레드에 대해 계류 중이면, 함수는 해당 시그널에 대한 정보와 함께 즉시 반환합니다. 전달된 시그널에 대해 시그널 처리기가 호출되지 않습니다. 이 함수는 <em>sigset</em>에 없는 시그널에 의해 중단되면 <a class="reference internal" href="exceptions.html#InterruptedError" title="InterruptedError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InterruptedError</span></code></a>를 발생시킵니다.</p>
-<p data-msgid="8167d2166e5c0e7d89c6222a3f9624fb05ed1533" data-score="40" data-since="260609">반환 값은 <code class="docutils literal notranslate"><span class="pre">siginfo_t</span></code> 구조체에 포함된 데이터, 즉 <code class="docutils literal notranslate"><span class="pre">si_signo</span></code>, <code class="docutils literal notranslate"><span class="pre">si_code</span></code>, <code class="docutils literal notranslate"><span class="pre">si_errno</span></code>, <code class="docutils literal notranslate"><span class="pre">si_pid</span></code>, <code class="docutils literal notranslate"><span class="pre">si_uid</span></code>, <code class="docutils literal notranslate"><span class="pre">si_status</span></code>, <code class="docutils literal notranslate"><span class="pre">si_band</span></code>\를 나타내는 객체입니다.</p>
+<p data-msgid="8167d2166e5c0e7d89c6222a3f9624fb05ed1533" data-score="40" data-since="260622">반환 값은 <code class="docutils literal notranslate"><span class="pre">siginfo_t</span></code> 구조체에 포함된 데이터인 <code class="docutils literal notranslate"><span class="pre">si_signo</span></code>, <code class="docutils literal notranslate"><span class="pre">si_code</span></code>, <code class="docutils literal notranslate"><span class="pre">si_errno</span></code>, <code class="docutils literal notranslate"><span class="pre">si_pid</span></code>, <code class="docutils literal notranslate"><span class="pre">si_uid</span></code>, <code class="docutils literal notranslate"><span class="pre">si_status</span></code>, <code class="docutils literal notranslate"><span class="pre">si_band</span></code> 를 나타내는 객체입니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix.</p>
 <p data-msgid="a36ec6b00499f2dee7f03f6a8dc498ea753eacda" data-score="60" data-since="260603">자세한 내용은 매뉴얼 페이지 <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/sigwaitinfo(2)">sigwaitinfo(2)</a></em>를 참조하십시오.</p>
@@ -734,8 +731,8 @@ within signal handlers.  Doing so can lead to unexpected deadlocks.</p>
 <div class="versionchanged" data-msgid="c84824fc6db05495fdcd8b4fa3b5a35911bcb35c" data-score="60" data-since="260603">
 <p><span class="versionmodified changed">버전 3.5에서 변경: </span>이 함수는 이제 <em>sigset</em>에 없는 시그널에 의해 중단되고 시그널 처리기가 예외를 발생시키지 않으면 다시 계산된 <em>timeout</em>으로 재시도됩니다 (이유는 <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0475/"><strong>PEP 475</strong></a>를 참조하십시오).</p>
 </div>
-<div class="versionchanged" data-msgid="eb90544039e10daa9b171a938b1d27bed0c1df85" data-score="40" data-since="260611">
-<p><span class="versionmodified changed">버전 3.15에서 변경: </span><em>timeout</em> 에 정수 또는 부동 소수점만 지원하는 것이 아니라 모든 실수 값을 허용합니다.</p>
+<div class="versionchanged" data-msgid="eb90544039e10daa9b171a938b1d27bed0c1df85" data-score="40" data-since="260622">
+<p><span class="versionmodified changed">버전 3.15에서 변경: </span><em>timeout</em> 으로 정수나 부동 소수점뿐만 아니라 모든 실수 값을 허용합니다.</p>
 </div>
 </dd></dl>
 
@@ -796,7 +793,7 @@ notably, a <a class="reference internal" href="exceptions.html#KeyboardInterrupt
 Most Python code, including the standard library, cannot be made robust against
 this, and so a <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> (or any other exception resulting from
 a signal handler) may on rare occasions put the program in an unexpected state.</p>
-<p data-msgid="c06d35df11cb3912cbcbe0ba649345c0ca583c91" data-score="40" data-since="260609">이 문제를 설명하기 위해, 다음 코드를 고려해 보세요:</p>
+<p data-msgid="c06d35df11cb3912cbcbe0ba649345c0ca583c91" data-score="40" data-since="260622">이 문제를 설명하기 위해 다음 코드를 살펴보십시오:</p>
 <div class="highlight-python3 notranslate" data-msgid="c15969e896327907c61534452153c7dd3bf3e157" data-score="60" data-since="260603"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SpamContext</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
@@ -813,13 +810,7 @@ a signal handler) may on rare occasions put the program in an unexpected state.<
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </pre></div>
 </div>
-<p data-msgid="de449b9dc4d9cfaa763c5369d4cf82192ebc01ce" data-score="0" data-since="260603">For many programs, especially those that merely want to exit on
-<a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a>, this is not a problem, but applications that are
-complex or require high reliability should avoid raising exceptions from signal
-handlers. They should also avoid catching <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> as a means
-of gracefully shutting down.  Instead, they should install their own
-<a class="reference internal" href="#signal.SIGINT" title="signal.SIGINT"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code></a> handler. Below is an example of an HTTP server that avoids
-<a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a>:</p>
+<p data-msgid="de449b9dc4d9cfaa763c5369d4cf82192ebc01ce" data-score="40" data-since="260622">많은 프로그램, 특히 단순히 <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> 가 발생하면 종료되는 프로그램을 제외하고는 큰 문제가 되지 않으나, 복잡하거나 높은 신뢰성이 필요한 애플리케이션은 시그널 처리기에서 예외를 발생시키는 것을 피해야 합니다. 또한 그들은 원활한 종료를 위한 수단으로 <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> 를 잡는(catching) 것도 피해야 하며, 대신 자체적인 <a class="reference internal" href="#signal.SIGINT" title="signal.SIGINT"><code class="xref py py-const docutils literal notranslate"><span class="pre">SIGINT</span></code></a> 처리기를 설치해야 합니다. 아래는 <a class="reference internal" href="exceptions.html#KeyboardInterrupt" title="KeyboardInterrupt"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code></a> 을 방지하는 HTTP 서버의 예시입니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="dbbf7b9d1f23f40d85669e2a0a605d701e09044d" data-score="60" data-since="260603"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">signal</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">selectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultSelector</span><span class="p">,</span> <span class="n">EVENT_READ</span>
