@@ -8,10 +8,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://python.flowdas.com/howto/isolating-extensions.html" />
 <meta property="og:site_name" content="Python documentation" />
-<meta property="og:description" content="개요: 전통적으로 Python 확장 모듈에 속한 상태는 프로세스 전체 범위의 C static 변수에 보관되어 왔습니다. 이 문서는 이러한 프로세스별 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태를 보여줍니다. 이 문서는 또한 가능할 때 모듈별 상태로 전환하는 방법을 설명합니다. 이 전환에는 해당 상태를 위한 공간 할당, 정적 타입에서 힙 타입..." />
+<meta property="og:description" content="개요: 전통적으로 파이썬 확장 모듈에 속하는 상태는 프로세스 전체 범위(process-wide)를 갖는 C static 변수에 저장되었습니다. 이 문서는 이러한 프로세스 단위 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태(per-module state)를 제시합니다. 또한 이 문서는 가능한 경우 모듈별 상태로 전환하는 방법을 설명합니다. 이러..." />
 <meta property="og:image" content="_static/og-image.png" />
 <meta property="og:image:alt" content="Python documentation" />
-<meta name="description" content="개요: 전통적으로 Python 확장 모듈에 속한 상태는 프로세스 전체 범위의 C static 변수에 보관되어 왔습니다. 이 문서는 이러한 프로세스별 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태를 보여줍니다. 이 문서는 또한 가능할 때 모듈별 상태로 전환하는 방법을 설명합니다. 이 전환에는 해당 상태를 위한 공간 할당, 정적 타입에서 힙 타입..." />
+<meta name="description" content="개요: 전통적으로 파이썬 확장 모듈에 속하는 상태는 프로세스 전체 범위(process-wide)를 갖는 C static 변수에 저장되었습니다. 이 문서는 이러한 프로세스 단위 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태(per-module state)를 제시합니다. 또한 이 문서는 가능한 경우 모듈별 상태로 전환하는 방법을 설명합니다. 이러..." />
 <meta name="theme-color" content="#3776ab">
 <meta property="og:image:width" content="200">
 <meta property="og:image:height" content="200">
@@ -88,35 +88,35 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#">확장 모듈 격리하기</a><ul>
-<li><a class="reference internal" href="#who-should-read-this">이 문서를 읽어야 할 사람</a></li>
-<li><a class="reference internal" href="#background">배경 지식</a><ul>
-<li><a class="reference internal" href="#enter-per-module-state">모듈별 상태 입문</a></li>
+<li><a class="reference internal" href="#who-should-read-this">독자 대상</a></li>
+<li><a class="reference internal" href="#background">배경</a><ul>
+<li><a class="reference internal" href="#enter-per-module-state">모듈별 상태 도입</a></li>
 <li><a class="reference internal" href="#isolated-module-objects">격리된 모듈 객체</a></li>
-<li><a class="reference internal" href="#surprising-edge-cases">예상을 벗어난 엣지 케이스</a></li>
+<li><a class="reference internal" href="#surprising-edge-cases">의외의 예외 상황</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#making-modules-safe-with-multiple-interpreters">여러 인터프리터로 모듈 안전하게 만들기</a><ul>
+<li><a class="reference internal" href="#making-modules-safe-with-multiple-interpreters">다중 인터프리터 환경에서 모듈을 안전하게 만들기</a><ul>
 <li><a class="reference internal" href="#managing-global-state">전역 상태 관리</a></li>
 <li><a class="reference internal" href="#managing-per-module-state">모듈별 상태 관리</a></li>
-<li><a class="reference internal" href="#opt-out-limiting-to-one-module-object-per-process">선택해제: 프로세스당 단일 모듈 객체로 제한</a></li>
-<li><a class="reference internal" href="#module-state-access-from-functions">함수에서의 모듈 상태 접근</a></li>
+<li><a class="reference internal" href="#opt-out-limiting-to-one-module-object-per-process">옵트아웃: 프로세스당 하나의 모듈 객체로 제한하기</a></li>
+<li><a class="reference internal" href="#module-state-access-from-functions">함수에서 모듈 상태 접근하기</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#heap-types">힙 형</a><ul>
-<li><a class="reference internal" href="#changing-static-types-to-heap-types">정적 형을 힙 형으로 변경하기</a></li>
+<li><a class="reference internal" href="#changing-static-types-to-heap-types">정적 형(Static Type)을 힙 형(Heap Type)으로 변경하기</a></li>
 <li><a class="reference internal" href="#defining-heap-types">힙 형 정의하기</a></li>
-<li><a class="reference internal" href="#garbage-collection-protocol">가비지 수집 프로토콜</a><ul>
-<li><a class="reference internal" href="#tp-traverse-in-python-3-8-and-lower">Python 3.8 이하 버전의 <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code></a></li>
-<li><a class="reference internal" href="#delegating-tp-traverse"><cite>tp_traverse</cite> 위임</a></li>
-<li><a class="reference internal" href="#defining-tp-dealloc"><code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 정의</a></li>
-<li><a class="reference internal" href="#not-overriding-tp-free"><code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 덮어쓰지 않기</a></li>
+<li><a class="reference internal" href="#garbage-collection-protocol">가비지 컬렉션 프로토콜</a><ul>
+<li><a class="reference internal" href="#tp-traverse-in-python-3-8-and-lower">Python 3.8 이하의 <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code></a></li>
+<li><a class="reference internal" href="#delegating-tp-traverse"><code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code> 위임하기</a></li>
+<li><a class="reference internal" href="#defining-tp-dealloc"><code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 정의하기</a></li>
+<li><a class="reference internal" href="#not-overriding-tp-free"><code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 를 재정의하지 않기</a></li>
 <li><a class="reference internal" href="#avoiding-pyobject-new"><code class="docutils literal notranslate"><span class="pre">PyObject_New</span></code> 피하기</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-state-access-from-classes">클래스로부터의 모듈 상태 접근</a></li>
-<li><a class="reference internal" href="#module-state-access-from-regular-methods">일반 메서드로부터의 모듈 상태 접근</a></li>
-<li><a class="reference internal" href="#module-state-access-from-slot-methods-getters-and-setters">슬롯 메서드, 게터 및 세터에서의 모듈 상태 접근</a></li>
-<li><a class="reference internal" href="#lifetime-of-the-module-state">모듈 상태의 생명주기</a></li>
+<li><a class="reference internal" href="#module-state-access-from-classes">클래스에서 모듈 상태에 접근하기</a></li>
+<li><a class="reference internal" href="#module-state-access-from-regular-methods">일반 메서드에서 모듈 상태에 접근하기</a></li>
+<li><a class="reference internal" href="#module-state-access-from-slot-methods-getters-and-setters">슬롯 메서드, Getter 및 Setter에서 모듈 상태에 접근하기</a></li>
+<li><a class="reference internal" href="#lifetime-of-the-module-state">모듈 상태의 수명</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#open-issues">열린 이슈</a><ul>
@@ -159,51 +159,50 @@
             <article class="document">
                 
   <section id="isolating-extension-modules">
-<span id="isolating-extensions-howto"></span><h1 data-msgid="6d0972ad7fb623215aaffb8bb4fcf1422023f0e8">확장 모듈 격리하기<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h1>
+<span id="isolating-extensions-howto"></span><h1 data-msgid="6d0972ad7fb623215aaffb8bb4fcf1422023f0e8" data-score="40" data-since="260610">확장 모듈 격리하기<a class="headerlink" href="#isolating-extension-modules" title="Link to this heading">¶</a></h1>
 <aside class="topic">
-<p class="topic-title" data-msgid="d79da395b5d7a09c6439a5f2660d8c568186ab7e">개요</p>
-<p>전통적으로 Python 확장 모듈에 속한 상태는 프로세스 전체 범위의 C <code class="docutils literal notranslate"><span class="pre">static</span></code> 변수에 보관되어 왔습니다. 이 문서는 이러한 프로세스별 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태를 보여줍니다.</p>
-<p>이 문서는 또한 가능할 때 모듈별 상태로 전환하는 방법을 설명합니다. 이 전환에는 해당 상태를 위한 공간 할당, 정적 타입에서 힙 타입으로의 잠재적 전환, 그리고 무엇보다 중요한 모듈별 상태에 코드로 접근하는 것이 포함됩니다.</p>
+<p class="topic-title" data-msgid="d79da395b5d7a09c6439a5f2660d8c568186ab7e" data-score="40" data-since="260611">개요</p>
+<p>전통적으로 파이썬 확장 모듈에 속하는 상태는 프로세스 전체 범위(process-wide)를 갖는 C <code class="docutils literal notranslate"><span class="pre">static</span></code> 변수에 저장되었습니다. 이 문서는 이러한 프로세스 단위 상태의 문제점을 설명하고 더 안전한 방법인 모듈별 상태(per-module state)를 제시합니다.</p>
+<p>또한 이 문서는 가능한 경우 모듈별 상태로 전환하는 방법을 설명합니다. 이러한 전환에는 해당 상태를 위한 공간 할당, 정적 타입에서 힙 유형으로의 전환 가능성, 그리고 가장 중요하게는 코드에서 모듈별 상태에 접근하는 방법이 포함됩니다.</p>
 </aside>
 <section id="who-should-read-this">
-<h2>이 문서를 읽어야 할 사람<a class="headerlink" href="#who-should-read-this" title="Link to this heading">¶</a></h2>
-<p>이 지침서는 파이썬 자체를 라이브러리로 사용하는 애플리케이션에서 해당 확장을 더 안전하게 사용할 수 있도록 하려는 <a class="reference internal" href="../c-api/index.html#c-api-index"><span class="std std-ref">C-API</span></a> 확장 개발자를 위해 작성되었습니다.</p>
+<h2>독자 대상<a class="headerlink" href="#who-should-read-this" title="Link to this heading">¶</a></h2>
+<p>이 가이드는 파이썬 자체가 라이브러리로 사용되는 애플리케이션에서 해당 확장을 더 안전하게 사용할 수 있도록 만들고자 하는 <a class="reference internal" href="../c-api/index.html#c-api-index"><span class="std std-ref">C-API</span></a> 확장 모듈 유지관리자를 위해 작성되었습니다.</p>
 </section>
 <section id="background">
-<h2>배경 지식<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
-<p><em>인터프리터</em> 는 파이썬 코드가 실행되는 환경입니다. 여기에는 구성(예: import 경로)과 런타임 상태(예: 임포트된 모듈 세트)가 포함되어 있습니다.</p>
-<p>Python은 하나의 프로세스에서 여러 인터프리터를 실행하는 것을 지원합니다. 고려해야 할 두 가지 경우가 있습니다. 즉, 사용자가 인터프리터를 다음과 같이 실행할 수 있습니다:</p>
+<h2>배경<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p><em>인터프리터</em> 는 파이썬 코드가 실행되는 환경입니다. 여기에는 설정(예: 가져오기 경로)과 런타임 상태(예: 임포트된 모듈 세트)가 포함됩니다.</p>
+<p>파이썬은 하나의 프로세스에서 여러 개의 인터프리터를 실행하는 것을 지원합니다. 고려해야 할 두 가지 경우가 있습니다. 사용자는 다음과 같이 인터프리터를 실행할 수 있습니다.</p>
 <ul class="simple">
-<li><p>순차적으로, 여러 <a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_InitializeEx" title="Py_InitializeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_InitializeEx()</span></code></a>/<a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> 사이클을 거쳐, 그리고</p></li>
-<li><p>in parallel, managing “sub-interpreters” using
-<a class="reference internal" href="../c-api/subinterpreters.html#c.Py_NewInterpreter" title="Py_NewInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreter()</span></code></a>/<a class="reference internal" href="../c-api/subinterpreters.html#c.Py_EndInterpreter" title="Py_EndInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EndInterpreter()</span></code></a>.</p></li>
+<li><p>연속적으로 여러 번의 <a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_InitializeEx" title="Py_InitializeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_InitializeEx()</span></code></a>/<a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> 사이클을 거치거나,</p></li>
+<li><p>병렬로 ; 즉, <a class="reference internal" href="../c-api/subinterpreters.html#c.Py_NewInterpreter" title="Py_NewInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_NewInterpreter()</span></code></a>/<a class="reference internal" href="../c-api/subinterpreters.html#c.Py_EndInterpreter" title="Py_EndInterpreter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_EndInterpreter()</span></code></a> 를 사용하여 “서브 인터프리터”를 관리하거나.</p></li>
 </ul>
-<p>두 경우 모두 (그리고 이들의 조합) 라이브러리 내부에 Python을 임베딩할 때 가장 유용합니다. 라이브러리는 일반적으로 자신들을 사용하는 애플리케이션에 대해 가정해서는 안 되며, 여기에는 프로세스 전체의 “메인 Python 인터프리터”라는 가정을 포함합니다.</p>
-<p>역사적으로 파이썬 확장 모듈은 이 사용 사례를 잘 처리하지 못했습니다. 많은 확장 모듈(심지어 일부 stdlib 모듈도)은 C의 <code class="docutils literal notranslate"><span class="pre">static</span></code> 변수를 사용하기가 매우 쉬워서 <em>프로세스별</em> 전역 상태를 사용합니다. 따라서 특정 인터프리터에만 있어야 할 데이터가 인터프리터들 사이에서 공유되는 경우가 발생합니다. 확장 개발자가 주의하지 않으면, 같은 프로세스에서 모듈이 여러 인터프리터에 로드될 때 충돌을 일으키는 엣지 케이스를 도입하기가 매우 쉽습니다.</p>
-<p>안타깝게도 <em>인터프리터별</em> 상태를 얻기는 쉽지 않습니다. 확장 작성자들은 개발할 때 여러 인터프리터를 염두에 두지 않는 경향이 있으며, 현재로서는 그 동작을 테스트하는 것이 번거롭습니다.</p>
+<p>두 경우(및 이들의 조합)는 라이브러리 내에 파이썬을 임베딩할 때 가장 유용합니다. 일반적으로 라이브러리는 이를 사용하는 애플리케이션에 대해 어떠한 가정도 해서는 안 되며, 여기에는 프로세스 전체에 걸친 “메인 파이썬 인터프리터”가 존재한다고 가정하는 것도 포함됩니다.</p>
+<p>역사적으로 파이썬 확장 모듈은 이러한 활용 사례를 잘 처리하지 못해 왔습니다. 많은 확장 모듈(그리고 일부 표준 라이브러리 모듈까지도)은 C의 <code class="docutils literal notranslate"><span class="pre">static</span></code> 변수를 사용하기 매우 편리하기 때문에 <em>프로세스별</em> 전역 상태를 사용합니다. 이로 인해 특정 인터프리터에만 해당해야 하는 데이터가 여러 인터프리터 간에 공유되는 결과가 초래됩니다. 확장 모듈 개발자가 주의를 기울이지 않으면, 동일한 프로세스 내의 두 개 이상의 인터프리터에서 모듈을 로드할 때 충돌을 일으키는 예외 상황이 발생하기 매우 쉽습니다.</p>
+<p>안타깝게도 <em>인터프리터별</em> 상태를 구현하는 것은 쉽지 않습니다. 확장 모듈 작성자들은 개발 시 여러 인터프리터를 고려하지 않는 경향이 있으며, 현재로서는 이러한 동작을 테스트하는 것이 번거롭습니다.</p>
 <section id="enter-per-module-state">
-<h3>모듈별 상태 입문<a class="headerlink" href="#enter-per-module-state" title="Link to this heading">¶</a></h3>
-<p>인터프리터별 상태에 초점을 맞추는 대신, Python의 C API는 더 세부적인 <em>모듈별</em> 상태를 더 잘 지원하도록 발전하고 있습니다. 이는 C 레벨 데이터가 <em>모듈 객체</em> 에 연결되어야 함을 의미합니다. 각 인터프리터는 자체 모듈 객체를 생성하여 데이터를 분리하게 합니다. 격리를 테스트하기 위해, 단일 확장과 관련된 여러 모듈 객체도 단일 인터프리터에 로드될 수 있습니다.</p>
-<p>모듈별 상태는 수명 주기 및 리소스 소유권을 생각하기 쉽게 만듭니다. 확장 모듈은 모듈 객체가 생성될 때 초기화되고, 해제될 때 정리됩니다. 이러한 점에서, 모듈은 다른 <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> 와 같습니다. 생각하거나 잊을 “인터프리터 종료 시” 훅이 없습니다.</p>
-<p>“전역”의 여러 종류의 사용 사례가 있다는 점에 유의하십시오: 프로세스별, 인터프리터별, 스레드별 또는 작업별 상태가 있습니다. 모듈별 상태가 기본값이지만, 이들은 여전히 가능합니다. 그러나 이들을 예외적인 경우로 처리해야 합니다: 필요하다면, 추가적인 주의와 테스트를 기울여야 합니다. (이 가이드에서는 다루지 않습니다.)</p>
+<h3>모듈별 상태 도입<a class="headerlink" href="#enter-per-module-state" title="Link to this heading">¶</a></h3>
+<p>파이썬의 C API는 인터프리터별 상태에 집중하는 대신, 더 세분화된 <em>모듈별</em> 상태를 더 잘 지원하도록 발전하고 있습니다. 이는 C 수준의 데이터를 <em>모듈 객체</em> 에 연결해야 함을 의미합니다. 각 인터프리터는 고유한 모듈 객체를 생성하여 데이터를 분리하여 유지합니다. 격리를 테스트하기 위해, 하나의 확장 프로그램에 해당하는 여러 모듈 객체를 단일 인터프리터 내에 로드할 수도 있습니다.</p>
+<p>모듈별 상태는 수명과 리소스 소유권을 생각하는 쉬운 방법을 제공합니다. 확장 모듈은 모듈 객체가 생성될 때 초기화되고, 해제될 때 정리됩니다. 이런 관점에서 모듈은 다른 어떤 <span class="c-expr sig sig-inline c"><a class="reference internal" href="../c-api/structures.html#c.PyObject" title="PyObject"><span class="n">PyObject</span></a><span class="p">*</span></span> 와도 마찬가지이며, “인터프리터 종료 시” 실행되는 훅을 고려하거나 잊어버릴 필요가 없습니다.</p>
+<p>프로세스별, 인터프리터별, 스레드별 또는 작업(task)별 상태와 같은 다양한 종류의 “전역” 상태가 필요할 수도 있음을 유의하십시오. 모듈별 상태를 기본으로 사용하더라도 이러한 것들이 가능은 하지만, 예외적인 경우로 취급해야 합니다. 만약 이러한 상태가 필요한 경우, 추가적인 주의와 테스트가 필요합니다. (이 가이드에서는 이를 다루지 않습니다.)</p>
 </section>
 <section id="isolated-module-objects">
 <h3>격리된 모듈 객체<a class="headerlink" href="#isolated-module-objects" title="Link to this heading">¶</a></h3>
-<p>확장 모듈을 개발할 때 염두에 두어야 할 핵심 사항은 단일 공유 라이브러리로부터 여러 모듈 객체가 생성될 수 있다는 것입니다. 예를 들어:</p>
+<p>확장 모듈을 개발할 때 명심해야 할 핵심 사항은 단일 공유 라이브러리로부터 여러 개의 모듈 객체가 생성될 수 있다는 점입니다. 예를 들어:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">binascii</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">old_binascii</span> <span class="o">=</span> <span class="n">binascii</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s1">&#39;binascii&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">binascii</span>  <span class="c1"># 새 모듈 객체 생성</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">binсяccii</span>  <span class="c1"># 새 모듈 객체 생성</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">old_binascii</span> <span class="o">==</span> <span class="n">binascii</span>
 <span class="go">False</span>
 </pre></div>
 </div>
-<p>경험칙으로, 두 모듈은 완전히 독립적이어야 합니다. 모듈에 특정적인 모든 객체와 상태는 모듈 객체 내부에 캡슐화되어야 하며, 다른 모듈 객체와 공유되어서는 안 되고, 모듈 객체가 할당 해제될 때 정리되어야 합니다. 이것은 단지 경험칙일 뿐이므로 예외는 가능합니다 (<a class="reference internal" href="#managing-global-state">Managing Global State</a> 참조), 하지만 이 경우 더 많은 생각과 엣지 케이스에 대한 주의가 필요할 것입니다.</p>
-<p>일부 모듈은 덜 엄격한 제한이 필요할 수도 있지만, 격리된 모듈은 다양한 사용 사례 전반에 걸쳐 작동하는 명확한 기대치와 가이드를 설정하기 쉽게 만듭니다.</p>
+<p>일반적인 원칙으로, 두 모듈은 완전히 독립적이어야 합니다. 모듈에 특화된 모든 객체와 상태는 모듈 객체 내에 캡슐화되어야 하며, 다른 모듈 객체와 공유되어서는 안 되고, 모듈 객체가 해제될 때 정리되어야 합니다. 이는 일반적인 원칙이므로 예외가 발생할 수 있으나(<a class="reference internal" href="#managing-global-state">Managing Global State</a> 참조), 이 경우 더 많은 고민과 예외 상황에 대한 주의가 필요합니다.</p>
+<p>일부 모듈은 덜 엄격한 제한으로도 충분할 수 있지만, 격리된 모듈을 사용하면 다양한 활용 사례에 걸쳐 작동하는 명확한 기대치와 가이드라인을 설정하기가 더 쉬워집니다.</p>
 </section>
 <section id="surprising-edge-cases">
-<h3>예상을 벗어난 엣지 케이스<a class="headerlink" href="#surprising-edge-cases" title="Link to this heading">¶</a></h3>
+<h3>의외의 예외 상황<a class="headerlink" href="#surprising-edge-cases" title="Link to this heading">¶</a></h3>
 <p>격리된 모듈은 일부 놀라운 엣지 케이스를 생성한다는 점에 유념하십시오. 가장 주목할 만한 점은, 각 모듈 객체가 일반적으로 다른 유사한 모듈과 클래스 및 예외를 공유하지 않는다는 것입니다. 위의 <a class="reference internal" href="#isolated-module-objects">example above</a> 를 계속하면, <code class="docutils literal notranslate"><span class="pre">old_binascii.Error</span></code> 와 <code class="docutils literal notranslate"><span class="pre">binascii.Error</span></code> 가 별개의 객체라는 점에 유념하십시오. 다음 코드에서는 예외가 <em>포착되지</em> 않습니다:</p>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">old_binascii</span><span class="o">.</span><span class="n">Error</span> <span class="o">==</span> <span class="n">binascii</span><span class="o">.</span><span class="n">Error</span>
 <span class="go">False</span>
@@ -217,54 +216,43 @@
 <span class="gr">binascii.Error</span>: <span class="n">Non-hexadecimal digit found</span>
 </pre></div>
 </div>
-<p>이는 예상된 동작입니다. 순수 Python 모듈 역시 같은 방식으로 동작하는 것을 알 수 있습니다: 이것은 Python 작동 방식의 일부입니다.</p>
-<p>목표는 확장 모듈을 C 레벨에서 안전하게 만드는 것이지, 해커들이 직관적으로 행동하게 만드는 것이 아닙니다. <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code> 를 “수동으로” 변경하는 것은 해킹에 해당합니다.</p>
+<p>이는 예상된 결과입니다. 순수 파이썬 모듈도 동일하게 동작한다는 점에 주목하십시오. 이것은 파이썬의 작동 방식 중 일부입니다.</p>
+<p>목표는 확장 모듈을 C 수준에서 안전하게 만드는 것이지, 편법(hack)이 직관적으로 작동하게 만드는 것이 아닙니다. <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code> 를 “수동으로” 수정하는 것은 편법에 해당합니다.</p>
 </section>
 </section>
 <section id="making-modules-safe-with-multiple-interpreters">
-<h2>여러 인터프리터로 모듈 안전하게 만들기<a class="headerlink" href="#making-modules-safe-with-multiple-interpreters" title="Link to this heading">¶</a></h2>
+<h2>다중 인터프리터 환경에서 모듈을 안전하게 만들기<a class="headerlink" href="#making-modules-safe-with-multiple-interpreters" title="Link to this heading">¶</a></h2>
 <section id="managing-global-state">
 <h3>전역 상태 관리<a class="headerlink" href="#managing-global-state" title="Link to this heading">¶</a></h3>
-<p>파이썬 모듈에 연결된 상태는 모듈 자체에 국한되지 않고 전체 프로세스(또는 모듈보다 “더 전역적인” 다른 무언가)에 국한될 때가 있습니다. 예를 들어:</p>
+<p>때때로 파이썬 모듈과 관련된 상태가 해당 모듈에 특화된 것이 아니라 프로세스 전체(또는 모듈보다 “더 전역적인” 무언가)와 관련된 경우가 있습니다. 예를 들어:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">readline</span></code> 모듈은 <em>터미널</em> 전체를 관리합니다.</p></li>
-<li><p>회로 기판에서 실행되는 모듈이 온보드 LED를 제어하려고 합니다.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">readline</span></code> 모듈은 <em>그</em> 터미널을 관리합니다.</p></li>
+<li><p>회로 기판에서 실행되는 모듈은 <em>그</em> 온보드 LED를 제어하려고 합니다.</p></li>
 </ul>
-<p>이러한 경우, 파이썬 모듈은 <em>소유</em> 하기보다는 전역 상태에 대한 <em>접근</em> 을 제공해야 합니다. 가능하다면, 모듈을 작성하여 여러 복사본이 상태에 독립적으로 접근할 수 있도록 하십시오(파이썬이나 다른 언어의 다른 라이브러리와 함께). 이것이 불가능한 경우, 명시적인 잠금(locking)을 고려하십시오.</p>
-<p>If it is necessary to use process-global state, the simplest way to
-avoid issues with multiple interpreters is to explicitly prevent a
-module from being loaded more than once per process—see
-<a class="reference internal" href="#isolating-extensions-optout"><span class="std std-ref">선택해제: 프로세스당 단일 모듈 객체로 제한</span></a>.</p>
+<p>이러한 경우, 파이썬 모듈은 전역 상태를 <em>소유</em> 하는 대신 해당 상태에 대한 <em>접근</em> 을 제공해야 합니다. 가능하다면, 여러 복사본이 독립적으로 상태에 접근할 수 있도록(파이썬이나 다른 언어를 위한 다른 라이브러리와 함께) 모듈을 작성하십시오. 그것이 불가능하다면 명시적인 잠금(locking)을 고려하십시오.</p>
+<p>프로세스 전역 상태를 사용해야 하는 경우, 여러 인터프리터와 관련된 문제를 방지하는 가장 간단한 방법은 모듈이 프로세스당 한 번 이상 로드되지 않도록 명시적으로 차단하는 것입니다. <a class="reference internal" href="#isolating-extensions-optout"><span class="std std-ref">옵트아웃: 프로세스당 하나의 모듈 객체로 제한하기</span></a> 을 참조하십시오.</p>
 </section>
 <section id="managing-per-module-state">
 <h3>모듈별 상태 관리<a class="headerlink" href="#managing-per-module-state" title="Link to this heading">¶</a></h3>
-<p>To use per-module state, use
-<a class="reference internal" href="../c-api/extension-modules.html#multi-phase-initialization"><span class="std std-ref">multi-phase extension module initialization</span></a>.
-This signals that your module supports multiple interpreters correctly.</p>
-<p>Set <code class="docutils literal notranslate"><span class="pre">PyModuleDef.m_size</span></code> to a positive number to request that many
-bytes of storage local to the module. Usually, this will be set to the
-size of some module-specific <code class="docutils literal notranslate"><span class="pre">struct</span></code>, which can store all of the
-module’s C-level state. In particular, it is where you should put
-pointers to classes (including exceptions, but excluding static types)
-and settings (e.g. <code class="docutils literal notranslate"><span class="pre">csv</span></code>’s <a class="reference internal" href="../library/csv.html#csv.field_size_limit" title="csv.field_size_limit"><code class="xref py py-data docutils literal notranslate"><span class="pre">field_size_limit</span></code></a>)
-which the C code needs to function.</p>
+<p>모듈별 상태를 사용하려면 <a class="reference internal" href="../c-api/extension-modules.html#multi-phase-initialization"><span class="std std-ref">multi-phase extension module initialization</span></a> 을 사용하십시오. 이는 해당 모듈이 여러 인터프리터를 올바르게 지원함을 나타냅니다.</p>
+<p><code class="docutils literal notranslate"><span class="pre">PyModuleDef.m_size</span></code> 를 양의 숫자로 설정하여 모듈 전용 저장 공간을 요청하십시오. 일반적으로 이는 모든 모듈 수준의 C 상태를 저장할 수 있는 특정 모듈의 <code class="docutils literal notranslate"><span class="pre">struct</span></code> 크기로 설정됩니다. 특히, 여기에는 C 코드가 작동하는 데 필요한 클래스(예외 포함, 정적 타입 제외) 및 설정(예: <code class="docutils literal notranslate"><span class="pre">csv</span></code> 의 <a class="reference internal" href="../library/csv.html#csv.field_size_limit" title="csv.field_size_limit"><code class="xref py py-data docutils literal notranslate"><span class="pre">field_size_limit</span></code></a>)에 대한 포인터를 두어야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>다른 방법은 모듈의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 에 상태를 저장하는 것이지만, 사용자가 파이썬 코드에서 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 를 수정할 때 충돌하는 것을 피해야 합니다. 이는 일반적으로 C 수준의 오류 및 타입 검사를 의미하며, 이는 잘못하기 쉬워 충분히 테스트하기 어렵습니다.</p>
-<p>하지만 모듈 상태가 C 코드에서 필요하지 않은 경우, <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 에만 저장하는 것은 좋은 생각입니다.</p>
+<p>또 다른 옵션은 모듈의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 에 상태를 저장하는 것이지만, 사용자가 파이썬 코드에서 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 를 수정할 때 충돌이 발생하지 않도록 해야 합니다. 이는 보통 C 수준에서의 오류 및 유형 검사를 의미하며, 이는 잘못되기 쉽고 충분히 테스트하기 어렵습니다.</p>
+<p>그러나 모듈 상태가 C 코드에서 필요하지 않다면, <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 에만 저장하는 것이 좋은 방법입니다.</p>
 </div>
-<p>모듈 상태가 <code class="docutils literal notranslate"><span class="pre">PyObject</span></code> 포인터를 포함하는 경우, 모듈 객체는 해당 객체에 대한 참조를 유지해야 하며 모듈 수준 훅 <code class="docutils literal notranslate"><span class="pre">m_traverse</span></code>, <code class="docutils literal notranslate"><span class="pre">m_clear</span></code> 및 <code class="docutils literal notranslate"><span class="pre">m_free</span></code> 를 구현해야 합니다. 이것은 클래스의 <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code>, <code class="docutils literal notranslate"><span class="pre">tp_clear</span></code> 및 <code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 와 유사하게 작동합니다. 이를 추가하면 약간의 작업이 필요하여 코드가 더 길어집니다. 이는 깨끗하게 언로드될 수 있는 모듈에 대한 대가입니다.</p>
+<p>모듈 상태에 <code class="docutils literal notranslate"><span class="pre">PyObject</span></code> 포인터가 포함된 경우, 모듈 객체는 해당 객체들에 대한 참조를 보유해야 하며 모듈 수준의 훅인 <code class="docutils literal notranslate"><span class="pre">m_traverse</span></code>, <code class="docutils literal notranslate"><span class="pre">m_clear</span></code> 및 <code class="docutils literal notranslate"><span class="pre">m_free</span></code> 를 구현해야 합니다. 이들은 클래스의 <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code>, <code class="docutils literal notranslate"><span class="pre">tp_clear</span></code>, <code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 와 유사하게 작동합니다. 이를 추가하려면 작업이 필요하고 코드가 길어지겠지만, 이는 모듈을 깔끔하게 언로드할 수 있게 하는 대가입니다.</p>
 <p>An example of a module with per-module state is currently available as
 <a class="reference external" href="https://github.com/python/cpython/blob/master/Modules/xxlimited.c">xxlimited</a>;
 example module initialization shown at the bottom of the file.</p>
 </section>
 <section id="opt-out-limiting-to-one-module-object-per-process">
-<span id="isolating-extensions-optout"></span><h3>선택해제: 프로세스당 단일 모듈 객체로 제한<a class="headerlink" href="#opt-out-limiting-to-one-module-object-per-process" title="Link to this heading">¶</a></h3>
-<p>음수가 아닌 <code class="docutils literal notranslate"><span class="pre">PyModuleDef.m_size</span></code> 는 모듈이 여러 인터프리터를 올바르게 지원한다는 신호입니다. 모듈이 아직 이 경우에 해당하지 않는다면, 모듈이 프로세스당 한 번만 로드 가능하도록 명시적으로 만들 수 있습니다. 예를 들면:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// 프로세스 전체 플래그</span>
+<span id="isolating-extensions-optout"></span><h3>옵트아웃: 프로세스당 하나의 모듈 객체로 제한하기<a class="headerlink" href="#opt-out-limiting-to-one-module-object-per-process" title="Link to this heading">¶</a></h3>
+<p>0 이상의 <code class="docutils literal notranslate"><span class="pre">PyModuleDef.m_size</span></code> 는 모듈이 여러 인터프리터를 올바르게 지원함을 나타냅니다. 아직 그러한 경우가 아니라면, 모듈을 프로세스당 한 번만 로드 가능하도록 명시적으로 설정할 수 있습니다. 예:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// 프로세스 전체에 적용되는 플래그</span>
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">loaded</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 
-<span class="c1">// 스레드 안전성을 제공하기 위한 뮤텍스 (free-threaded Python에만 필요)</span>
+<span class="c1">// 스레드 안전성을 제공하기 위한 뮤텍스 (free-threaded Python에서만 필요)</span>
 <span class="k">static</span><span class="w"> </span><span class="n">PyMutex</span><span class="w"> </span><span class="n">modinit_mutex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span>
@@ -283,11 +271,11 @@ example module initialization shown at the bottom of the file.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>모듈의 <a class="reference internal" href="../c-api/module.html#c.PyModuleDef.m_clear" title="PyModuleDef.m_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyModuleDef.m_clear</span></code></a> 함수가 향후 재초기화를 준비할 수 있다면, <code class="docutils literal notranslate"><span class="pre">loaded</span></code> 플래그를 지워야 합니다. 이 경우, 모듈은 <em>동시</em> 로 여러 인스턴스가 존재함을 지원하지 않지만, 예를 들어 파이썬 런타임 종료 (<a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a>) 후 및 재초기화 (<a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>) 후 로드가 지원되기는 합니다.</p>
+<p>모듈의 <a class="reference internal" href="../c-api/module.html#c.PyModuleDef.m_clear" title="PyModuleDef.m_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyModuleDef.m_clear</span></code></a> 함수가 향후 재초기화를 대비할 수 있는 경우, <cite>loaded</cite> 플래그를 해제해야 합니다. 이 경우 모듈이 여러 인스턴스가 <em>동시에</em> 존재하는 것은 지원하지 않지만, 예를 들어 파이썬 런타임 종료(<a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a>) 이후에 로드되거나 재초기화(<a class="reference internal" href="../c-api/interp-lifecycle.html#c.Py_Initialize" title="Py_Initialize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_Initialize()</span></code></a>)되는 경우는 지원하게 됩니다.</p>
 </section>
 <section id="module-state-access-from-functions">
-<h3>함수에서의 모듈 상태 접근<a class="headerlink" href="#module-state-access-from-functions" title="Link to this heading">¶</a></h3>
-<p>모듈 수준 함수에서 상태에 접근하는 것은 간단합니다. 함수는 첫 번째 인수로 모듈 객체를 받으며, 상태를 추출하려면 <code class="docutils literal notranslate"><span class="pre">PyModule_GetState</span></code> 를 사용하면 됩니다.</p>
+<h3>함수에서 모듈 상태 접근하기<a class="headerlink" href="#module-state-access-from-functions" title="Link to this heading">¶</a></h3>
+<p>모듈 수준의 함수에서 상태에 접근하는 것은 간단합니다. 함수는 첫 번째 인자로 모듈 객체를 받으며, 상태를 추출하려면 <code class="docutils literal notranslate"><span class="pre">PyModule_GetState</span></code> 를 사용할 수 있습니다.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span>
 <span class="nf">func</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="p">,</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 <span class="p">{</span>
@@ -301,59 +289,50 @@ example module initialization shown at the bottom of the file.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p><code class="docutils literal notranslate"><span class="pre">PyModule_GetState</span></code> may return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> without setting an
-exception if there is no module state, i.e. <code class="docutils literal notranslate"><span class="pre">PyModuleDef.m_size</span></code> was
-zero. In your own module, you’re in control of <code class="docutils literal notranslate"><span class="pre">m_size</span></code>, so this is
-easy to prevent.</p>
+<p>모듈 상태가 없는 경우(즉, <code class="docutils literal notranslate"><span class="pre">PyModuleDef.m_size</span></code> 가 0인 경우), <code class="docutils literal notranslate"><span class="pre">PyModule_GetState</span></code> 는 예외를 설정하지 않고 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 반환할 수 있습니다. 자체 모듈에서는 <code class="docutils literal notranslate"><span class="pre">m_size</span></code> 를 제어하므로 이를 방지하기 쉽습니다.</p>
 </div>
 </section>
 </section>
 <section id="heap-types">
 <h2>힙 형<a class="headerlink" href="#heap-types" title="Link to this heading">¶</a></h2>
-<p>전통적으로 C 코드에서 정의된 형은 <em>정적(static)</em> 입니다. 즉, 코드에 직접 정의되고 <code class="docutils literal notranslate"><span class="pre">PyType_Ready()</span></code> 를 사용하여 초기화되는 <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">PyTypeObject</span></code> 구조체입니다.</p>
-<p>이러한 형들은 프로세스 전반에 걸쳐 반드시 공유됩니다. 이들을 모듈 객체 간에 공유하려면, 해당 객체가 소유하거나 접근하는 모든 상태에 주의를 기울여야 합니다. 가능한 문제를 제한하기 위해, 정적 형은 파이썬 레벨에서 불변입니다. 예를 들어, <code class="docutils literal notranslate"><span class="pre">str.myattribute</span> <span class="pre">=</span> <span class="pre">123</span></code> 와 같이 설정할 수 없습니다.</p>
+<p>전통적으로 C 코드에서 정의된 형은 <em>정적(static)</em> 입니다. 즉, 코드 내에서 직접 정의되고 <code class="docutils literal notranslate"><span class="pre">PyType_Ready()</span></code> 를 사용하여 초기화되는 <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">PyTypeObject</span></code> 구조체입니다.</p>
+<p>이러한 형은 필연적으로 프로세스 전체에서 공유됩니다. 이를 모듈 객체 간에 공유할 때는 해당 형이 소유하거나 접근하는 상태에 주의를 기울여야 합니다. 발생 가능한 문제를 제한하기 위해, 정적형은 파이썬 수준에서 불변(immutable)입니다. 예를 들어 <code class="docutils literal notranslate"><span class="pre">str.myattribute</span> <span class="pre">=</span> <span class="pre">123</span></code> 과 같이 설정할 수 없습니다.</p>
 <div class="impl-detail compound">
-<p>진정으로 불변인 객체를 인터프리터 간에 공유하는 것은 문제가 없습니다. 단, 가변 객체에 대한 접근을 제공하지 않는다는 전제가 필요합니다. 그러나 CPython에서는 모든 파이썬 객체가 가변적인 구현 세부 사항, 즉 참조 횟수를 가지고 있습니다. refcount 변경은 GIL에 의해 보호됩니다. 따라서 인터프리터 전반에 걸쳐 파이썬 객체를 공유하는 코드는 암시적으로 CPython의 현재 프로세스 전체 GIL에 의존하게 됩니다.</p>
+<p>가변 객체에 대한 접근을 제공하지 않는 한, 진정으로 불변인 객체를 인터프리터 간에 공유하는 것은 괜찮습니다. 그러나 CPython에서 모든 파이썬 객체는 가변적인 구현 세부 사항인 참조 횟수(reference count)를 가지고 있습니다. 참조 횟수의 변경은 GIL에 의해 보호됩니다. 따라서 어떤 파이썬 객체든 인터프리터 간에 공유하는 코드는 명시적으로나 암묵적으로나 CPython의 현재 프로세스 범위의 GIL에 의존하게 됩니다.</p>
 </div>
-<p>정적 형처럼 불변하고 프로세스 전역적인 객체는 “자신들의” 모듈 상태에 접근할 수 없습니다. 이러한 유형의 메서드가 모듈 상태에 접근해야 하는 경우, 해당 유형은 <em>힙 할당 유형(heap-allocated type)</em>, 또는 줄여서 <em>힙 형(heap type)</em> 으로 변환되어야 합니다. 이는 파이썬의 <code class="docutils literal notranslate"><span class="pre">class</span></code> 문으로 생성된 클래스와 더 가깝습니다.</p>
-<p>새 모듈의 경우, 기본적으로 힙 형을 사용하는 것이 좋은 관례입니다.</p>
+<p>정적형은 불변이며 프로세스 전역에 해당하므로, 자신들의 모듈 상태에 접근할 수 없습니다. 이러한 형의 메서드 중 어느 하나라도 모듈 상태에 대한 접근이 필요한 경우, 해당 형을 <em>힙 할당 형*(줄여서 **heap type*</em>)으로 변환해야 합니다. 이는 파이썬의 <code class="docutils literal notranslate"><span class="pre">class</span></code> 문으로 생성된 클래스와 더 밀접하게 대응됩니다.</p>
+<p>새로운 모듈의 경우 기본적으로 heap 형을 사용하는 것이 좋은 원칙입니다.</p>
 <section id="changing-static-types-to-heap-types">
-<h3>정적 형을 힙 형으로 변경하기<a class="headerlink" href="#changing-static-types-to-heap-types" title="Link to this heading">¶</a></h3>
-<p>정적 형은 힙 형으로 변환될 수 있지만, 힙 형 API는 정적 형으로부터의 “손실 없는” 변환을 위해 설계된 것이 아니라는 점에 유의해야 합니다. 즉, 주어진 정적 형과 정확히 동일하게 작동하는 유형을 만드는 것은 아닙니다. 따라서 새로운 API에서 클래스 정의를 다시 작성할 때 몇 가지 세부 사항(예: pickle 가능성 또는 상속된 슬롯)이 의도치 않게 변경될 가능성이 높습니다. 중요한 세부 사항은 항상 테스트해야 합니다.</p>
-<p>특히 다음 두 가지 사항을 유의하십시오 (하지만 이것이 전체 목록은 아님에 유의하십시오):</p>
+<h3>정적 형(Static Type)을 힙 형(Heap Type)으로 변경하기<a class="headerlink" href="#changing-static-types-to-heap-types" title="Link to this heading">¶</a></h3>
+<p>정적 형은 힙 형으로 변환할 수 있지만, 힙 형 API가 정적 형으로부터 ‘무손실’ 변환(즉, 특정 정적 형과 정확히 동일하게 작동하는 형을 생성하는 것)을 위해 설계되지 않았다는 점에 유의하십시오. 따라서 새로운 API에서 클래스 정의를 다시 작성할 때 몇 가지 세부 사항(예: pickle 가능성 또는 상속된 슬롯 등)이 의도치 않게 변경될 수 있습니다. 항상 중요한 세부 사항을 테스트하십시오.</p>
+<p>특히 다음 두 가지 사항에 주의하십시오(단, 이것이 모든 항목을 포함하는 것은 아닙니다):</p>
 <ul class="simple">
-<li><p>정적 형과 달리, 힙 형 객체는 기본적으로 가변입니다. <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_IMMUTABLETYPE" title="Py_TPFLAGS_IMMUTABLETYPE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_IMMUTABLETYPE</span></code></a> 플래그를 사용하여 가변성을 방지하십시오.</p></li>
+<li><p>정적 형과 달리 힙 형 객체는 기본적으로 가변(mutable)입니다. 가변성을 방지하려면 <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_IMMUTABLETYPE" title="Py_TPFLAGS_IMMUTABLETYPE"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_IMMUTABLETYPE</span></code></a> 플래그를 사용하십시오.</p></li>
 <li><p>힙 형은 기본적으로 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> 를 상속받기 때문에, 파이썬 코드로 인스턴스화하는 것이 가능해질 수 있습니다. 이는 <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_DISALLOW_INSTANTIATION" title="Py_TPFLAGS_DISALLOW_INSTANTIATION"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_DISALLOW_INSTANTIATION</span></code></a> 플래그로 방지할 수 있습니다.</p></li>
 </ul>
 </section>
 <section id="defining-heap-types">
 <h3>힙 형 정의하기<a class="headerlink" href="#defining-heap-types" title="Link to this heading">¶</a></h3>
-<p>Heap types can be created by filling a <a class="reference internal" href="../c-api/type.html#c.PyType_Spec" title="PyType_Spec"><code class="xref c c-struct docutils literal notranslate"><span class="pre">PyType_Spec</span></code></a> structure, a
-description or “blueprint” of a class, and calling
-<a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a> to construct a new class object.</p>
+<p>힙 형은 클래스의 설명 또는 “청사진”인 <a class="reference internal" href="../c-api/type.html#c.PyType_Spec" title="PyType_Spec"><code class="xref c c-struct docutils literal notranslate"><span class="pre">PyType_Spec</span></code></a> 구조체를 채우고, <a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a> 를 호출하여 새로운 클래스 객체를 생성함으로써 만들 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>Other functions, like <a class="reference internal" href="../c-api/type.html#c.PyType_FromSpec" title="PyType_FromSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpec()</span></code></a>, can also create
-heap types, but <a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a> associates the module
-with the class, allowing access to the module state from methods.</p>
+<p><a class="reference internal" href="../c-api/type.html#c.PyType_FromSpec" title="PyType_FromSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromSpec()</span></code></a> 과 같은 다른 함수들도 힙 형을 생성할 수 있지만, <a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a> 은 모듈을 클래스와 연결하여 메서드에서 모듈 상태에 접근할 수 있게 합니다.</p>
 </div>
-<p>해당 클래스는 일반적으로 모듈 상태(C에서 안전하게 접근하기 위함)와 모듈의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> (파이썬 코드에서 접근하기 위함) <em>둘 다</em> 에 저장되어야 합니다.</p>
+<p>클래스는 일반적으로 C에서 안전하게 접근할 수 있도록 모듈 상태(module state)와 파이썬 코드에서 접근할 수 있도록 모듈의 <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> 양쪽 모두에 저장되어야 합니다.</p>
 </section>
 <section id="garbage-collection-protocol">
-<h3>가비지 수집 프로토콜<a class="headerlink" href="#garbage-collection-protocol" title="Link to this heading">¶</a></h3>
-<p>힙 형의 인스턴스는 자신의 유형에 대한 참조를 가집니다. 이는 모든 인스턴스가 파괴되기 전에 유형이 파괴되지 않도록 보장하지만, 가비지 컬렉터가 풀어야 하는 참조 순환을 초래할 수도 있습니다.</p>
-<p>메모리 누수를 방지하려면, 힙 형의 인스턴스는 가비지 컬렉션 프로토콜을 구현해야 합니다. 즉, 힙 형은 다음을 해야 합니다:</p>
+<h3>가비지 컬렉션 프로토콜<a class="headerlink" href="#garbage-collection-protocol" title="Link to this heading">¶</a></h3>
+<p>힙 형의 인스턴스는 해당 형에 대한 참조를 보유합니다. 이는 모든 인스턴스가 파괴되기 전에 형이 파괴되지 않도록 보장하지만, 가비지 컬렉터가 해제해야 하는 참조 순환(reference cycles)을 초래할 수 있습니다.</p>
+<p>메모리 누수를 방지하기 위해 힙 형의 인스턴스는 가비지 컬렉션 프로토콜을 구현해야 합니다. 즉, 힙 형은 다음과 같아야 합니다.</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그를 가지고 있어야 합니다.</p></li>
-<li><p><a class="reference internal" href="../c-api/typeobj.html#c.Py_tp_traverse" title="Py_tp_traverse"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_tp_traverse</span></code></a> 를 사용하여 순회 함수를 정의하고, 이 함수는 유형을 방문합니다 (예: <code class="docutils literal notranslate"><span class="pre">Py_VISIT(Py_TYPE(self))</span></code> 사용).</p></li>
+<li><p><a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 플래그를 가져야 합니다.</p></li>
+<li><p><a class="reference internal" href="../c-api/typeobj.html#c.Py_tp_traverse" title="Py_tp_traverse"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_tp_traverse</span></code></a> 를 사용하여 형을 방문하는(예: <code class="docutils literal notranslate"><span class="pre">Py_VISIT(Py_TYPE(self))</span></code> 사용) 순회(traverse) 함수를 정의해야 합니다.</p></li>
 </ul>
-<p>Please refer to the documentation of
-<a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> and <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>
-for additional considerations.</p>
-<p>힙 형을 정의하는 API는 유기적으로 성장했으며, 현재 상태에서는 사용하기가 다소 어색합니다. 다음 섹션들은 일반적인 문제들을 통해 안내해 드릴 것입니다.</p>
+<p>추가 고려 사항은 <a class="reference internal" href="../c-api/typeobj.html#c.Py_TPFLAGS_HAVE_GC" title="Py_TPFLAGS_HAVE_GC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_TPFLAGS_HAVE_GC</span></code></a> 및 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 의 문서를 참조하십시오.</p>
+<p>힙 형을 정의하기 위한 API는 유기적으로 발전해 왔기 때문에 현재 상태에서는 사용법이 다소 까다로울 수 있습니다. 다음 섹션에서 일반적인 문제들에 대해 안내합니다.</p>
 <section id="tp-traverse-in-python-3-8-and-lower">
-<h4>Python 3.8 이하 버전의 <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code><a class="headerlink" href="#tp-traverse-in-python-3-8-and-lower" title="Link to this heading">¶</a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code> 에서 유형을 방문해야 하는 요구사항은 Python 3.9에 추가되었습니다. Python 3.8 이하를 지원하는 경우, 순회 함수에서 유형을 <em>방문해서는</em> 안 되므로, 더 복잡해야 합니다:</p>
+<h4>Python 3.8 이하의 <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code><a class="headerlink" href="#tp-traverse-in-python-3-8-and-lower" title="Link to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code> 에서 형을 방문해야 하는 요구 사항은 Python 3.9에 추가되었습니다. Python 3.8 이하를 지원하는 경우 순회 함수가 형을 방문해서는 안 되므로 구현이 더 복잡해집니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">my_traverse</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">visitproc</span><span class="w"> </span><span class="n">visit</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Py_Version</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mh">0x03090000</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -363,27 +342,22 @@ for additional considerations.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Unfortunately, <a class="reference internal" href="../c-api/apiabiversion.html#c.Py_Version" title="Py_Version"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_Version</span></code></a> was only added in Python 3.11.
-As a replacement, use:</p>
+<p>안타깝게도 <a class="reference internal" href="../c-api/apiabiversion.html#c.Py_Version" title="Py_Version"><code class="xref c c-data docutils literal notranslate"><span class="pre">Py_Version</span></code></a> 은 Python 3.11에서만 추가되었습니다. 대신 다음을 사용하십시오.</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../c-api/apiabiversion.html#c.PY_VERSION_HEX" title="PY_VERSION_HEX"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_VERSION_HEX</span></code></a>, if not using the stable ABI, or</p></li>
-<li><p><a class="reference internal" href="../library/sys.html#sys.version_info" title="sys.version_info"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.version_info</span></code></a> (via <a class="reference internal" href="../c-api/sys.html#c.PySys_GetObject" title="PySys_GetObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_GetObject()</span></code></a> and
-<a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a>).</p></li>
+<li><p>안정적인 ABI를 사용하지 않는 경우 <a class="reference internal" href="../c-api/apiabiversion.html#c.PY_VERSION_HEX" title="PY_VERSION_HEX"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PY_VERSION_HEX</span></code></a> 를 사용하거나,</p></li>
+<li><p><a class="reference internal" href="../c-api/sys.html#c.PySys_GetObject" title="PySys_GetObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">PySys_GetObject()</span></code></a> 와 <a class="reference internal" href="../c-api/arg.html#c.PyArg_ParseTuple" title="PyArg_ParseTuple"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyArg_ParseTuple()</span></code></a> 을 통한 <a class="reference internal" href="../library/sys.html#sys.version_info" title="sys.version_info"><code class="xref py py-data docutils literal notranslate"><span class="pre">sys.version_info</span></code></a> 를 사용하십시오.</p></li>
 </ul>
 </section>
 <section id="delegating-tp-traverse">
-<h4><cite>tp_traverse</cite> 위임<a class="headerlink" href="#delegating-tp-traverse" title="Link to this heading">¶</a></h4>
-<p>If your traverse function delegates to the <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a>
-of its base class (or another type), ensure that <code class="docutils literal notranslate"><span class="pre">Py_TYPE(self)</span></code> is visited
-only once.
-Note that only heap type are expected to visit the type in <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code>.</p>
-<p>예를 들어, 사용자 트래버스 함수가 다음을 포함하는 경우:</p>
+<h4><code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code> 위임하기<a class="headerlink" href="#delegating-tp-traverse" title="Link to this heading">¶</a></h4>
+<p>순회 함수가 베이스 클래스(또는 다른 형)의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_traverse" title="PyTypeObject.tp_traverse"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_traverse</span></code></a> 에 위임하는 경우, <code class="docutils literal notranslate"><span class="pre">Py_TYPE(self)</span></code> 를 단 한 번만 방문하도록 보장해야 합니다. <code class="docutils literal notranslate"><span class="pre">tp_traverse</span></code> 에서 형을 방문하는 것은 힙 형에서만 예상됨에 유의하십시오.</p>
+<p>예를 들어, 순회 함수가 다음을 포함하는 경우:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">base</span><span class="o">-&gt;</span><span class="n">tp_traverse</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">visit</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>…그리고 <code class="docutils literal notranslate"><span class="pre">base</span></code>\가 정적 형식일 수 있다면, 다음도 포함해야 합니다:</p>
+<p>…그리고 <code class="docutils literal notranslate"><span class="pre">base</span></code> 가 정적 형일 수 있으므로 다음을 포함해야 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">base</span><span class="o">-&gt;</span><span class="n">tp_flags</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">Py_TPFLAGS_HEAPTYPE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="c1">// 힙형의 tp_traverse가 이미 Py_TYPE(self)를 방문했습니다</span>
+<span class="w">    </span><span class="c1">// 힙 형의 tp_traverse는 이미 Py_TYPE(self)를 방문했습니다</span>
 <span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Py_Version</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mh">0x03090000</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="n">Py_VISIT</span><span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">self</span><span class="p">));</span>
@@ -391,17 +365,16 @@ Note that only heap type are expected to visit the type in <code class="docutils
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>It is not necessary to handle the type’s reference count in
-<a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> and <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a>.</p>
+<p><a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> 및 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_clear" title="PyTypeObject.tp_clear"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_clear</span></code></a> 에서 형의 참조 횟수를 처리할 필요가 없습니다.</p>
 </section>
 <section id="defining-tp-dealloc">
-<h4><code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 정의<a class="headerlink" href="#defining-tp-dealloc" title="Link to this heading">¶</a></h4>
-<p>형에 사용자 정의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 함수가 있는 경우, 다음을 수행해야 합니다:</p>
+<h4><code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 정의하기<a class="headerlink" href="#defining-tp-dealloc" title="Link to this heading">¶</a></h4>
+<p>형에 사용자 정의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_dealloc" title="PyTypeObject.tp_dealloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_dealloc</span></code></a> 함수가 있는 경우 다음이 필요합니다.</p>
 <ul class="simple">
-<li><p>필드가 무효화되기 전에 <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_UnTrack" title="PyObject_GC_UnTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_UnTrack()</span></code></a>\를 호출하고, 그리고</p></li>
+<li><p>어떠한 필드가 무효화되기 전에 <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_UnTrack" title="PyObject_GC_UnTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_UnTrack()</span></code></a> 을 호출하고,</p></li>
 <li><p>형의 참조 횟수를 감소시켜야 합니다.</p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">tp_free</span></code>\이 호출되는 동안 형을 유효하게 유지하려면, 인스턴스가 해제된 <em>후에</em> 형의 참조 횟수를 감소시켜야 합니다. 예를 들어:</p>
+<p><code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 가 호출되는 동안 형을 유효하게 유지하려면 인스턴스가 해제된 후에 형의 참조 횟수를 감소시켜야 합니다. 예를 들어:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">my_dealloc</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="n">PyObject_GC_UnTrack</span><span class="p">(</span><span class="n">self</span><span class="p">);</span>
@@ -412,26 +385,24 @@ Note that only heap type are expected to visit the type in <code class="docutils
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>기본 <code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 함수가 이를 수행하므로, 형이 <code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 을 <em>덮어쓰지</em> 않았다면 추가할 필요가 없습니다.</p>
+<p>기본 <code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 함수가 이 작업을 수행하므로, 형이 <code class="docutils literal notranslate"><span class="pre">tp_dealloc</span></code> 을 재정의하지 않는다면 추가할 필요가 없습니다.</p>
 </section>
 <section id="not-overriding-tp-free">
-<h4><code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 덮어쓰지 않기<a class="headerlink" href="#not-overriding-tp-free" title="Link to this heading">¶</a></h4>
-<p>The <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> slot of a heap type must be set to
-<a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a>.
-This is the default; do not override it.</p>
+<h4><code class="docutils literal notranslate"><span class="pre">tp_free</span></code> 를 재정의하지 않기<a class="headerlink" href="#not-overriding-tp-free" title="Link to this heading">¶</a></h4>
+<p>힙 형의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_free" title="PyTypeObject.tp_free"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_free</span></code></a> 슬롯은 <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_Del" title="PyObject_GC_Del"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_Del()</span></code></a> 로 설정되어야 합니다. 이것은 기본값이므로 재정의하지 마십시오.</p>
 </section>
 <section id="avoiding-pyobject-new">
 <h4><code class="docutils literal notranslate"><span class="pre">PyObject_New</span></code> 피하기<a class="headerlink" href="#avoiding-pyobject-new" title="Link to this heading">¶</a></h4>
-<p>GC로 추적되는 객체는 GC를 인지하는 함수를 사용하여 할당해야 합니다.</p>
-<p>If you use <a class="reference internal" href="../c-api/allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_New()</span></code></a> or <a class="reference internal" href="../c-api/allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_NewVar()</span></code></a>:</p>
+<p>GC로 추적되는 객체는 GC를 인식하는 함수를 사용하여 할당되어야 합니다.</p>
+<p><a class="reference internal" href="../c-api/allocation.html#c.PyObject_New" title="PyObject_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_New()</span></code></a> 또는 <a class="reference internal" href="../c-api/allocation.html#c.PyObject_NewVar" title="PyObject_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_NewVar()</span></code></a> 를 사용하는 경우:</p>
 <ul>
-<li><p>가능하다면, 형식의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> 슬롯을 가져와 호출해야 합니다. 즉, <code class="docutils literal notranslate"><span class="pre">TYPE</span> <span class="pre">*o</span> <span class="pre">=</span> <span class="pre">PyObject_New(TYPE,</span> <span class="pre">typeobj)</span></code>\를 다음으로 대체하십시오:</p>
+<li><p>가능하다면 형의 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_alloc" title="PyTypeObject.tp_alloc"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_alloc</span></code></a> 슬롯을 가져와 호출하십시오. 즉, <code class="docutils literal notranslate"><span class="pre">TYPE</span> <span class="pre">*o</span> <span class="pre">=</span> <span class="pre">PyObject_New(TYPE,</span> <span class="pre">typeobj)</span></code> 를 다음으로 대체하십시오:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TYPE</span><span class="w"> </span><span class="o">*</span><span class="n">o</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">typeobj</span><span class="o">-&gt;</span><span class="n">tp_alloc</span><span class="p">(</span><span class="n">typeobj</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">o</span> <span class="pre">=</span> <span class="pre">PyObject_NewVar(TYPE,</span> <span class="pre">typeobj,</span> <span class="pre">size)</span></code>\를 동일하게 대체하되, 0 대신 size를 사용하십시오.</p>
+<p><code class="docutils literal notranslate"><span class="pre">o</span> <span class="pre">=</span> <span class="pre">PyObject_NewVar(TYPE,</span> <span class="pre">typeobj,</span> <span class="pre">size)</span></code> 를 동일한 방식으로 대체하되, 0 대신 size를 사용하십시오.</p>
 </li>
-<li><p>위 방법이 불가능한 경우 (예: 사용자 정의 <code class="docutils literal notranslate"><span class="pre">tp_alloc</span></code> 내부), <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_New()</span></code></a> 또는 <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_NewVar()</span></code></a>\를 호출하십시오:</p>
+<li><p>위의 방법이 불가능한 경우(예: 사용자 정의 <code class="docutils literal notranslate"><span class="pre">tp_alloc</span></code> 내부), <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_New" title="PyObject_GC_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_New()</span></code></a> 또는 <a class="reference internal" href="../c-api/gcsupport.html#c.PyObject_GC_NewVar" title="PyObject_GC_NewVar"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyObject_GC_NewVar()</span></code></a> 를 호출하십시오:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TYPE</span><span class="w"> </span><span class="o">*</span><span class="n">o</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">TYPE</span><span class="p">,</span><span class="w"> </span><span class="n">typeobj</span><span class="p">);</span>
 
 <span class="n">TYPE</span><span class="w"> </span><span class="o">*</span><span class="n">o</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_GC_NewVar</span><span class="p">(</span><span class="n">TYPE</span><span class="p">,</span><span class="w"> </span><span class="n">typeobj</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">);</span>
@@ -442,11 +413,9 @@ This is the default; do not override it.</p>
 </section>
 </section>
 <section id="module-state-access-from-classes">
-<h3>클래스로부터의 모듈 상태 접근<a class="headerlink" href="#module-state-access-from-classes" title="Link to this heading">¶</a></h3>
-<p>If you have a type object defined with <a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a>,
-you can call <a class="reference internal" href="../c-api/type.html#c.PyType_GetModule" title="PyType_GetModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModule()</span></code></a> to get the associated module, and then
-<a class="reference internal" href="../c-api/module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a> to get the module’s state.</p>
-<p>번거로운 오류 처리 상용구 코드를 줄이려면, 이 두 단계를 <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleState" title="PyType_GetModuleState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleState()</span></code></a>\로 결합하여 다음의 결과를 얻을 수 있습니다:</p>
+<h3>클래스에서 모듈 상태에 접근하기<a class="headerlink" href="#module-state-access-from-classes" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a> 로 정의된 형 객체가 있는 경우, <a class="reference internal" href="../c-api/type.html#c.PyType_GetModule" title="PyType_GetModule"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModule()</span></code></a> 을 호출하여 연결된 모듈을 가져온 다음 <a class="reference internal" href="../c-api/module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a> 를 통해 모듈의 상태를 가져올 수 있습니다.</p>
+<p>번거로운 오류 처리 상용구 코드를 줄이기 위해 이 두 단계를 <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleState" title="PyType_GetModuleState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleState()</span></code></a> 로 결합할 수 있으며, 결과는 다음과 같습니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">my_struct</span><span class="w"> </span><span class="o">*</span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">my_struct</span><span class="o">*</span><span class="p">)</span><span class="n">PyType_GetModuleState</span><span class="p">(</span><span class="n">type</span><span class="p">);</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
@@ -455,13 +424,13 @@ you can call <a class="reference internal" href="../c-api/type.html#c.PyType_Get
 </div>
 </section>
 <section id="module-state-access-from-regular-methods">
-<h3>일반 메서드로부터의 모듈 상태 접근<a class="headerlink" href="#module-state-access-from-regular-methods" title="Link to this heading">¶</a></h3>
-<p>클래스 메서드에서 모듈 수준의 상태에 접근하는 것은 다소 복잡하지만, Python 3.9에 도입된 API 덕분에 가능합니다. 상태를 얻으려면 먼저 <em>정의하는 클래스</em> (defining class)를 얻은 다음, 그 클래스에서 모듈 상태를 얻어야 합니다.</p>
-<p>가장 큰 장애물은 <em>메서드가 정의된 클래스</em> (the class a method was defined in)나 간단히 그 메서드의 “정의하는 클래스”를 얻는 것입니다. 정의하는 클래스는 자신이 속한 모듈에 대한 참조를 가질 수 있습니다.</p>
-<p>정의하는 클래스를 <code class="docutils literal notranslate"><span class="pre">Py_TYPE(self)</span></code> \와 혼동하지 마십시오. 메서드가 형식의 <em>서브 클래스</em> 에서 호출되는 경우, <code class="docutils literal notranslate"><span class="pre">Py_TYPE(self)</span></code> \는 해당 서브 클래스를 참조하며, 이는 자신의 것과 다른 모듈에 정의되었을 수 있습니다.</p>
+<h3>일반 메서드에서 모듈 상태에 접근하기<a class="headerlink" href="#module-state-access-from-regular-methods" title="Link to this heading">¶</a></h3>
+<p>클래스의 메서드에서 모듈 수준의 상태에 접근하는 것은 다소 복잡하지만, Python 3.9에 도입된 API 덕분에 가능합니다. 상태를 가져오려면 먼저 <em>정의하는 클래스(defining class)</em> 를 가져온 다음, 거기에서 모듈 상태를 가져와야 합니다.</p>
+<p>가장 큰 장애물은 메서드가 정의된 클래스, 즉 메서드의 “정의하는 클래스(defining class)”를 가져오는 것입니다. 정의하는 클래스는 자신이 속한 모듈에 대한 참조를 가질 수 있습니다.</p>
+<p>정의하는 클래스를 <code class="docutils literal notranslate"><span class="pre">Py_TYPE(self)</span></code> 와 혼동하지 마십시오. 메서드가 여러분의 형의 <em>서브 클래스</em> 에서 호출되는 경우, <code class="docutils literal notranslate"><span class="pre">Py_TYPE(self)</span></code> 는 해당 서브 클래스를 가리키며, 이는 여러분의 모듈과 다른 모듈에 정의되어 있을 수 있습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>다음 Python 코드가 개념을 보여줄 수 있습니다. <code class="docutils literal notranslate"><span class="pre">Base.get_defining_class</span></code>\는 심지어 <code class="docutils literal notranslate"><span class="pre">type(self)</span> <span class="pre">==</span> <span class="pre">Sub</span></code>\이더라도 <code class="docutils literal notranslate"><span class="pre">Base</span></code>\를 반환합니다:</p>
+<p>다음 파이썬 코드로 이 개념을 설명할 수 있습니다. <code class="docutils literal notranslate"><span class="pre">type(self)</span> <span class="pre">==</span> <span class="pre">Sub</span></code> 인 경우에도 <code class="docutils literal notranslate"><span class="pre">Base.get_defining_class</span></code> 는 <code class="docutils literal notranslate"><span class="pre">Base</span></code> 를 반환합니다.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_type_of_self</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -474,16 +443,16 @@ you can call <a class="reference internal" href="../c-api/type.html#c.PyType_Get
 </pre></div>
 </div>
 </div>
-<p>메서드가 “정의하는 클래스”를 얻으려면, <a class="reference internal" href="../c-api/structures.html#meth-method-meth-fastcall-meth-keywords"><span class="std std-ref">METH_METHOD | METH_FASTCALL | METH_KEYWORDS</span></a> <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">calling</span> <span class="pre">convention</span></code></a> 와 해당 <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a> 시그니처를 사용해야 합니다:</p>
+<p>메서드가 “정의하는 클래스”를 가져오려면 <a class="reference internal" href="../c-api/structures.html#meth-method-meth-fastcall-meth-keywords"><span class="std std-ref">METH_METHOD | METH_FASTCALL | METH_KEYWORDS</span></a> <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef" title="PyMethodDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">calling</span> <span class="pre">convention</span></code></a> 와 그에 대응하는 <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a> 시그니처를 사용해야 합니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">PyCMethod</span><span class="p">(</span>
 <span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span><span class="w">               </span><span class="c1">// 메서드가 호출된 객체</span>
 <span class="w">    </span><span class="n">PyTypeObject</span><span class="w"> </span><span class="o">*</span><span class="n">defining_class</span><span class="p">,</span><span class="w"> </span><span class="c1">// 정의하는 클래스</span>
-<span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="w">        </span><span class="c1">// 인수들의 C 배열</span>
+<span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="w">        </span><span class="c1">// 인자 C 배열</span>
 <span class="w">    </span><span class="n">Py_ssize_t</span><span class="w"> </span><span class="n">nargs</span><span class="p">,</span><span class="w">             </span><span class="c1">// &quot;args&quot;의 길이</span>
-<span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">kwnames</span><span class="p">)</span><span class="w">            </span><span class="c1">// NULL 또는 키워드 인수 딕셔너리</span>
+<span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">kwnames</span><span class="p">)</span><span class="w">            </span><span class="c1">// NULL 또는 키워드 인자 딕셔닝</span>
 </pre></div>
 </div>
-<p>정의하는 클래스를 알게 되면, <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleState" title="PyType_GetModuleState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleState()</span></code></a>\를 호출하여 연결된 모듈의 상태를 얻으십시오.</p>
+<p>정의하는 클래스를 얻은 후, <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleState" title="PyType_GetModuleState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleState()</span></code></a> 를 호출하여 해당 모듈과 연결된 상태를 가져옵니다.</p>
 <p>예를 들면:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span>
 <span class="nf">example_method</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">self</span><span class="p">,</span>
@@ -512,21 +481,13 @@ you can call <a class="reference internal" href="../c-api/type.html#c.PyType_Get
 </div>
 </section>
 <section id="module-state-access-from-slot-methods-getters-and-setters">
-<h3>슬롯 메서드, 게터 및 세터에서의 모듈 상태 접근<a class="headerlink" href="#module-state-access-from-slot-methods-getters-and-setters" title="Link to this heading">¶</a></h3>
+<h3>슬롯 메서드, Getter 및 Setter에서 모듈 상태에 접근하기<a class="headerlink" href="#module-state-access-from-slot-methods-getters-and-setters" title="Link to this heading">¶</a></h3>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>이는 Python 3.11에서 새롭게 도입되었습니다.</p>
+<p>이 기능은 Python 3.11에서 새로 추가되었습니다.</p>
 </div>
-<p>Slot methods—the fast C equivalents for special methods, such as
-<a class="reference internal" href="../c-api/typeobj.html#c.PyNumberMethods.nb_add" title="PyNumberMethods.nb_add"><code class="xref c c-member docutils literal notranslate"><span class="pre">nb_add</span></code></a> for <a class="reference internal" href="../reference/datamodel.html#object.__add__" title="object.__add__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__add__</span></code></a> or
-<a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> for initialization—have a very simple API that
-doesn’t allow passing in the defining class, unlike with <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a>.
-The same goes for getters and setters defined with
-<a class="reference internal" href="../c-api/structures.html#c.PyGetSetDef" title="PyGetSetDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyGetSetDef</span></code></a>.</p>
-<p>To access the module state in these cases, use the
-<a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a> function, and pass in the module definition.
-Once you have the module, call <a class="reference internal" href="../c-api/module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a>
-to get the state:</p>
+<p>슬롯 메서드(예를 들어, <a class="reference internal" href="../reference/datamodel.html#object.__add__" title="object.__add__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__add__</span></code></a> 에 대응하는 <a class="reference internal" href="../c-api/typeobj.html#c.PyNumberMethods.nb_add" title="PyNumberMethods.nb_add"><code class="xref c c-member docutils literal notranslate"><span class="pre">nb_add</span></code></a> 또는 초기화에 대응하는 <a class="reference internal" href="../c-api/typeobj.html#c.PyTypeObject.tp_new" title="PyTypeObject.tp_new"><code class="xref c c-member docutils literal notranslate"><span class="pre">tp_new</span></code></a> 와 같은 특별한 메서드의 빠른 C 등가체)는 <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a> 와 달리 정의하는 클래스를 전달할 수 없는 매우 간단한 API를 가지고 있습니다. 이는 <a class="reference internal" href="../c-api/structures.html#c.PyGetSetDef" title="PyGetSetDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyGetSetDef</span></code></a> 로 정의된 getter 및 setter도 마찬가지입니다.</p>
+<p>이러한 경우 모듈 상태에 접근하려면 <a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByDef" title="PyType_GetModuleByDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code></a> 함수를 사용하여 모듈 정의를 전달하십시오. 모듈을 확보한 후, <a class="reference internal" href="../c-api/module.html#c.PyModule_GetState" title="PyModule_GetState"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetState()</span></code></a> 를 호출하여 상태를 가져옵니다:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByDef</span><span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">self</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="n">module_def</span><span class="p">);</span>
 <span class="n">my_struct</span><span class="w"> </span><span class="o">*</span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">my_struct</span><span class="o">*</span><span class="p">)</span><span class="n">PyModule_GetState</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -534,20 +495,14 @@ to get the state:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code> works by searching the
-<a class="reference internal" href="../glossary.html#term-method-resolution-order"><span class="xref std std-term">method resolution order</span></a> (i.e. all superclasses) for the first
-superclass that has a corresponding module.</p>
+<p><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code> 는 <a class="reference internal" href="../glossary.html#term-method-resolution-order"><span class="xref std std-term">method resolution order</span></a> (즉, 모든 상위 클래스)를 검색하여 대응하는 모듈을 가진 첫 번째 상위 클래스를 찾음으로써 작동합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>In very exotic cases (inheritance chains spanning multiple modules
-created from the same definition), <code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code> might not
-return the module of the true defining class. However, it will always
-return a module with the same definition, ensuring a compatible
-C memory layout.</p>
+<p>매우 특이한 경우(동일한 정의로부터 생성된 여러 모듈에 걸쳐 있는 상속 체인), <code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByDef()</span></code> 가 실제 정의하는 클래스의 모듈을 반환하지 않을 수 있습니다. 그러나 이 함수는 항상 동일한 정의를 가진 모듈을 반환하므로 호환 가능한 C 메모리 레이아웃을 보장합니다.</p>
 </div>
 </section>
 <section id="lifetime-of-the-module-state">
-<h3>모듈 상태의 생명주기<a class="headerlink" href="#lifetime-of-the-module-state" title="Link to this heading">¶</a></h3>
+<h3>모듈 상태의 수명<a class="headerlink" href="#lifetime-of-the-module-state" title="Link to this heading">¶</a></h3>
 <p>모듈 객체가 가비지 수집되면, 해당 모듈의 상태도 해제됩니다. 모듈 상태의 (일부) 포인터마다 모듈 객체에 대한 참조를 보유해야 합니다.</p>
 <p>Usually this is not an issue, because types created with
 <a class="reference internal" href="../c-api/type.html#c.PyType_FromModuleAndSpec" title="PyType_FromModuleAndSpec"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_FromModuleAndSpec()</span></code></a>, and their instances, hold a reference
