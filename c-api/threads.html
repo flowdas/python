@@ -93,7 +93,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#using-the-c-api-from-foreign-threads">외부 스레드에서 C API 사용하기</a><ul>
-<li><a class="reference internal" href="#reusing-a-thread-state-across-repeated-calls">Reusing a thread state across repeated calls</a></li>
+<li><a class="reference internal" href="#reusing-a-thread-state-across-repeated-calls">반복되는 호출에 걸쳐 스레드 상태 재사용하기</a></li>
 <li><a class="reference internal" href="#attaching-detaching-thread-states">스레드 상태의 연결 및 해제</a></li>
 </ul>
 </li>
@@ -263,53 +263,27 @@ structure:</p>
 <p data-msgid="580816c7f68805ab6d83896d48188a25adaa9005" data-score="100" data-since="260609"><span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0788/"><strong>PEP 788</strong></a></p>
 </div>
 <section id="reusing-a-thread-state-across-repeated-calls">
-<span id="c-api-reuse-thread-state"></span><h3 data-msgid="462e734005b2a1e268f75b1fa4dcadd566b0fd89" data-score="0" data-since="260630">Reusing a thread state across repeated calls<a class="headerlink" href="#reusing-a-thread-state-across-repeated-calls" title="Link to this heading">¶</a></h3>
-<p data-msgid="bb3b3fd73a8e30fe7ef93ef44ef983c1576506e9" data-score="0" data-since="260630">Creating and destroying a <a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> is not free, and is more
-expensive on a <a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded build</span></a>.  A foreign thread that calls into
-the interpreter many times – for example, a worker thread in a native thread
-pool – should avoid creating a fresh thread state on every entry and
-destroying it on every exit.  Instead, set up one thread state when the thread
-starts (or lazily on its first call into Python), attach and detach it around
-each call, and tear it down once when the thread exits.</p>
-<p data-msgid="895577af012ec7ca8e625a0cf727db1578dde647" data-score="0" data-since="260630">Manage the thread state explicitly with <a class="reference internal" href="#c.PyThreadState_New" title="PyThreadState_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_New()</span></code></a>, attaching
-and detaching it with <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a> and
-<a class="reference internal" href="#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a>.  This happens in three distinct phases, at
-different points in the thread’s life.</p>
-<p data-msgid="bc15066e969947430a5f5d396bc86b627a3de208" data-score="0" data-since="260630">When the thread starts, create one thread state for it.  <code class="docutils literal notranslate"><span class="pre">interp</span></code> is the
-target interpreter, captured by the code that created this thread while it held
-an attached thread state (for example via <a class="reference internal" href="subinterpreters.html#c.PyInterpreterState_Get" title="PyInterpreterState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Get()</span></code></a>):</p>
-<div class="highlight-c notranslate" data-msgid="4188b794421b6ae3b51599c74468005d99b65b1a" data-score="0" data-since="260630"><div class="highlight"><pre><span></span><span class="n">PyThreadState</span><span class="w"> </span><span class="o">*</span><span class="n">tstate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyThreadState_New</span><span class="p">(</span><span class="n">interp</span><span class="p">);</span>
+<span id="c-api-reuse-thread-state"></span><h3 data-msgid="462e734005b2a1e268f75b1fa4dcadd566b0fd89" data-score="40" data-since="260630">반복되는 호출에 걸쳐 스레드 상태 재사용하기<a class="headerlink" href="#reusing-a-thread-state-across-repeated-calls" title="Link to this heading">¶</a></h3>
+<p data-msgid="bb3b3fd73a8e30fe7ef93ef44ef983c1576506e9" data-score="40" data-since="260630"><a class="reference internal" href="#c.PyThreadState" title="PyThreadState"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyThreadState</span></code></a> 를 생성하고 파괴하는 것은 비용이 들며, 특히 <a class="reference internal" href="../glossary.html#term-free-threaded-build"><span class="xref std std-term">free-threaded build</span></a> 에서 비용이 더 많이 발생합니다. 인터프리터를 여러 번 호출하는 외부 스레드(예: 네이티브 스레드 풀의 워커 스레드)는 진입할 때마다 새로운 스레드 상태를 생성하고 종료할 때마다 파괴하는 것을 피해야 합니다. 대신, 스레드가 시작될 때(또는 파이썬을 처음 호출할 때 지연 방식으로) 하나의 스레드 상태를 설정하고, 각 호출 전후에 이를 연결(attach) 및 분리(detach)하며, 스레드가 종료될 때 단 한 번 파기해야 합니다.</p>
+<p data-msgid="895577af012ec7ca8e625a0cf727db1578dde647" data-score="40" data-since="260630"><a class="reference internal" href="#c.PyThreadState_New" title="PyThreadState_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_New()</span></code></a> 를 사용하여 스레드 상태를 명시적으로 관리하고, <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a> 및 <a class="reference internal" href="#c.PyEval_SaveThread" title="PyEval_SaveThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_SaveThread()</span></code></a> 로 이를 연결하고 분리하십시오. 이 과정은 스레드의 생명 주기 내 서로 다른 시점에서 세 가지 뚜렷한 단계로 진행됩니다.</p>
+<p data-msgid="bc15066e969947430a5f5d396bc86b627a3de208" data-score="40" data-since="260630">스레드가 시작될 때, 해당 스레드를 위한 스레드 상태를 하나 생성하십시오. <code class="docutils literal notranslate"><span class="pre">interp</span></code> 는 이 스레드를 생성한 코드가 연결된 스레드 상태를 유지하고 있는 동안 획득한 대상 인터프리터입니다(예: <a class="reference internal" href="subinterpreters.html#c.PyInterpreterState_Get" title="PyInterpreterState_Get"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyInterpreterState_Get()</span></code></a> 을 통해).</p>
+<div class="highlight-c notranslate" data-msgid="4188b794421b6ae3b51599c74468005d99b65b1a" data-score="40" data-since="260630"><div class="highlight"><pre><span></span><span class="n">PyThreadState</span><span class="w"> </span><span class="o">*</span><span class="n">tstate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyThreadState_New</span><span class="p">(</span><span class="n">interp</span><span class="p">);</span>
 </pre></div>
 </div>
-<p data-msgid="43c1f2bdbfd99f653e9ba7b3fe7c116252bb09d5" data-score="0" data-since="260630">Then, on each call into Python – which may happen many times over the thread’s
-life – attach the thread state, make the Python C API calls that require it,
-and detach again so the thread does not hold the GIL while off doing non-Python
-work:</p>
-<div class="highlight-c notranslate" data-msgid="c476e33b9933689767951ebeaec4da0e045bf9b7" data-score="0" data-since="260630"><div class="highlight"><pre><span></span><span class="n">PyEval_RestoreThread</span><span class="p">(</span><span class="n">tstate</span><span class="p">);</span>
-<span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CallSomeFunction</span><span class="p">();</span><span class="w">  </span><span class="cm">/* your Python C API calls go here */</span>
+<p data-msgid="43c1f2bdbfd99f653e9ba7b3fe7c116252bb09d5" data-score="40" data-since="260630">그 다음, 스레드 생명 주기 동안 여러 번 발생할 수 있는 파이썬 호출 시마다 스레드 상태를 연결하고, 이를 필요로 하는 파이썬 C API 호출을 수행한 후 다시 분리하십시오. 이는 스레드가 파이썬 이외의 작업을 수행하는 동안 GIL을 보유하지 않도록 하기 위함입니다:</p>
+<div class="highlight-c notranslate" data-msgid="c476e33b9933689767951ebeaec4da0e045bf9b7" data-score="40" data-since="260630"><div class="highlight"><pre><span></span><span class="n">PyEval_RestoreThread</span><span class="p">(</span><span class="n">tstate</span><span class="p">);</span>
+<span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CallSomeFunction</span><span class="p">();</span><span class="w">  </span><span class="cm">/* 여기에 파이썬 C API 호출을 작성하십시오 */</span>
 <span class="n">PyEval_SaveThread</span><span class="p">();</span>
 </pre></div>
 </div>
-<p data-msgid="45b270b5ebdf6419671fe3241f710661042bfa89" data-score="0" data-since="260630">When the thread is finished calling into Python, destroy the thread state once:</p>
-<div class="highlight-c notranslate" data-msgid="b88821964244dd201ced5c00bd74936d00cd3841" data-score="0" data-since="260630"><div class="highlight"><pre><span></span><span class="n">PyEval_RestoreThread</span><span class="p">(</span><span class="n">tstate</span><span class="p">);</span>
+<p data-msgid="45b270b5ebdf6419671fe3241f710661042bfa89" data-score="40" data-since="260630">스레드가 파이썬 호출을 마쳤을 때, 스레드 상태를 단 한 번 파괴하십시오:</p>
+<div class="highlight-c notranslate" data-msgid="b88821964244dd201ced5c00bd74936d00cd3841" data-score="40" data-since="260630"><div class="highlight"><pre><span></span><span class="n">PyEval_RestoreThread</span><span class="p">(</span><span class="n">tstate</span><span class="p">);</span>
 <span class="n">PyThreadState_Clear</span><span class="p">(</span><span class="n">tstate</span><span class="p">);</span>
 <span class="n">PyThreadState_DeleteCurrent</span><span class="p">();</span>
 </pre></div>
 </div>
-<p data-msgid="3a7b8780508a89001e57e9be25de6ab1a49fc0e5" data-score="0" data-since="260630">The general-purpose entry points for calling in from a foreign thread –
-<a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> and the older <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> – do
-<em>not</em> guarantee a persistent thread state: their thread-state lifetime is
-deliberately implementation-defined, so a matched acquire/release pair may
-create and destroy a thread state each time.  Use <a class="reference internal" href="#c.PyThreadState_New" title="PyThreadState_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_New()</span></code></a>,
-as shown here, whenever you specifically want to reuse one thread state across
-calls.</p>
-<p data-msgid="075b7d797d60664688ba978e91ce032e0f74eecd" data-score="0" data-since="260630">The code that created the foreign thread must arrange for the shutdown sequence
-to run before the thread exits, and before <a class="reference internal" href="interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> is called.
-If interpreter finalization begins first, the shutdown
-<a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a> call will hang the thread rather than return (see
-<a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널리제이션 관련 주의사항</span></a>).  If the thread exits without
-running the shutdown sequence, the thread state is leaked for the remainder of
-the process.</p>
+<p data-msgid="3a7b8780508a89001e57e9be25de6ab1a49fc0e5" data-score="40" data-since="260630">외부 스레드에서 호출할 때 사용하는 범용 진입점인 <a class="reference internal" href="#c.PyThreadState_Ensure" title="PyThreadState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_Ensure()</span></code></a> 및 이전의 <a class="reference internal" href="#c.PyGILState_Ensure" title="PyGILState_Ensure"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyGILState_Ensure()</span></code></a> 는 지속적인 스레드 상태를 보장하지 않습니다. 이들의 스레드 상태 생명 주기는 의도적으로 구현에 따라 정의되므로, 짝을 이루는 acquire/release 호출 시 매번 스레드 상태를 생성하고 파괴할 수 있습니다. 호출 간에 하나의 스레드 상태를 재사용하고자 할 때는 여기에 표시된 대로 <a class="reference internal" href="#c.PyThreadState_New" title="PyThreadState_New"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyThreadState_New()</span></code></a> 를 사용하십시오.</p>
+<p data-msgid="075b7d797d60664688ba978e91ce032e0f74eecd" data-score="40" data-since="260630">외부 스레드를 생성한 코드는 스레드가 종료되기 전, 그리고 <a class="reference internal" href="interp-lifecycle.html#c.Py_FinalizeEx" title="Py_FinalizeEx"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_FinalizeEx()</span></code></a> 가 호출되기 전에 종료 시퀀스가 실행되도록 구성해야 합니다. 만약 인터프리터 파이널리제이션이 먼저 시작되면, 종료를 위한 <a class="reference internal" href="#c.PyEval_RestoreThread" title="PyEval_RestoreThread"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyEval_RestoreThread()</span></code></a> 호출은 리턴하는 대신 스레드를 멈추게(hang) 됩니다(참고: <a class="reference internal" href="interp-lifecycle.html#cautions-regarding-runtime-finalization"><span class="std std-ref">인터프리터 파이널리제이션 관련 주의사항</span></a>). 만약 스레드가 종료 시퀀스를 실행하지 않고 종료되면, 프로세스가 끝날 때까지 해당 스레드 상태가 누출됩니다.</p>
 </section>
 <section id="attaching-detaching-thread-states">
 <span id="c-api-attach-detach"></span><h3 data-msgid="5b91a422be837b3385a35f7b8579abcfe0c13de4" data-score="40" data-since="260625">스레드 상태의 연결 및 해제<a class="headerlink" href="#attaching-detaching-thread-states" title="Link to this heading">¶</a></h3>
