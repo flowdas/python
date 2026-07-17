@@ -240,7 +240,17 @@
 <section id="imap4-objects">
 <span id="id1"></span><h2 data-msgid="0bf33cf42855fe39a37a956bf4ca9bce143662b0" data-score="60">IMAP4 객체<a class="headerlink" href="#imap4-objects" title="Link to this heading">¶</a></h2>
 <p data-msgid="4113adf6fbd374cf90687836c153e22b45a6eb1e" data-score="60">모든 IMAP4rev1 명령은 대문자나 소문자의 같은 이름의 메서드로 표현됩니다.</p>
-<p data-msgid="c4d8c888593cfd61b5b497b2288b8e46c2726890" data-score="40" data-since="260705"><code class="docutils literal notranslate"><span class="pre">AUTHENTICATE</span></code>1와 IMAP4 리터럴로 전달되는 <code class="docutils literal notranslate"><span class="pre">APPEND</span></code>1의 마지막 인자를 제외하고 명령의 모든 인자는 문자열로 변환됩니다. 필요한 경우(문자열에 IMAP4 프로토콜 민감 문자가 포함되어 있고 괄호나 큰따옴표로 묶여 있지 않은 경우) 각 문자열은 인용됩니다. 하지만 <code class="docutils literal notranslate"><span class="pre">LOGIN</span></code> 명령의 <em>password</em> 인자는 항상 인용됩니다. 인자 문자열이 인용되는 것을 방지하려면(예: <code class="docutils literal notranslate"><span class="pre">STORE</span></code>1의 <em>flags</em> 인자), 해당 문자열을 괄호로 묶으십시오(예: <code class="docutils literal notranslate"><span class="pre">r'(\Deleted)'</span></code>). 일반적으로 인자를 인용하지 않고 전달하면 모듈이 필요에 따라 적절하게 인용합니다. 이미 큰따옴표로 묶인 인자는 그대로 유지되므로, 자체적으로 인수를 인용하는 기존 코드도 정상적으로 작동합니다.</p>
+<p data-msgid="703f8c7e7cdcbbe32d26b9eafdfdf11e832e5510" data-score="0" data-since="260717">All arguments to commands are converted to strings, except for <code class="docutils literal notranslate"><span class="pre">AUTHENTICATE</span></code>,
+and the last argument to <code class="docutils literal notranslate"><span class="pre">APPEND</span></code> which is passed as an IMAP4 literal.  If
+necessary (the string contains IMAP4 protocol-sensitive characters and isn’t
+enclosed with either parentheses or double quotes) each string is quoted.
+However, the <em>password</em> argument to the <code class="docutils literal notranslate"><span class="pre">LOGIN</span></code> command is always quoted. If
+you want to avoid having an argument string quoted (eg: the <em>flags</em> argument to
+<code class="docutils literal notranslate"><span class="pre">STORE</span></code>) then enclose the string in parentheses (eg: <code class="docutils literal notranslate"><span class="pre">r'(\Deleted)'</span></code>).
+Or you can quote the string yourself;
+an argument that is already enclosed in double quotes is left unchanged.
+In general, however, it is better to pass arguments unquoted
+and let the module quote them as needed.</p>
 <p data-msgid="a1901a07cb94ddae133d002adfe40faf15deb30a" data-score="20" data-since="260709">Mailbox names are encoded as modified UTF-7 (<span class="target" id="index-3"></span><a class="rfc reference external" href="https://datatracker.ietf.org/doc/html/rfc3501.html"><strong>RFC 3501</strong></a>, section 5.1.3),
 so a mailbox name containing non-ASCII characters can be passed as an
 ordinary <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>.
@@ -254,7 +264,64 @@ are sent as UTF-8 instead.</p>
 <p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>비 ASCII 사서함 이름은 자동으로 modified UTF-7으로 인코딩됩니다.</p>
 </div>
 <p data-msgid="edf3c434794cf79b372509f6c6bdcafe0db15c61" data-score="40" data-since="260622">대부분의 명령은 튜플 <code class="docutils literal notranslate"><span class="pre">(type,</span> <span class="pre">[data,</span> <span class="pre">...])</span></code> 을 반환하며, 여기서 <em>type</em> 은 보통 <code class="docutils literal notranslate"><span class="pre">'OK'</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">'NO'</span></code> 이고, <em>data</em> 는 명령 응답에서 나온 텍스트이거나 명령에 따른 필수 결과입니다. 각 <em>data</em> 는 <code class="docutils literal notranslate"><span class="pre">bytes</span></code> 이거나 튜플입니다. 튜플인 경우 첫 번째 부분은 응답의 헤더이고 두 번째 부분은 데이터(즉, ‘literal’ 값)를 포함합니다.</p>
-<p data-msgid="80908f024c0e6a15aca97d6acd29b3430fef299e" data-score="60">아래 명령에 대한 <em>message_set</em> 옵션은 수행할 하나 이상의 대상 메시지를 지정하는 문자열입니다. 단순 메시지 번호 (<code class="docutils literal notranslate"><span class="pre">'1'</span></code>), 메시지 번호 범위 (<code class="docutils literal notranslate"><span class="pre">'2:4'</span></code>) 또는 쉼표로 구분된 불연속 범위 그룹(<code class="docutils literal notranslate"><span class="pre">'1:3,6:9'</span></code>)일 수 있습니다. 범위에는 별표가 포함되어 무한 상한을 나타낼 수 있습니다 (<code class="docutils literal notranslate"><span class="pre">'3:*'</span></code>).</p>
+<p data-msgid="27de16e0b3dea460ea260f3e24988eb49e3839be" data-score="0" data-since="260717">The <em>message_set</em> options to the commands below can be a string specifying
+one or more messages to be acted upon.
+It may be a simple message number (<code class="docutils literal notranslate"><span class="pre">'1'</span></code>),
+a range of message numbers (<code class="docutils literal notranslate"><span class="pre">'2:4'</span></code>),
+or a group of non-contiguous ranges separated by commas (<code class="docutils literal notranslate"><span class="pre">'1:3,6:9'</span></code>).
+A range can contain an asterisk
+to indicate an infinite upper bound (<code class="docutils literal notranslate"><span class="pre">'3:*'</span></code>).</p>
+<p data-msgid="ce4d3648d691001889e07b9ffad37ac62848e64d" data-score="0" data-since="260717">Alternatively it can be specified using integers and <a class="reference internal" href="stdtypes.html#range" title="range"><code class="xref py py-class docutils literal notranslate"><span class="pre">range</span></code></a> objects.
+It may be a single message number or a sequence.
+The sequence items may be integers, <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop)</span></code> tuples
+(where <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">'*'</span></code> stands for the last message),
+or <a class="reference internal" href="stdtypes.html#range" title="range"><code class="xref py py-class docutils literal notranslate"><span class="pre">range</span></code></a> objects.
+For example, <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">(3,</span> <span class="pre">5),</span> <span class="pre">8]</span></code> and <code class="docutils literal notranslate"><span class="pre">[range(1,</span> <span class="pre">6),</span> <span class="pre">8]</span></code>
+are both equivalent to <code class="docutils literal notranslate"><span class="pre">'1,3:5,8'</span></code>.</p>
+<div class="versionchanged" data-msgid="c82979bce08055a870b4a007013098e69680dea6" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added support for the structured <em>message_set</em>.</p>
+</div>
+<p data-msgid="f85616a76ed7b103d06bca23fbcec29248f50212" data-score="0" data-since="260717">Command arguments that are parenthesized lists of atoms —
+such as the <em>flag_list</em> argument of <a class="reference internal" href="#imaplib.IMAP4.store" title="imaplib.IMAP4.store"><code class="xref py py-meth docutils literal notranslate"><span class="pre">store()</span></code></a> and the <em>flags</em>
+argument of <a class="reference internal" href="#imaplib.IMAP4.append" title="imaplib.IMAP4.append"><code class="xref py py-meth docutils literal notranslate"><span class="pre">append()</span></code></a>,
+the <em>names</em> argument of <a class="reference internal" href="#imaplib.IMAP4.status" title="imaplib.IMAP4.status"><code class="xref py py-meth docutils literal notranslate"><span class="pre">status()</span></code></a>,
+the <em>sort_criteria</em> argument of <a class="reference internal" href="#imaplib.IMAP4.sort" title="imaplib.IMAP4.sort"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sort()</span></code></a>,
+or the <em>message_parts</em> argument of <a class="reference internal" href="#imaplib.IMAP4.fetch" title="imaplib.IMAP4.fetch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fetch()</span></code></a> —
+can be passed as a sequence of strings instead of a single preformatted string.
+For example, <code class="docutils literal notranslate"><span class="pre">[r'\Seen',</span> <span class="pre">r'\Answered']</span></code>
+is equivalent to <code class="docutils literal notranslate"><span class="pre">(\Seen</span> <span class="pre">\Answered)</span></code>.</p>
+<div class="versionchanged" data-msgid="8d2ade6dbde6fa95e383884691aa2183f2120ca6" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added support for passing these arguments as a sequence.</p>
+</div>
+<p data-msgid="c9cf30a48beccdffebc871ddc4d0ae6b81bd3090" data-score="0" data-since="260717" id="imap4-params">The value-bearing arguments of the search and fetch commands
+can be quoted by hand, but this is error prone.
+Instead, they may contain <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders that are substituted, and quoted
+as required, from a <em>params</em> keyword argument,
+in the manner of <a class="reference internal" href="sqlite3.html#module-sqlite3" title="sqlite3: A DB-API 2.0 implementation using SQLite 3.x."><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlite3</span></code></a> parameter substitution:</p>
+<div class="highlight-python3 notranslate" data-msgid="d4b55f45b81dba3de124b230c8873c85756154a8" data-score="0" data-since="260717"><div class="highlight"><pre><span></span><span class="c1"># SEARCH FROM me@example.com SUBJECT &quot;trip report&quot;</span>
+<span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FROM ? SUBJECT ?&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;me@example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;trip report&#39;</span><span class="p">])</span>
+
+<span class="c1"># FETCH 1:5 (FLAGS BODY[HEADER.FIELDS (DATE FROM)])</span>
+<span class="n">M</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;1:5&#39;</span><span class="p">,</span> <span class="s1">&#39;FLAGS BODY[HEADER.FIELDS ?]&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[[</span><span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;FROM&#39;</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p data-msgid="525e6a0e6ee3d9fa31ab39c46532aa0c693111e1" data-score="0" data-since="260717">The placeholders are:</p>
+<ul class="simple">
+<li><p data-msgid="5c2ac428ef2907247b6639a5efffb8e1a72a4607" data-score="0" data-since="260717"><code class="docutils literal notranslate"><span class="pre">?</span></code> — an <code class="docutils literal notranslate"><span class="pre">astring</span></code>: a string (which will be quoted if necessary),
+an integer, or a list of integers and/or strings
+(which will be sent as a parenthesized list);</p></li>
+<li><p data-msgid="e9256869940008f6528aadb3b147f3db253d78fc" data-score="0" data-since="260717"><code class="docutils literal notranslate"><span class="pre">?f</span></code> — a flag or a list of flags, sent verbatim without quoting;</p></li>
+<li><p data-msgid="5272be75a7cc317719db455c31a45140a896dff4" data-score="0" data-since="260717"><code class="docutils literal notranslate"><span class="pre">?s</span></code> — a <em>message_set</em> in the structured form described above.</p></li>
+</ul>
+<p data-msgid="c1e98c94e40f9cf939299e59f51dbe06ab137256" data-score="0" data-since="260717"><code class="docutils literal notranslate"><span class="pre">??</span></code> stands for a literal <code class="docutils literal notranslate"><span class="pre">?</span></code>.</p>
+<p data-msgid="483ab1de574444f74ea2c286bbafdc7bcabec28c" data-score="0" data-since="260717">Substitution is only performed when <em>params</em> is given;
+if no <em>params</em> are given, an argument containing a literal <code class="docutils literal notranslate"><span class="pre">?</span></code> is unchanged.
+The <em>params</em> keyword is accepted by <a class="reference internal" href="#imaplib.IMAP4.search" title="imaplib.IMAP4.search"><code class="xref py py-meth docutils literal notranslate"><span class="pre">search()</span></code></a>,
+<a class="reference internal" href="#imaplib.IMAP4.fetch" title="imaplib.IMAP4.fetch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fetch()</span></code></a>, <a class="reference internal" href="#imaplib.IMAP4.sort" title="imaplib.IMAP4.sort"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sort()</span></code></a>, <a class="reference internal" href="#imaplib.IMAP4.thread" title="imaplib.IMAP4.thread"><code class="xref py py-meth docutils literal notranslate"><span class="pre">thread()</span></code></a> and
+<a class="reference internal" href="#imaplib.IMAP4.uid" title="imaplib.IMAP4.uid"><code class="xref py py-meth docutils literal notranslate"><span class="pre">uid()</span></code></a>.</p>
+<div class="versionadded" data-msgid="23619f4f16e01c40f7c7c6ab7ba0d38aa9944925" data-score="0" data-since="260717">
+<p><span class="versionmodified added">Added in version 3.16.0a0 (unreleased): </span>The <em>params</em> keyword argument.</p>
+</div>
 <p data-msgid="82fe550a0b77ee3356165dfe53a3487297243507" data-score="60"><a class="reference internal" href="#imaplib.IMAP4" title="imaplib.IMAP4"><code class="xref py py-class docutils literal notranslate"><span class="pre">IMAP4</span></code></a> 인스턴스에는 다음과 같은 메서드가 있습니다:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="imaplib.IMAP4.append">
@@ -343,11 +410,13 @@ are sent as UTF-8 instead.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="imaplib.IMAP4.fetch">
-<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_parts</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.fetch" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_parts</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.fetch" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="5143171c790262b1f091eee1e60869fda220c491" data-score="60">메시지(일부)를 가져옵니다. <em>message_parts</em>는 괄호로 묶인 메시지 부분 이름의 문자열이어야 합니다, 예를 들어: <code class="docutils literal notranslate"><span class="pre">&quot;(UID</span> <span class="pre">BODY[TEXT])&quot;</span></code>). 반환된 데이터는 메시지 부분 봉투와 데이터의 튜플입니다.</p>
 <p data-msgid="3265355caead07d18d39c50e76acb21fb50a07b4" data-score="40" data-since="260710"><em>uid</em> 가 true이면, <em>message_set</em> 은 UID의 집합이며 응답에 포함된 메시지 번호는 UID입니다(<code class="docutils literal notranslate"><span class="pre">UID</span> <span class="pre">FETCH</span></code>).</p>
-<div class="versionchanged" data-msgid="8eb357447f9b33ec8f78a6b5a0adeb607ff72d72" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><em>uid</em> 파라미터를 추가했습니다.</p>
+<p data-msgid="541e9b17b81121cdad12804a3a66512065a8889c" data-score="0" data-since="260717">If <em>params</em> is given, <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders in <em>message_parts</em> are substituted
+with the quoted parameters (see <a class="reference internal" href="#imap4-params"><span class="std std-ref">the placeholders</span></a>).</p>
+<div class="versionchanged" data-msgid="2ea271d3fb1d963829a0be002fbfc1e06b3fc808" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added the <em>params</em> and <em>uid</em> parameters.</p>
 </div>
 </dd></dl>
 
@@ -576,23 +645,26 @@ delete.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="imaplib.IMAP4.search">
-<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">charset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">criterion</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid=False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.search" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">charset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">criterion</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.search" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="e358e8d2d9199ff79246a736569c923265af212d" data-score="60">일치하는 메시지가 있는지 사서함을 검색합니다. <em>charset</em>은 <code class="docutils literal notranslate"><span class="pre">None</span></code>일 수 있으며, 이 경우 서버에 대한 요청에 <code class="docutils literal notranslate"><span class="pre">CHARSET</span></code>이 지정되지 않습니다. IMAP 프로토콜은 적어도 하나의 기준을 지정하도록 요구합니다; 서버가 에러를 반환하면 예외가 발생합니다. <a class="reference internal" href="#imaplib.IMAP4.enable" title="imaplib.IMAP4.enable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">enable()</span></code></a> 명령을 사용하여 <code class="docutils literal notranslate"><span class="pre">UTF8=ACCEPT</span></code> 기능이 활성화되면 <em>charset</em>은 <code class="docutils literal notranslate"><span class="pre">None</span></code>이어야 합니다.</p>
 <p data-msgid="1b778a92a0bce01517c40a3653304fb600562fbf" data-score="40" data-since="260710"><em>uid</em> 가 true이면, 응답에 포함된 메시지 번호는 UID입니다(<code class="docutils literal notranslate"><span class="pre">UID</span> <span class="pre">SEARCH</span></code>).</p>
 <p data-msgid="576d6284f2c072ef31d529b307fa0e28f3f59397" data-score="40" data-since="260710"><a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> 로 전달된 기준은 <em>charset</em> (Python에서 알려진 코덱이어야 함)으로 인코딩됩니다. <em>charset</em> 이 Python에서 지원하지 않는 방식일 경우, 이미 인코딩된 기준을 보내려면 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 를 전달하십시오. <em>charset</em> 이 <code class="docutils literal notranslate"><span class="pre">None</span></code> 인 경우(<code class="docutils literal notranslate"><span class="pre">UTF8=ACCEPT</span></code> 설정 시 필수), 해당 기준은 연결의 인코딩을 사용하여 전송됩니다.</p>
+<p data-msgid="e5310a0e5a898ee3e6b5d527db09208dd4e4c46a" data-score="0" data-since="260717">If <em>params</em> is given, <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders in the criteria are substituted
+with the quoted parameters (see <a class="reference internal" href="#imap4-params"><span class="std std-ref">the placeholders</span></a>).</p>
 <p data-msgid="6104a08ed7eb335488d3ea3f93c6210a1cc4746c" data-score="60">예:</p>
-<div class="highlight-python3 notranslate" data-msgid="4e648d03ce7909d0fe2088b3400aa13b6edbd9c3" data-score="60"><div class="highlight"><pre><span></span><span class="c1"># M은 연결된 IMAP4 인스턴스입니다...</span>
-<span class="n">typ</span><span class="p">,</span> <span class="n">msgnums</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FROM&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;LDJ&quot;&#39;</span><span class="p">)</span>
+<div class="highlight-python3 notranslate" data-msgid="1c6d1f833f4d196b63caed92af0e337fe7c91888" data-score="0" data-since="260717"><div class="highlight"><pre><span></span><span class="c1"># M is a connected IMAP4 instance...</span>
+<span class="n">typ</span><span class="p">,</span> <span class="n">msgnums</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FROM&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;John Smith&quot;&#39;</span><span class="p">)</span>
 
-<span class="c1"># 또는:</span>
-<span class="n">typ</span><span class="p">,</span> <span class="n">msgnums</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;(FROM &quot;LDJ&quot;)&#39;</span><span class="p">)</span>
+<span class="c1"># or:</span>
+<span class="n">typ</span><span class="p">,</span> <span class="n">msgnums</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;(FROM &quot;John Smith&quot;)&#39;</span><span class="p">)</span>
+
+<span class="c1"># or, letting the module quote the value (this is recommended):</span>
+<span class="n">typ</span><span class="p">,</span> <span class="n">msgnums</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FROM ?&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;John Smith&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
-<div class="versionchanged" data-msgid="8eb357447f9b33ec8f78a6b5a0adeb607ff72d72" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><em>uid</em> 파라미터를 추가했습니다.</p>
-</div>
-<div class="versionchanged" data-msgid="4a0eebde5aa0b1cfc3ac0dbac3439f6521f65a4e" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><code class="docutils literal notranslate"><span class="pre">str</span></code> 검색 기준은 <em>charset</em> 으로 인코딩됩니다.</p>
+<div class="versionchanged" data-msgid="434e1b21c7029704e3d1c86a68452142147a25f4" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added the <em>params</em> and <em>uid</em> parameters.
+<code class="docutils literal notranslate"><span class="pre">str</span></code> search criteria are encoded to <em>charset</em>.</p>
 </div>
 </dd></dl>
 
@@ -641,17 +713,17 @@ delete.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="imaplib.IMAP4.sort">
-<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">sort</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sort_criteria</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_criterion</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid=False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.sort" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">sort</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sort_criteria</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_criterion</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.sort" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="65cce9eec505d0bfe08ee6adb0373c09e7b86cf5" data-score="60"><code class="docutils literal notranslate"><span class="pre">sort</span></code> 명령은 결과에 대한 정렬이 추가된 <code class="docutils literal notranslate"><span class="pre">search</span></code>의 변형입니다. 반환된 데이터는 일치하는 메시지 번호의 공백으로 구분된 목록을 포함합니다.</p>
 <p data-msgid="44bf2dc49626f262179adf0dd49a87c90f809ff0" data-score="60">sort에는 <em>search_criterion</em> 인자 앞에 두 개의 인자가 있습니다; <em>sort_criteria</em>의 괄호로 묶은 목록과 검색 <em>charset</em>. <code class="docutils literal notranslate"><span class="pre">search</span></code>와 달리, 검색 <em>charset</em> 인자는 필수임에 유의하십시오. <code class="docutils literal notranslate"><span class="pre">uid</span> <span class="pre">search</span></code>가 <code class="docutils literal notranslate"><span class="pre">search</span></code>에 해당하는 방식으로 <code class="docutils literal notranslate"><span class="pre">sort</span></code>에 해당하는 <code class="docutils literal notranslate"><span class="pre">uid</span> <span class="pre">sort</span></code> 명령도 있습니다. <code class="docutils literal notranslate"><span class="pre">sort</span></code> 명령은 먼저 검색 기준의 문자열 해석을 위해 charset 인자를 사용하여 주어진 검색 기준과 일치하는 메시지를 사서함에서 검색합니다. 그런 다음 일치하는 메시지 수를 반환합니다.</p>
 <p data-msgid="6e12cc2fecb3601d1c2788cc2c9ef8b36b2efefe" data-score="40" data-since="260710"><em>uid</em> 가 true이면, 응답에 포함된 메시지 번호는 UID입니다(<code class="docutils literal notranslate"><span class="pre">UID</span> <span class="pre">SORT</span></code>).</p>
 <p data-msgid="17bb4691cf4f30a968060fe8be32194c1106f0f3" data-score="40" data-since="260710"><a class="reference internal" href="#imaplib.IMAP4.search" title="imaplib.IMAP4.search"><code class="xref py py-meth docutils literal notranslate"><span class="pre">search()</span></code></a> 와 마찬가지로, <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> 로 전달된 <em>search_criterion</em> 은 <em>charset</em> 으로 인코딩됩니다. 이미 인코딩된 값을 보내려면 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 를 전달하십시오.</p>
+<p data-msgid="5758a09e8f8dde1c81dc35dc61bf31f1633d1301" data-score="0" data-since="260717">If <em>params</em> is given, <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders in the search criteria are
+substituted with the quoted parameters (see <a class="reference internal" href="#imap4-params"><span class="std std-ref">the placeholders</span></a>).</p>
 <p data-msgid="28561d936bfbb9a76e3dc6001a7f46e150f8e739" data-score="60">이것은 <code class="docutils literal notranslate"><span class="pre">IMAP4rev1</span></code> 확장 명령입니다.</p>
-<div class="versionchanged" data-msgid="8eb357447f9b33ec8f78a6b5a0adeb607ff72d72" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><em>uid</em> 파라미터를 추가했습니다.</p>
-</div>
-<div class="versionchanged" data-msgid="4a0eebde5aa0b1cfc3ac0dbac3439f6521f65a4e" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><code class="docutils literal notranslate"><span class="pre">str</span></code> 검색 기준은 <em>charset</em> 으로 인코딩됩니다.</p>
+<div class="versionchanged" data-msgid="434e1b21c7029704e3d1c86a68452142147a25f4" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added the <em>params</em> and <em>uid</em> parameters.
+<code class="docutils literal notranslate"><span class="pre">str</span></code> search criteria are encoded to <em>charset</em>.</p>
 </div>
 </dd></dl>
 
@@ -683,9 +755,9 @@ delete.)</p>
 <dd><p data-msgid="470eebb0a14000bb38dc94bb256a831609adaac3" data-score="40" data-since="260705">사서함 내 메시지의 플래그 속성을 변경합니다. <em>command</em> 는 <span class="target" id="index-39"></span><a class="rfc reference external" href="https://datatracker.ietf.org/doc/html/rfc3501.html"><strong>RFC 3501</strong></a> 의 섹션 6.4.6에 따라 “FLAGS”, “+FLAGS”, 또는 “-FLAGS” 중 하나로 지정되며, 선택적으로 “.SILENT” 접미사가 붙을 수 있습니다.</p>
 <p data-msgid="d497c45305bc751cecac51d96fa2a3823755def4" data-score="40" data-since="260710"><em>uid</em> 가 true이면, <em>message_set</em> 은 UID의 집합이며 <code class="docutils literal notranslate"><span class="pre">STORE</span></code> 대신 <code class="docutils literal notranslate"><span class="pre">UID</span> <span class="pre">STORE</span></code> 명령이 사용됩니다.</p>
 <p data-msgid="c4bb9c243bc7b57e1ed198f1ea6675e2ecb22559" data-score="60">예를 들어, 모든 메시지에 삭제 플래그를 설정하려면 다음을 수행합니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="171681133a2b19ba0c95934ed2f6b1dc71cfce62" data-score="60"><div class="highlight"><pre><span></span><span class="n">typ</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;ALL&#39;</span><span class="p">)</span>
+<div class="highlight-python3 notranslate" data-msgid="32e2e6693af619507b1db8cc0d50867b9bdd65d0" data-score="0" data-since="260717"><div class="highlight"><pre><span></span><span class="n">typ</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;ALL&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
-   <span class="n">M</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;+FLAGS&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">Deleted&#39;</span><span class="p">)</span>
+   <span class="n">M</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;+FLAGS&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;\Deleted&#39;</span><span class="p">)</span>
 <span class="n">M</span><span class="o">.</span><span class="n">expunge</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -706,25 +778,31 @@ delete.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="imaplib.IMAP4.thread">
-<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threading_algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_criterion</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid=False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.thread" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threading_algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_criterion</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.thread" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="55950a46da93f71143dad892e9b12a12322e2ce2" data-score="60"><code class="docutils literal notranslate"><span class="pre">thread</span></code> 명령은 결과에 대한 스레딩이 추가된 <code class="docutils literal notranslate"><span class="pre">search</span></code>의 변형입니다. 반환된 데이터는 스레드 구성원의 스페이스로 구분된 목록을 포함합니다.</p>
 <p data-msgid="b0c8f67df305f12d7329c3e923eae3a187448dc1" data-score="60">스레드 구성원은 연속된 부모와 자식을 나타내는 스페이스로 구분된 0개 이상의 메시지 번호로 구성됩니다.</p>
 <p data-msgid="9f02e91e42fd25adba8b935c0cdf1cc3da7c4198" data-score="60">thread에는 <em>search_criterion</em> 인자 앞에 두 개의 인자가 있습니다; <em>threading_algorithm</em>과 검색 <em>charset</em>. <code class="docutils literal notranslate"><span class="pre">search</span></code>와 달리, 검색 <em>charset</em> 인자는 필수임에 유의하십시오. <code class="docutils literal notranslate"><span class="pre">uid</span> <span class="pre">search</span></code>가 <code class="docutils literal notranslate"><span class="pre">search</span></code>에 해당하는 방식으로 <code class="docutils literal notranslate"><span class="pre">thread</span></code>에 해당하는 <code class="docutils literal notranslate"><span class="pre">uid</span> <span class="pre">thread</span></code> 명령도 있습니다. <code class="docutils literal notranslate"><span class="pre">thread</span></code> 명령은 먼저 검색 기준의 문자열 해석을 위해 <em>charset</em> 인자를 사용하여 주어진 검색 기준과 일치하는 메시지를 사서함에서 검색합니다. 그런 다음 지정된 스레딩 알고리즘에 따라 스레드 된 일치 메시지들을 반환합니다.</p>
 <p data-msgid="d224e1ce0722085c8b4cb530c0bb22207f869d08" data-score="40" data-since="260710"><em>uid</em> 가 true이면, 응답에 포함된 메시지 번호는 UID입니다(<code class="docutils literal notranslate"><span class="pre">UID</span> <span class="pre">THREAD</span></code>).</p>
 <p data-msgid="17bb4691cf4f30a968060fe8be32194c1106f0f3" data-score="40" data-since="260710"><a class="reference internal" href="#imaplib.IMAP4.search" title="imaplib.IMAP4.search"><code class="xref py py-meth docutils literal notranslate"><span class="pre">search()</span></code></a> 와 마찬가지로, <a class="reference internal" href="stdtypes.html#str" title="str"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> 로 전달된 <em>search_criterion</em> 은 <em>charset</em> 으로 인코딩됩니다. 이미 인코딩된 값을 보내려면 <a class="reference internal" href="stdtypes.html#bytes" title="bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a> 를 전달하십시오.</p>
+<p data-msgid="5758a09e8f8dde1c81dc35dc61bf31f1633d1301" data-score="0" data-since="260717">If <em>params</em> is given, <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders in the search criteria are
+substituted with the quoted parameters (see <a class="reference internal" href="#imap4-params"><span class="std std-ref">the placeholders</span></a>).</p>
 <p data-msgid="28561d936bfbb9a76e3dc6001a7f46e150f8e739" data-score="60">이것은 <code class="docutils literal notranslate"><span class="pre">IMAP4rev1</span></code> 확장 명령입니다.</p>
-<div class="versionchanged" data-msgid="8eb357447f9b33ec8f78a6b5a0adeb607ff72d72" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><em>uid</em> 파라미터를 추가했습니다.</p>
-</div>
-<div class="versionchanged" data-msgid="4a0eebde5aa0b1cfc3ac0dbac3439f6521f65a4e" data-score="40" data-since="260710">
-<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span><code class="docutils literal notranslate"><span class="pre">str</span></code> 검색 기준은 <em>charset</em> 으로 인코딩됩니다.</p>
+<div class="versionchanged" data-msgid="434e1b21c7029704e3d1c86a68452142147a25f4" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added the <em>params</em> and <em>uid</em> parameters.
+<code class="docutils literal notranslate"><span class="pre">str</span></code> search criteria are encoded to <em>charset</em>.</p>
 </div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="imaplib.IMAP4.uid">
-<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.uid" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">IMAP4.</span></span><span class="sig-name descname"><span class="pre">uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg</span></span></em>, <span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">...</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#imaplib.IMAP4.uid" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="831daaf70409e70be0d7b139d37884a65ac914ac" data-score="60">메시지 번호가 아닌 UID로 식별된 메시지들로 명령 인자를 실행합니다. 명령에 적합한 응답을 반환합니다. 최소한 하나의 인자가 제공되어야 합니다; 아무것도 제공하지 않으면, 서버는 에러를 반환하고 예외가 발생합니다.</p>
+<p data-msgid="7438965e8d802b71f87d1231f74c4fe817ee00a9" data-score="0" data-since="260717">If <em>params</em> is given, <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders in the <code class="docutils literal notranslate"><span class="pre">SEARCH</span></code>, <code class="docutils literal notranslate"><span class="pre">SORT</span></code> and
+<code class="docutils literal notranslate"><span class="pre">THREAD</span></code> criteria or in the <code class="docutils literal notranslate"><span class="pre">FETCH</span></code> parts are substituted with the quoted
+parameters (see <a class="reference internal" href="#imap4-params"><span class="std std-ref">the placeholders</span></a>).</p>
+<div class="versionchanged" data-msgid="9e7fae99e02fb0aceea0839ad8624b31231c8654" data-score="0" data-since="260717">
+<p><span class="versionmodified changed">버전 3.16.0a0 (unreleased)에서 변경: </span>Added the <em>params</em> parameter.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
