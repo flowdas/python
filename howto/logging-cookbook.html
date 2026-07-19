@@ -1664,7 +1664,7 @@ logging_rotatingfile_example.out.5
 <p data-msgid="e22073c8e1fede964791d0d9fbf2bc2a7d0f1052" data-score="40" data-since="260625">위의 섹션과 유사한 방식으로, ZeroMQ의 정신적 계승자로 평가받는 NNGM 모듈의 Python 바인딩인 <a class="extlink-pypi reference external" href="https://pypi.org/project/pynng/">pynng</a> 를 사용하여 리스너와 핸들러를 구현할 수 있습니다. 다음 코드 조각들이 이를 보여줍니다. <a class="extlink-pypi reference external" href="https://pypi.org/project/pynng/">pynng</a> 이 설치된 환경에서 테스트해 볼 수 있습니다. 다양성을 위해 리스너를 먼저 제시합니다.</p>
 <section id="id3">
 <h3 data-msgid="c9c8711974f75456058864973156291ae37c5ddd" data-score="40" data-since="260625"><code class="docutils literal notranslate"><span class="pre">QueueListener</span></code> 하위 클래스 만들기<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate" data-msgid="219c34e21b5516c63d1024342e17405e8c788be4" data-score="0" data-since="260719"><div class="highlight"><pre><span></span><span class="c1"># listener.py</span>
+<div class="highlight-python notranslate" data-msgid="219c34e21b5516c63d1024342e17405e8c788be4" data-score="40" data-since="260719"><div class="highlight"><pre><span></span><span class="c1"># listener.py</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging.handlers</span>
@@ -1678,36 +1678,35 @@ logging_rotatingfile_example.out.5
 <span class="k">class</span><span class="w"> </span><span class="nc">NNGSocketListener</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">QueueListener</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># Have a timeout for interruptibility, and open a</span>
-        <span class="c1"># subscriber socket</span>
+        <span class="c1"># 중단 가능성을 위해 타임아웃을 설정하고</span>
+        <span class="c1"># 구독자 소켓을 엽니다.</span>
         <span class="n">socket</span> <span class="o">=</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Sub0</span><span class="p">(</span><span class="n">listen</span><span class="o">=</span><span class="n">uri</span><span class="p">,</span> <span class="n">recv_timeout</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-        <span class="c1"># The b&#39;&#39; subscription matches all topics</span>
+        <span class="c1"># b&#39;&#39; 구독은 모든 토픽과 일치합니다.</span>
         <span class="n">topics</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;topics&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
         <span class="n">socket</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">topics</span><span class="p">)</span>
-        <span class="c1"># We treat the socket as a queue</span>
+        <span class="c1"># 소켓을 큐로 취급합니다.</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">socket</span><span class="p">,</span> <span class="o">*</span><span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">dequeue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># Keep looping while not interrupted and no data received over the</span>
-        <span class="c1"># socket</span>
+        <span class="c1"># 중단되지 않고\        # 소켓을 통해 데이터가 수신되지 않는 동안\        # 루프를 계속 실행합니다.</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="n">interrupted</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="n">block</span><span class="p">)</span>
                 <span class="k">break</span>
             <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
                 <span class="k">pass</span>
-            <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Closed</span><span class="p">:</span>  <span class="c1"># sometimes happens when you hit Ctrl-C</span>
+            <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Closed</span><span class="p">:</span>  <span class="c1"># Ctrl-C를 누를 때 발생할 수 있습니다.</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1"># Get the logging event sent from a publisher</span>
+        <span class="c1"># 퍼블리셔로부터 전송된 로깅 이벤트를 가져옵니다.</span>
         <span class="n">event</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">makeLogRecord</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">enqueue_sentinel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Not used in this implementation, as the socket isn&#39;t really a</span>
-        <span class="c1"># queue</span>
+        <span class="c1"># 소켓이 실제 큐가 아니기 때문에</span>
+        <span class="c1"># 이 구현에서는 사용되지 않습니다.</span>
         <span class="k">pass</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;pynng&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
