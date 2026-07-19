@@ -155,14 +155,13 @@
                 
   <section id="migrating-to-stable-abi-for-free-threading-abi3t">
 <span id="abi3t-migration-howto"></span><h1 data-msgid="901278603f6dabe38439f9b1cdbea1e2bff9751f" data-score="40" data-since="260624">free threading을 위한 안정 ABI로 마이그레이션(<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>)<a class="headerlink" href="#migrating-to-stable-abi-for-free-threading-abi3t" title="Link to this heading">¶</a></h1>
-<p data-msgid="35359778e9a861d44bfc41ed91e9ced3bdb55513" data-score="0" data-since="260719">Starting with the 3.15 release, CPython supports a variant of the Stable ABI
+<p data-msgid="35359778e9a861d44bfc41ed91e9ced3bdb55513" data-score="20" data-since="260719">Starting with the 3.15 release, CPython supports a variant of the Stable ABI
 that supports <a class="reference internal" href="../glossary.html#term-free-threading"><span class="xref std std-term">free-threaded</span></a> Python:
 the Stable ABI for Free-Threaded Builds, or <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> for short.
 This document describes how to adapt C API extensions to support free threading.</p>
 <section id="why-do-this">
 <h2 data-msgid="722e5626112cfcb3cb2288b9af085e94a7d5c894" data-score="40" data-since="260624">이 작업을 수행하는 이유<a class="headerlink" href="#why-do-this" title="Link to this heading">¶</a></h2>
-<p data-msgid="c51270a87ca3fdd86460d4470eb5e10f405c6bf3" data-score="0" data-since="260719">The typical reason to use the Stable ABI is to reduce the number of artifacts
-that you need to build and distribute for each version of your library.</p>
+<p data-msgid="c51270a87ca3fdd86460d4470eb5e10f405c6bf3" data-score="40" data-since="260719">Stable ABI를 사용하는 일반적인 이유는 라이브러리의 각 버전에 대해 빌드 및 배포해야 하는 아티팩트의 수를 줄이기 위함입니다.</p>
 <p data-msgid="f0031c77244355796e9643c38bffe653191ddb2c" data-score="40" data-since="260624">안정 ABI가 없으면 지원하려는 CPython의 각 기능 버전마다 별도의 공유 라이브러리와 일반적으로는 <em>wheel</em> 배포본을 구축해야 합니다. 예를 들어, 다음 표의 각 태그는 개별 라이브러리/wheel을 나타냅니다.</p>
 <table class="docutils align-default">
 <thead>
@@ -260,20 +259,14 @@ that you need to build and distribute for each version of your library.</p>
 <p data-msgid="daea5dfc398d34da14491d1c6a1c3f04886609f8" data-score="40" data-since="260624">* (위와 같이, <code class="docutils literal notranslate"><span class="pre">abi3</span></code> 확장은 모든 non-free-threaded 빌드와 호환됩니다. 이 표에서 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 에</p>
 <section id="why-not-do-this">
 <h3 data-msgid="adfd7291c21da9c35e7f054391e838ef693e915f" data-score="40" data-since="260624">이것을 수행하지 않는 이유<a class="headerlink" href="#why-not-do-this" title="Link to this heading">¶</a></h3>
-<p data-msgid="928f468a33ba297f6f1f653f98637d80e0109b38" data-score="0" data-since="260719">There are two main downsides to the Stable ABI.</p>
-<p data-msgid="8fd660bb428bd40524d111930915a5a37d571f5d" data-score="0" data-since="260719">First, your extension may become slower, since the Stable ABI prioritizes
-compatibility over performance.
-The difference is usually not noticeable, and often can be mitigated by
-using the same source to build both a Stable ABI build and a few
-version-specific ones for “tier 1” CPython versions.</p>
-<p data-msgid="4fcdc9ce394ff5992db22ccd0f675a38fc52a93e" data-score="0" data-since="260719">Second, not all of the C API is available.
-Extensions need to be ported to build for the Stable ABI, which may be difficult
-or, in rare cases, impossible.</p>
+<p data-msgid="928f468a33ba297f6f1f653f98637d80e0109b38" data-score="40" data-since="260719">Stable ABI에는 두 가지 주요 단점이 있습니다.</p>
+<p data-msgid="8fd660bb428bd40524d111930915a5a37d571f5d" data-score="40" data-since="260719">첫째, Stable ABI는 성능보다 호환성을 우선시하기 때문에 확장 모듈의 속도가 느려질 수 있습니다. 이러한 차이는 대개 눈에 띄지 않으며, 동일한 소스를 사용하여 Stable ABI 빌드와 몇 가지 특정 버전용(Cpython “tier 1” 버전) 빌드를 모두 생성함으로써 완화할 수 있는 경우가 많습니다.</p>
+<p data-msgid="4fcdc9ce394ff5992db22ccd0f675a38fc52a93e" data-score="40" data-since="260719">둘째, 모든 C API를 사용할 수 없습니다. 확장 모듈을 Stable ABI용으로 빌드할 수 있도록 포팅해야 하며, 이는 어렵거나 드물게 불가능할 수도 있습니다.</p>
 <p data-msgid="3b963f78d0399c05c4b9db903c0e3e0f0317fb53" data-score="40" data-since="260624">구체적으로, <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 는 CPython 3.15에서 추가된 API를 필요로 합니다. 동일한 소스에서 더 오래된 버전의 CPython용으로 확장을 빌드하려는 경우 두 가지 주요 선택지가 있습니다.</p>
 <ul>
 <li><p data-msgid="54dd9f44cb38718f410c491df490eb344976c645" data-score="40" data-since="260624">전처리기 조건문을 사용합니다.</p>
 <p data-msgid="91c1cad2f180a24ed0894c47e365930bbdaf2109" data-score="40" data-since="260624">이 가이드를 따를 때, 중요하게 생각하는 CPython 버전에서 빌드가 깨지는 변경 사항을 수행해야 할 경우 <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_TARGET_ABI3T</span></code> 블록을 사용하십시오. 기존 코드는 <code class="docutils literal notranslate"><span class="pre">#else</span></code> 블록에 유지합니다.</p>
-<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-score="40" data-since="260624">직접 작성한 C 확장의 경우, <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0697/"><strong>PEP 697</strong></a> 에서 도입된 추가 사항들로 인해 CPython 3.12까지는 이 방식이 합리적입니다. 코드 생성기(예: Cython)의 경우 3.11 이하 버전과의 호환성을 유지하는 것이 가치가 있을 수 있습니다.</p>
+<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-score="40" data-since="260624">직접 작성한 C 확장의 경우, <span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0697/"><strong>PEP 697</strong></a> 에서 도입된 추가 사항들로 인해 CPython 3.12까지는 이 방식이 합리적입니다. 코드 생성기(예: Cython)의 경우 3.11 이하 버전과의 호환성을 유지하는 것이 가치가 있을 수 있습니다.</p>
 </li>
 <li><p data-msgid="9d6b903576bfd5d510e0a4c4bd1ea8e27c504f72" data-score="40" data-since="260624"><code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 이식하지 않고, 이전 버전 지원을 중단할 수 있을 때까지 각 CPython 버전에 대해 별도의 확장을 계속 빌드합니다.</p>
 <p data-msgid="a6f8b7ded5da5787e8ef07cc5583b4ad7a12ecb0" data-score="40" data-since="260624">이것은 타당한 접근 방식입니다. 모든 확장을 즉시 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 전환할 필요는 없습니다.</p>
@@ -284,15 +277,10 @@ or, in rare cases, impossible.</p>
 <section id="prerequisites">
 <h2 data-msgid="eed036e414a34a0c245858652e6d88f14c3faefb" data-score="40" data-since="260623">전제 조건<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
 <p data-msgid="4c99ee55665251a2c7d143fd39c1d3282c290c12" data-score="40" data-since="260624">이 가이드는 C(또는 C++)로 직접 작성되어 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 이식하려는 확장이 있는 경우를 가정합니다.</p>
-<p data-msgid="984e1a2f28793426add56253339da7d1f689d1e9" data-score="0" data-since="260719">If your extension uses a code generator (like Cython) or language binding
-(like PyO3), it’s best to wait until that tool has support for <code class="docutils literal notranslate"><span class="pre">abi3t</span></code>.
-If you maintain such a tool, you might be able to adapt the instructions
-here for your tool.</p>
+<p data-msgid="984e1a2f28793426add56253339da7d1f689d1e9" data-score="40" data-since="260719">확장 모듈이 코드 생성기(Cython 등) 또는 언어 바인딩(PyO3 등)을 사용하는 경우, 해당 도구가 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 를 지원할 때까지 기다리는 것이 좋습니다. 해당 도구를 직접 관리한다면 여기의 지침을 해당 도구에 맞게 조정하여 적용할 수 있습니다.</p>
 <section id="non-free-threaded-stable-abi">
 <h3 data-msgid="995366a82bdce8cb8147db88a92c0e7ca4fa962f" data-score="40" data-since="260624">non-free-threaded 안정 ABI<a class="headerlink" href="#non-free-threaded-stable-abi" title="Link to this heading">¶</a></h3>
-<p data-msgid="c03274be1e735c556096b0750b719be7ce074988" data-score="0" data-since="260719">Your extension should support the non-free-threaded Stable ABI (<code class="docutils literal notranslate"><span class="pre">abi3</span></code>).
-If not, either port it first, or follow this guide but be prepared to fix
-issues it does not mention.</p>
+<p data-msgid="c03274be1e735c556096b0750b719be7ce074988" data-score="40" data-since="260719">귀하의 확장 모듈은 비자유 스레딩(non-free-threaded) Stable ABI(<code class="docutils literal notranslate"><span class="pre">abi3</span></code>)를 지원해야 합니다. 그렇지 않다면 먼저 이를 포팅하거나, 이 가이드를 따르되 언급되지 않은 문제들을 해결할 준비를 해야 합니다.</p>
 </section>
 <section id="free-threading-support">
 <h3 data-msgid="5c7ac705ab4e36493607d8b68a7eee58b1bd8d02" data-score="40" data-since="260624">free-threading 지원<a class="headerlink" href="#free-threading-support" title="Link to this heading">¶</a></h3>
@@ -319,7 +307,7 @@ issues it does not mention.</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p data-msgid="76f574c3efb003fb3f65fd758583dcee6b6ad3a4" data-score="0" data-since="260719">This should result in a different error than “<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> define is not set”.</p>
+<p data-msgid="76f574c3efb003fb3f65fd758583dcee6b6ad3a4" data-score="40" data-since="260719">이 경우 “<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> define is not set”과는 다른 오류가 발생해야 합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p data-msgid="c17fb4f74351ff701d31b9bf6ccbf38061f68477" data-score="40">빌드 도구가 아직 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 를 지원하지 않는 경우, <code class="docutils literal notranslate"><span class="pre">Python.h</span></code> 를 포함하기 전에 다음 매크로를 설정하십시오:</p>
@@ -337,7 +325,7 @@ issues it does not mention.</p>
 </section>
 <section id="module-export-hook">
 <span id="abi3t-howto-modexport"></span><h2 data-msgid="407bd245b0bea9b74dfe7abc504c667213e58735" data-score="40">모듈 내보내기 훅<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
-<p data-msgid="8a9b02037946625402762b86e741d9a2a95fc47f" data-score="40" data-since="260624">이 단계를 이미 수행하지 않았다면, 확장 모듈은 <cite>:samp:`PyInit_{&lt;module_name&gt;}</cite> 이라는 이름의 <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">모듈 초기화 함수</span></a> 를 정의하고 있습니다. 이를 CPython 3.15의 <span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a> 에서 추가된 기능인 <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">모듈 내보내기 후크</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;module</span> <span class="pre">name&gt;</span></em></code> 로 이식해야 합니다.</p>
+<p data-msgid="8a9b02037946625402762b86e741d9a2a95fc47f" data-score="40" data-since="260624">이 단계를 이미 수행하지 않았다면, 확장 모듈은 <cite>:samp:`PyInit_{&lt;module_name&gt;}</cite> 이라는 이름의 <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">모듈 초기화 함수</span></a> 를 정의하고 있습니다. 이를 CPython 3.15의 <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a> 에서 추가된 기능인 <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">모듈 내보내기 후크</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;module</span> <span class="pre">name&gt;</span></em></code> 로 이식해야 합니다.</p>
 <p data-msgid="5564e7ea30b32b69b339ee8fa61bc8f66df6e550" data-score="40" data-since="260624">기존의 초기화 함수는 다음과 같은 형태여야 합니다(<code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;</span></code> 및 <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> 은 본인의 이름으로 대체):</p>
 <div class="bad highlight-c notranslate" data-msgid="192592385f2b45a738f6b16036f6390734f37d2a" data-score="100"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
@@ -635,11 +623,7 @@ with it.</p>
 </section>
 <section id="testing">
 <h2 data-msgid="0820b32b206b7352858e8903a838ed14319acdfd" data-score="40">테스트<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
-<p data-msgid="a581cc8d9ceef4bdb62cf494d1928387843a1d24" data-score="0" data-since="260719">Note that when you build an extension compatible with multiple versions of
-CPython, you should always <em>test</em> it with each version it supports (for
-example, 3.15, 3.16, and so on).
-The Stable ABI only guarantees <em>ABI</em> compatibility; there may also be behavior
-changes – both intentional ones (covered by <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-0387/"><strong>PEP 387</strong></a>) and bugs.</p>
+<p data-msgid="a581cc8d9ceef4bdb62cf494d1928387843a1d24" data-score="40" data-since="260719">여러 버전의 CPython과 호환되는 확장 모듈을 빌드할 때는 항상 지원하는 각 버전(예: 3.15, 3.16 등)에서 <em>테스트</em> 해야 함을 유의하십시오. Stable ABI는 <em>ABI</em> 호환성만 보장하며, 의도적인 변경 사항(<span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0387/"><strong>PEP 387</strong></a> 에 해당)이나 버그로 인한 동작 변경이 있을 수 있습니다.</p>
 <p data-msgid="f5e363a081560967461de7a28ef14f7d59443ac8" data-score="40" data-since="260624">CPython의 free-threaded 및 non-free-threaded 빌드 모두에서 테스트를 실행하십시오.</p>
 <p data-msgid="6ce9bf07e81230044b3e5fc8393b9d852777cd00" data-score="40" data-since="260624">모두 통과했다면 축하합니다! <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 확장 모듈을 성공적으로 구축했습니다.</p>
 </section>
