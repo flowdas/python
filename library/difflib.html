@@ -8,10 +8,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://python.flowdas.com/library/difflib.html" />
 <meta property="og:site_name" content="Python documentation" />
-<meta property="og:description" content="소스 코드: Lib/difflib.py 이 모듈은 시퀀스 비교를 위한 클래스와 함수를 제공합니다. 예를 들어 파일을 비교하는 데 사용할 수 있으며, HTML 및 문맥(context)과 통합(unified) diff를 비롯한 다양한 형식의 파일 차이에 관한 정보를 생성할 수 있습니다. 디렉터리와 파일을 비교하려면, filecmp 모듈을 참조하십시오. S..." />
+<meta property="og:description" content="소스 코드: Lib/difflib.py This module provides classes and functions for comparing sequences. Most of them compare sequences of text lines (for example lists of strings, or file objects) and produce di..." />
 <meta property="og:image" content="_static/og-image.png" />
 <meta property="og:image:alt" content="Python documentation" />
-<meta name="description" content="소스 코드: Lib/difflib.py 이 모듈은 시퀀스 비교를 위한 클래스와 함수를 제공합니다. 예를 들어 파일을 비교하는 데 사용할 수 있으며, HTML 및 문맥(context)과 통합(unified) diff를 비롯한 다양한 형식의 파일 차이에 관한 정보를 생성할 수 있습니다. 디렉터리와 파일을 비교하려면, filecmp 모듈을 참조하십시오. S..." />
+<meta name="description" content="소스 코드: Lib/difflib.py This module provides classes and functions for comparing sequences. Most of them compare sequences of text lines (for example lists of strings, or file objects) and produce di..." />
 <meta name="theme-color" content="#3776ab">
 <meta property="og:image:width" content="200">
 <meta property="og:image:height" content="200">
@@ -88,12 +88,18 @@
             <nav class="toc">
                 <ul>
 <li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code> — 델타 계산을 위한 도우미</a><ul>
+<li><a class="reference internal" href="#junk-heuristic">Junk heuristic</a></li>
+<li><a class="reference internal" href="#the-difflib-algorithm">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code> algorithm</a></li>
+<li><a class="reference internal" href="#diff-generation">Diff generation</a></li>
+<li><a class="reference internal" href="#junk-definition-functions">Junk definition functions</a></li>
 <li><a class="reference internal" href="#sequencematcher-objects">SequenceMatcher 객체</a></li>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
 <li><a class="reference internal" href="#sequencematcher-examples">SequenceMatcher 예제</a></li>
-<li><a class="reference internal" href="#differ-objects">Differ 객체</a></li>
 <li><a class="reference internal" href="#differ-example">Differ 예제</a></li>
 <li><a class="reference internal" href="#a-command-line-interface-to-difflib">difflib의 명령 줄 인터페이스</a></li>
 <li><a class="reference internal" href="#ndiff-example">ndiff 예제</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -134,19 +140,72 @@
 <span id="difflib-helpers-for-computing-deltas"></span><h1 data-msgid="6368b6e9142d4299b72f100d2e7b769ef7a68d1b" data-score="60"><code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code> — 델타 계산을 위한 도우미<a class="headerlink" href="#module-difflib" title="Link to this heading">¶</a></h1>
 <p data-msgid="afb1ef64696e00c0f10f84946e0f0f8cd5b80b28" data-score="60"><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/difflib.py">Lib/difflib.py</a></p>
 <hr class="docutils" />
-<p data-msgid="715e216898bac90664f4ba39e96b403d5424fbb8" data-score="60">이 모듈은 시퀀스 비교를 위한 클래스와 함수를 제공합니다. 예를 들어 파일을 비교하는 데 사용할 수 있으며, HTML 및 문맥(context)과 통합(unified) diff를 비롯한 다양한 형식의 파일 차이에 관한 정보를 생성할 수 있습니다. 디렉터리와 파일을 비교하려면, <a class="reference internal" href="filecmp.html#module-filecmp" title="filecmp: Compare files efficiently."><code class="xref py py-mod docutils literal notranslate"><span class="pre">filecmp</span></code></a> 모듈을 참조하십시오.</p>
-<dl class="py class">
-<dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">difflib.</span></span><span class="sig-name descname"><span class="pre">SequenceMatcher</span></span></dt>
-<dd><p data-msgid="0959299f7ea2ffa24ca95f7833f4fbd6621eb8f3" data-score="60">이것은 시퀀스 요소가 <a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">해시 가능</span></a>이기만 하다면, 모든 형의 시퀀스 쌍을 비교할 수 있는 유연한 클래스입니다. 기본 알고리즘은 1980년대 후반에 Ratcliff와 Obershelp가 ‘게슈탈트 패턴 매칭(gestalt pattern matching)’이라는 과장된 이름으로 발표한 알고리즘까지 거슬러 올라가는데, 그보다는 약간 더 공을 들였습니다. 아이디어는 “정크” 요소가 없는 가장 긴 연속적으로 일치하는 서브 시퀀스를 찾는 것입니다; 이러한 “정크” 요소는 빈 줄이나 공백과 같은 어떤 의미에서는 흥미롭지 않은 요소들입니다. (정크 처리는 Ratcliff와 Obershelp 알고리즘의 확장입니다.) 그런 다음 같은 아이디어를 일치하는 서브 시퀀스의 왼쪽과 오른쪽에 있는 시퀀스 조각에 재귀적으로 적용합니다. 이것이 최소 편집 시퀀스를 산출하지는 않지만, 사람들에게 “그럴듯해 보이는” 일치를 산출하는 경향이 있습니다.</p>
-<p data-msgid="3a08e137dd22efa1834e4326ae84c73f5da7ca6a" data-score="60"><strong>타이밍:</strong> 기본 Ratcliff-Obershelp 알고리즘은 최악의 상황(worst case)에 세제곱 시간이고, 평균적으로(expected case) 제곱 시간입니다. <a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a>는 최악의 상황에 제곱 시간이며, 평균적인 동작은 시퀀스에 공통으로 포함된 요소의 수에 따라 복잡한 방식으로 달라집니다; 최상의 경우(best cast)는 선형 시간입니다.</p>
-<p data-msgid="55840847ca9f16835b65ee688495c35879cdd684" data-score="40" data-since="260724"><strong>Junk</strong>: <a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a> 는 <code class="docutils literal notranslate"><span class="pre">isjunk</span></code> 술어와 <code class="docutils literal notranslate"><span class="pre">autojunk</span></code> 플래그를 허용합니다. 정크로 간주되는 항목은 유사한 콘텐츠 블록을 찾는 데 고려되지 않습니다. 이는 사람이 읽기에 더 나은 결과(일반적으로 공백에서 끊김)를 생성하고 속도도 향상될 수 있습니다(가능한 조합의 수가 줄어들기 때문입니다). 하지만 너무 많은 항목이 정크로 간주되어 예상보다 큰(그러나 정확한) diff 결과가 나오는 비정상적인 경우도 발생할 수 있습니다. 데이터에 따라 이를 조정하거나 끄는 것을 고려해야 합니다. 또한, 두 번째 시퀀스만 정크 여부를 검사합니다. 이로 인해 diff 출력이 대칭적이지 않을 수 있습니다. <code class="docutils literal notranslate"><span class="pre">autojunk=True</span></code> 일 때, 시퀀스의 길이가 최소 200개 이상이고 그중 1%를 초과하는 비율을 차지하는 항목을 정크로 간주합니다.</p>
-<div class="versionchanged" data-msgid="1dde107b4379679aac12ce93c2d70516793b23a2" data-score="60">
-<p><span class="versionmodified changed">버전 3.2에서 변경: </span><em>autojunk</em> 매개 변수를 추가했습니다.</p>
+<p data-msgid="3992e2948090236200a7638775b3e87cedd81ab6" data-score="0" data-since="260728">This module provides classes and functions for comparing sequences.
+Most of them compare sequences of text lines (for example lists of strings,
+or <a class="reference internal" href="../glossary.html#term-file-object"><span class="xref std std-term">file objects</span></a>) and
+produce <em class="dfn">diffs</em> – reports on the differences.
+Diffs can be produced in in various formats, including HTML and context
+and unified diffs – formats produced by tools like
+<em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/diff(1)">diff</a></em> and <em class="manpage"><a class="manpage reference external" href="https://manpages.debian.org/git-diff(1)">git diff</a></em>.</p>
+<p data-msgid="9ba381557349901db1ecfd1256b2aa12fb151a8a" data-score="0" data-since="260728">Comparisons are done using a matching algorithm implemented in
+<a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a> – a flexible class for comparing pairs of sequences
+of any type, not just text, so long as the sequence elements are
+<a class="reference internal" href="../glossary.html#term-hashable"><span class="xref std std-term">hashable</span></a>.</p>
+<section id="junk-heuristic">
+<span id="difflib-junk"></span><h2 data-msgid="33db1f3c68b8ded4948a17e4976d36943e543492" data-score="0" data-since="260728">Junk heuristic<a class="headerlink" href="#junk-heuristic" title="Link to this heading">¶</a></h2>
+<p data-msgid="b9c709a7aa783d845c7f2d3a75724084a42db4cc" data-score="0" data-since="260728"><code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code> uses a <em class="dfn">junk</em> heuristic: some items are deemed to be
+<em class="dfn">junk</em>, and ignored when searching for similarities.
+Ideally, these are uninteresting or common items, such as blank lines
+or whitespace.</p>
+<p data-msgid="5eadb6db96d4a897d84f413076f5fe104c4587da" data-score="0" data-since="260728">This heuristic can speed the algorithm up (because it reduces the number of
+possible combinations) and it can produce results that are more understandable
+for humans (typically breaking on whitespace).
+But it can also cause pathological cases:</p>
+<ul class="simple">
+<li><p data-msgid="286d3571d1b95b1afe29e68f876901c468349536" data-score="0" data-since="260728">Inappropriately chosen junk items can cause an unexpectedly <strong>large</strong> (but
+still correct) result.</p></li>
+<li><p data-msgid="355c26f194d1a467676bb94868d2f9b27295ca61" data-score="0" data-since="260728">The default heuristic is <strong>asymmetric</strong>: only the second sequence is
+inspected when determining what is considered junk, so comparing A to B can
+give different results than comparing B to A and reversing the result.</p></li>
+</ul>
+<p data-msgid="835d29a01b6e095f3ea90a9729dc6002fa63467b" data-score="0" data-since="260728">By default, if the second input sequence is at least 200 items long, items
+that account for more than 1% it are considered <em>junk</em>.</p>
+<p data-msgid="42a664a183d45328428b4a21f05b35387349ea5d" data-score="0" data-since="260728">Depending on your data, you should consider turning this heuristic off
+(setting <a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a>’s <em>autojunk</em> argument to  to <code class="docutils literal notranslate"><span class="pre">False</span></code>)
+or tuning it (using the <em>isjunk</em> argument, perhaps to one of the
+<a class="reference internal" href="#difflib-isjunk-functions"><span class="std std-ref">predefined functions</span></a>).</p>
+</section>
+<section id="the-difflib-algorithm">
+<h2 data-msgid="19b7ac32eeb98f0cbe42a83a24bcbc84b0d11e73" data-score="0" data-since="260728">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code> algorithm<a class="headerlink" href="#the-difflib-algorithm" title="Link to this heading">¶</a></h2>
+<p data-msgid="188a3e6107353f69b692f17bc1d86d7ca8708884" data-score="0" data-since="260728">The algorithm used in <a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a> predates, and is a little
+fancier than, an algorithm published in the late 1980s by Ratcliff and
+Obershelp under the hyperbolic name “gestalt pattern matching.”
+The idea is to find the longest contiguous subsequence common to both inputs,
+then recursively handle the pieces of the sequences to the left and to the
+right of the matching subsequence.</p>
+<div class="admonition seealso">
+<p class="admonition-title">더 보기</p>
+<dl class="simple">
+<dt data-msgid="a87792090516314e3491840e0dd468c3d23c5d0f" data-score="40"><a class="reference external" href="https://jacobfilipp.com/DrDobbs/articles/DDJ/1988/8807/8807c/8807c.htm">Pattern Matching: The Gestalt Approach</a></dt><dd><p data-msgid="3dc898ae95835cdf8c329ca10fe3bf964714c388" data-score="40">John W. Ratcliff과 D. E. Metzener에 의한 유사한 알고리즘에 대한 논의입니다. 이 내용은 1988년 7월 Dr. Dobb’s Journal에 발표되었습니다.</p>
+</dd>
+</dl>
 </div>
-</dd></dl>
-
-<dl class="py class">
+<p data-msgid="18995019663070eb78e50bfdcf2785ec90f88116" data-score="0" data-since="260728">As an extension to the Ratcliff and Obershelp algorithm, <code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code>
+searches for the longest <em>junk-free</em> contiguous subsequence.
+See the <a class="reference internal" href="#difflib-junk"><span class="std std-ref">Junk heuristic</span></a> section for details.</p>
+<div class="impl-detail compound">
+<p data-msgid="098024dc5537ca3623978ac7c0a6140ce39062b8" data-score="0" data-since="260728"><strong>CPython 구현 상세:</strong> Timing</p>
+<p data-msgid="c111c4a3ea32aec9df695e264fb1d6db6690fa1a" data-score="0" data-since="260728">The basic Ratcliff-Obershelp algorithm is cubic time in the worst
+case and quadratic time in the expected case.
+<a class="reference internal" href="#module-difflib" title="difflib: Helpers for computing differences between objects."><code class="xref py py-mod docutils literal notranslate"><span class="pre">difflib</span></code></a>’s algorithm is quadratic time for the worst case and has
+expected-case behavior dependent in a complicated way on how many elements
+the sequences have in common;
+best case time is linear.</p>
+</div>
+</section>
+<section id="diff-generation">
+<span id="difflib-diff-generation"></span><h2 data-msgid="753d91e178c82defc81bc180d280f770f18f1563" data-score="0" data-since="260728">Diff generation<a class="headerlink" href="#diff-generation" title="Link to this heading">¶</a></h2>
+<dl class="py class" id="differ-objects">
 <dt class="sig sig-object py" id="difflib.Differ">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">difflib.</span></span><span class="sig-name descname"><span class="pre">Differ</span></span><a class="headerlink" href="#difflib.Differ" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="ffa24161eeca58b45230f663e96e584b95cdd8bc" data-score="60">이것은 텍스트 줄의 시퀀스를 비교하고, 사람이 읽을 수 있는 차이 또는 델타를 생성하는 클래스입니다. Differ는 줄의 시퀀스를 비교하고, 유사한 (거의 일치하는) 줄 내의 문자 시퀀스를 비교하는데 <a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a>를 사용합니다.</p>
@@ -173,6 +232,35 @@
 </tbody>
 </table>
 <p data-msgid="aceb67d2ecd3ce2c50a64a2555690937b18fbc09" data-score="60">‘<code class="docutils literal notranslate"><span class="pre">?</span></code>'로 시작하는 줄은, 시선을 줄 내의 차이로 유도하려고 시도하며, 두 입력 시퀀스 어디에도 나타나지 않습니다. 이 줄은 시퀀스에 스페이스, 탭 또는 줄 넘김과 같은 공백 문자가 포함되면 혼동을 줄 수 있습니다.</p>
+<p data-msgid="af97cd0cdabddbe90739465d592d6eb46d2ff2f1" data-score="0" data-since="260728">Note that <a class="reference internal" href="#difflib.Differ" title="difflib.Differ"><code class="xref py py-class docutils literal notranslate"><span class="pre">Differ</span></code></a>-generated deltas make no claim to be <strong>minimal</strong>
+diffs. To the contrary, minimal diffs are often counter-intuitive for humans,
+because they synch up anywhere possible, sometimes at accidental matches
+100 pages apart.
+Restricting synch points to contiguous matches preserves some notion of
+locality, at the occasional cost of producing a longer diff.</p>
+<p data-msgid="dbfa412955bb62e7aee3e596ee00f88cb72e1aa1" data-score="60"><a class="reference internal" href="#difflib.Differ" title="difflib.Differ"><code class="xref py py-class docutils literal notranslate"><span class="pre">Differ</span></code></a> 클래스에는 다음과 같은 생성자가 있습니다:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="difflib.Differ.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linejunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charjunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#difflib.Differ.__init__" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="951b3f854cdb9c45b33d6eb4814b4aa51db39c7a" data-score="60">선택적 키워드 매개 변수 <em>linejunk</em> 와 <em>charjunk</em>는 필터 함수(또는 <code class="docutils literal notranslate"><span class="pre">None</span></code>)를 위한 것입니다:</p>
+<p data-msgid="ea7fe8f551e58310a773856ee50963cf53f39ba0" data-score="60"><em>linejunk</em>: 단일 문자열 인자를 받아들이고 문자열이 정크면 참을 반환하는 함수입니다. 기본값은 <code class="docutils literal notranslate"><span class="pre">None</span></code>이며, 이는 어떤 줄도 정크로 간주하지 않음을 의미합니다.</p>
+<p data-msgid="ac58bdabfc8057e82900a79c68682735b0885ad4" data-score="60"><em>charjunk</em>: 문자(길이 1의 문자열)를 받아들이고, 문자가 정크면 참을 반환하는 함수입니다. 기본값은 <code class="docutils literal notranslate"><span class="pre">None</span></code>이며, 이는 어떤 문자도 정크로 간주하지 않음을 의미합니다.</p>
+<p data-msgid="37f8be3c6a72bec149db965bc018e481af58e408" data-score="60">이러한 정크 필터링 함수는 차이점을 찾기 위한 일치 속도를 높이고 차이가 나는 줄이나 문자를 무시하지 않습니다. 설명이 필요하면 <a class="reference internal" href="#difflib.SequenceMatcher.find_longest_match" title="difflib.SequenceMatcher.find_longest_match"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_longest_match()</span></code></a> 메서드의 <em>isjunk</em> 매개 변수에 대한 설명을 읽으십시오.</p>
+</dd></dl>
+
+<p data-msgid="ad65aed5dc67ec729910128545edaad980d2e47d" data-score="60"><a class="reference internal" href="#difflib.Differ" title="difflib.Differ"><code class="xref py py-class docutils literal notranslate"><span class="pre">Differ</span></code></a> 객체는 단일 메서드를 통해 사용됩니다 (델타가 만들어집니다):</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="difflib.Differ.compare">
+<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#difflib.Differ.compare" title="Link to this definition">¶</a></dt>
+<dd><p data-msgid="2db74bb511106c122af95dcaf7fcfe944fd3e230" data-score="60">줄의 시퀀스 두 개를 비교하고, 델타(줄의 시퀀스)를 만듭니다.</p>
+<p data-msgid="0a2cc6484e4ffe5a0f16a4881e4137c8bfa0df29" data-score="0" data-since="260728">Each sequence must contain individual single-line strings ending with
+newlines.  Such sequences can be obtained from the
+<a class="reference internal" href="io.html#io.IOBase.readlines" title="io.IOBase.readlines"><code class="xref py py-meth docutils literal notranslate"><span class="pre">readlines()</span></code></a> method of file-like objects.  The generated
+delta also consists of newline-terminated strings, ready to be
+printed as-is via the <a class="reference internal" href="io.html#io.IOBase.writelines" title="io.IOBase.writelines"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writelines()</span></code></a> method of a
+file-like object.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -354,6 +442,9 @@
 </div>
 </dd></dl>
 
+</section>
+<section id="junk-definition-functions">
+<span id="difflib-isjunk-functions"></span><h2 data-msgid="e029ea306de5a5f2ee13d63d8c7a2c25fb044190" data-score="0" data-since="260728">Junk definition functions<a class="headerlink" href="#junk-definition-functions" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="difflib.IS_LINE_JUNK">
 <span class="sig-prename descclassname"><span class="pre">difflib.</span></span><span class="sig-name descname"><span class="pre">IS_LINE_JUNK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#difflib.IS_LINE_JUNK" title="Link to this definition">¶</a></dt>
@@ -366,16 +457,9 @@
 <dd><p data-msgid="7153270754b1225dc98cc1ae22bc49a87eaf779f" data-score="60">무시할 수 있는 문자면 <code class="docutils literal notranslate"><span class="pre">True</span></code>를 반환합니다. <em>ch</em>가 스페이스나 탭이면 문자 <em>ch</em>는 무시할 수 있습니다, 그렇지 않으면 무시할 수 없습니다. <a class="reference internal" href="#difflib.ndiff" title="difflib.ndiff"><code class="xref py py-func docutils literal notranslate"><span class="pre">ndiff()</span></code></a>에서 매개 변수 <em>charjunk</em>의 기본값으로 사용됩니다.</p>
 </dd></dl>
 
-<div class="admonition seealso">
-<p class="admonition-title">더 보기</p>
-<dl class="simple">
-<dt data-msgid="a87792090516314e3491840e0dd468c3d23c5d0f" data-score="40"><a class="reference external" href="https://jacobfilipp.com/DrDobbs/articles/DDJ/1988/8807/8807c/8807c.htm">Pattern Matching: The Gestalt Approach</a></dt><dd><p data-msgid="3dc898ae95835cdf8c329ca10fe3bf964714c388" data-score="40">John W. Ratcliff과 D. E. Metzener에 의한 유사한 알고리즘에 대한 논의입니다. 이 내용은 1988년 7월 Dr. Dobb’s Journal에 발표되었습니다.</p>
-</dd>
-</dl>
-</div>
+</section>
 <section id="sequencematcher-objects">
 <span id="sequence-matcher"></span><h2 data-msgid="a0a59cdd28c195835809e2e30afd27989d0deeb8" data-score="40">SequenceMatcher 객체<a class="headerlink" href="#sequencematcher-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="217cde36593aef04f4ef16215bc8353046c8e0e0" data-score="60"><a class="reference internal" href="#difflib.SequenceMatcher" title="difflib.SequenceMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceMatcher</span></code></a> 클래스는 다음과 같은 생성자를 갖습니다:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="difflib.SequenceMatcher">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">difflib.</span></span><span class="sig-name descname"><span class="pre">SequenceMatcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">isjunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autojunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#difflib.SequenceMatcher" title="Link to this definition">¶</a></dt>
@@ -532,8 +616,10 @@
 </pre></div>
 </div>
 </section>
+<section id="examples">
+<h2 data-msgid="eb01bf04c9a0e8a71c45816513df424f1c7ffedb" data-score="0">Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
 <section id="sequencematcher-examples">
-<span id="id1"></span><h2 data-msgid="14a9cdc1bfc34aac3b3a9c39b51951b9ed62196d" data-score="40">SequenceMatcher 예제<a class="headerlink" href="#sequencematcher-examples" title="Link to this heading">¶</a></h2>
+<span id="id1"></span><h3 data-msgid="14a9cdc1bfc34aac3b3a9c39b51951b9ed62196d" data-score="40">SequenceMatcher 예제<a class="headerlink" href="#sequencematcher-examples" title="Link to this heading">¶</a></h3>
 <p data-msgid="2c8e457e739d7d8bfa08961b9dc384873e85223c" data-score="60">이 예제에서는 공백을 “정크”로 간주하여, 두 문자열을 비교합니다:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SequenceMatcher</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
 <span class="gp">... </span>                    <span class="s2">&quot;private Thread currentThread;&quot;</span><span class="p">,</span>
@@ -570,30 +656,8 @@
 </ul>
 </div>
 </section>
-<section id="differ-objects">
-<span id="id2"></span><h2 data-msgid="1b9cc61bdb48c1e49b0df3d3efd00cf4e92af328" data-score="40">Differ 객체<a class="headerlink" href="#differ-objects" title="Link to this heading">¶</a></h2>
-<p data-msgid="730366eb38c16e1eeb1ef580d8179032863c5d5b" data-score="60"><a class="reference internal" href="#difflib.Differ" title="difflib.Differ"><code class="xref py py-class docutils literal notranslate"><span class="pre">Differ</span></code></a>가 만든 델타는 <strong>최소</strong> diff라고 주장하지 않음에 유의하십시오. 반대로, 최소 diff는 종종 반 직관적인데, 가능한 모든 곳에서 일치를 취하기 때문입니다. 때로 우발적으로 100페이지가 떨어진 곳에서 일치시키기도 합니다. 동기화 지점을 인접한 일치로 제한하면 가끔 더 긴 diff를 만드는 대신 일종의 지역성을 보존합니다.</p>
-<p data-msgid="dbfa412955bb62e7aee3e596ee00f88cb72e1aa1" data-score="60"><a class="reference internal" href="#difflib.Differ" title="difflib.Differ"><code class="xref py py-class docutils literal notranslate"><span class="pre">Differ</span></code></a> 클래스에는 다음과 같은 생성자가 있습니다:</p>
-<dl class="py class">
-<dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">difflib.</span></span><span class="sig-name descname"><span class="pre">Differ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linejunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charjunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p data-msgid="951b3f854cdb9c45b33d6eb4814b4aa51db39c7a" data-score="60">선택적 키워드 매개 변수 <em>linejunk</em> 와 <em>charjunk</em>는 필터 함수(또는 <code class="docutils literal notranslate"><span class="pre">None</span></code>)를 위한 것입니다:</p>
-<p data-msgid="ea7fe8f551e58310a773856ee50963cf53f39ba0" data-score="60"><em>linejunk</em>: 단일 문자열 인자를 받아들이고 문자열이 정크면 참을 반환하는 함수입니다. 기본값은 <code class="docutils literal notranslate"><span class="pre">None</span></code>이며, 이는 어떤 줄도 정크로 간주하지 않음을 의미합니다.</p>
-<p data-msgid="ac58bdabfc8057e82900a79c68682735b0885ad4" data-score="60"><em>charjunk</em>: 문자(길이 1의 문자열)를 받아들이고, 문자가 정크면 참을 반환하는 함수입니다. 기본값은 <code class="docutils literal notranslate"><span class="pre">None</span></code>이며, 이는 어떤 문자도 정크로 간주하지 않음을 의미합니다.</p>
-<p data-msgid="37f8be3c6a72bec149db965bc018e481af58e408" data-score="60">이러한 정크 필터링 함수는 차이점을 찾기 위한 일치 속도를 높이고 차이가 나는 줄이나 문자를 무시하지 않습니다. 설명이 필요하면 <a class="reference internal" href="#difflib.SequenceMatcher.find_longest_match" title="difflib.SequenceMatcher.find_longest_match"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_longest_match()</span></code></a> 메서드의 <em>isjunk</em> 매개 변수에 대한 설명을 읽으십시오.</p>
-<p data-msgid="ad65aed5dc67ec729910128545edaad980d2e47d" data-score="60"><a class="reference internal" href="#difflib.Differ" title="difflib.Differ"><code class="xref py py-class docutils literal notranslate"><span class="pre">Differ</span></code></a> 객체는 단일 메서드를 통해 사용됩니다 (델타가 만들어집니다):</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="difflib.Differ.compare">
-<span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#difflib.Differ.compare" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2db74bb511106c122af95dcaf7fcfe944fd3e230" data-score="60">줄의 시퀀스 두 개를 비교하고, 델타(줄의 시퀀스)를 만듭니다.</p>
-<p data-msgid="82a51164c8aaab5f9402e6d6bd7cdcdbcbea54e8" data-score="60">각 시퀀스는 줄 넘김으로 끝나는 개별 단일 줄 문자열을 포함해야 합니다. 이러한 시퀀스는 파일류 객체의 <a class="reference internal" href="io.html#io.IOBase.readlines" title="io.IOBase.readlines"><code class="xref py py-meth docutils literal notranslate"><span class="pre">readlines()</span></code></a> 메서드로 얻을 수 있습니다. 생성된 델타 역시 파일류 객체의 <a class="reference internal" href="io.html#io.IOBase.writelines" title="io.IOBase.writelines"><code class="xref py py-meth docutils literal notranslate"><span class="pre">writelines()</span></code></a> 메서드를 통해 그대로 인쇄될 수 있도록 줄 넘김으로 끝나는 문자열로 구성됩니다.</p>
-</dd></dl>
-
-</dd></dl>
-
-</section>
 <section id="differ-example">
-<span id="differ-examples"></span><h2 data-msgid="e3aa387337a8809ee2c014b28d4d6618b8ca5290" data-score="40">Differ 예제<a class="headerlink" href="#differ-example" title="Link to this heading">¶</a></h2>
+<span id="differ-examples"></span><h3 data-msgid="e3aa387337a8809ee2c014b28d4d6618b8ca5290" data-score="40">Differ 예제<a class="headerlink" href="#differ-example" title="Link to this heading">¶</a></h3>
 <p data-msgid="41a2db5063c81067f5776a493c862c44dfaa3fca" data-score="60">이 예제는 두 개의 텍스트를 비교합니다. 먼저 텍스트를 설정하는데, 줄 넘김 문자로 끝나는 개별 단일 줄 문자열의 시퀀스입니다 (이러한 시퀀스는 파일류 객체의 <a class="reference internal" href="io.html#io.IOBase.readlines" title="io.IOBase.readlines"><code class="xref py py-meth docutils literal notranslate"><span class="pre">readlines()</span></code></a> 메서드로도 얻을 수 있습니다):</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">text1</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;  1. Beautiful is better than ugly.</span>
 <span class="gp">... </span><span class="s1">  2. Explicit is better than implicit.</span>
@@ -652,7 +716,7 @@
 </div>
 </section>
 <section id="a-command-line-interface-to-difflib">
-<span id="difflib-interface"></span><h2 data-msgid="88f8a5ed71e20bf98933ac839aba7f4bbf24f658" data-score="60">difflib의 명령 줄 인터페이스<a class="headerlink" href="#a-command-line-interface-to-difflib" title="Link to this heading">¶</a></h2>
+<span id="difflib-interface"></span><h3 data-msgid="88f8a5ed71e20bf98933ac839aba7f4bbf24f658" data-score="60">difflib의 명령 줄 인터페이스<a class="headerlink" href="#a-command-line-interface-to-difflib" title="Link to this heading">¶</a></h3>
 <p data-msgid="db7519cda0a7f06bd7bc793f26c0ce99b751dc1a" data-score="60">이 예제는 difflib를 사용하여 <code class="docutils literal notranslate"><span class="pre">diff</span></code>와 유사한 유틸리티를 만드는 방법을 보여줍니다.</p>
 <div class="highlight-python3 notranslate" data-msgid="fa6cb74278a136db01e61d90b673a3c23bd9f5df" data-score="40"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot; difflib.py에 대한 명령줄 인터페이스로 네 가지 형식의 diff를 제공합니다:</span>
 
@@ -666,7 +730,7 @@
 </div>
 </section>
 <section id="ndiff-example">
-<h2 data-msgid="c2372cf4b2008b2fcd9569aa4c5ba463e17d8ffe" data-score="60">ndiff 예제<a class="headerlink" href="#ndiff-example" title="Link to this heading">¶</a></h2>
+<h3 data-msgid="c2372cf4b2008b2fcd9569aa4c5ba463e17d8ffe" data-score="60">ndiff 예제<a class="headerlink" href="#ndiff-example" title="Link to this heading">¶</a></h3>
 <p data-msgid="3a9b88dfb64f4b65653d2e14588f9d58efcba1be" data-score="60">d이 예제는 <a class="reference internal" href="#difflib.ndiff" title="difflib.ndiff"><code class="xref py py-func docutils literal notranslate"><span class="pre">difflib.ndiff()</span></code></a>를 사용하는 방법을 보여줍니다.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;ndiff [-q] file1 file2</span>
 <span class="sd">    or</span>
@@ -781,6 +845,7 @@
     <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 <div class="lost-and-found-section">
