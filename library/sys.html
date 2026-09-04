@@ -1431,8 +1431,23 @@ from <a class="reference internal" href="#sys.exc_info" title="sys.exc_info"><co
 <dl class="py data">
 <dt class="sig sig-object py" id="sys.lazy_modules">
 <span class="sig-prename descclassname"><span class="pre">sys.</span></span><span class="sig-name descname"><span class="pre">lazy_modules</span></span><a class="headerlink" href="#sys.lazy_modules" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9f927736582b3d1ecc829530915e95b88496dfe6" data-score="40">현재 인터프리터에서 지연 로드(lazily imported)되었으나 아직 로드되지 않은 전체 경로 모듈 이름 문자열의 <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> 입니다. 지연 로드된 모듈에 처음 접근할 때 해당 이름이 이 세트에서 제거됩니다.</p>
-<p data-msgid="0a350df9f1592ffb6b9fdf15dd8217b7b3b2e220" data-score="40">이 속성은 디버깅 및 인트로스펙션을 위해 설계되었습니다.</p>
+<dd><p data-msgid="e8191a4557b2edfa25a9d2c5223d799ac9f895e5" data-score="0" data-since="260904">A <a class="reference internal" href="stdtypes.html#set" title="set"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> of fully qualified module name strings that have been lazily
+imported in the current interpreter but not yet loaded.
+When a lazily imported module is accessed for the first time, its name is
+typically removed from this set.</p>
+<p data-msgid="371ae9910db7b6baac3df85295703d8d305284c6" data-score="0" data-since="260904">The set may contain some additional strings.
+It is intended for debugging and introspection, and consumers are expected
+to verify each entry’s status.</p>
+<div class="impl-detail compound">
+<p data-msgid="756977102660e9f124ee14460bbce284bf10d771" data-score="0" data-since="260904"><strong>CPython 구현 상세:</strong> Currently, <code class="xref py py-data docutils literal notranslate"><span class="pre">lazy_modules</span></code> may also contain:</p>
+<ul class="simple">
+<li><p data-msgid="266f3ea92d7797c9750d3e46e67dea8c2a559017" data-score="0" data-since="260904">names of <em>attributes</em> (non-modules), such as <code class="docutils literal notranslate"><span class="pre">&quot;pathlib.Path&quot;</span></code> after
+running <code class="docutils literal notranslate"><span class="pre">lazy</span> <span class="pre">from</span> <span class="pre">pathlib</span> <span class="pre">import</span> <span class="pre">Path</span></code>, and</p></li>
+<li><p data-msgid="7d6e25df5bab36d9a6a4df9cbde4ba0b9b75dfac" data-score="0" data-since="260904">names of items than have already been accessed.</p></li>
+</ul>
+<p data-msgid="e2346e1b7446d09d0b43c1dbd24043a3cc0a2e31" data-score="0" data-since="260904">In future versions of Python, these may be removed, and/or additional
+extras may be added.</p>
+</div>
 <p data-msgid="f26199f0ced49d218e8e6aeae0e95eaace3fe4b6" data-score="40"><a class="reference internal" href="#sys.set_lazy_imports" title="sys.set_lazy_imports"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_lazy_imports()</span></code></a> 및 <span class="target" id="index-110"></span><a class="pep reference external" href="https://peps.python.org/pep-0810/"><strong>PEP 810</strong></a> 도 참고하십시오.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.15.</span></p>
@@ -1667,12 +1682,12 @@ from <a class="reference internal" href="#sys.exc_info" title="sys.exc_info"><co
 <dt class="sig sig-object py" id="sys.set_lazy_imports_filter">
 <span class="sig-prename descclassname"><span class="pre">sys.</span></span><span class="sig-name descname"><span class="pre">set_lazy_imports_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sys.set_lazy_imports_filter" title="Link to this definition">¶</a></dt>
 <dd><p data-msgid="013b8aaa3b2104a87ad444dbac415e828bdf3aba" data-score="40">지연 임포트 필터 콜백을 설정합니다. <em>filter</em> 매개변수는 호출 가능(callable)한 함수이거나, 필터를 해제하려면 <code class="docutils literal notranslate"><span class="pre">None</span></code> 이어야 합니다.</p>
-<p data-msgid="18eb37d0dd30c5cc94d8b4933ada494c0e89339e" data-score="40" data-since="260728">필터 함수는 실제로 지연(lazy) 처리가 필요한지 판단하기 위해 잠재적으로 지연될 수 있는 모든 임포트에 대해 호출됩니다. 이 함수는 다음과 같은 시그니처를 가져야 합니다:</p>
+<p data-msgid="18eb37d0dd30c5cc94d8b4933ada494c0e89339e" data-score="40">필터 함수는 실제로 지연(lazy) 처리가 필요한지 판단하기 위해 잠재적으로 지연될 수 있는 모든 임포트에 대해 호출됩니다. 이 함수는 다음과 같은 시그니처를 가져야 합니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="05b1f0ca8fe282b8544a2812385c6921bb0bb0f5" data-score="100"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">importing_module</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">imported_module</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
            <span class="n">fromlist</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
 </pre></div>
 </div>
-<p data-msgid="80bcf9d1a84ae89f46e61cabcfad2e223bbf1a25" data-score="40" data-since="260728">이 함수는 세 개의 위치 인수와 함께 호출됩니다:</p>
+<p data-msgid="80bcf9d1a84ae89f46e61cabcfad2e223bbf1a25" data-score="40">이 함수는 세 개의 위치 인수와 함께 호출됩니다:</p>
 <ul class="simple">
 <li><p data-msgid="50b45d9cc9ca3e5461b2b35f3039c326a041aff1" data-score="40"><em>importing_module</em> 은 임포트를 수행하는 모듈의 이름입니다.</p></li>
 <li><p data-msgid="1d18fa209d547b3b6e3d3c2d6a273a7479669d7e" data-score="40"><em>imported_module</em> 은 임포트되는 모듈의 해소된 이름입니다(예를 들어, <code class="docutils literal notranslate"><span class="pre">lazy</span> <span class="pre">from</span> <span class="pre">.spam</span> <span class="pre">import</span> <span class="pre">eggs</span></code> 는 <code class="docutils literal notranslate"><span class="pre">package.spam</span></code> 을 전달합니다).</p></li>
@@ -1856,7 +1871,7 @@ from <a class="reference internal" href="#sys.exc_info" title="sys.exc_info"><co
 the <em>pid</em> and the path to the script file.
 This event is raised in the process that called <a class="reference internal" href="#sys.remote_exec" title="sys.remote_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.remote_exec()</span></code></a>.</p>
 </p>
-<p class="audit-hook" data-msgid="d617f904caca34c449aa50e57fd166727e6dbef9" data-score="40" id="audit_event_cpython_remote_debugger_script_4">원격 프로세스에서 스크립트가 실행될 때, 원격 프로세스의 경로가 포함된 <a class="reference internal" href="#auditing"><span class="std std-ref">auditing event</span></a> <code class="docutils literal notranslate"><span class="pre">cpython.remote_debugger_script</span></code> 가 발생합니다. 이 이벤트는 원격 프로세스에서 발생하며, <a class="reference internal" href="#sys.remote_exec" title="sys.remote_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.remote_exec()</span></code></a> 을 호출한 프로세스에서 발생하지 않습니다.</p>
+<p class="audit-hook" data-msgid="d617f904caca34c449aa50e57fd166727e6dbef9" data-score="40" id="audit_event_cpython_remote_debugger_script_5">원격 프로세스에서 스크립트가 실행될 때, 원격 프로세스의 경로가 포함된 <a class="reference internal" href="#auditing"><span class="std std-ref">auditing event</span></a> <code class="docutils literal notranslate"><span class="pre">cpython.remote_debugger_script</span></code> 가 발생합니다. 이 이벤트는 원격 프로세스에서 발생하며, <a class="reference internal" href="#sys.remote_exec" title="sys.remote_exec"><code class="xref py py-func docutils literal notranslate"><span class="pre">sys.remote_exec()</span></code></a> 을 호출한 프로세스에서 발생하지 않습니다.</p>
 <div class="availability docutils container">
 <p><a class="reference internal" href="intro.html#availability"><span class="std std-ref">가용성</span></a>: Unix, Windows.</p>
 </div>
