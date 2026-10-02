@@ -266,7 +266,7 @@ This document describes how to adapt C API extensions to support free threading.
 <ul>
 <li><p data-msgid="54dd9f44cb38718f410c491df490eb344976c645" data-score="40">전처리기 조건문을 사용합니다.</p>
 <p data-msgid="91c1cad2f180a24ed0894c47e365930bbdaf2109" data-score="40">이 가이드를 따를 때, 중요하게 생각하는 CPython 버전에서 빌드가 깨지는 변경 사항을 수행해야 할 경우 <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">Py_TARGET_ABI3T</span></code> 블록을 사용하십시오. 기존 코드는 <code class="docutils literal notranslate"><span class="pre">#else</span></code> 블록에 유지합니다.</p>
-<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-score="40">직접 작성한 C 확장의 경우, <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-0697/"><strong>PEP 697</strong></a> 에서 도입된 추가 사항들로 인해 CPython 3.12까지는 이 방식이 합리적입니다. 코드 생성기(예: Cython)의 경우 3.11 이하 버전과의 호환성을 유지하는 것이 가치가 있을 수 있습니다.</p>
+<p data-msgid="c1437cb66d4ffab075a96dbcb454b52459573819" data-score="40">직접 작성한 C 확장의 경우, <span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0697/"><strong>PEP 697</strong></a> 에서 도입된 추가 사항들로 인해 CPython 3.12까지는 이 방식이 합리적입니다. 코드 생성기(예: Cython)의 경우 3.11 이하 버전과의 호환성을 유지하는 것이 가치가 있을 수 있습니다.</p>
 </li>
 <li><p data-msgid="9d6b903576bfd5d510e0a4c4bd1ea8e27c504f72" data-score="40"><code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 이식하지 않고, 이전 버전 지원을 중단할 수 있을 때까지 각 CPython 버전에 대해 별도의 확장을 계속 빌드합니다.</p>
 <p data-msgid="a6f8b7ded5da5787e8ef07cc5583b4ad7a12ecb0" data-score="40">이것은 타당한 접근 방식입니다. 모든 확장을 즉시 <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 로 전환할 필요는 없습니다.</p>
@@ -325,12 +325,7 @@ This document describes how to adapt C API extensions to support free threading.
 </section>
 <section id="module-export-hook">
 <span id="abi3t-howto-modexport"></span><h2 data-msgid="407bd245b0bea9b74dfe7abc504c667213e58735" data-score="40">모듈 내보내기 훅<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
-<p data-msgid="4909ce9fc119935118e82c2da449e2998a2c969d" data-score="0" data-since="261002">Unless you’ve done this step already, your extension module defines a
-<a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">module initialization function</span></a>
-named <code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;modname&gt;</span></em></code> (where <code class="docutils literal notranslate"><span class="pre">modname</span></code> is the name of your module).
-You will need to port it to a <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">module export hook</span></a>,
-<code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;modname&gt;</span></em></code>, a feature added in CPython 3.15 in
-<span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a>.</p>
+<p data-msgid="4909ce9fc119935118e82c2da449e2998a2c969d" data-score="40" data-since="261002">이 단계를 이미 수행하지 않았다면, 확장 모듈은 <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">모듈 초기화 함수</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyInit_{&lt;modname&gt;</span></code>}` (여기서 <code class="docutils literal notranslate"><span class="pre">modname</span></code> 은 모듈의 이름입니다)를 정의합니다. 이를 <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">모듈 내보내기 훅</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_{&lt;modname&gt;</span></code>}`으로 이식해야 하며, 이는 <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a> 에서 CPython 3.15에 추가된 기능입니다.</p>
 <p data-msgid="5564e7ea30b32b69b339ee8fa61bc8f66df6e550" data-score="40">기존의 초기화 함수는 다음과 같은 형태여야 합니다(<code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;</span></code> 및 <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> 은 본인의 이름으로 대체):</p>
 <div class="bad highlight-c notranslate" data-msgid="192592385f2b45a738f6b16036f6390734f37d2a" data-score="100"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
@@ -382,7 +377,7 @@ You will need to port it to a <a class="reference internal" href="../c-api/exten
 <p data-msgid="dd754a830980a262cd69bd4eba2c67a1ed61388e" data-score="40">예시와 같이, <code class="docutils literal notranslate"><span class="pre">PyModExport_</span></code> 함수는 정적 데이터에 대한 포인터만 반환해야 합니다. 추가 코드를 피할 수 없는 경우, <a class="reference internal" href="../c-api/extension-modules.html#pymodexport-api-caveats"><span class="std std-ref">PyModExport_ 문서의 주의 사항</span></a> 을 참조하십시오.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="33d48b1acdae883b64584d7721b807713a358b51" data-score="0" data-since="261002">When building for Windows using the <a class="reference external" href="https://setuptools.pypa.io/">Setuptools</a> build tool,
+<p data-msgid="33d48b1acdae883b64584d7721b807713a358b51" data-score="20" data-since="261002">When building for Windows using the <a class="reference external" href="https://setuptools.pypa.io/">Setuptools</a> build tool,
 removing the <code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;modname&gt;</span></em></code> function may result in the linker error
 <code class="samp docutils literal notranslate"><span class="pre">LINK</span> <span class="pre">:</span> <span class="pre">error</span> <span class="pre">LNK2001:</span> <span class="pre">unresolved</span> <span class="pre">external</span> <span class="pre">symbol</span> <span class="pre">PyInit_</span><em><span class="pre">&lt;modname&gt;</span></em></code>.
 This is caused by Setuptools passing an <code class="docutils literal notranslate"><span class="pre">/EXPORT</span></code> linker flag, which
@@ -391,7 +386,7 @@ A workaround is to add a dummy <code class="samp docutils literal notranslate"><
 to your code.
 Python 3.15+ will never call this function if
 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;modname&gt;</span></em></code> is present, so it can always fail:</p>
-<div class="highlight-c notranslate" data-msgid="7cdad8a7dd6a9e8a347f877644dc7dcdc28a7298" data-score="0" data-since="261002"><div class="highlight"><pre><span></span><span class="c1">// Workaround for https://github.com/pypa/distutils/issues/387</span>
+<div class="highlight-c notranslate" data-msgid="7cdad8a7dd6a9e8a347f877644dc7dcdc28a7298" data-score="40" data-since="261002"><div class="highlight"><pre><span></span><span class="c1">// Workaround for https://github.com/pypa/distutils/issues/387</span>
 <span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
@@ -401,8 +396,7 @@ Python 3.15+ will never call this function if
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="8c92112a2238f52257983c9a43d3d1eac8fa2a08" data-score="0" data-since="261002">(This issue is present in Setuptools 84.0.0; it might be fixed in newer
-versions.)</p>
+<p data-msgid="8c92112a2238f52257983c9a43d3d1eac8fa2a08" data-score="40" data-since="261002">(이 문제는 Setuptools 84.0.0에서 발생하며, 최신 버전에서는 해결되었을 수 있습니다.)</p>
 </div>
 <section id="existing-slots">
 <h3 data-msgid="6ac30a89fd7b2d2961cbe07bd8c63a064cc8f548" data-score="40">기존 슬롯<a class="headerlink" href="#existing-slots" title="Link to this heading">¶</a></h3>
@@ -652,7 +646,7 @@ with it.</p>
 </section>
 <section id="testing">
 <h2 data-msgid="0820b32b206b7352858e8903a838ed14319acdfd" data-score="40">테스트<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
-<p data-msgid="a581cc8d9ceef4bdb62cf494d1928387843a1d24" data-score="40">여러 버전의 CPython과 호환되는 확장 모듈을 빌드할 때는 항상 지원하는 각 버전(예: 3.15, 3.16 등)에서 <em>테스트</em> 해야 함을 유의하십시오. Stable ABI는 <em>ABI</em> 호환성만 보장하며, 의도적인 변경 사항(<span class="target" id="index-6"></span><a class="pep reference external" href="https://peps.python.org/pep-0387/"><strong>PEP 387</strong></a> 에 해당)이나 버그로 인한 동작 변경이 있을 수 있습니다.</p>
+<p data-msgid="a581cc8d9ceef4bdb62cf494d1928387843a1d24" data-score="40">여러 버전의 CPython과 호환되는 확장 모듈을 빌드할 때는 항상 지원하는 각 버전(예: 3.15, 3.16 등)에서 <em>테스트</em> 해야 함을 유의하십시오. Stable ABI는 <em>ABI</em> 호환성만 보장하며, 의도적인 변경 사항(<span class="target" id="index-8"></span><a class="pep reference external" href="https://peps.python.org/pep-0387/"><strong>PEP 387</strong></a> 에 해당)이나 버그로 인한 동작 변경이 있을 수 있습니다.</p>
 <p data-msgid="f5e363a081560967461de7a28ef14f7d59443ac8" data-score="40">CPython의 free-threaded 및 non-free-threaded 빌드 모두에서 테스트를 실행하십시오.</p>
 <p data-msgid="6ce9bf07e81230044b3e5fc8393b9d852777cd00" data-score="40">모두 통과했다면 축하합니다! <code class="docutils literal notranslate"><span class="pre">abi3t</span></code> 확장 모듈을 성공적으로 구축했습니다.</p>
 </section>
