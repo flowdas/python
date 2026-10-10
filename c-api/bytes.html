@@ -93,6 +93,9 @@
 <li><a class="reference internal" href="#high-level-api">고수준 API</a></li>
 <li><a class="reference internal" href="#getters">게터(Getters)</a></li>
 <li><a class="reference internal" href="#low-level-api">저수준 API</a></li>
+<li><a class="reference internal" href="#example-creating-the-string-b-abc">Example creating the string <code class="docutils literal notranslate"><span class="pre">b'abc'</span></code></a></li>
+<li><a class="reference internal" href="#update-pybytes-fromstringandsize-code">Update <code class="docutils literal notranslate"><span class="pre">PyBytes_FromStringAndSize()</span></code> code</a></li>
+<li><a class="reference internal" href="#update-pybytes-resize-code">Update <code class="docutils literal notranslate"><span class="pre">_PyBytes_Resize()</span></code> code</a></li>
 </ul>
 </li>
 </ul>
@@ -503,6 +506,112 @@ function returns <code class="docutils literal notranslate"><span class="pre">NU
 </div>
 </dd></dl>
 
+</section>
+<section id="example-creating-the-string-b-abc">
+<h2 data-msgid="fcdcd2c0bff559c7a8400b9e0cb97cb1abd79c50" data-score="0" data-since="261010">Example creating the string <code class="docutils literal notranslate"><span class="pre">b'abc'</span></code><a class="headerlink" href="#example-creating-the-string-b-abc" title="Link to this heading">¶</a></h2>
+<p data-msgid="8436415336c78e5b572f2ee6f8658da07a2e6ba7" data-score="0" data-since="261010">Example creating the bytes string <code class="docutils literal notranslate"><span class="pre">b&quot;abc&quot;</span></code>, with a fixed size of 3 bytes:</p>
+<div class="highlight-c notranslate" data-msgid="5a5026a400d14a7ca3fb415478bbeb4dcc86ce81" data-score="0" data-since="261010"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="nf">create_abc</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyBytesWriter</span><span class="w"> </span><span class="o">*</span><span class="n">writer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_Create</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">writer</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_GetData</span><span class="p">(</span><span class="n">writer</span><span class="p">);</span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">str</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">PyBytesWriter_Finish</span><span class="p">(</span><span class="n">writer</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p data-msgid="3d9880225082538c079ca2d2d68d4506b6844ffb" data-score="0" data-since="261010">Variant using a pointer to compute the final size:</p>
+<div class="highlight-c notranslate" data-msgid="844ca39c50e1267f309562abe53aec9497c946ab" data-score="0" data-since="261010"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="nf">create_abc_ptr</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyBytesWriter</span><span class="w"> </span><span class="o">*</span><span class="n">writer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_Create</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">writer</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_GetData</span><span class="p">(</span><span class="n">writer</span><span class="p">);</span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">str</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="w">    </span><span class="n">str</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">PyBytesWriter_FinishWithPointer</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span><span class="w"> </span><span class="n">str</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="update-pybytes-fromstringandsize-code">
+<h2 data-msgid="cb049b658a01c117068b11637733eb4447ef454e" data-score="0" data-since="261010">Update <code class="docutils literal notranslate"><span class="pre">PyBytes_FromStringAndSize()</span></code> code<a class="headerlink" href="#update-pybytes-fromstringandsize-code" title="Link to this heading">¶</a></h2>
+<p data-msgid="9cc31fbbfa7e1e616b3415340c4644be1c269079" data-score="0" data-since="261010">Example of code using the soft deprecated
+<code class="docutils literal notranslate"><span class="pre">PyBytes_FromStringAndSize(NULL,</span> <span class="pre">size)</span></code> API:</p>
+<div class="highlight-c notranslate" data-msgid="5e2cf2dc2cbb462db365c0e7d0935ad91d0c2521" data-score="0" data-since="261010"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">copy_bytes</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">Py_ssize_t</span><span class="w"> </span><span class="n">num_bytes</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="nf">create_string</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">Py_ssize_t</span><span class="w"> </span><span class="n">num_bytes</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytes_FromStringAndSize</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">num_bytes</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">copy_bytes</span><span class="p">(</span><span class="n">PyBytes_AS_STRING</span><span class="p">(</span><span class="n">result</span><span class="p">),</span><span class="w"> </span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">num_bytes</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Py_CLEAR</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p data-msgid="b0081fff390946d92775cee693058837aa1074e0" data-score="0" data-since="261010">It can now be updated to:</p>
+<div class="highlight-c notranslate" data-msgid="57383c4d0547a28e283657074fd98304c70b0a1e" data-score="0" data-since="261010"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="nf">create_string</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">Py_ssize_t</span><span class="w"> </span><span class="n">num_bytes</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyBytesWriter</span><span class="w"> </span><span class="o">*</span><span class="n">writer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_Create</span><span class="p">(</span><span class="n">num_bytes</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">writer</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">copy_bytes</span><span class="p">(</span><span class="n">PyBytesWriter_GetData</span><span class="p">(</span><span class="n">writer</span><span class="p">),</span><span class="w"> </span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">num_bytes</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">PyBytesWriter_Discard</span><span class="p">(</span><span class="n">writer</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">PyBytesWriter_Finish</span><span class="p">(</span><span class="n">writer</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="update-pybytes-resize-code">
+<h2 data-msgid="e24259e78a8e4ab2221e6392ef71c1782f01adbd" data-score="0" data-since="261010">Update <code class="docutils literal notranslate"><span class="pre">_PyBytes_Resize()</span></code> code<a class="headerlink" href="#update-pybytes-resize-code" title="Link to this heading">¶</a></h2>
+<p data-msgid="e3e50fe8edc9cf7fe16767e5aaf713a39997ccfd" data-score="0" data-since="261010">Example of code using the soft deprecated <code class="docutils literal notranslate"><span class="pre">_PyBytes_Resize()</span></code> API:</p>
+<div class="highlight-c notranslate" data-msgid="774102bc9595ea47f2a25d4a8551251ba580ab1d" data-score="0" data-since="261010"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">create_string</span><span class="p">(</span><span class="n">Py_ssize_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytes_FromStringAndSize</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">bytes</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytes_AS_STRING</span><span class="p">(</span><span class="n">bytes</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ... write data into str ...</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_PyBytes_Resize</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bytes</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">PyBytes_AS_STRING</span><span class="p">(</span><span class="n">bytes</span><span class="p">))))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">bytes</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p data-msgid="b0081fff390946d92775cee693058837aa1074e0" data-score="0" data-since="261010">It can now be updated to:</p>
+<div class="highlight-c notranslate" data-msgid="30e9e051a0b2856ce7bb67ce0168046955332a8a" data-score="0" data-since="261010"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">create_string</span><span class="p">(</span><span class="n">Py_ssize_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyBytesWriter</span><span class="w"> </span><span class="o">*</span><span class="n">writer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_Create</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">writer</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyBytesWriter_GetData</span><span class="p">(</span><span class="n">writer</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ... write data into str ...</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">PyBytesWriter_FinishWithPointer</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span><span class="w"> </span><span class="n">str</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 </section>
 <div class="lost-and-found-section">
