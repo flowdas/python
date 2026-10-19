@@ -123,12 +123,12 @@
 <li><a class="reference internal" href="#utility-functions">유틸리티 함수</a></li>
 <li><a class="reference internal" href="#data-types">데이터형</a></li>
 <li><a class="reference internal" href="#ctypes-fundamental-data-types-2">기본 데이터형</a></li>
-<li><a class="reference internal" href="#module-ctypes.wintypes">Windows data types</a><ul>
-<li><a class="reference internal" href="#simple-types">Simple types</a></li>
-<li><a class="reference internal" href="#handle-types">Handle types</a></li>
-<li><a class="reference internal" href="#structures">Structures</a></li>
-<li><a class="reference internal" href="#pointer-types">Pointer types</a></li>
-<li><a class="reference internal" href="#constants-and-functions">Constants and functions</a></li>
+<li><a class="reference internal" href="#module-ctypes.wintypes">Windows 데이터형</a><ul>
+<li><a class="reference internal" href="#simple-types">기본형</a></li>
+<li><a class="reference internal" href="#handle-types">핸들 형</a></li>
+<li><a class="reference internal" href="#structures">구조체</a></li>
+<li><a class="reference internal" href="#pointer-types">포인터형</a></li>
+<li><a class="reference internal" href="#constants-and-functions">상수 및 함수</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#structured-data-types">구조화된 데이터형</a></li>
@@ -1609,10 +1609,34 @@ will infinitely yield arbitrary memory.</p>
 <span class="sig-name descname"><span class="pre">callable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p data-msgid="41c07653f172f47d7907e6c1b1848724e28544a0" data-score="40"><em>result</em> 은 <code class="xref py py-attr docutils literal notranslate"><span class="pre">restype</span></code> 속성에 지정된 대로 외국 함수가 반환하는 값입니다.</p>
 <p data-msgid="9044f07cf701c8de410d6927fd017ed70e9ec8a8" data-score="60"><em>func</em>는 외부 함수 객체 자체이며, 같은 콜러블 객체를 재사용하여 여러 함수의 결과를 확인하거나 사후 처리할 수 있도록 합니다.</p>
-<p data-msgid="307d8c5a80ab696118416991a332674fce5d656e" data-score="60"><em>arguments</em>는 원래 함수 호출에 전달된 매개 변수를 포함하는 튜플입니다. 사용된 인자에 따라 동작을 특수화할 수 있도록 합니다.</p>
+<p data-msgid="48843cc2a980f0c9434d0d212387201b5a1b74d6" data-score="0" data-since="261019"><em>arguments</em> is a tuple containing the parameters passed to the
+function call, including any output parameters that <code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code>
+created for the call; this allows specializing the behavior on the
+arguments used.</p>
 </dd></dl>
 
-<p data-msgid="1ad42de57b21617935b08c3b32f3448c2db7ca64" data-score="60">이 함수가 반환하는 객체는 외부 함수 호출에서 반환되지만, 결괏값을 확인하고 외부 함수 호출이 실패하면 예외를 발생시킬 수도 있습니다.</p>
+<p data-msgid="ff4e08ab1b466ed10d4fee1416fafce258101eab" data-score="0" data-since="261019">If the callable returns the <em>arguments</em> tuple it received, unchanged,
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code> continues its normal processing of the result, which
+includes returning output parameters (see
+<a class="reference internal" href="#ctypes-function-prototypes"><span class="std std-ref">함수 프로토타입</span></a>). Any other object returned by the
+callable is returned from the foreign function call instead. The
+callable can also check the result value and raise an exception if the
+foreign function call failed.</p>
+<p data-msgid="dc4437ef96235c6696d3dc089b0f0022c02fa038" data-score="0" data-since="261019">For example, this callable raises an exception when the foreign function
+signals failure with a negative return value, and otherwise leaves the
+result to <code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code>:</p>
+<div class="highlight-python3 notranslate" data-msgid="9f5e0133bd7566692763fd8e81305e0fe0ae4cb4" data-score="0" data-since="261019"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">errcheck</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;call failed with error </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arguments</span>
+</pre></div>
+</div>
+<p data-msgid="3e55391c522a81ed96edf23fd63550431e39bcd9" data-score="0" data-since="261019">This one instead replaces the result, converting a C <code class="docutils literal notranslate"><span class="pre">int</span></code> used as a
+boolean into a <a class="reference internal" href="../builtins/functions.html#bool" title="bool"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>:</p>
+<div class="highlight-python3 notranslate" data-msgid="0bfbcad6c2b3bdd312aa5addb5bc43ccfab95344" data-score="0" data-since="261019"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">errcheck</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -1995,7 +2019,7 @@ will infinitely yield arbitrary memory.</p>
 <dd><p data-msgid="80714bea43151e039674cdbca8e076bec75f7711" data-score="40"><em>void *ptr</em> 에서 시작하는 메모리를 참조하며 길이가 <em>size</em> 인 <a class="reference internal" href="../builtins/stdtypes.html#memoryview" title="memoryview"><code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code></a> 객체를 반환합니다.</p>
 <p data-msgid="78dc91b551ddebad925aadededce73e8ea3d2589" data-score="40"><em>readonly</em> 가 True이면 반환된 <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code> 객체를 사용하여 기본 메모리를 수정할 수 없습니다. (다른 방법으로 변경된 내용은 여전히 반환된 객체에 반영됩니다.)</p>
 <p data-msgid="08cb298055a6f4f1d144d1c369da0741b9c73f9f" data-score="40">이 함수는 지정된 메모리의 복사본을 생성하지 않는다는 점이 주요 차이점인 <a class="reference internal" href="#ctypes.string_at" title="ctypes.string_at"><code class="xref py py-func docutils literal notranslate"><span class="pre">string_at()</span></code></a> 과 유사합니다. 이는 <code class="docutils literal notranslate"><span class="pre">memoryview((c_byte</span> <span class="pre">*</span> <span class="pre">size).from_address(ptr))</span></code> 와 의미론적으로 동일하지만 더 효율적인 대안입니다. (<a class="reference internal" href="#ctypes._CData.from_address" title="ctypes._CData.from_address"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_address()</span></code></a> 는 정수만 받지만, <em>ptr</em> 은 <a class="reference internal" href="#ctypes.POINTER" title="ctypes.POINTER"><code class="xref py py-class docutils literal notranslate"><span class="pre">ctypes.POINTER</span></code></a> 또는 <a class="reference internal" href="#ctypes.byref" title="ctypes.byref"><code class="xref py py-func docutils literal notranslate"><span class="pre">byref()</span></code></a> 객체로도 전달할 수 있습니다.)</p>
-<p class="audit-hook" data-msgid="ccc229bd57b0775c21265d9c81325934272009c5" data-score="40" id="audit_event_ctypes_memoryview_at_17">인자 <code class="docutils literal notranslate"><span class="pre">address</span></code>, <code class="docutils literal notranslate"><span class="pre">size</span></code>, <code class="docutils literal notranslate"><span class="pre">readonly</span></code> 를 사용하여 <a class="reference internal" href="sys.html#auditing"><span class="std std-ref">감사 이벤트</span></a> <code class="docutils literal notranslate"><span class="pre">ctypes.memoryview_at</span></code> 을 발생시킵니다.</p>
+<p class="audit-hook" data-msgid="ccc229bd57b0775c21265d9c81325934272009c5" data-score="40" id="audit_event_ctypes_memoryview_at_18">인자 <code class="docutils literal notranslate"><span class="pre">address</span></code>, <code class="docutils literal notranslate"><span class="pre">size</span></code>, <code class="docutils literal notranslate"><span class="pre">readonly</span></code> 를 사용하여 <a class="reference internal" href="sys.html#auditing"><span class="std std-ref">감사 이벤트</span></a> <code class="docutils literal notranslate"><span class="pre">ctypes.memoryview_at</span></code> 을 발생시킵니다.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version 3.14.</span></p>
 </div>
@@ -2346,21 +2370,14 @@ The <code class="docutils literal notranslate"><span class="pre">'L'</span></cod
 
 </section>
 <section id="module-ctypes.wintypes">
-<span id="windows-data-types"></span><span id="ctypes-wintypes"></span><h3 data-msgid="7da96e3fcc44ffcb74e2c9836d531d5af45035b3" data-score="0" data-since="261019">Windows data types<a class="headerlink" href="#module-ctypes.wintypes" title="Link to this heading">¶</a></h3>
-<p data-msgid="72075e9d4b8e8bea9d28d769f48cf2595bf751d0" data-score="0" data-since="261019"><strong>Source code:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/ctypes/wintypes.py">Lib/ctypes/wintypes.py</a></p>
-<p data-msgid="774745bb5f2a4ef6355846671d693bdb82fc1df1" data-score="0" data-since="261019">The <code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes.wintypes</span></code> module provides types for use with Windows APIs.
-Most are aliases for types defined in <a class="reference internal" href="#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a>.
-See Microsoft’s <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types">Windows data types</a>
-documentation for the corresponding C definitions.
-On non-Windows platforms, the sizes and layouts of these types may differ
-from their Windows counterparts.</p>
-<div class="versionchanged" data-msgid="8d4ab479d237a753132a14d35d983ee7e423ab0a" data-score="0" data-since="261019">
-<p><span class="versionmodified changed">버전 3.14에서 변경: </span>Added <a class="reference internal" href="#ctypes.wintypes.HCONV" title="ctypes.wintypes.HCONV"><code class="xref py py-class docutils literal notranslate"><span class="pre">HCONV</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HCONVLIST" title="ctypes.wintypes.HCONVLIST"><code class="xref py py-class docutils literal notranslate"><span class="pre">HCONVLIST</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HCURSOR" title="ctypes.wintypes.HCURSOR"><code class="xref py py-class docutils literal notranslate"><span class="pre">HCURSOR</span></code></a>,
-<a class="reference internal" href="#ctypes.wintypes.HDDEDATA" title="ctypes.wintypes.HDDEDATA"><code class="xref py py-class docutils literal notranslate"><span class="pre">HDDEDATA</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HDROP" title="ctypes.wintypes.HDROP"><code class="xref py py-class docutils literal notranslate"><span class="pre">HDROP</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HFILE" title="ctypes.wintypes.HFILE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HFILE</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HRESULT" title="ctypes.wintypes.HRESULT"><code class="xref py py-class docutils literal notranslate"><span class="pre">HRESULT</span></code></a>,
-and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wintypes.HSZ"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSZ</span></code></a>.</p>
+<span id="windows-data-types"></span><span id="ctypes-wintypes"></span><h3 data-msgid="7da96e3fcc44ffcb74e2c9836d531d5af45035b3" data-score="40" data-since="261019">Windows 데이터형<a class="headerlink" href="#module-ctypes.wintypes" title="Link to this heading">¶</a></h3>
+<p data-msgid="72075e9d4b8e8bea9d28d769f48cf2595bf751d0" data-score="40" data-since="261019"><strong>소스 코드:</strong> <a class="extlink-source reference external" href="https://github.com/python/cpython/tree/main/Lib/ctypes/wintypes.py">Lib/ctypes/wintypes.py</a></p>
+<p data-msgid="774745bb5f2a4ef6355846671d693bdb82fc1df1" data-score="40" data-since="261019"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes.wintypes</span></code> 모듈은 Windows API에서 사용할 수 있는 형을 제공합니다. 대부분은 <a class="reference internal" href="#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> 에 정의된 형의 별칭입니다. 해당 C 정의에 대한 내용은 Microsoft의 <a class="reference external" href="https://learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types">Windows data types</a> 문서를 참조하십시오. Windows 이외의 플랫폼에서는 이러한 형의 크기와 레이아웃이 Windows와 다를 수 있습니다.</p>
+<div class="versionchanged" data-msgid="8d4ab479d237a753132a14d35d983ee7e423ab0a" data-score="40" data-since="261019">
+<p><span class="versionmodified changed">버전 3.14에서 변경: </span><a class="reference internal" href="#ctypes.wintypes.HCONV" title="ctypes.wintypes.HCONV"><code class="xref py py-class docutils literal notranslate"><span class="pre">HCONV</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HCONVLIST" title="ctypes.wintypes.HCONVLIST"><code class="xref py py-class docutils literal notranslate"><span class="pre">HCONVLIST</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HCURSOR" title="ctypes.wintypes.HCURSOR"><code class="xref py py-class docutils literal notranslate"><span class="pre">HCURSOR</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HDDEDATA" title="ctypes.wintypes.HDDEDATA"><code class="xref py py-class docutils literal notranslate"><span class="pre">HDDEDATA</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HDROP" title="ctypes.wintypes.HDROP"><code class="xref py py-class docutils literal notranslate"><span class="pre">HDROP</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HFILE" title="ctypes.wintypes.HFILE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HFILE</span></code></a>, <a class="reference internal" href="#ctypes.wintypes.HRESULT" title="ctypes.wintypes.HRESULT"><code class="xref py py-class docutils literal notranslate"><span class="pre">HRESULT</span></code></a>, 그리고 <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wintypes.HSZ"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSZ</span></code></a> 가 추가되었습니다.</p>
 </div>
 <p data-msgid="b571ce3de5d278719ce9e4bafb4d328ef167d4ee" data-score="40">예를 들어:</p>
-<div class="highlight-python3 notranslate" data-msgid="31d41c6047468e64a76b0fa588c93b89c4041e00" data-score="0" data-since="261019"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ctypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">POINTER</span>
+<div class="highlight-python3 notranslate" data-msgid="31d41c6047468e64a76b0fa588c93b89c4041e00" data-score="40" data-since="261019"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ctypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">POINTER</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ctypes.wintypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LPRECT</span><span class="p">,</span> <span class="n">RECT</span><span class="p">,</span> <span class="n">SHORT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">SHORT</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 <span class="go">-1</span>
@@ -2372,12 +2389,12 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 </pre></div>
 </div>
 <section id="simple-types">
-<h4 data-msgid="4397912d7de4830d83680a01007966be7718efd9" data-score="0" data-since="261019">Simple types<a class="headerlink" href="#simple-types" title="Link to this heading">¶</a></h4>
-<p data-msgid="75a96a8242813168d44e9fa6c965abecab7311d0" data-score="0" data-since="261019">The following names are aliases for fundamental <a class="reference internal" href="#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> types:</p>
+<h4 data-msgid="4397912d7de4830d83680a01007966be7718efd9" data-score="40" data-since="261019">기본형<a class="headerlink" href="#simple-types" title="Link to this heading">¶</a></h4>
+<p data-msgid="75a96a8242813168d44e9fa6c965abecab7311d0" data-score="40" data-since="261019">다음 이름들은 기본 <a class="reference internal" href="#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> 형의 별칭입니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="b2f9945b96128d45c569ad1b872c1b9792ddfdc0" data-score="0" data-since="261019">Windows types</p></th>
-<th class="head"><p data-msgid="e44caa3c92d4ab481aa076c0fce0145634b1ca1c" data-score="0" data-since="261019"><a class="reference internal" href="#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> type</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="b2f9945b96128d45c569ad1b872c1b9792ddfdc0" data-score="40" data-since="261019">Windows 형</p></th>
+<th class="head"><p data-msgid="e44caa3c92d4ab481aa076c0fce0145634b1ca1c" data-score="40" data-since="261019"><a class="reference internal" href="#module-ctypes" title="ctypes: A foreign function library for Python."><code class="xref py py-mod docutils literal notranslate"><span class="pre">ctypes</span></code></a> 형</p></th>
 </tr>
 </thead>
 <tbody>
@@ -2389,7 +2406,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="b646a3cd832b5f9da7e9da7814ec4b11692f30da" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_ubyte" title="ctypes.c_ubyte"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ubyte</span></code></a></p></td>
+<td><p data-msgid="b646a3cd832b5f9da7e9da7814ec4b11692f30da" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_ubyte" title="ctypes.c_ubyte"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ubyte</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.CHAR">
@@ -2397,7 +2414,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="2f8e9db213aa7b7575a6dc7f162c2b028ab9e173" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_char" title="ctypes.c_char"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_char</span></code></a></p></td>
+<td><p data-msgid="2f8e9db213aa7b7575a6dc7f162c2b028ab9e173" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_char" title="ctypes.c_char"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_char</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.WCHAR">
@@ -2405,7 +2422,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="05ddaad230ff05af3d3075c51b05494f719aa5a0" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_wchar" title="ctypes.c_wchar"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_wchar</span></code></a></p></td>
+<td><p data-msgid="05ddaad230ff05af3d3075c51b05494f719aa5a0" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_wchar" title="ctypes.c_wchar"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_wchar</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.WORD">
@@ -2419,7 +2436,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="b1bbfb25add0c51e0835216a408383c3359b74b9" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_ushort" title="ctypes.c_ushort"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ushort</span></code></a></p></td>
+<td><p data-msgid="b1bbfb25add0c51e0835216a408383c3359b74b9" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_ushort" title="ctypes.c_ushort"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ushort</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.DWORD">
@@ -2437,7 +2454,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="4208993d89e67208c4543a701048c118cb786edc" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_ulong" title="ctypes.c_ulong"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ulong</span></code></a></p></td>
+<td><p data-msgid="4208993d89e67208c4543a701048c118cb786edc" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_ulong" title="ctypes.c_ulong"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ulong</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.BOOL">
@@ -2449,7 +2466,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="9a2b277b036e6d1e6a164d6fe9adbb87a9725ade" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_long" title="ctypes.c_long"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_long</span></code></a></p></td>
+<td><p data-msgid="9a2b277b036e6d1e6a164d6fe9adbb87a9725ade" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_long" title="ctypes.c_long"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_long</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.INT">
@@ -2459,7 +2476,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="3a949e84f66d3ef2c2a547cbe32120f04cde19cf" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_int" title="ctypes.c_int"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_int</span></code></a></p></td>
+<td><p data-msgid="3a949e84f66d3ef2c2a547cbe32120f04cde19cf" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_int" title="ctypes.c_int"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_int</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.UINT">
@@ -2467,7 +2484,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="85a4aef1619a0df99679d5104b277a65f95bda17" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_uint" title="ctypes.c_uint"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_uint</span></code></a></p></td>
+<td><p data-msgid="85a4aef1619a0df99679d5104b277a65f95bda17" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_uint" title="ctypes.c_uint"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_uint</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.SHORT">
@@ -2475,7 +2492,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="765e71c38b17090aa51c9850c45d341e17ad9fbd" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_short" title="ctypes.c_short"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_short</span></code></a></p></td>
+<td><p data-msgid="765e71c38b17090aa51c9850c45d341e17ad9fbd" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_short" title="ctypes.c_short"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_short</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.DOUBLE">
@@ -2483,7 +2500,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="580d4438e5162e0cf588b8030b91fcf87cf8211a" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_double" title="ctypes.c_double"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_double</span></code></a></p></td>
+<td><p data-msgid="580d4438e5162e0cf588b8030b91fcf87cf8211a" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_double" title="ctypes.c_double"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_double</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.FLOAT">
@@ -2491,7 +2508,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="60a5db82dca182addc6bb57b5f30bf186af404ae" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_float" title="ctypes.c_float"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_float</span></code></a></p></td>
+<td><p data-msgid="60a5db82dca182addc6bb57b5f30bf186af404ae" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_float" title="ctypes.c_float"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_float</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LARGE_INTEGER">
@@ -2499,7 +2516,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="41cb928d420cd146029e24cc2ea16a3e24212406" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_longlong" title="ctypes.c_longlong"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_longlong</span></code></a></p></td>
+<td><p data-msgid="41cb928d420cd146029e24cc2ea16a3e24212406" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_longlong" title="ctypes.c_longlong"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_longlong</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.ULARGE_INTEGER">
@@ -2507,7 +2524,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="8e80833a84458f06f748e1813062296764109ab6" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_ulonglong" title="ctypes.c_ulonglong"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ulonglong</span></code></a></p></td>
+<td><p data-msgid="8e80833a84458f06f748e1813062296764109ab6" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_ulonglong" title="ctypes.c_ulonglong"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_ulonglong</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPCSTR">
@@ -2517,7 +2534,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="0b7789b186dab256ef8a4375f392828d6cbde64c" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_char_p" title="ctypes.c_char_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_char_p</span></code></a></p></td>
+<td><p data-msgid="0b7789b186dab256ef8a4375f392828d6cbde64c" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_char_p" title="ctypes.c_char_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_char_p</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPCOLESTR">
@@ -2533,7 +2550,7 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="9e689e0f2acc7a775e6e93ebc9ec1a5ae24819b0" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_wchar_p" title="ctypes.c_wchar_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_wchar_p</span></code></a></p></td>
+<td><p data-msgid="9e689e0f2acc7a775e6e93ebc9ec1a5ae24819b0" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_wchar_p" title="ctypes.c_wchar_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_wchar_p</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPCVOID">
@@ -2543,40 +2560,36 @@ and <a class="reference internal" href="#ctypes.wintypes.HSZ" title="ctypes.wint
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="6f45e2bc2a983744bd228014f0acf383731839f2" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a></p></td>
+<td><p data-msgid="6f45e2bc2a983744bd228014f0acf383731839f2" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a></p></td>
 </tr>
 </tbody>
 </table>
-<p data-msgid="dfa0a90ef62d4148c2505beb6fbe77d2495de2f4" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LARGE_INTEGER" title="ctypes.wintypes.LARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">LARGE_INTEGER</span></code></a> and <a class="reference internal" href="#ctypes.wintypes.ULARGE_INTEGER" title="ctypes.wintypes.ULARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">ULARGE_INTEGER</span></code></a> expose an integer
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code> attribute, with no <code class="docutils literal notranslate"><span class="pre">LowPart</span></code>, <code class="docutils literal notranslate"><span class="pre">HighPart</span></code>, or <code class="docutils literal notranslate"><span class="pre">QuadPart</span></code>
-fields.</p>
+<p data-msgid="dfa0a90ef62d4148c2505beb6fbe77d2495de2f4" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LARGE_INTEGER" title="ctypes.wintypes.LARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">LARGE_INTEGER</span></code></a> 와 <a class="reference internal" href="#ctypes.wintypes.ULARGE_INTEGER" title="ctypes.wintypes.ULARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">ULARGE_INTEGER</span></code></a> 는 <code class="docutils literal notranslate"><span class="pre">LowPart</span></code>, <code class="docutils literal notranslate"><span class="pre">HighPart</span></code>, 또는 <code class="docutils literal notranslate"><span class="pre">QuadPart</span></code> 필드 없이 정수 <code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code> 속성을 노출합니다.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.WPARAM">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">WPARAM</span></span><a class="headerlink" href="#ctypes.wintypes.WPARAM" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b0dd7929ab13d61c103c54b4e508577b081b5a81" data-score="0" data-since="261019">An unsigned integer type with the same size as <a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a>.</p>
+<dd><p data-msgid="b0dd7929ab13d61c103c54b4e508577b081b5a81" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a> 와 동일한 크기를 가진 부호 없는 정수 형입니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPARAM">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">LPARAM</span></span><a class="headerlink" href="#ctypes.wintypes.LPARAM" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="687a1c0e4a3ac8e65d88ade492d36bf779b8edcd" data-score="0" data-since="261019">A signed integer type with the same size as <a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a>.</p>
+<dd><p data-msgid="687a1c0e4a3ac8e65d88ade492d36bf779b8edcd" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a> 와 동일한 크기를 가진 부호 있는 정수 형입니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.VARIANT_BOOL">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">VARIANT_BOOL</span></span><a class="headerlink" href="#ctypes.wintypes.VARIANT_BOOL" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b2916a90441fe66a245c8e1da281733837070f0b" data-score="0" data-since="261019">A 16-bit Boolean type whose <code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code> attribute is a Python
-<a class="reference internal" href="../builtins/functions.html#bool" title="bool"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>.  Assigning to <code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code> stores <code class="docutils literal notranslate"><span class="pre">-1</span></code> for a true value
-and <code class="docutils literal notranslate"><span class="pre">0</span></code> for a false value.</p>
+<dd><p data-msgid="b2916a90441fe66a245c8e1da281733837070f0b" data-score="40" data-since="261019"><code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code> 속성이 파이썬 <a class="reference internal" href="../builtins/functions.html#bool" title="bool"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> 인 16비트 논리형(Boolean)입니다. <code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code> 에 값을 할당하면 참일 경우 <code class="docutils literal notranslate"><span class="pre">-1</span></code>, 거짓일 경우 <code class="docutils literal notranslate"><span class="pre">0</span></code> 이 저장됩니다.</p>
 </dd></dl>
 
 </section>
 <section id="handle-types">
-<h4 data-msgid="d1b5d2691e0a068904369027d72bf40ce8c3af83" data-score="0" data-since="261019">Handle types<a class="headerlink" href="#handle-types" title="Link to this heading">¶</a></h4>
+<h4 data-msgid="d1b5d2691e0a068904369027d72bf40ce8c3af83" data-score="40" data-since="261019">핸들 형<a class="headerlink" href="#handle-types" title="Link to this heading">¶</a></h4>
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.HANDLE">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">HANDLE</span></span><a class="headerlink" href="#ctypes.wintypes.HANDLE" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="9cb5401fc551a2675b8c2211ccd87057a3396fdb" data-score="0" data-since="261019">An alias for <a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a>, used to represent Windows handles.</p>
+<dd><p data-msgid="9cb5401fc551a2675b8c2211ccd87057a3396fdb" data-score="40" data-since="261019">Windows 핸들을 표현하는 데 사용되는 <a class="reference internal" href="#ctypes.c_void_p" title="ctypes.c_void_p"><code class="xref py py-class docutils literal notranslate"><span class="pre">c_void_p</span></code></a> 의 별칭입니다.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -2654,15 +2667,13 @@ and <code class="docutils literal notranslate"><span class="pre">0</span></code>
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">SC_HANDLE</span></span><a class="headerlink" href="#ctypes.wintypes.SC_HANDLE" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="ctypes.wintypes.SERVICE_STATUS_HANDLE">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">SERVICE_STATUS_HANDLE</span></span><a class="headerlink" href="#ctypes.wintypes.SERVICE_STATUS_HANDLE" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="2af4132b5f4fde4384464c0212e0e1f7ffa189ef" data-score="0" data-since="261019">Aliases for <a class="reference internal" href="#ctypes.wintypes.HANDLE" title="ctypes.wintypes.HANDLE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HANDLE</span></code></a> for use with specific Windows APIs.
-<a class="reference internal" href="#ctypes.wintypes.HFILE" title="ctypes.wintypes.HFILE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HFILE</span></code></a> is an alias for <a class="reference internal" href="#ctypes.wintypes.INT" title="ctypes.wintypes.INT"><code class="xref py py-class docutils literal notranslate"><span class="pre">INT</span></code></a> and is listed among the
-simple types above.</p>
+<dd><p data-msgid="2af4132b5f4fde4384464c0212e0e1f7ffa189ef" data-score="40" data-since="261019">특정 Windows API와 함께 사용되는 <a class="reference internal" href="#ctypes.wintypes.HANDLE" title="ctypes.wintypes.HANDLE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HANDLE</span></code></a> 의 별칭입니다. <a class="reference internal" href="#ctypes.wintypes.HFILE" title="ctypes.wintypes.HFILE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HFILE</span></code></a> 은 <a class="reference internal" href="#ctypes.wintypes.INT" title="ctypes.wintypes.INT"><code class="xref py py-class docutils literal notranslate"><span class="pre">INT</span></code></a> 의 별칭이며 위에서 언급한 기본형 목록에 포함되어 있습니다.</p>
 </dd></dl>
 
 </section>
 <section id="structures">
-<h4 data-msgid="c64b6d8ab6a3167af6b211df05198e555a8951eb" data-score="0" data-since="261019">Structures<a class="headerlink" href="#structures" title="Link to this heading">¶</a></h4>
-<p data-msgid="368972eaf059902cead62e0715a1cc7db7dfe567" data-score="0" data-since="261019">The following types are subclasses of <a class="reference internal" href="#ctypes.Structure" title="ctypes.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">ctypes.Structure</span></code></a>.</p>
+<h4 data-msgid="c64b6d8ab6a3167af6b211df05198e555a8951eb" data-score="40" data-since="261019">구조체<a class="headerlink" href="#structures" title="Link to this heading">¶</a></h4>
+<p data-msgid="368972eaf059902cead62e0715a1cc7db7dfe567" data-score="40" data-since="261019">다음 형들은 <a class="reference internal" href="#ctypes.Structure" title="ctypes.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">ctypes.Structure</span></code></a> 의 하위 클래스입니다.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.RECT">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">RECT</span></span><a class="headerlink" href="#ctypes.wintypes.RECT" title="Link to this definition">¶</a></dt>
@@ -2670,15 +2681,13 @@ simple types above.</p>
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">RECTL</span></span><a class="headerlink" href="#ctypes.wintypes.RECTL" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="ctypes.wintypes.tagRECT">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">tagRECT</span></span><a class="headerlink" href="#ctypes.wintypes.tagRECT" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="1d915f79ff15f9507d83f8a964e93f375076ca83" data-score="0" data-since="261019">A rectangle with <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">top</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, and <code class="docutils literal notranslate"><span class="pre">bottom</span></code> fields,
-all of type <a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a>.</p>
+<dd><p data-msgid="1d915f79ff15f9507d83f8a964e93f375076ca83" data-score="40" data-since="261019">모두 <a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a> 형인 <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">top</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, <code class="docutils literal notranslate"><span class="pre">bottom</span></code> 필드를 가진 사각형입니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.SMALL_RECT">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">SMALL_RECT</span></span><a class="headerlink" href="#ctypes.wintypes.SMALL_RECT" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="b0e169d63f2b68d9ecab6a7ee4c014346a152532" data-score="0" data-since="261019">A rectangle with <code class="docutils literal notranslate"><span class="pre">Left</span></code>, <code class="docutils literal notranslate"><span class="pre">Top</span></code>, <code class="docutils literal notranslate"><span class="pre">Right</span></code>, and <code class="docutils literal notranslate"><span class="pre">Bottom</span></code> fields,
-all of type <a class="reference internal" href="#ctypes.wintypes.SHORT" title="ctypes.wintypes.SHORT"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHORT</span></code></a>.</p>
+<dd><p data-msgid="b0e169d63f2b68d9ecab6a7ee4c014346a152532" data-score="40" data-since="261019">모두 <a class="reference internal" href="#ctypes.wintypes.SHORT" title="ctypes.wintypes.SHORT"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHORT</span></code></a> 형인 <code class="docutils literal notranslate"><span class="pre">Left</span></code>, <code class="docutils literal notranslate"><span class="pre">Top</span></code>, <code class="docutils literal notranslate"><span class="pre">Right</span></code>, <code class="docutils literal notranslate"><span class="pre">Bottom</span></code> 필드를 가진 사각형입니다.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -2688,7 +2697,7 @@ all of type <a class="reference internal" href="#ctypes.wintypes.SHORT" title="c
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">POINTL</span></span><a class="headerlink" href="#ctypes.wintypes.POINTL" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="ctypes.wintypes.tagPOINT">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">tagPOINT</span></span><a class="headerlink" href="#ctypes.wintypes.tagPOINT" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="5d9d835eb69c315f7add68af21488dfc39c0b116" data-score="0" data-since="261019">A point with <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> fields, both of type <a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a>.</p>
+<dd><p data-msgid="5d9d835eb69c315f7add68af21488dfc39c0b116" data-score="40" data-since="261019">둘 다 <a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a> 형인 <code class="docutils literal notranslate"><span class="pre">x``와</span> <span class="pre">``y</span></code> 필드를 가진 점입니다.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -2698,14 +2707,13 @@ all of type <a class="reference internal" href="#ctypes.wintypes.SHORT" title="c
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">SIZEL</span></span><a class="headerlink" href="#ctypes.wintypes.SIZEL" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="ctypes.wintypes.tagSIZE">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">tagSIZE</span></span><a class="headerlink" href="#ctypes.wintypes.tagSIZE" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="df24e72624cd16b2fb9e997cbcf3085b4e6a3f78" data-score="0" data-since="261019">Dimensions with <code class="docutils literal notranslate"><span class="pre">cx</span></code> and <code class="docutils literal notranslate"><span class="pre">cy</span></code> fields, both of type <a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a>.</p>
+<dd><p data-msgid="df24e72624cd16b2fb9e997cbcf3085b4e6a3f78" data-score="40" data-since="261019">둘 다 <a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a> 형인 <code class="docutils literal notranslate"><span class="pre">cx``와</span> <span class="pre">``cy</span></code> 필드를 가진 치수입니다.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.FILETIME">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">FILETIME</span></span><a class="headerlink" href="#ctypes.wintypes.FILETIME" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="c63d1e5a50acbd1a842b1af63734ba19fa719526" data-score="0" data-since="261019">A file time with <code class="docutils literal notranslate"><span class="pre">dwLowDateTime</span></code> and <code class="docutils literal notranslate"><span class="pre">dwHighDateTime</span></code> fields,
-both of type <a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a>.</p>
+<dd><p data-msgid="c63d1e5a50acbd1a842b1af63734ba19fa719526" data-score="40" data-since="261019">둘 다 <a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a> 형인 <code class="docutils literal notranslate"><span class="pre">dwLowDateTime``과</span> <span class="pre">``dwHighDateTime</span></code> 필드를 가진 파일 시간입니다.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -2713,31 +2721,31 @@ both of type <a class="reference internal" href="#ctypes.wintypes.DWORD" title="
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">MSG</span></span><a class="headerlink" href="#ctypes.wintypes.MSG" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="ctypes.wintypes.tagMSG">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">tagMSG</span></span><a class="headerlink" href="#ctypes.wintypes.tagMSG" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="bc3aba657439f94d6fe68db8959389aabc2b0bb4" data-score="0" data-since="261019">A Windows message with the following fields:</p>
+<dd><p data-msgid="bc3aba657439f94d6fe68db8959389aabc2b0bb4" data-score="40" data-since="261019">다음 필드를 가진 Windows 메시지입니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="c326a4660b674d2f6ea82687a1e1abae2337541f" data-score="0">Field</p></th>
-<th class="head"><p data-msgid="3deb7456519697ecf4eefc455516c969a3681bae" data-score="0">Type</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="c326a4660b674d2f6ea82687a1e1abae2337541f" data-score="40" data-since="261019">필드</p></th>
+<th class="head"><p data-msgid="3deb7456519697ecf4eefc455516c969a3681bae" data-score="40" data-since="261019">형</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="7482942acbd282ab83bf9d8e6e32a8b0ccd4c7af" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">hWnd</span></code></p></td>
-<td><p data-msgid="6c0063fdb57900b6bb996b844003211d975353a2" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HWND" title="ctypes.wintypes.HWND"><code class="xref py py-class docutils literal notranslate"><span class="pre">HWND</span></code></a></p></td>
+<tr class="row-even"><td><p data-msgid="7482942acbd282ab83bf9d8e6e32a8b0ccd4c7af" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">hWnd</span></code></p></td>
+<td><p data-msgid="6c0063fdb57900b6bb996b844003211d975353a2" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HWND" title="ctypes.wintypes.HWND"><code class="xref py py-class docutils literal notranslate"><span class="pre">HWND</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="d01374c856a6e3409e25707c0fb2b652f346ead9" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
-<td><p data-msgid="45d3e0872fa384eb7c347849b132d7c97d50f8df" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.UINT" title="ctypes.wintypes.UINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">UINT</span></code></a></p></td>
+<tr class="row-odd"><td><p data-msgid="d01374c856a6e3409e25707c0fb2b652f346ead9" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p data-msgid="45d3e0872fa384eb7c347849b132d7c97d50f8df" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.UINT" title="ctypes.wintypes.UINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">UINT</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="3b8a9bf1d7f1b446c0b67c8f02e678137dc19533" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">wParam</span></code></p></td>
-<td><p data-msgid="e14c07d0a522217aca263a2cff88dc6ed17fcd71" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WPARAM" title="ctypes.wintypes.WPARAM"><code class="xref py py-class docutils literal notranslate"><span class="pre">WPARAM</span></code></a></p></td>
+<tr class="row-even"><td><p data-msgid="3b8a9bf1d7f1b446c0b67c8f02e678137dc19533" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">wParam</span></code></p></td>
+<td><p data-msgid="e14c07d0a522217aca263a2cff88dc6ed17fcd71" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WPARAM" title="ctypes.wintypes.WPARAM"><code class="xref py py-class docutils literal notranslate"><span class="pre">WPARAM</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="3398301f932c87ae5c31274d2aa1031804a1d673" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">lParam</span></code></p></td>
-<td><p data-msgid="bac696b89ee7f46f88c035d0f768c0611b22225b" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LPARAM" title="ctypes.wintypes.LPARAM"><code class="xref py py-class docutils literal notranslate"><span class="pre">LPARAM</span></code></a></p></td>
+<tr class="row-odd"><td><p data-msgid="3398301f932c87ae5c31274d2aa1031804a1d673" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">lParam</span></code></p></td>
+<td><p data-msgid="bac696b89ee7f46f88c035d0f768c0611b22225b" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LPARAM" title="ctypes.wintypes.LPARAM"><code class="xref py py-class docutils literal notranslate"><span class="pre">LPARAM</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="841658741018d7679cedd5f2f49eaf2eacfd3359" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">time</span></code></p></td>
-<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
+<tr class="row-even"><td><p data-msgid="841658741018d7679cedd5f2f49eaf2eacfd3359" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">time</span></code></p></td>
+<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="616d9b10e6aba1728ec46ba306996ffc3e727b00" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">pt</span></code></p></td>
-<td><p data-msgid="cb3c0fa03a8f20225786471261c3438a665df3ee" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.POINT" title="ctypes.wintypes.POINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">POINT</span></code></a></p></td>
+<tr class="row-odd"><td><p data-msgid="616d9b10e6aba1728ec46ba306996ffc3e727b00" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">pt</span></code></p></td>
+<td><p data-msgid="cb3c0fa03a8f20225786471261c3438a665df3ee" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.POINT" title="ctypes.wintypes.POINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">POINT</span></code></a></p></td>
 </tr>
 </tbody>
 </table>
@@ -2748,33 +2756,31 @@ both of type <a class="reference internal" href="#ctypes.wintypes.DWORD" title="
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">WIN32_FIND_DATAA</span></span><a class="headerlink" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="Link to this definition">¶</a></dt>
 <dt class="sig sig-object py" id="ctypes.wintypes.WIN32_FIND_DATAW">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">WIN32_FIND_DATAW</span></span><a class="headerlink" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6bc525e205ea71c0fe3901369de4dc5f3825487f" data-score="0" data-since="261019">Structures used by Windows file-search functions, with the following
-fields.  <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="ctypes.wintypes.WIN32_FIND_DATAA"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAA</span></code></a> uses <a class="reference internal" href="#ctypes.wintypes.CHAR" title="ctypes.wintypes.CHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAR</span></code></a> for its file names,
-and <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="ctypes.wintypes.WIN32_FIND_DATAW"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAW</span></code></a> uses <a class="reference internal" href="#ctypes.wintypes.WCHAR" title="ctypes.wintypes.WCHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">WCHAR</span></code></a>.</p>
+<dd><p data-msgid="6bc525e205ea71c0fe3901369de4dc5f3825487f" data-score="40" data-since="261019">다음 필드를 가진 Windows 파일 검색 함수용 구조체입니다. <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="ctypes.wintypes.WIN32_FIND_DATAA"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAA</span></code></a> 는 파일 이름에 <a class="reference internal" href="#ctypes.wintypes.CHAR" title="ctypes.wintypes.CHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAR</span></code></a> 를 사용하며, <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="ctypes.wintypes.WIN32_FIND_DATAW"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAW</span></code></a> 는 <a class="reference internal" href="#ctypes.wintypes.WCHAR" title="ctypes.wintypes.WCHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">WCHAR</span></code></a> 를 사용합니다.</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="e8b685271238adf161cffed3c91f54d97023262b" data-score="0" data-since="261019">Fields</p></th>
-<th class="head"><p data-msgid="3deb7456519697ecf4eefc455516c969a3681bae" data-score="0">Type</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="e8b685271238adf161cffed3c91f54d97023262b" data-score="40" data-since="261019">필드</p></th>
+<th class="head"><p data-msgid="3deb7456519697ecf4eefc455516c969a3681bae" data-score="40" data-since="261019">형</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p data-msgid="0cf315f512cf6634cd2af1f5fefa2d70912c2749" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">dwFileAttributes</span></code></p></td>
-<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
+<tr class="row-even"><td><p data-msgid="0cf315f512cf6634cd2af1f5fefa2d70912c2749" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">dwFileAttributes</span></code></p></td>
+<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="3d07c12c29a6e06622613248b5451265bd5c29d5" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">ftCreationTime</span></code>, <code class="docutils literal notranslate"><span class="pre">ftLastAccessTime</span></code>, <code class="docutils literal notranslate"><span class="pre">ftLastWriteTime</span></code></p></td>
-<td><p data-msgid="d08db9fe97706de825c9a63bb7e640a6ec13038d" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.FILETIME" title="ctypes.wintypes.FILETIME"><code class="xref py py-class docutils literal notranslate"><span class="pre">FILETIME</span></code></a></p></td>
+<tr class="row-odd"><td><p data-msgid="3d07c12c29a6e06622613248b5451265bd5c29d5" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">ftCreationTime</span></code>, <code class="docutils literal notranslate"><span class="pre">ftLastAccessTime</span></code>, <code class="docutils literal notranslate"><span class="pre">ftLastWriteTime</span></code></p></td>
+<td><p data-msgid="d08db9fe97706de825c9a63bb7e640a6ec13038d" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.FILETIME" title="ctypes.wintypes.FILETIME"><code class="xref py py-class docutils literal notranslate"><span class="pre">FILETIME</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="7f865e1e2adc4dea36ea6d9bab013a1ce37c2e36" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">nFileSizeHigh</span></code>, <code class="docutils literal notranslate"><span class="pre">nFileSizeLow</span></code></p></td>
-<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
+<tr class="row-even"><td><p data-msgid="7f865e1e2adc4dea36ea6d9bab013a1ce37c2e36" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">nFileSizeHigh</span></code>, <code class="docutils literal notranslate"><span class="pre">nFileSizeLow</span></code></p></td>
+<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="cea13650865b7d3ff6bb1089aedff9983197f4e1" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">dwReserved0</span></code>, <code class="docutils literal notranslate"><span class="pre">dwReserved1</span></code></p></td>
-<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
+<tr class="row-odd"><td><p data-msgid="cea13650865b7d3ff6bb1089aedff9983197f4e1" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">dwReserved0</span></code>, <code class="docutils literal notranslate"><span class="pre">dwReserved1</span></code></p></td>
+<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p data-msgid="47d33a4a25ffe13e131aad4e7562511d88daf14f" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">cFileName</span></code></p></td>
-<td><p data-msgid="bb7b2486a9ef18661d0b94b103460bf0b37a458e" data-score="0" data-since="261019">An array of <a class="reference internal" href="#ctypes.wintypes.MAX_PATH" title="ctypes.wintypes.MAX_PATH"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_PATH</span></code></a> characters</p></td>
+<tr class="row-even"><td><p data-msgid="47d33a4a25ffe13e131aad4e7562511d88daf14f" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">cFileName</span></code></p></td>
+<td><p data-msgid="bb7b2486a9ef18661d0b94b103460bf0b37a458e" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.MAX_PATH" title="ctypes.wintypes.MAX_PATH"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_PATH</span></code></a> 문자의 배열</p></td>
 </tr>
-<tr class="row-odd"><td><p data-msgid="49b0703369c460507736c2ddafdca7666d0686f3" data-score="0" data-since="261019"><code class="docutils literal notranslate"><span class="pre">cAlternateFileName</span></code></p></td>
-<td><p data-msgid="e9787256bd85bc15ae3ecf0f48111af928f7f95e" data-score="0" data-since="261019">An array of 14 characters</p></td>
+<tr class="row-odd"><td><p data-msgid="49b0703369c460507736c2ddafdca7666d0686f3" data-score="40" data-since="261019"><code class="docutils literal notranslate"><span class="pre">cAlternateFileName</span></code></p></td>
+<td><p data-msgid="e9787256bd85bc15ae3ecf0f48111af928f7f95e" data-score="40" data-since="261019">14개의 문자가 포함된 배열</p></td>
 </tr>
 </tbody>
 </table>
@@ -2782,13 +2788,12 @@ and <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title
 
 </section>
 <section id="pointer-types">
-<h4 data-msgid="d9fb370b0a40e2e2f19446936bcadb07206247ac" data-score="0" data-since="261019">Pointer types<a class="headerlink" href="#pointer-types" title="Link to this heading">¶</a></h4>
-<p data-msgid="1d5a4e2c3fef4bbbd06fc0a978a5e582893bb864" data-score="0" data-since="261019">The following names are aliases for <code class="docutils literal notranslate"><span class="pre">ctypes.POINTER(T)</span></code>, where <em>T</em> is the
-type in the second column:</p>
+<h4 data-msgid="d9fb370b0a40e2e2f19446936bcadb07206247ac" data-score="40" data-since="261019">포인터형<a class="headerlink" href="#pointer-types" title="Link to this heading">¶</a></h4>
+<p data-msgid="1d5a4e2c3fef4bbbd06fc0a978a5e582893bb864" data-score="40" data-since="261019">다음 이름은 <code class="docutils literal notranslate"><span class="pre">ctypes.POINTER(T)</span></code> 의 별칭이며, <em>T</em> 는 두 번째 열에 있는 형입니다:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p data-msgid="d9fb370b0a40e2e2f19446936bcadb07206247ac" data-score="0" data-since="261019">Pointer types</p></th>
-<th class="head"><p data-msgid="5c4d488876ff1a3fd7fe7105e757f383f9a2de7f" data-score="0" data-since="261019">Referenced type</p></th>
+<tr class="row-odd"><th class="head"><p data-msgid="d9fb370b0a40e2e2f19446936bcadb07206247ac" data-score="40" data-since="261019">포인터형</p></th>
+<th class="head"><p data-msgid="5c4d488876ff1a3fd7fe7105e757f383f9a2de7f" data-score="40" data-since="261019">참조형</p></th>
 </tr>
 </thead>
 <tbody>
@@ -2800,7 +2805,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="edf8d8eee7bc4c3149c6d4fef9a335f9ed4d1913" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.BOOL" title="ctypes.wintypes.BOOL"><code class="xref py py-class docutils literal notranslate"><span class="pre">BOOL</span></code></a></p></td>
+<td><p data-msgid="edf8d8eee7bc4c3149c6d4fef9a335f9ed4d1913" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.BOOL" title="ctypes.wintypes.BOOL"><code class="xref py py-class docutils literal notranslate"><span class="pre">BOOL</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PBOOLEAN">
@@ -2808,7 +2813,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="3bb4423b4ff1cee34612a6999c834fc0937fc971" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.BOOLEAN" title="ctypes.wintypes.BOOLEAN"><code class="xref py py-class docutils literal notranslate"><span class="pre">BOOLEAN</span></code></a></p></td>
+<td><p data-msgid="3bb4423b4ff1cee34612a6999c834fc0937fc971" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.BOOLEAN" title="ctypes.wintypes.BOOLEAN"><code class="xref py py-class docutils literal notranslate"><span class="pre">BOOLEAN</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPBYTE">
@@ -2818,7 +2823,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="9a296cedbc5747988cd5fc6577b197cbdefc3868" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.BYTE" title="ctypes.wintypes.BYTE"><code class="xref py py-class docutils literal notranslate"><span class="pre">BYTE</span></code></a></p></td>
+<td><p data-msgid="9a296cedbc5747988cd5fc6577b197cbdefc3868" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.BYTE" title="ctypes.wintypes.BYTE"><code class="xref py py-class docutils literal notranslate"><span class="pre">BYTE</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PCHAR">
@@ -2826,7 +2831,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="dffcc121aa60a9a89e6a7cf97498cf9c0c3232b0" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.CHAR" title="ctypes.wintypes.CHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAR</span></code></a></p></td>
+<td><p data-msgid="dffcc121aa60a9a89e6a7cf97498cf9c0c3232b0" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.CHAR" title="ctypes.wintypes.CHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAR</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPCOLORREF">
@@ -2834,7 +2839,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="450569c4725aa09b6ffbe8446c73e0060ae9c96f" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.COLORREF" title="ctypes.wintypes.COLORREF"><code class="xref py py-class docutils literal notranslate"><span class="pre">COLORREF</span></code></a></p></td>
+<td><p data-msgid="450569c4725aa09b6ffbe8446c73e0060ae9c96f" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.COLORREF" title="ctypes.wintypes.COLORREF"><code class="xref py py-class docutils literal notranslate"><span class="pre">COLORREF</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPDWORD">
@@ -2844,7 +2849,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
+<td><p data-msgid="f6b6737c02d800ec5ccffd3bc73920db978ff3a8" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.DWORD" title="ctypes.wintypes.DWORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">DWORD</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPFILETIME">
@@ -2854,7 +2859,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="d08db9fe97706de825c9a63bb7e640a6ec13038d" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.FILETIME" title="ctypes.wintypes.FILETIME"><code class="xref py py-class docutils literal notranslate"><span class="pre">FILETIME</span></code></a></p></td>
+<td><p data-msgid="d08db9fe97706de825c9a63bb7e640a6ec13038d" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.FILETIME" title="ctypes.wintypes.FILETIME"><code class="xref py py-class docutils literal notranslate"><span class="pre">FILETIME</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PFLOAT">
@@ -2862,7 +2867,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="8133acb6de74a25554abd6e042e825d7a8e6fe24" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.FLOAT" title="ctypes.wintypes.FLOAT"><code class="xref py py-class docutils literal notranslate"><span class="pre">FLOAT</span></code></a></p></td>
+<td><p data-msgid="8133acb6de74a25554abd6e042e825d7a8e6fe24" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.FLOAT" title="ctypes.wintypes.FLOAT"><code class="xref py py-class docutils literal notranslate"><span class="pre">FLOAT</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPHANDLE">
@@ -2872,7 +2877,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="d45abebb8885427cf13cbb15425743f9209a3609" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HANDLE" title="ctypes.wintypes.HANDLE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HANDLE</span></code></a></p></td>
+<td><p data-msgid="d45abebb8885427cf13cbb15425743f9209a3609" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HANDLE" title="ctypes.wintypes.HANDLE"><code class="xref py py-class docutils literal notranslate"><span class="pre">HANDLE</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PHKEY">
@@ -2880,7 +2885,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="841a275dc0c33a1871d44f59fe3d565105479b4b" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HKEY" title="ctypes.wintypes.HKEY"><code class="xref py py-class docutils literal notranslate"><span class="pre">HKEY</span></code></a></p></td>
+<td><p data-msgid="841a275dc0c33a1871d44f59fe3d565105479b4b" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HKEY" title="ctypes.wintypes.HKEY"><code class="xref py py-class docutils literal notranslate"><span class="pre">HKEY</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPHKL">
@@ -2888,7 +2893,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="4ce3c9590481f5bb372649e1adb0ba692be73a62" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HKL" title="ctypes.wintypes.HKL"><code class="xref py py-class docutils literal notranslate"><span class="pre">HKL</span></code></a></p></td>
+<td><p data-msgid="4ce3c9590481f5bb372649e1adb0ba692be73a62" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.HKL" title="ctypes.wintypes.HKL"><code class="xref py py-class docutils literal notranslate"><span class="pre">HKL</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPINT">
@@ -2898,7 +2903,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="56ae63a362b6be07880401396e88ce56ab3e088c" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.INT" title="ctypes.wintypes.INT"><code class="xref py py-class docutils literal notranslate"><span class="pre">INT</span></code></a></p></td>
+<td><p data-msgid="56ae63a362b6be07880401396e88ce56ab3e088c" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.INT" title="ctypes.wintypes.INT"><code class="xref py py-class docutils literal notranslate"><span class="pre">INT</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PLARGE_INTEGER">
@@ -2906,7 +2911,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="0fea833c846f41b908775b4c186b3b54c56d7ff8" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LARGE_INTEGER" title="ctypes.wintypes.LARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">LARGE_INTEGER</span></code></a></p></td>
+<td><p data-msgid="0fea833c846f41b908775b4c186b3b54c56d7ff8" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LARGE_INTEGER" title="ctypes.wintypes.LARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">LARGE_INTEGER</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PLCID">
@@ -2914,7 +2919,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="c0cd6155a8c6484dc8433106e526a73bcd0c0b88" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LCID" title="ctypes.wintypes.LCID"><code class="xref py py-class docutils literal notranslate"><span class="pre">LCID</span></code></a></p></td>
+<td><p data-msgid="c0cd6155a8c6484dc8433106e526a73bcd0c0b88" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LCID" title="ctypes.wintypes.LCID"><code class="xref py py-class docutils literal notranslate"><span class="pre">LCID</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPLONG">
@@ -2924,7 +2929,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="c2d9295dac0ed2ae1da8dae6158800c5b898e316" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a></p></td>
+<td><p data-msgid="c2d9295dac0ed2ae1da8dae6158800c5b898e316" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.LONG" title="ctypes.wintypes.LONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">LONG</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPMSG">
@@ -2934,7 +2939,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="1474c8f8455eb22219271aa158954809e2442fd1" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.MSG" title="ctypes.wintypes.MSG"><code class="xref py py-class docutils literal notranslate"><span class="pre">MSG</span></code></a></p></td>
+<td><p data-msgid="1474c8f8455eb22219271aa158954809e2442fd1" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.MSG" title="ctypes.wintypes.MSG"><code class="xref py py-class docutils literal notranslate"><span class="pre">MSG</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPPOINT">
@@ -2944,7 +2949,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="cb3c0fa03a8f20225786471261c3438a665df3ee" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.POINT" title="ctypes.wintypes.POINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">POINT</span></code></a></p></td>
+<td><p data-msgid="cb3c0fa03a8f20225786471261c3438a665df3ee" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.POINT" title="ctypes.wintypes.POINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">POINT</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PPOINTL">
@@ -2952,7 +2957,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="16a82aaa08f6d8b23e604413ba1e72cf35a61dcd" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.POINTL" title="ctypes.wintypes.POINTL"><code class="xref py py-class docutils literal notranslate"><span class="pre">POINTL</span></code></a></p></td>
+<td><p data-msgid="16a82aaa08f6d8b23e604413ba1e72cf35a61dcd" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.POINTL" title="ctypes.wintypes.POINTL"><code class="xref py py-class docutils literal notranslate"><span class="pre">POINTL</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPRECT">
@@ -2962,7 +2967,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="1832f73c998066d675c0519b447e600cdb75daf9" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.RECT" title="ctypes.wintypes.RECT"><code class="xref py py-class docutils literal notranslate"><span class="pre">RECT</span></code></a></p></td>
+<td><p data-msgid="1832f73c998066d675c0519b447e600cdb75daf9" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.RECT" title="ctypes.wintypes.RECT"><code class="xref py py-class docutils literal notranslate"><span class="pre">RECT</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPRECTL">
@@ -2972,7 +2977,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="dd1688eaa1ba11824c6946ffb4fe8a1bd5014c2b" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.RECTL" title="ctypes.wintypes.RECTL"><code class="xref py py-class docutils literal notranslate"><span class="pre">RECTL</span></code></a></p></td>
+<td><p data-msgid="dd1688eaa1ba11824c6946ffb4fe8a1bd5014c2b" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.RECTL" title="ctypes.wintypes.RECTL"><code class="xref py py-class docutils literal notranslate"><span class="pre">RECTL</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPSC_HANDLE">
@@ -2980,7 +2985,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="8d0f4961dd9b542507ace5d3187216a1017a465e" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SC_HANDLE" title="ctypes.wintypes.SC_HANDLE"><code class="xref py py-class docutils literal notranslate"><span class="pre">SC_HANDLE</span></code></a></p></td>
+<td><p data-msgid="8d0f4961dd9b542507ace5d3187216a1017a465e" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SC_HANDLE" title="ctypes.wintypes.SC_HANDLE"><code class="xref py py-class docutils literal notranslate"><span class="pre">SC_HANDLE</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PSHORT">
@@ -2988,7 +2993,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="77f327d8d5bce7bba5b70f4931fa8fcb79f48040" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SHORT" title="ctypes.wintypes.SHORT"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHORT</span></code></a></p></td>
+<td><p data-msgid="77f327d8d5bce7bba5b70f4931fa8fcb79f48040" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SHORT" title="ctypes.wintypes.SHORT"><code class="xref py py-class docutils literal notranslate"><span class="pre">SHORT</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPSIZE">
@@ -2998,7 +3003,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="04937715bd14020efd07911dd62ec57a7bc9061e" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SIZE" title="ctypes.wintypes.SIZE"><code class="xref py py-class docutils literal notranslate"><span class="pre">SIZE</span></code></a></p></td>
+<td><p data-msgid="04937715bd14020efd07911dd62ec57a7bc9061e" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SIZE" title="ctypes.wintypes.SIZE"><code class="xref py py-class docutils literal notranslate"><span class="pre">SIZE</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPSIZEL">
@@ -3008,7 +3013,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="4e047ccbc924e7f4dd873b03e7e3af0b79675933" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SIZEL" title="ctypes.wintypes.SIZEL"><code class="xref py py-class docutils literal notranslate"><span class="pre">SIZEL</span></code></a></p></td>
+<td><p data-msgid="4e047ccbc924e7f4dd873b03e7e3af0b79675933" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SIZEL" title="ctypes.wintypes.SIZEL"><code class="xref py py-class docutils literal notranslate"><span class="pre">SIZEL</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PSMALL_RECT">
@@ -3016,7 +3021,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="4a6da54b5d44f236e8827cadb297e83897709d7c" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SMALL_RECT" title="ctypes.wintypes.SMALL_RECT"><code class="xref py py-class docutils literal notranslate"><span class="pre">SMALL_RECT</span></code></a></p></td>
+<td><p data-msgid="4a6da54b5d44f236e8827cadb297e83897709d7c" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.SMALL_RECT" title="ctypes.wintypes.SMALL_RECT"><code class="xref py py-class docutils literal notranslate"><span class="pre">SMALL_RECT</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPUINT">
@@ -3026,7 +3031,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="45d3e0872fa384eb7c347849b132d7c97d50f8df" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.UINT" title="ctypes.wintypes.UINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">UINT</span></code></a></p></td>
+<td><p data-msgid="45d3e0872fa384eb7c347849b132d7c97d50f8df" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.UINT" title="ctypes.wintypes.UINT"><code class="xref py py-class docutils literal notranslate"><span class="pre">UINT</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PULARGE_INTEGER">
@@ -3034,7 +3039,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="d77510111bef9ad5677dac6146767b737b08c59b" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.ULARGE_INTEGER" title="ctypes.wintypes.ULARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">ULARGE_INTEGER</span></code></a></p></td>
+<td><p data-msgid="d77510111bef9ad5677dac6146767b737b08c59b" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.ULARGE_INTEGER" title="ctypes.wintypes.ULARGE_INTEGER"><code class="xref py py-class docutils literal notranslate"><span class="pre">ULARGE_INTEGER</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PULONG">
@@ -3042,7 +3047,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="8a80f318cc268d5f001778c85fe7ee0afbddb043" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.ULONG" title="ctypes.wintypes.ULONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">ULONG</span></code></a></p></td>
+<td><p data-msgid="8a80f318cc268d5f001778c85fe7ee0afbddb043" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.ULONG" title="ctypes.wintypes.ULONG"><code class="xref py py-class docutils literal notranslate"><span class="pre">ULONG</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PUSHORT">
@@ -3050,7 +3055,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="2866804b0d4f5381b3c74f757f0d3024cbe2a7af" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.USHORT" title="ctypes.wintypes.USHORT"><code class="xref py py-class docutils literal notranslate"><span class="pre">USHORT</span></code></a></p></td>
+<td><p data-msgid="2866804b0d4f5381b3c74f757f0d3024cbe2a7af" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.USHORT" title="ctypes.wintypes.USHORT"><code class="xref py py-class docutils literal notranslate"><span class="pre">USHORT</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.PWCHAR">
@@ -3058,7 +3063,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="adae7e2e6a3963cee0fe9ceac6ff633f3a9d8696" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WCHAR" title="ctypes.wintypes.WCHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">WCHAR</span></code></a></p></td>
+<td><p data-msgid="adae7e2e6a3963cee0fe9ceac6ff633f3a9d8696" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WCHAR" title="ctypes.wintypes.WCHAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">WCHAR</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPWIN32_FIND_DATAA">
@@ -3068,7 +3073,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="a355edb671ec67d5a305dc3dec6d6463e71802c7" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="ctypes.wintypes.WIN32_FIND_DATAA"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAA</span></code></a></p></td>
+<td><p data-msgid="a355edb671ec67d5a305dc3dec6d6463e71802c7" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="ctypes.wintypes.WIN32_FIND_DATAA"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAA</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPWIN32_FIND_DATAW">
@@ -3078,7 +3083,7 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="2aa317387f5edaae6afd4fcc39f53fa4debf88af" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="ctypes.wintypes.WIN32_FIND_DATAW"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAW</span></code></a></p></td>
+<td><p data-msgid="2aa317387f5edaae6afd4fcc39f53fa4debf88af" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="ctypes.wintypes.WIN32_FIND_DATAW"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAW</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><dl class="py class">
 <dt class="sig sig-object py" id="ctypes.wintypes.LPWORD">
@@ -3088,27 +3093,24 @@ type in the second column:</p>
 <dd></dd></dl>
 
 </td>
-<td><p data-msgid="fe957f5946660a221c77e616fb6daddf37ece709" data-score="0" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WORD" title="ctypes.wintypes.WORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">WORD</span></code></a></p></td>
+<td><p data-msgid="fe957f5946660a221c77e616fb6daddf37ece709" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WORD" title="ctypes.wintypes.WORD"><code class="xref py py-class docutils literal notranslate"><span class="pre">WORD</span></code></a></p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="constants-and-functions">
-<h4 data-msgid="0455f131b72309b0784a0427067c4ceaf196bebb" data-score="0" data-since="261019">Constants and functions<a class="headerlink" href="#constants-and-functions" title="Link to this heading">¶</a></h4>
+<h4 data-msgid="0455f131b72309b0784a0427067c4ceaf196bebb" data-score="40" data-since="261019">상수 및 함수<a class="headerlink" href="#constants-and-functions" title="Link to this heading">¶</a></h4>
 <dl class="py data">
 <dt class="sig sig-object py" id="ctypes.wintypes.MAX_PATH">
 <span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">MAX_PATH</span></span><a class="headerlink" href="#ctypes.wintypes.MAX_PATH" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="dfb52e677e2bd8e795832f1447be3724fe6ba69c" data-score="0" data-since="261019">The value <code class="docutils literal notranslate"><span class="pre">260</span></code>, used as the size of the file-name arrays in
-<a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="ctypes.wintypes.WIN32_FIND_DATAA"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAA</span></code></a> and <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="ctypes.wintypes.WIN32_FIND_DATAW"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAW</span></code></a>.</p>
+<dd><p data-msgid="dfb52e677e2bd8e795832f1447be3724fe6ba69c" data-score="40" data-since="261019"><a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAA" title="ctypes.wintypes.WIN32_FIND_DATAA"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAA</span></code></a> 및 <a class="reference internal" href="#ctypes.wintypes.WIN32_FIND_DATAW" title="ctypes.wintypes.WIN32_FIND_DATAW"><code class="xref py py-class docutils literal notranslate"><span class="pre">WIN32_FIND_DATAW</span></code></a> 에서 파일 이름 배열의 크기로 사용되는 값 <code class="docutils literal notranslate"><span class="pre">260</span></code> 입니다.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ctypes.wintypes.RGB">
 <span class="sig-prename descclassname"><span class="pre">ctypes.wintypes.</span></span><span class="sig-name descname"><span class="pre">RGB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">red</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">green</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blue</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ctypes.wintypes.RGB" title="Link to this definition">¶</a></dt>
-<dd><p data-msgid="6446cb3834ce578559b5394880b8a290827cd963" data-score="0" data-since="261019">Return a <a class="reference internal" href="#ctypes.wintypes.COLORREF" title="ctypes.wintypes.COLORREF"><code class="xref py py-class docutils literal notranslate"><span class="pre">COLORREF</span></code></a> value as a Python integer.  The <em>red</em>, <em>green</em>,
-and <em>blue</em> arguments are integers from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">255</span></code>, specifying the
-intensity of each color component:</p>
-<div class="highlight-python3 notranslate" data-msgid="c3188469c41c877a57d15a3efa23237bd480acae" data-score="0" data-since="261019"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ctypes.wintypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">RGB</span>
+<dd><p data-msgid="6446cb3834ce578559b5394880b8a290827cd963" data-score="40" data-since="261019">Python 정수형으로 <a class="reference internal" href="#ctypes.wintypes.COLORREF" title="ctypes.wintypes.COLORREF"><code class="xref py py-class docutils literal notranslate"><span class="pre">COLORREF</span></code></a> 값을 반환합니다. <em>red</em>, <em>green</em>, <em>blue</em> 인수는 각 색상 구성 요소의 강도를 지정하는 <code class="docutils literal notranslate"><span class="pre">0``에서</span> <span class="pre">``255</span></code> 사이의 정수입니다:</p>
+<div class="highlight-python3 notranslate" data-msgid="c3188469c41c877a57d15a3efa23237bd480acae" data-score="40" data-since="261019"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ctypes.wintypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">RGB</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 <span class="go">&#39;0x80ff&#39;</span>
 </pre></div>
