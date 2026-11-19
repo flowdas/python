@@ -16,15 +16,15 @@
 <meta property="og:image:width" content="200">
 <meta property="og:image:height" content="200">
 
-    <title>free threading을 위한 안정 ABI로 마이그레이션(abi3t) &#8212; Python 3.16.0a1 문서</title>
+    <title>free threading을 위한 안정 ABI로 마이그레이션(abi3t) &#8212; Python 3.16.0a2 문서</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/editorial.css?v=ce4b54f2" />
-    <script src="../_static/documentation_options.js?v=4edd3c87"></script>
+    <script src="../_static/documentation_options.js?v=e38d4c4b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=afa94a99"></script>
     <link rel="search" type="application/opensearchdescription+xml"
-          title="Python 3.16.0a1 문서에서 찾기"
+          title="Python 3.16.0a2 문서에서 찾기"
           href="../_static/opensearch.xml"/>
     <link rel="author" title="이 문서 정보" href="../about.html" />
     <link rel="index" title="색인" href="../genindex.html" />
@@ -102,8 +102,8 @@
 <li><a class="reference internal" href="#setting-up-the-build">빌드 설정</a></li>
 <li><a class="reference internal" href="#module-export-hook">모듈 내보내기 훅</a><ul>
 <li><a class="reference internal" href="#existing-slots">기존 슬롯</a><ul>
-<li><a class="reference internal" href="#py-mod-create"><code class="docutils literal notranslate"><span class="pre">py_mod_create</span></code></a></li>
-<li><a class="reference internal" href="#multiple-py-mod-exec">여러 개의 <code class="docutils literal notranslate"><span class="pre">py_mod_exec</span></code></a></li>
+<li><a class="reference internal" href="#py-mod-create"><code class="docutils literal notranslate"><span class="pre">Py_mod_create</span></code></a></li>
+<li><a class="reference internal" href="#multiple-py-mod-exec">Multiple <code class="docutils literal notranslate"><span class="pre">Py_mod_exec</span></code></a></li>
 <li><a class="reference internal" href="#merging-slot-arrays">슬롯 배열 병합</a></li>
 </ul>
 </li>
@@ -301,22 +301,22 @@ This document describes how to adapt C API extensions to support free threading.
 </section>
 <section id="setting-up-the-build">
 <span id="abi3t-migration-build"></span><h2 data-msgid="2ec8d6bb858d1d17c02c12d6c0f2724e03e96dcb" data-score="40">빌드 설정<a class="headerlink" href="#setting-up-the-build" title="Link to this heading">¶</a></h2>
-<p data-msgid="ec4b97a17ee48397e2c0f8c5025e53f0391789a8" data-score="40" data-since="261007">빌드 도구를 사용하는 경우, 해당 도구의 문서에서 “<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>”를 검색하고 ABI를 선택하는 지침을 따르십시오. 참고를 위해 몇 가지 인기 있는 빌드 도구의 직접 링크를 제공합니다:</p>
+<p data-msgid="ec4b97a17ee48397e2c0f8c5025e53f0391789a8" data-score="40">빌드 도구를 사용하는 경우, 해당 도구의 문서에서 “<code class="docutils literal notranslate"><span class="pre">abi3t</span></code>”를 검색하고 ABI를 선택하는 지침을 따르십시오. 참고를 위해 몇 가지 인기 있는 빌드 도구의 직접 링크를 제공합니다:</p>
 <ul class="simple">
-<li><p data-msgid="a0bfc16b16c7987ab8c957ce3f9a7392bff24fd5" data-score="40" data-since="261007"><a class="reference external" href="https://mesonbuild.com/meson-python/how-to-guides/limited-api.html#the-abi3t-stable-abi">meson-python</a></p></li>
-<li><p data-msgid="e3036a18303c3d7c6dac6fc1dc83f2e2f2c9b994" data-score="40" data-since="261007"><a class="reference external" href="https://scikit-build-core.readthedocs.io/en/stable/configuration/#customizing-the-output-wheel">scikit-build-core</a></p></li>
-<li><p data-msgid="51cc7ea00586b1d85f9e37d59320dea374e651c0" data-score="40" data-since="261007"><a class="reference external" href="https://www.maturin.rs/bindings#py_limited_apiabi3">Maturin</a></p></li>
+<li><p data-msgid="a0bfc16b16c7987ab8c957ce3f9a7392bff24fd5" data-score="40"><a class="reference external" href="https://mesonbuild.com/meson-python/how-to-guides/limited-api.html#the-abi3t-stable-abi">meson-python</a></p></li>
+<li><p data-msgid="e3036a18303c3d7c6dac6fc1dc83f2e2f2c9b994" data-score="40"><a class="reference external" href="https://scikit-build-core.readthedocs.io/en/stable/configuration/#customizing-the-output-wheel">scikit-build-core</a></p></li>
+<li><p data-msgid="51cc7ea00586b1d85f9e37d59320dea374e651c0" data-score="40"><a class="reference external" href="https://www.maturin.rs/bindings#py_limited_apiabi3">Maturin</a></p></li>
 </ul>
-<p data-msgid="e33df961a6b0a78fb96046dfd69d04ebc277403c" data-score="40" data-since="261007">도구가 올바른 플래그를 설정했는지 확인하려면 <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;Python.h&gt;</span></code> 바로 뒤에 다음 코드를 일시적으로 추가해 보십시오.</p>
-<div class="highlight-c notranslate" data-msgid="56f113ea28a552d0f273c222bc6e70328ef2c4d2" data-score="100"><div class="highlight"><pre><span></span><span class="cp">#if Py_TARGET_ABI3T+0 &lt;= 0x30f0000</span>
+<p data-msgid="e33df961a6b0a78fb96046dfd69d04ebc277403c" data-score="40">도구가 올바른 플래그를 설정했는지 확인하려면 <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;Python.h&gt;</span></code> 바로 뒤에 다음 코드를 일시적으로 추가해 보십시오.</p>
+<div class="highlight-c notranslate" data-msgid="873e7781cdd5bd7e666ac31c4017520ddfa33ed8" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="cp">#if Py_TARGET_ABI3T+0 &lt; 0x30f0000</span>
 <span class="cp">#error &quot;abi3t define is not set!&quot;</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p data-msgid="76f574c3efb003fb3f65fd758583dcee6b6ad3a4" data-score="40">이 경우 “<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> define is not set”과는 다른 오류가 발생해야 합니다.</p>
+<p data-msgid="dac0e7f466b020e6cd184195657ee9e2d575d821" data-score="0" data-since="261119">This should result in a different error than “<code class="docutils literal notranslate"><span class="pre">abi3t</span></code> define is not set”. (If you get no error at all, either the module is already ported or you’re not compiling the code you changed.)</p>
 <div class="admonition seealso">
 <p class="admonition-title">더 보기</p>
-<p data-msgid="635b9a4ee1ca6f05738b9fd6f5cab1682a68631c" data-score="40" data-since="261007"><a class="reference external" href="https://py-free-threading.github.io/abi3t/">Building and distributing abi3t extensions</a>: 커뮤니티에서 관리하는 Python Free-Threading Guide에 포함된 빌드 구성 및 휠 테스트 예시.</p>
+<p data-msgid="635b9a4ee1ca6f05738b9fd6f5cab1682a68631c" data-score="40"><a class="reference external" href="https://py-free-threading.github.io/abi3t/">Building and distributing abi3t extensions</a>: 커뮤니티에서 관리하는 Python Free-Threading Guide에 포함된 빌드 구성 및 휠 테스트 예시.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
@@ -335,7 +335,7 @@ This document describes how to adapt C API extensions to support free threading.
 </section>
 <section id="module-export-hook">
 <span id="abi3t-howto-modexport"></span><h2 data-msgid="407bd245b0bea9b74dfe7abc504c667213e58735" data-score="40">모듈 내보내기 훅<a class="headerlink" href="#module-export-hook" title="Link to this heading">¶</a></h2>
-<p data-msgid="4909ce9fc119935118e82c2da449e2998a2c969d" data-score="40" data-since="261002">이 단계를 이미 수행하지 않았다면, 확장 모듈은 <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">모듈 초기화 함수</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyInit_{&lt;modname&gt;</span></code>}` (여기서 <code class="docutils literal notranslate"><span class="pre">modname</span></code> 은 모듈의 이름입니다)를 정의합니다. 이를 <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">모듈 내보내기 훅</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_{&lt;modname&gt;</span></code>}`으로 이식해야 하며, 이는 <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a> 에서 CPython 3.15에 추가된 기능입니다.</p>
+<p data-msgid="4909ce9fc119935118e82c2da449e2998a2c969d" data-score="40">이 단계를 이미 수행하지 않았다면, 확장 모듈은 <a class="reference internal" href="../c-api/extension-modules.html#extension-pyinit"><span class="std std-ref">모듈 초기화 함수</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyInit_{&lt;modname&gt;</span></code>}` (여기서 <code class="docutils literal notranslate"><span class="pre">modname</span></code> 은 모듈의 이름입니다)를 정의합니다. 이를 <a class="reference internal" href="../c-api/extension-modules.html#extension-export-hook"><span class="std std-ref">모듈 내보내기 훅</span></a> 인 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_{&lt;modname&gt;</span></code>}`으로 이식해야 하며, 이는 <span class="target" id="index-7"></span><a class="pep reference external" href="https://peps.python.org/pep-0793/"><strong>PEP 793</strong></a> 에서 CPython 3.15에 추가된 기능입니다.</p>
 <p data-msgid="5564e7ea30b32b69b339ee8fa61bc8f66df6e550" data-score="40">기존의 초기화 함수는 다음과 같은 형태여야 합니다(<code class="docutils literal notranslate"><span class="pre">&lt;modname&gt;</span></code> 및 <code class="docutils literal notranslate"><span class="pre">&lt;moddef&gt;</span></code> 은 본인의 이름으로 대체):</p>
 <div class="bad highlight-c notranslate" data-msgid="192592385f2b45a738f6b16036f6390734f37d2a" data-score="100"><div class="highlight"><pre><span></span><span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
@@ -387,7 +387,7 @@ This document describes how to adapt C API extensions to support free threading.
 <p data-msgid="dd754a830980a262cd69bd4eba2c67a1ed61388e" data-score="40">예시와 같이, <code class="docutils literal notranslate"><span class="pre">PyModExport_</span></code> 함수는 정적 데이터에 대한 포인터만 반환해야 합니다. 추가 코드를 피할 수 없는 경우, <a class="reference internal" href="../c-api/extension-modules.html#pymodexport-api-caveats"><span class="std std-ref">PyModExport_ 문서의 주의 사항</span></a> 을 참조하십시오.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p data-msgid="33d48b1acdae883b64584d7721b807713a358b51" data-score="20" data-since="261002">When building for Windows using the <a class="reference external" href="https://setuptools.pypa.io/">Setuptools</a> build tool,
+<p data-msgid="33d48b1acdae883b64584d7721b807713a358b51" data-score="20">When building for Windows using the <a class="reference external" href="https://setuptools.pypa.io/">Setuptools</a> build tool,
 removing the <code class="samp docutils literal notranslate"><span class="pre">PyInit_</span><em><span class="pre">&lt;modname&gt;</span></em></code> function may result in the linker error
 <code class="samp docutils literal notranslate"><span class="pre">LINK</span> <span class="pre">:</span> <span class="pre">error</span> <span class="pre">LNK2001:</span> <span class="pre">unresolved</span> <span class="pre">external</span> <span class="pre">symbol</span> <span class="pre">PyInit_</span><em><span class="pre">&lt;modname&gt;</span></em></code>.
 This is caused by Setuptools passing an <code class="docutils literal notranslate"><span class="pre">/EXPORT</span></code> linker flag, which
@@ -396,7 +396,7 @@ A workaround is to add a dummy <code class="samp docutils literal notranslate"><
 to your code.
 Python 3.15+ will never call this function if
 <code class="samp docutils literal notranslate"><span class="pre">PyModExport_</span><em><span class="pre">&lt;modname&gt;</span></em></code> is present, so it can always fail:</p>
-<div class="highlight-c notranslate" data-msgid="7cdad8a7dd6a9e8a347f877644dc7dcdc28a7298" data-score="40" data-since="261002"><div class="highlight"><pre><span></span><span class="c1">// Workaround for https://github.com/pypa/distutils/issues/387</span>
+<div class="highlight-c notranslate" data-msgid="7cdad8a7dd6a9e8a347f877644dc7dcdc28a7298" data-score="40"><div class="highlight"><pre><span></span><span class="c1">// Workaround for https://github.com/pypa/distutils/issues/387</span>
 <span class="n">PyMODINIT_FUNC</span>
 <span class="n">PyInit_</span><span class="o">&lt;</span><span class="n">modname</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
@@ -406,19 +406,19 @@ Python 3.15+ will never call this function if
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="8c92112a2238f52257983c9a43d3d1eac8fa2a08" data-score="40" data-since="261002">(이 문제는 Setuptools 84.0.0에서 발생하며, 최신 버전에서는 해결되었을 수 있습니다.)</p>
+<p data-msgid="8c92112a2238f52257983c9a43d3d1eac8fa2a08" data-score="40">(이 문제는 Setuptools 84.0.0에서 발생하며, 최신 버전에서는 해결되었을 수 있습니다.)</p>
 </div>
 <section id="existing-slots">
 <h3 data-msgid="6ac30a89fd7b2d2961cbe07bd8c63a064cc8f548" data-score="40">기존 슬롯<a class="headerlink" href="#existing-slots" title="Link to this heading">¶</a></h3>
 <p data-msgid="cde12bfae9734f4e26904d9727425ccbbcece683" data-score="40"><code class="docutils literal notranslate"><span class="pre">Py_mod_slots</span></code> 슬롯이 있는 경우, 해당 슬롯이 가리키는 배열을 확인하십시오. 이 배열은 다음과 같은 <a class="reference internal" href="../c-api/module.html#c.PyModuleDef_Slot" title="PyModuleDef_Slot"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef_Slot</span></code></a> 배열이어야 합니다.</p>
-<div class="bad highlight-c notranslate" data-msgid="8dfec159029790b85c4bbc5d70529c75be123938" data-score="40"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="nf">create_module</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">spec</span><span class="p">,</span><span class="w"> </span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
+<div class="bad highlight-c notranslate" data-msgid="5fdcac4722ae709bbaeea565c5d5def27cc05d6d" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="nf">create_module</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">spec</span><span class="p">,</span><span class="w"> </span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">my_first_module_exec</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">my_second_module_exec</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">PyModuleDef_Slot</span><span class="w"> </span><span class="n">my_slots</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="p">{</span><span class="n">Py_mod_gil</span><span class="p">,</span><span class="w"> </span><span class="n">Py_MOD_GIL_NOT_USED</span><span class="p">},</span>
 <span class="w">   </span><span class="p">{</span><span class="n">Py_mod_multiple_interpreters</span><span class="p">,</span><span class="w"> </span><span class="n">Py_MOD_PER_INTERPRETER_GIL_SUPPORTED</span><span class="p">},</span>
-<span class="w">   </span><span class="p">{</span><span class="n">Py_mod_create</span><span class="p">,</span><span class="w"> </span><span class="n">my_module_create</span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="n">Py_mod_create</span><span class="p">,</span><span class="w"> </span><span class="n">create_module</span><span class="p">},</span>
 <span class="w">   </span><span class="p">{</span><span class="n">Py_mod_exec</span><span class="p">,</span><span class="w"> </span><span class="n">my_first_module_exec</span><span class="p">},</span>
 <span class="w">   </span><span class="p">{</span><span class="n">Py_mod_exec</span><span class="p">,</span><span class="w"> </span><span class="n">my_second_module_exec</span><span class="p">},</span>
 <span class="w">   </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">}</span>
@@ -426,7 +426,7 @@ Python 3.15+ will never call this function if
 </pre></div>
 </div>
 <section id="py-mod-create">
-<h4 data-msgid="c15ca82971d0382f8d1b8b63d9866b6a3ff483b7" data-score="40"><code class="docutils literal notranslate"><span class="pre">py_mod_create</span></code><a class="headerlink" href="#py-mod-create" title="Link to this heading">¶</a></h4>
+<h4 data-msgid="2cb273c5d44ac279ef63bf3b19045156be238ccd" data-score="0" data-since="261119"><code class="docutils literal notranslate"><span class="pre">Py_mod_create</span></code><a class="headerlink" href="#py-mod-create" title="Link to this heading">¶</a></h4>
 <p data-msgid="1755408c9dde90df3c6cbe0396ee27a022d64bce" data-score="40"><a class="reference internal" href="../c-api/module.html#c.Py_mod_create" title="Py_mod_create"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_create</span></code></a> 항목이 있는 경우, 해당 함수가 두 번째 인자로 <code class="docutils literal notranslate"><span class="pre">NULL</span></code> 을 받아 호출될 수 있는지 확인하십시오(제거되는 <a class="reference internal" href="../c-api/module.html#c.PyModuleDef" title="PyModuleDef"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyModuleDef</span></code></a> 대신). 종종 이 인자는 전혀 사용되지 않으며, 이름을 변경하여 이를 확인할 수 있습니다.</p>
 <div class="good highlight-c notranslate" data-msgid="3ccd69d9993a1e3b33b50f14c899d46cecd0efcf" data-score="40"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="nf">create_module</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">spec</span><span class="p">,</span><span class="w"> </span><span class="n">PyModuleDef</span><span class="w"> </span><span class="o">*</span><span class="n">_unused</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
 </pre></div>
@@ -434,18 +434,19 @@ Python 3.15+ will never call this function if
 <p data-msgid="fa3da0a33b19a971851077f79f579c6a714515d1" data-score="40">해당 인자가 사용되는 경우, 데이터를 전달할 다른 방법을 찾으십시오. 일반적으로 정보가 정적(static)인 경우가 많으므로 직접 참조할 수 있습니다. (여러 개의 서로 다른 모듈에서 단일 함수를 재사용하는 경우, 대신 여러 개의 함수를 정의하는 것을 고려하십시오.)</p>
 </section>
 <section id="multiple-py-mod-exec">
-<h4 data-msgid="db631e2ee1de923822fe2ac7db70e12204c99ad7" data-score="40">여러 개의 <code class="docutils literal notranslate"><span class="pre">py_mod_exec</span></code><a class="headerlink" href="#multiple-py-mod-exec" title="Link to this heading">¶</a></h4>
+<h4 data-msgid="9c1dac73db68895f6005ae985b277450815b7cb0" data-score="0" data-since="261119">Multiple <code class="docutils literal notranslate"><span class="pre">Py_mod_exec</span></code><a class="headerlink" href="#multiple-py-mod-exec" title="Link to this heading">¶</a></h4>
 <p data-msgid="aef2ab1c8ab4aba595af4d67acf285210d7c61e4" data-score="20">If you have <em>more than one</em> <a class="reference internal" href="../c-api/module.html#c.Py_mod_exec" title="Py_mod_exec"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_mod_exec</span></code></a> entry, consolidate them:
 create a new function that calls the others, and replace existing slots
 with it.</p>
-<div class="good highlight-c notranslate" data-msgid="a3f82b03f4329c8c13c08ab7b81dd9de74f4c5e9" data-score="40"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">my_module_exec</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<div class="good highlight-c notranslate" data-msgid="ee6032c7b65969e5f82f13995c9636faed3e6b20" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">my_module_exec</span><span class="p">(</span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_first_module_exec</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
 <span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">my_second_module_exec</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">PyModuleDef_Slot</span><span class="w"> </span><span class="n">my_slots</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="p">...</span>
-<span class="w">   </span><span class="cm">/* (다른 Py_mod_exec 슬롯 제거) */</span>
+<span class="w">   </span><span class="cm">/* (remove other Py_mod_exec slots) */</span>
 <span class="w">   </span><span class="p">...</span>
 <span class="w">   </span><span class="p">{</span><span class="n">Py_mod_exec</span><span class="p">,</span><span class="w"> </span><span class="n">my_module_exec</span><span class="p">},</span>
 <span class="w">   </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">}</span>
@@ -457,12 +458,12 @@ with it.</p>
 <section id="merging-slot-arrays">
 <h4 data-msgid="8fc093f1d02d22447e082d0c67f77ce53b2fbbdc" data-score="40">슬롯 배열 병합<a class="headerlink" href="#merging-slot-arrays" title="Link to this heading">¶</a></h4>
 <p data-msgid="ec8812d02c3e7c0f35452e8018ee467c6857ae9d" data-score="40">선택적으로, Python 3.14와의 호환성을 끊을 때 슬롯을 <a class="reference internal" href="../c-api/slots.html#c.PySlot" title="PySlot"><code class="xref c c-type docutils literal notranslate"><span class="pre">PySlot</span></code></a> 배열로 이동시키고 정의를 <a class="reference internal" href="../c-api/slots.html#c.PySlot_DATA" title="PySlot_DATA"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PySlot_DATA</span></code></a> 및 <a class="reference internal" href="../c-api/slots.html#c.PySlot_FUNC" title="PySlot_FUNC"><code class="xref c c-macro docutils literal notranslate"><span class="pre">PySlot_FUNC</span></code></a> 으로 변환하여 코드를 정리할 수 있습니다.</p>
-<div class="good highlight-c notranslate" data-msgid="729312cce0ad5fe614d69179769c29edc81686f0" data-score="40"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="good highlight-c notranslate" data-msgid="74806d03aadedd92104073bd1fa8d4a52e1930ef" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">...</span>
 <span class="w">    </span><span class="n">PySlot_DATA</span><span class="p">(</span><span class="n">Py_mod_gil</span><span class="p">,</span><span class="w"> </span><span class="n">Py_MOD_GIL_NOT_USED</span><span class="p">),</span>
 <span class="w">    </span><span class="n">PySlot_DATA</span><span class="p">(</span><span class="n">Py_mod_multiple_interpreters</span><span class="p">,</span>
-<span class="w">         </span><span class="n">Py_MOD_PER_INTERPRETER_GIL_SUPPORTED</span><span class="p">)</span>
-<span class="w">    </span><span class="n">PySlot_FUNC</span><span class="p">(</span><span class="n">Py_mod_create</span><span class="p">,</span><span class="w"> </span><span class="n">my_module_create</span><span class="p">),</span>
+<span class="w">         </span><span class="n">Py_MOD_PER_INTERPRETER_GIL_SUPPORTED</span><span class="p">),</span>
+<span class="w">    </span><span class="n">PySlot_FUNC</span><span class="p">(</span><span class="n">Py_mod_create</span><span class="p">,</span><span class="w"> </span><span class="n">create_module</span><span class="p">),</span>
 <span class="w">    </span><span class="n">PySlot_FUNC</span><span class="p">(</span><span class="n">Py_mod_exec</span><span class="p">,</span><span class="w"> </span><span class="n">my_module_exec</span><span class="p">),</span>
 <span class="w">    </span><span class="n">PySlot_END</span>
 <span class="p">};</span>
@@ -489,11 +490,11 @@ with it.</p>
 </pre></div>
 </div>
 <p data-msgid="e202602abfd4d333224b619b3aab7b0867acf888" data-score="40">그리고 모듈의 <code class="docutils literal notranslate"><span class="pre">PySlot</span></code> 배열에 새로운 항목으로 그것을 가리키는 포인터를 추가하십시오.</p>
-<div class="good highlight-c notranslate" data-msgid="f31d4fc9556b31dd4ddc67dc841a6f11ed3bd83e" data-score="100"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="good highlight-c notranslate" data-msgid="fc1689510ae957c2b9abe32d70ac5032dc97835b" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">PySlot</span><span class="w"> </span><span class="n">my_slot_array</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="p">...</span>
 <span class="hll"><span class="w">   </span><span class="n">PySlot_STATIC_DATA</span><span class="p">(</span><span class="n">Py_mod_token</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_token</span><span class="p">),</span>
 </span><span class="w">   </span><span class="n">PySlot_END</span>
-<span class="p">}</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p data-msgid="e3f8267a8dc4d4d83731a68b44e7b43983ec5fea" data-score="40">그 다음, 다음과 같은 <a class="reference internal" href="../c-api/module.html#c.PyModule_GetDef" title="PyModule_GetDef"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyModule_GetDef()</span></code></a> 호출을;</p>
@@ -513,8 +514,8 @@ with it.</p>
 </pre></div>
 </div>
 <p data-msgid="7c3d34450de9cc3af0c551a8e8eeac8c87f07135" data-score="40"><a class="reference internal" href="../c-api/type.html#c.PyType_GetModuleByToken" title="PyType_GetModuleByToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">PyType_GetModuleByToken()</span></code></a> 으로(이 함수는 강한 참조를 반환합니다):</p>
-<div class="good highlight-c notranslate" data-msgid="1182ff52a20e972a29f8f2dd43b8f1bb43f383e2" data-score="40"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByToken</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">my_token</span><span class="p">);</span>
-<span class="cm">/* 에러 처리; module 사용 */</span>
+<div class="good highlight-c notranslate" data-msgid="7c81f952eacae9514485a4ce4c605283f6427bbe" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="n">PyObject</span><span class="w"> </span><span class="o">*</span><span class="n">module</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyType_GetModuleByToken</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">my_token</span><span class="p">);</span>
+<span class="cm">/* handle error; use module */</span>
 <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">module</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -598,11 +599,12 @@ with it.</p>
 <ul>
 <li><p data-msgid="2bd1d7943674dbd56a55d414354afc0781fac19a" data-score="40">인스턴스 메서드에서, 구현에 <a class="reference internal" href="../c-api/structures.html#c.PyCMethod" title="PyCMethod"><code class="xref c c-type docutils literal notranslate"><span class="pre">PyCMethod</span></code></a> 시그니처(및 <a class="reference internal" href="../c-api/structures.html#c.PyMethodDef.ml_flags" title="PyMethodDef.ml_flags"><code class="xref c c-member docutils literal notranslate"><span class="pre">PyMethodDef.ml_flags</span></code></a> 의 <a class="reference internal" href="../c-api/structures.html#c.METH_METHOD" title="METH_METHOD"><code class="xref c c-macro docutils literal notranslate"><span class="pre">METH_METHOD</span></code></a> 비트)를 사용하고 <code class="docutils literal notranslate"><span class="pre">defining_class</span></code> 인자로 클래스를 가져올 수 있습니다.</p></li>
 <li><p data-msgid="c6c06ba59d6ab434f29e9ccfb53006b30aae1583" data-score="40">그렇지 않은 경우, <a class="reference internal" href="../c-api/type.html#c.Py_tp_token" title="Py_tp_token"><code class="xref c c-macro docutils literal notranslate"><span class="pre">Py_tp_token</span></code></a> 슬롯을 사용하여 클래스에 고유한 정적 토큰을 부여하고 다음을 사용하십시오.</p>
-<div class="good highlight-c notranslate" data-msgid="469215e121d06be192365736c4df7fbdc452fc6b" data-score="40"><div class="highlight"><pre><span></span><span class="n">PyTypeObject</span><span class="w"> </span><span class="n">cls</span><span class="p">;</span>
+<div class="good highlight-c notranslate" data-msgid="2d2eb115f32cf21ff101fb50530d71f05440842f" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="n">PyTypeObject</span><span class="w"> </span><span class="o">*</span><span class="n">cls</span><span class="p">;</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyType_GetBaseByToken</span><span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span><span class="w"> </span><span class="n">my_tp_token</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cls</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="cm">/* 에러 처리 */</span>
+<span class="w">    </span><span class="cm">/* handle error */</span>
 <span class="p">}</span>
 <span class="n">CustomObjectData</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyObject_GetTypeData</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="w"> </span><span class="n">cls</span><span class="p">);</span>
+<span class="n">Py_DECREF</span><span class="p">(</span><span class="n">cls</span><span class="p">);</span>
 </pre></div>
 </div>
 <p data-msgid="ea9061330b7f454ac5fe8287f0d5b0ea1bd7399e" data-score="20">유형 토큰은 이 가이드에서 <a class="reference internal" href="#abi3t-migration-module-token"><span class="std std-ref">전에 다룬</span></a> 모듈 토큰과 유사하게 작동합니다.</p>
