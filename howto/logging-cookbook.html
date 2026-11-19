@@ -459,7 +459,10 @@ myapp.area2 : ERROR    The five boxing wizards jump quickly.
 <span class="p">}</span>
 </pre></div>
 </div>
-<p data-msgid="3efdd929d2d4b0047de65e0f56e34bb0da563201" data-score="40">이 구성은 우리가 원하는 바와 <em>거의</em> 일치하지만, <code class="docutils literal notranslate"><span class="pre">sys.stdout``에</span> <span class="pre">severity가</span> <span class="pre">``ERROR``인</span> <span class="pre">메시지만</span> <span class="pre">표시되고,</span> <span class="pre">``INFO</span></code> 및 <code class="docutils literal notranslate"><span class="pre">WARNING``과</span> <span class="pre">함께</span> <span class="pre">이</span> <span class="pre">수준</span> <span class="pre">이상의</span> <span class="pre">이벤트만</span> <span class="pre">추적됩니다.</span> <span class="pre">이를</span> <span class="pre">방지하기</span> <span class="pre">위해</span> <span class="pre">해당</span> <span class="pre">메시지를</span> <span class="pre">제외하는</span> <span class="pre">필터를</span> <span class="pre">설정하고</span> <span class="pre">관련</span> <span class="pre">처리기에</span> <span class="pre">추가할</span> <span class="pre">수</span> <span class="pre">있습니다.</span> <span class="pre">이는</span> <span class="pre">``formatters</span></code> 및 <code class="docutils literal notranslate"><span class="pre">handlers``와</span> <span class="pre">나란히</span> <span class="pre">``filters</span></code> 섹션을 추가하여 구성할 수 있습니다.</p>
+<p data-msgid="ec15e0cad9a57786883087e6909817ab8ddce4b7" data-score="0" data-since="261119">This configuration does <em>almost</em> what we want, except that <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> would
+also show messages of severity <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> and above. To exclude those messages,
+we can add a filter to the stdout handler. This can be configured by adding a
+<code class="docutils literal notranslate"><span class="pre">filters</span></code> section parallel to <code class="docutils literal notranslate"><span class="pre">formatters</span></code> and <code class="docutils literal notranslate"><span class="pre">handlers</span></code>:</p>
 <div class="highlight-json notranslate" data-msgid="ca39d8dee8126f4c37c39ab815d40febfbd8e90d" data-score="100"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;filters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;warnings_and_below&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -645,7 +648,16 @@ WARNING<span class="w">  </span>-<span class="w"> </span>A<span class="w"> </spa
 <span id="blocking-handlers"></span><h2 data-msgid="f7058f9f30d382b9a43ccf3626d57230af8eeffd" data-score="60">블록 하는 처리기 다루기<a class="headerlink" href="#dealing-with-handlers-that-block" title="Link to this heading">¶</a></h2>
 <p data-msgid="bdf914b2cebf743b8cc32a82355ef8f2c83e6056" data-score="40">때로는 로깅을 수행하는 스레드를 차단하지 않으면서 로깅 처리기가 작업을 수행하도록 해야 할 때가 있습니다. 이는 웹 애플리케이션에서 흔히 발생하며, 당연히 다른 시나리오에서도 발생할 수 있습니다.</p>
 <p data-msgid="744a9d5db1abd92a311d7e591e29e78fc979d258" data-score="60">흔히 느린 행동을 보이는 범인은 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SMTPHandler" title="logging.handlers.SMTPHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SMTPHandler</span></code></a> 입니다: 개발자의 통제 밖에 있는 여러 가지 이유로, 전자 우편을 보내는 데 오랜 시간이 걸릴 수 있습니다 (예를 들어, 잘 동작하지 않는 메일 또는 네트워크 인프라). 그러나 거의 모든 네트워크 기반 처리기는 블록 할 수 있습니다. <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SocketHandler" title="logging.handlers.SocketHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketHandler</span></code></a> 작업도 너무 느린 DNS 질의를 이면에서 수행 할 수 있습니다 (그리고 이 질의는 여러분의 통제 밖에 있는, 파이썬 계층 아래의 소켓 라이브러리 코드 깊숙이 있을 수 있습니다).</p>
-<p data-msgid="33160a185bf2c5c61c16f6230bf34d55134e0611" data-score="60">한 가지 해결책은 두 부분으로 된 접근법을 사용하는 것입니다. 첫 번째 부분에서는, 성능이 중요한 스레드에서 액세스하는 로거에 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueHandler" title="logging.handlers.QueueHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueHandler</span></code></a> 만 붙입니다. 그들은 단순히 큐에 씁니다. 충분한 용량으로 큐의 크기를 조정하거나, 크기의 상한이 없도록 초기화 할 수 있습니다. 큐에 대한 쓰기는 일반적으로 신속하게 받아들여지지만, 코드에서 예방책으로 <a class="reference internal" href="../library/queue.html#queue.Full" title="queue.Full"><code class="xref py py-exc docutils literal notranslate"><span class="pre">queue.Full</span></code></a> 예외를 잡아야 할 것입니다. 코드에 성능이 중요한 스레드가 있는 라이브러리 개발자인 경우, 코드를 사용할 다른 개발자의 이익을 위해 이것을 (여러분의 로거에 <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> 만 붙이라는 제안과 함께) 문서로 만들어야 합니다.</p>
+<p data-msgid="41c4b3d61bcb33f4fc02b1d9753abbe2483a371f" data-score="0" data-since="261119">One solution is to use a two-part approach. For the first part, attach only a
+<a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueHandler" title="logging.handlers.QueueHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueHandler</span></code></a> to those loggers which are accessed from
+performance-critical threads. They simply write to their queue, which can be
+sized to a large enough capacity or initialized with no upper bound to their
+size. The write to the queue will typically be accepted quickly. If a bounded
+queue is full, <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueHandler" title="logging.handlers.QueueHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueHandler</span></code></a> calls <a class="reference internal" href="../library/logging.html#logging.Handler.handleError" title="logging.Handler.handleError"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handleError()</span></code></a>
+with the record. If you are a library developer who has performance-critical
+threads in their code, be sure to document this (together with a suggestion to
+attach only <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> to your loggers) for the benefit of other
+developers who will use your code.</p>
 <p data-msgid="b8122ae0ef9801cb72bbbc2e5daca7e58a0a83db" data-score="60">해결책의 두 번째 부분은 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a>며, 이는 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueHandler" title="logging.handlers.QueueHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueHandler</span></code></a> 에 상응하여 설계되었습니다. <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 는 매우 간단합니다: 큐와 처리기를 넘겨주면 <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> (또는 <code class="docutils literal notranslate"><span class="pre">LogRecords</span></code> 의 다른 소스)에서 보낸 LogRecord를 큐에서 수신하는 내부 스레드를 시작합니다. <code class="docutils literal notranslate"><span class="pre">LogRecords</span></code> 는 큐에서 제거되고 처리를 위해 처리기로 전달됩니다.</p>
 <p data-msgid="7ee06272821ecb6c11bb72c81891a80a0c56f0ef" data-score="60">별도의 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 클래스를 사용하면 같은 인스턴스를 사용하여 여러 개의 <code class="docutils literal notranslate"><span class="pre">QueueHandlers</span></code> 를 처리할 수 있다는 장점이 있습니다. 이것은 특별한 이점 없이 처리기당 하나의 스레드를 먹게 되는 기존의 처리기 클래스의 스레드 버전을 만드는 것보다 자원 친화적입니다.</p>
 <p data-msgid="ebd0324496add330975fc9b5b5c324a401553b19" data-score="60">이 두 클래스를 사용하는 예제는 다음과 같습니다 (임포트 생략):</p>
@@ -1470,7 +1482,10 @@ logging_rotatingfile_example.out.4
 logging_rotatingfile_example.out.5
 </pre></div>
 </div>
-<p data-msgid="d3e29a5c3531478896bbce6f04686947709caffe" data-score="60">가장 최근의 파일은 항상 <code class="file docutils literal notranslate"><span class="pre">logging_rotatingfile_example.out</span></code> 이며, 크기 제한에 도달할 때마다 접미사 <code class="docutils literal notranslate"><span class="pre">.1</span></code> 이 붙은 이름으로 변경됩니다. 기존 백업 파일 각각의 이름이 변경되어 접미사가 증가하고 ( <code class="docutils literal notranslate"><span class="pre">.1</span></code> 이 <code class="docutils literal notranslate"><span class="pre">.2</span></code> 가 되는 등) <code class="docutils literal notranslate"><span class="pre">.6</span></code> 파일이 지워집니다.</p>
+<p data-msgid="c1012481c802954963a467c517bff5360fdf4139" data-score="0" data-since="261119">The most current file is always <code class="file docutils literal notranslate"><span class="pre">logging_rotatingfile_example.out</span></code>,
+and each time it reaches the size limit it is renamed with the suffix
+<code class="docutils literal notranslate"><span class="pre">.1</span></code>. Before this happens, the oldest backup (<code class="docutils literal notranslate"><span class="pre">.5</span></code>), if present, is
+deleted and the remaining backups are renamed (<code class="docutils literal notranslate"><span class="pre">.4</span></code> becomes <code class="docutils literal notranslate"><span class="pre">.5</span></code>, etc.).</p>
 <p data-msgid="45fca88ba680bd21063419295016eb07e7dd1fd3" data-score="60">분명, 이 예제는 로그 길이를 극단적으로 작게 설정합니다. <em>maxBytes</em> 를 적절한 값으로 설정하고 싶을 겁니다.</p>
 </section>
 <section id="use-of-alternative-formatting-styles">
@@ -1583,7 +1598,11 @@ logging_rotatingfile_example.out.5
 <p data-msgid="bed512c6b8fc5501ed90c93c0d806f0dce736c7e" data-score="60">모든 로깅 이벤트는 <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 인스턴스로 표현됩니다. 이벤트가 로그 되고 로거 수준에 의해 필터링 되지 않으면, <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 가 생성되고 이벤트에 대한 정보로 채워진 다음 해당 로거(와 그 조상들, 계층 상위로의 전파가 비활성화된 지점의 로거까지)의 처리기로 전달됩니다. 파이썬 3.2 이전에는, 이 생성이 일어나는 곳이 두 곳밖에 없었습니다:</p>
 <ul class="simple">
 <li><p data-msgid="5fca8f3b160cb2661c6add7fad45b093ddf47065" data-score="60"><a class="reference internal" href="../library/logging.html#logging.Logger.makeRecord" title="logging.Logger.makeRecord"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Logger.makeRecord()</span></code></a>, 이벤트 로깅의 일반적인 프로세스에서 호출됩니다. 인스턴스를 생성하기 위해 <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 를 직접 호출합니다.</p></li>
-<li><p data-msgid="bdc032c8e80e157a634d48ad83d1f1e55a51ceb0" data-score="60"><a class="reference internal" href="../library/logging.html#logging.makeLogRecord" title="logging.makeLogRecord"><code class="xref py py-func docutils literal notranslate"><span class="pre">makeLogRecord()</span></code></a>, LogRecord에 추가될 어트리뷰트를 포함하는 딕셔너리와 함께 호출됩니다. 보통 적절한 딕셔너리가 네트워크를 통해 (예를 들어, <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SocketHandler" title="logging.handlers.SocketHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketHandler</span></code></a> 를 통해 피클 형태로, 또는 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.HTTPHandler" title="logging.handlers.HTTPHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPHandler</span></code></a> 를 통해 JSON 형식으로) 수신될 때 호출됩니다.</p></li>
+<li><p data-msgid="266f187fb926ccd9d98a747dff8dcdd4c9e68b22" data-score="0" data-since="261119"><a class="reference internal" href="../library/logging.html#logging.makeLogRecord" title="logging.makeLogRecord"><code class="xref py py-func docutils literal notranslate"><span class="pre">makeLogRecord()</span></code></a>, which is called with a dictionary containing
+attributes to be added to the LogRecord. This is typically invoked when a
+suitable dictionary has been received over the network (e.g. in pickle form
+via a <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.SocketHandler" title="logging.handlers.SocketHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketHandler</span></code></a>, or as URL-encoded data via an
+<a class="reference internal" href="../library/logging.handlers.html#logging.handlers.HTTPHandler" title="logging.handlers.HTTPHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPHandler</span></code></a>).</p></li>
 </ul>
 <p data-msgid="f569d74ed0c1bc77e488b3782794815c76a28886" data-score="60">이것은 보통 <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 로 특별한 것을 할 필요가 있다면, 다음 중 하나를 해야 한다는 것을 의미합니다.</p>
 <ul class="simple">
@@ -1595,7 +1614,7 @@ logging_rotatingfile_example.out.5
 <div class="highlight-python3 notranslate" data-msgid="e9a1361ee4c730813e9c4d22b0b972c675e12c16" data-score="100"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </pre></div>
 </div>
-<p data-msgid="3f2ee07e61e322dbbf3bc45afb7d33fa535445a9" data-score="60">이것은 아마도 고려해야 할 많은 것 중 하나일 뿐입니다. 개발자는 자신의 최상위 로거에 첨부된 <a class="reference internal" href="../library/logging.handlers.html#logging.NullHandler" title="logging.NullHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">NullHandler</span></code></a> 에도 필터를 추가 할 수 있지만, 응용 프로그램 개발자가 하위 수준 라이브러리 로거에 처리기를 연결하면 호출되지 않습니다 — 그래서 그 처리기로부터의 출력은 라이브러리 개발자의 의도를 반영하지 못합니다.</p>
+<p data-msgid="3e854d5e53addedefa4352da0782bd4d19c17cac" data-score="0" data-since="261119">at module level). It’s probably one too many things to think about.</p>
 <p data-msgid="c546210dbf793e606427df8d638cfa87ae76b70a" data-score="60">파이썬 3.2 이상에서는, <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 생성이 사용자가 지정할 수 있는 팩토리를 통해 수행됩니다. 팩토리는 <a class="reference internal" href="../library/logging.html#logging.setLogRecordFactory" title="logging.setLogRecordFactory"><code class="xref py py-func docutils literal notranslate"><span class="pre">setLogRecordFactory()</span></code></a> 로 설정할 수 있고, <a class="reference internal" href="../library/logging.html#logging.getLogRecordFactory" title="logging.getLogRecordFactory"><code class="xref py py-func docutils literal notranslate"><span class="pre">getLogRecordFactory()</span></code></a> 로 조회할 수 있는 콜러블입니다. 팩토리는 <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 생성자와 같은 서명으로 호출되고, 기본 설정은 <a class="reference internal" href="../library/logging.html#logging.LogRecord" title="logging.LogRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogRecord</span></code></a> 입니다.</p>
 <p data-msgid="38f243c268ac54786748c9a35cf37625df1bf4f7" data-score="60">이 방법을 사용하면 사용자 정의 팩토리가 LogRecord 생성의 모든 측면을 제어 할 수 있습니다. 예를 들어, 서브 클래스를 반환하거나, 다음과 같은 방법으로 생성된 레코드에 어트리뷰트를 추가 할 수 있습니다:</p>
 <div class="highlight-python3 notranslate" data-msgid="4a57ca3929650601a2070fc7bc2521f01adee987" data-score="100"><div class="highlight"><pre><span></span><span class="n">old_factory</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogRecordFactory</span><span class="p">()</span>
@@ -1649,16 +1668,16 @@ logging_rotatingfile_example.out.5
 <section id="subclass-queuelistener">
 <h3 data-msgid="c9c8711974f75456058864973156291ae37c5ddd" data-score="40"><code class="docutils literal notranslate"><span class="pre">QueueListener</span></code> 하위 클래스 만들기<a class="headerlink" href="#subclass-queuelistener" title="Link to this heading">¶</a></h3>
 <p data-msgid="482322bcbbc3506cce2a6d497cfb2815a7253dd8" data-score="60">다른 유형의 큐에서 메시지를 받기 위해 <a class="reference internal" href="../library/logging.handlers.html#logging.handlers.QueueListener" title="logging.handlers.QueueListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueListener</span></code></a> 의 서브 클래스를 만들 수도 있습니다, 예를 들어 ZeroMQ ‘subscribe’ 소켓. 다음은 그 예입니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="798701dd4fd0bfc5c6bfb3c84c477381092cb55f" data-score="40"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ZeroMQSocketListener</span><span class="p">(</span><span class="n">QueueListener</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ctx&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">zm</span><span class="o">.</span><span class="n">Context</span><span class="p">()</span>
+<div class="highlight-python3 notranslate" data-msgid="b86f4b5e123faea590d912f9d597f4927a501e88" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ZeroMQSocketListener</span><span class="p">(</span><span class="n">QueueListener</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">handlers</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ctx</span> <span class="ow">or</span> <span class="n">zmq</span><span class="o">.</span><span class="n">Context</span><span class="p">()</span>
         <span class="n">socket</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">Socket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span><span class="p">)</span>
-        <span class="n">socket</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">SUBSCRIBE</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># 모든 항목 구독</span>
+        <span class="n">socket</span><span class="o">.</span><span class="n">setsockopt_string</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">SUBSCRIBE</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># subscribe to everything</span>
         <span class="n">socket</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">socket</span><span class="p">,</span> <span class="o">*</span><span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">dequeue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">recv_json</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dequeue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">recv_json</span><span class="p">(</span><span class="n">flags</span><span class="o">=</span><span class="mi">0</span> <span class="k">if</span> <span class="n">block</span> <span class="k">else</span> <span class="n">zmq</span><span class="o">.</span><span class="n">NOBLOCK</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">makeLogRecord</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1928,19 +1947,20 @@ logging_rotatingfile_example.out.5
 <p data-msgid="91133cfbacd546130a1cf32e4ee2140e39e62847" data-score="60">다음 동작하는 예제에서는 구성 파일을 사용하여 로깅을 multiprocessing과 함께 사용하는 방법을 보여줍니다. 구성은 매우 간단하지만, 실제 multiprocessing 시나리오에서 더 복잡한 구성을 구현할 수 있음을 예시합니다.</p>
 <p data-msgid="a83e5dd2b23136ef3f48d10399e72b50b2a1329f" data-score="60">이 예에서, 주 프로세스는 리스너 프로세스와 몇 개의 작업자 프로세스를 생성합니다. 주 프로세스, 리스너 및 작업자를 위한 세 가지 구성이 있습니다 (모든 작업자는 같은 구성을 공유합니다). 주 프로세스에서의 로깅, 작업자가 QueueHandler에 로그 하는 방법, 그리고 리스너가 QueueListener 및 더욱 복잡한 로깅 구성을 구현하고 큐를 통해 수신한 이벤트를 구성에서 지정된 처리기로 전달하도록 배치하는 는 방법을 볼 수 있습니다. 이러한 구성은 설명을 위한 것이지만, 이 예제를 여러분 자신의 시나리오에 적용할 수 있어야 합니다.</p>
 <p data-msgid="8afb27313460b0b8eae2fe468f6a9c345fa8e60a" data-score="60">스크립트는 다음과 같습니다 - 독스트링과 주석이 어떻게 작동하는지 잘 설명하기를 바랍니다:</p>
-<div class="highlight-python3 notranslate" data-msgid="382bf2d391e4c75dea9aa01af20a3cdb6e986d42" data-score="40"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="highlight-python3 notranslate" data-msgid="96089a147dd8f4bb6b4ce9bbf236d78bc9cda850" data-score="0" data-since="261119"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging.config</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging.handlers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">current_process</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_start_method</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyHandler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    로깅 이벤트를 위한 간단한 핸들러입니다. 리스너 프로세스에서 실행되며</span>
-<span class="sd">    수신된 레코드의 이름에 따라 로거에 이벤트를 전달합니다.</span>
-<span class="sd">    그 후 로깅 시스템에 의해 해당 로거에 구성된 핸들러로 전달됩니다.</span>
+<span class="sd">    A simple handler for logging events. It runs in the listener process and</span>
+<span class="sd">    dispatches events to loggers based on the name in the received record,</span>
+<span class="sd">    which then get dispatched, by the logging system, to the handlers</span>
+<span class="sd">    configured for those loggers.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
@@ -1950,29 +1970,25 @@ logging_rotatingfile_example.out.5
             <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelno</span><span class="p">):</span>
-            <span class="c1"># 프로세스 이름은 파일 및 콘솔에 로깅을 수행하는 것이</span>
-            <span class="c1"># 리스너임을 보여주기 위해 변환됩니다.</span>
+            <span class="c1"># The process name is transformed just to show that it&#39;s the listener</span>
+            <span class="c1"># doing the logging to files and console</span>
             <span class="n">record</span><span class="o">.</span><span class="n">processName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (for </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">record</span><span class="o">.</span><span class="n">processName</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">listener_process</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">stop_event</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    메인 프로세스에서 수행할 수도 있지만, 예시를 위해 별도의 프로세스에서</span>
-<span class="sd">    수행됩니다.</span>
+<span class="sd">    This could be done in the main process, but is just done in a separate</span>
+<span class="sd">    process for illustrative purposes.</span>
 
-<span class="sd">    지정된 구성에 따라 로깅을 초기화하고, 리스너를 시작한 다음</span>
-<span class="sd">    메인 프로세스가 이벤트를 통해 완료 신호를 보낼 때까지 기다립니다.</span>
-<span class="sd">    그 후 리스너가 중지되고 프로세스가 종료됩니다.</span>
+<span class="sd">    This initialises logging according to the specified configuration,</span>
+<span class="sd">    starts the listener and waits for the main process to signal completion</span>
+<span class="sd">    via the event. The listener is then stopped, and the process exits.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">listener</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">QueueListener</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">MyHandler</span><span class="p">())</span>
     <span class="n">listener</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;posix&#39;</span><span class="p">:</span>
-        <span class="c1"># POSIX에서 setup 로거는 부모 프로세스에서 구성되었겠지만,</span>
-        <span class="c1"># dictConfig 호출 이후에는 비활성화되어야 합니다.</span>
-        <span class="c1"># Windows에서는 fork가 사용되지 않으므로 자식 프로세스에 setup</span>
-        <span class="c1"># 로거가 존재하지 않으며, 새로 생성되어 메시지가 나타날 것입니다.</span>
-        <span class="c1"># 따라서 &quot;if posix&quot; 절을 사용합니다.</span>
+    <span class="k">if</span> <span class="n">get_start_method</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;fork&#39;</span><span class="p">:</span>
+        <span class="c1"># dictConfig disables the setup logger inherited from the parent.</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;setup&#39;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;Should not appear, because of disabled logger ...&#39;</span><span class="p">)</span>
     <span class="n">stop_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
@@ -1980,27 +1996,25 @@ logging_rotatingfile_example.out.5
 
 <span class="k">def</span><span class="w"> </span><span class="nf">worker_process</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    예시를 위해 여러 개가 생성됩니다. 실제로는 서로 동일한 프로세스보다는</span>
-<span class="sd">    서로 다른 프로세스 집합일 수 있습니다.</span>
+<span class="sd">    A number of these are spawned for the purpose of illustration. In</span>
+<span class="sd">    practice, they could be a heterogeneous bunch of processes rather than</span>
+<span class="sd">    ones which are identical to each other.</span>
 
-<span class="sd">    지정된 구성에 따라 로깅을 초기화하고, 임의로 선택된 로거에 임의의</span>
-<span class="sd">    레벨로 100개의 메시지를 로깅합니다.</span>
+<span class="sd">    This initialises logging according to the specified configuration,</span>
+<span class="sd">    and logs a hundred messages with random levels to randomly selected</span>
+<span class="sd">    loggers.</span>
 
-<span class="sd">    다른 프로세스가 실행될 기회를 주기 위해 짧은 대기(sleep)가 추가되었습니다.</span>
-<span class="sd">    엄밀히 말하면 필요하지는 않지만, 이를 생략했을 때보다 서로 다른 프로세스의</span>
-<span class="sd">    출력이 좀 더 섞이게 됩니다.</span>
+<span class="sd">    A small sleep is added to allow other processes a chance to run. This</span>
+<span class="sd">    is not strictly needed, but it mixes the output from the different</span>
+<span class="sd">    processes a bit more than if it&#39;s left out.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
               <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">]</span>
     <span class="n">loggers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;foo.bar&#39;</span><span class="p">,</span> <span class="s1">&#39;foo.bar.baz&#39;</span><span class="p">,</span>
                <span class="s1">&#39;spam&#39;</span><span class="p">,</span> <span class="s1">&#39;spam.ham&#39;</span><span class="p">,</span> <span class="s1">&#39;spam.ham.eggs&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;posix&#39;</span><span class="p">:</span>
-        <span class="c1"># POSIX에서 setup 로거는 부모 프로세스에서 구성되었겠지만,</span>
-        <span class="c1"># dictConfig 호출 이후에는 비활성화되어야 합니다.</span>
-        <span class="c1"># Windows에서는 fork가 사용되지 않으므로 자식 프로세스에 setup</span>
-        <span class="c1"># 로거가 존재하지 않으며, 새로 생성되어 메시지가 나타날 것입니다.</span>
-        <span class="c1"># 따라서 &quot;if posix&quot; 절을 사용합니다.</span>
+    <span class="k">if</span> <span class="n">get_start_method</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;fork&#39;</span><span class="p">:</span>
+        <span class="c1"># dictConfig disables the setup logger inherited from the parent.</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;setup&#39;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;Should not appear, because of disabled logger ...&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
@@ -2011,7 +2025,7 @@ logging_rotatingfile_example.out.5
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
-    <span class="c1"># 메인 프로세스는 콘솔에 출력하는 간단한 구성을 가집니다.</span>
+    <span class="c1"># The main process gets a simple configuration which prints to the console.</span>
     <span class="n">config_initial</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -2025,11 +2039,9 @@ logging_rotatingfile_example.out.5
             <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;DEBUG&#39;</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="c1"># 워커 프로세스 구성은 루트 로거에 연결된 QueueHandler일 뿐이며,</span>
-    <span class="c1"># 이를 통해 모든 메시지를 큐로 보낼 수 있습니다.</span>
-    <span class="c1"># 부모 프로세스에서 사용된 &quot;setup&quot; 로거를 비활성화하기 위해 기존 로거를</span>
-    <span class="c1"># 비활성화합니다. fork() 이후 자식 프로세스에 로거가 존재하게 되는</span>
-    <span class="c1"># POSIX에서 이것이 필요합니다.</span>
+    <span class="c1"># The worker process configuration is just a QueueHandler attached to the</span>
+    <span class="c1"># root logger, which allows all messages to be sent to the queue.</span>
+    <span class="c1"># Disable the parent&#39;s &quot;setup&quot; logger if it was inherited via fork.</span>
     <span class="n">config_worker</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s1">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -2044,11 +2056,10 @@ logging_rotatingfile_example.out.5
             <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;DEBUG&#39;</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="c1"># 리스너 프로세스 구성은 이벤트를 원하는 핸들러로 전달하기 위해</span>
-    <span class="c1"># 로깅 구성의 모든 유연성을 사용할 수 있음을 보여줍니다.</span>
-    <span class="c1"># 부모 프로세스에서 사용된 &quot;setup&quot; 로거를 비활성화하기 위해 기존 로거를</span>
-    <span class="c1"># 비활성화합니다. fork() 이후 자식 프로세스에 로거가 존재하게 되는</span>
-    <span class="c1"># POSIX에서 이것이 필요합니다.</span>
+    <span class="c1"># The listener process configuration shows that the full flexibility of</span>
+    <span class="c1"># logging configuration is available to dispatch events to handlers however</span>
+    <span class="c1"># you want.</span>
+    <span class="c1"># Disable the parent&#39;s &quot;setup&quot; logger if it was inherited via fork.</span>
     <span class="n">config_listener</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s1">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -2098,8 +2109,8 @@ logging_rotatingfile_example.out.5
             <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;DEBUG&#39;</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="c1"># 부모 프로세스에서의 로깅이 정상적으로 작동함을 보여주기 위해</span>
-    <span class="c1"># 몇 가지 초기 이벤트를 로깅합니다.</span>
+    <span class="c1"># Log some initial events, just to show that logging in the parent works</span>
+    <span class="c1"># normally.</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config_initial</span><span class="p">)</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;setup&#39;</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;About to create workers ...&#39;</span><span class="p">)</span>
@@ -2116,11 +2127,11 @@ logging_rotatingfile_example.out.5
                  <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">stop_event</span><span class="p">,</span> <span class="n">config_listener</span><span class="p">))</span>
     <span class="n">lp</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Started listener&#39;</span><span class="p">)</span>
-    <span class="c1"># 이제 워커가 작업을 마칠 때까지 대기합니다.</span>
+    <span class="c1"># We now hang around for the workers to finish their work.</span>
     <span class="k">for</span> <span class="n">wp</span> <span class="ow">in</span> <span class="n">workers</span><span class="p">:</span>
         <span class="n">wp</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
-    <span class="c1"># 워커가 모두 완료되었으므로 이제 리스너를 중지할 수 있습니다.</span>
-    <span class="c1"># 부모 프로세스에서의 로깅은 여전히 정상적으로 작동합니다.</span>
+    <span class="c1"># Workers all done, listening can now stop.</span>
+    <span class="c1"># Logging in the parent still works normally.</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Telling listener to stop ...&#39;</span><span class="p">)</span>
     <span class="n">stop_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
     <span class="n">lp</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
@@ -3376,7 +3387,11 @@ WARNING:demo:ZeroDivisionError: division by zero
 </section>
 <section id="how-to-uniformly-handle-newlines-in-logging-output">
 <h2 data-msgid="832ab46819697a19f8874898d9fc84b1ff4134a1" data-score="40">로깅 출력에서 줄바꿈을 일관되게 처리하는 방법<a class="headerlink" href="#how-to-uniformly-handle-newlines-in-logging-output" title="Link to this heading">¶</a></h2>
-<p data-msgid="2e75e723531dd8f131a4f761deff6549d3c79fc0" data-score="40">일반적으로 로깅되는 메시지(콘솔 또는 파일)는 단일 행의 텍스트로 구성됩니다. 그러나 로깅 포맷 문자열에 줄바임이 포함되어 있거나, 로그 데이터 자체에 줄바꿈이 포함된 경우 여러 줄로 구성된 메시지를 처리해야 할 필요가 있습니다. 이러한 메시지를 일관되게 처리하여 각 라인이 별도로 기록된 것처럼 동일하게 출력되길 원한다면, 다음 스니펫과 같이 핸들러 믹스인을 사용하여 구현할 수 있습니다.</p>
+<p data-msgid="6e3f376a88724f85993fb7fbcc955a1be800c4da" data-score="0" data-since="261119">Usually, messages that are logged (say to console or file) consist of a single
+line of text. However, sometimes there is a need to handle messages with
+multiple lines because the message or its arguments contain newlines.
+To format each line as if it were logged separately, you can use a handler
+mixin, as in the following snippet:</p>
 <div class="highlight-python notranslate" data-msgid="621c9333fe58e5c5a58e0c6508de678e301160f7" data-score="40"><div class="highlight"><pre><span></span><span class="c1"># 이 코드가 mymixins.py 모듈에 있다고 가정합니다.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 
